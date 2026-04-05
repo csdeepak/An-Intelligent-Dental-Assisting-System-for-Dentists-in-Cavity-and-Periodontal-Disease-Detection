@@ -82,3 +82,5 @@ sample_data/
 !outputs/README.md
 !docs/flowcharts/*.svg
 !docs/reports/*.pdf
+
+data/tufts/ZIP/Segmentation/Segmentation/teeth_polygon.json
