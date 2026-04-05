@@ -1,0 +1,84 @@
+# =============================================================================
+# Dental AI Pipeline — .gitignore
+# =============================================================================
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# --- Virtual environments ---
+venv/
+env/
+.env/
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# --- IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Dataset (large files — DO NOT commit) ---
+data/processed_dataset_tufts/
+data/raw/
+data/*.csv
+data/*.json
+*.JPG
+*.jpg
+*.png
+*.PNG
+!docs/**/*.png
+!docs/**/*.svg
+!assets/*.png
+!assets/*.svg
+
+# --- Model checkpoints (large files) ---
+models/*.pth
+models/*.pt
+models/*.onnx
+models/*.pkl
+models/checkpoints/
+
+# --- Training outputs ---
+outputs/
+runs/
+logs/
+wandb/
+
+# --- Colab/Kaggle temp ---
+sample_data/
+.config/
+
+# --- Compressed archives ---
+*.zip
+*.tar.gz
+*.tar
+*.rar
+
+# =============================================================================
+# FILES TO KEEP (override above patterns)
+# =============================================================================
+!models/.gitkeep
+!models/README.md
+!data/.gitkeep
+!data/README.md
+!outputs/.gitkeep
+!outputs/README.md
+!docs/flowcharts/*.svg
+!docs/reports/*.pdf

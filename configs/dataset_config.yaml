@@ -1,0 +1,131 @@
+# =============================================================================
+# Dental AI Pipeline — Configuration
+# =============================================================================
+# All paths and hyperparameters in one place.
+# Update BASE_PATH to match your environment.
+# =============================================================================
+
+# --- Environment ---
+environment: "colab"  # colab | kaggle | local
+
+# --- Dataset Paths (Google Drive) ---
+paths:
+  base: "/content/drive/MyDrive/tufts/ZIP"
+  radiographs: "${paths.base}/Radiographs/Radiographs"
+  bbox_json: "${paths.base}/Segmentation/Segmentation/teeth_bbox.json"
+  expert_json: "${paths.base}/Expert/Expert/expert.json"
+  expert_masks: "${paths.base}/Expert/Expert/mask"
+  teeth_masks: "${paths.base}/Segmentation/Segmentation/teeth_mask"
+  maxillomandibular: "${paths.base}/Segmentation/Segmentation/maxillomandibular"
+  output_dataset: "/content/drive/MyDrive/tufts/processed_dataset_tufts"
+
+# --- Dataset Construction ---
+dataset:
+  # Crop parameters
+  expand_width: 1.5           # Width expansion factor
+  expand_height: 2.0          # Height expansion factor (asymmetric — teeth are tall)
+  crop_size: [224, 224]       # Final crop dimensions
+
+  # Label assignment
+  # CRITICAL: This is pixel-overlap ratio, NOT IoU
+  # overlap = mask_pixels_inside_crop / crop_area
+  overlap_threshold: 0.01     # 1% — tune after visual inspection
+  # Threshold range: 0.005 – 0.02 recommended
+
+  # Bbox jitter for YOLO noise simulation
+  jitter_fraction: 0.15       # ±15% perturbation
+
+  # Bbox filter
+  min_bbox_dim: 3             # Minimum width/height in pixels
+
+  # Split
+  val_ratio: 0.20
+  random_seed: 42
+
+  # Validation
+  n_visual_samples: 30
+
+# --- Model Training ---
+training:
+  # Architecture
+  architecture: "resnet18"
+  pretrained: true
+  num_classes: 2              # Binary: normal / diseased
+  fc_in_features: 512         # ResNet18 FC input size
+
+  # Optimization
+  optimizer: "adam"
+  learning_rate: 0.0001
+  weight_decay: 0.0
+  batch_size: 16
+  epochs: 50
+
+  # Class weighting
+  use_class_weights: true     # Compute from training set distribution
+
+  # Scheduler
+  scheduler: "reduce_on_plateau"
+  scheduler_patience: 5
+  scheduler_factor: 0.5
+
+  # Early stopping
+  early_stopping: true
+  early_stop_patience: 10
+  early_stop_metric: "val_f1_macro"
+
+  # Augmentation (applied during training only)
+  augmentation:
+    horizontal_flip: true
+    rotation_degrees: 10
+    brightness_jitter: 0.2
+    contrast_jitter: 0.1
+    gaussian_noise_std: 0.01
+
+  # Normalization (must match across all models)
+  normalize:
+    mean: [0.485, 0.456, 0.406]   # ImageNet
+    std: [0.229, 0.224, 0.225]    # ImageNet
+
+# --- Evaluation ---
+evaluation:
+  targets:
+    class_0_f1: 0.75          # Normal — avoid false positives
+    class_1_f1: 0.70          # Diseased — clinical sensitivity
+    macro_f1: 0.72            # Overall quality
+  primary_metric: "val_f1_macro"
+
+# --- Universal to FDI Mapping ---
+# Tufts uses Universal numbering (1-32). Final report requires FDI.
+universal_to_fdi:
+  "1": 18
+  "2": 17
+  "3": 16
+  "4": 15
+  "5": 14
+  "6": 13
+  "7": 12
+  "8": 11
+  "9": 21
+  "10": 22
+  "11": 23
+  "12": 24
+  "13": 25
+  "14": 26
+  "15": 27
+  "16": 28
+  "17": 38
+  "18": 37
+  "19": 36
+  "20": 35
+  "21": 34
+  "22": 33
+  "23": 43
+  "24": 44
+  "25": 45
+  "26": 46
+  "27": 47
+  "28": 48
+  "29": 31
+  "30": 32
+  "31": 33
+  "32": 34
