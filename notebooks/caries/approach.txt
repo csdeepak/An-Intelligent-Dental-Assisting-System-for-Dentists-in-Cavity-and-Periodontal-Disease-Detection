@@ -1,0 +1,41 @@
+The approach
+This notebook builds a two-stage cascade classifier for dental caries on the DENTEX dataset. Instead of training one model to do 3-way classification across no_caries / caries / deep_caries, you split the problem into two sequential binary classifiers:
+Phase 1 — the gate: caries vs no_caries. Decide whether the tooth has decay at all.
+Phase 2 — the severity head: caries vs deep_caries. Among teeth already flagged as decayed, decide if it's shallow or deep.
+At inference, an image flows through Phase 1 first; if it's predicted as caries, it goes to Phase 2 for severity grading. If Phase 1 says no_caries, you stop. This is a standard "coarse-to-fine" cascade, and the logic is sound — the Phase 2 model never has to waste capacity distinguishing healthy teeth from diseased ones, and the Phase 1 model never has to learn the subtler deep-vs-shallow boundary.
+The recipe both phases share
+Both phases use the same core setup, which is transfer learning on ResNet18 pretrained on ImageNet:
+
+Load images via ImageFolder, resize to 224×224, convert to tensor, normalize with ImageNet mean/std (required because the pretrained backbone expects that distribution).
+Swap ResNet18's final 1000-class FC layer for a fresh 2-class FC.
+Train with class-weighted CrossEntropyLoss — the minority class gets a higher penalty to compensate for imbalance.
+Adam optimizer, standard train/validate loop, save checkpoint on best validation accuracy.
+Evaluate with confusion matrix + classification report (precision, recall, F1 per class).
+
+The class weights are where you're trying to inject your clinical prior: missing a diseased tooth is worse than over-flagging a healthy one, so the diseased class gets weighted higher.
+Where the two phases diverge — the Phase 2 strategy
+Phase 1 is straightforward: pretrained ResNet18, swap FC, train end-to-end, save, done.
+Phase 2 is where the approach gets more deliberate, and it uses a three-step transfer learning protocol:
+Step A — Warm-start from Phase 1. Load the Phase 1 weights into a fresh ResNet18. The backbone has already learned dental-image features (edges, tooth shapes, enamel texture), so you don't want to throw that away. But you immediately reset the FC layer — Phase 1's FC was trained on caries/no_caries, which is a useless decision boundary for the new task. Only the convolutional feature extractor carries over.
+Step B — FC-only training (frozen backbone). Freeze every parameter except the new FC. Train just the classifier head for 5 epochs. The idea is to let the FC "calibrate" to the new task before you let gradients flow into the backbone. Without this warm-up, a randomly initialized FC would produce huge loss gradients on the first few batches and corrupt the pretrained backbone weights.
+Step C — Unfreeze and fine-tune everything. Unfreeze all parameters and train end-to-end, now at a much lower learning rate (3e-5 vs the initial 1e-3). Low LR is critical here — you want to gently adjust the backbone features toward severity cues, not wreck them. You then iterate this fine-tuning stage multiple times, adjusting class weights ([0.5, 3.5] → [0.6, 3.0]) to rebalance the precision/recall trade-off on deep_caries.
+This pattern — freeze-FC-train → unfreeze-full-finetune — is the textbook transfer learning recipe when you're adapting a pretrained model to a new but related task, and it's the most methodologically thoughtful part of the notebook.
+What the approach is explicitly betting on
+Three assumptions underpin the whole design:
+
+Hierarchical decomposition beats joint learning. You're assuming that splitting caries/no-caries from caries/deep-caries into two dedicated models will outperform a single 3-way classifier. On small datasets this is often true, but it's a bet, not a given.
+ImageNet features transfer to dental X-rays. Reasonable — low-level filters (edges, textures) transfer almost universally — but dental radiographs are grayscale, high-contrast, and structurally very different from ImageNet's natural photos. You're relying on the backbone to adapt during fine-tuning.
+Class weighting is the right tool for imbalance. It's the simplest tool. Whether it's the right one versus resampling, focal loss, or threshold tuning is a question you didn't test.
+
+What the approach does not include
+Being honest about the gaps so you can see the shape of what you built:
+
+No data augmentation actually applied. You defined an augmentation pipeline in Phase 2 (RandomRotation, HorizontalFlip, ColorJitter) but then loaded the data with the plain transform. So the approach is "train on a small fixed dataset and hope" — not "train with augmentation."
+No learning rate scheduler. You manually dropped LR between stages (1e-3 → 3e-5) but didn't use StepLR, CosineAnnealing, or ReduceLROnPlateau. It's effectively hand-tuned.
+No held-out test set. You tune on validation and report on validation. No final unseen evaluation.
+No early stopping. You train fixed epoch counts and rely on "save best val acc" as a proxy.
+Model selection criterion is accuracy, despite the problem being imbalanced — where macro-F1 or minority-class recall would be the honest metric.
+
+One-line summary
+Transfer-learned ResNet18 cascade: Phase 1 gates caries-vs-healthy, Phase 2 (warm-started from Phase 1, trained head-first then full-fine-tuned at low LR) splits shallow-vs-deep caries, with class weighting as the only tool against imbalance.
+The architecture choice and the freeze-then-unfreeze protocol are solid. The evaluation discipline around that architecture is where the work is thin.

@@ -1,0 +1,25 @@
+%% Chapter 1 — Introduction
+%% Guideline target: ~1 page.
+%%
+%% Purpose: Set up the problem domain, motivate why it matters, and state
+%% clearly what this phase of the project delivers. Do not dump background
+%% literature here — that goes in Chapter 2.
+
+\chapter{Introduction}
+\label{ch:introduction}
+
+% Write your introduction here. Replace the placeholder paragraphs below.
+
+Dental panoramic radiograph also commonly referred to as Orthopantomograph (OPG), captures a complete 2-D view of the full dentition, alveolar bone, and surrounding anatomical structures in a single image. It is the most widely used modality in routine dental practice for diagnosing dental caries, periodontal bone loss, and other oral pathologies. Despite its widespread use, accurate interpretation
+of OPGs need clinical expertise and it is also prone to inter-examiner variability, especially among the early dental practitioners and dental students who are more prone to commit diagnostic errors.
+
+Dental caries affects approximately 2.3 billion people globally. Periodontal disease remains a leading cause of adult tooth loss affecting over 19\%
+of the global adult population. There is quite a challenge in early diagnosis of these diseases, as features are very subtle and can be easily misinterpreted, even by experienced clinicians.
+
+Our project proposes an intelligent dental assisting system that processes dental radiographs through a multi-stage deep learning pipeline. The system detects and numbers individual teeth using YOLO- based object detection, classifies each tooth for presence of caries and severity using ResNet18 classifier, and assesses periodontal bone loss using pathology mask overlap on expanded crops from the dataset. Grad-CAM explainability is integrated for providing visual explanations, and finally the system generates a structured clinical report. Overall the system is expected to minimize the diagnostic error and specifically meant to be a learning and support tool to junior clinicians.
+
+
+This report presents the system architecture  (Chapter\ref{ch:architecture}) , methodology including datasets, preprocessing, and training stratergy(Chapter \ref{ch:methodology}), implementation details of all modules(Chapter \ref{ch:implementation}), experimental results(Chapter \ref{ch:results}) and conclusions with future directions(Chapter \ref{ch:conclusion}).
+
+
+

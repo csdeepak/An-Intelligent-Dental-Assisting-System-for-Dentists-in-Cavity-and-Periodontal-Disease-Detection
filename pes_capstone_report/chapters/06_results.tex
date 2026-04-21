@@ -1,0 +1,61 @@
+%% Chapter 6 — Results
+%% Guideline target: 1–2 pages.
+%%
+%% Numbers, tables, plots. Not discussion. Not speculation. Just what happened.
+%% Reviewers want to see: the headline metric, a table comparing the models you
+%% tried, and at least one qualitative example (good + bad case if space).
+
+\chapter{Results}
+\label{ch:results}
+
+\section{Quantitative Results}
+\label{sec:results-quant}
+
+\textit{[Replace.] Open with the headline number in one sentence (e.g.\ ``Our
+best model achieves an F1 of 0.XX on the held-out test set.''). Then present
+the full results table.}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Performance comparison across model variants.}
+  \label{tab:results-comparison}
+  \begin{tabular}{@{}lcccc@{}}
+    \toprule
+    Model & Accuracy & Precision & Recall & F1 \\
+    \midrule
+    Baseline   & -- & -- & -- & -- \\
+    Variant A  & -- & -- & -- & -- \\
+    Variant B  & -- & -- & -- & -- \\
+    \textbf{Ours} & -- & -- & -- & -- \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Qualitative Results}
+\label{sec:results-qual}
+
+\textit{[Replace.] Show representative outputs. Include at least one failure
+case — this is the single easiest way to demonstrate that you understand your
+own system's limits.}
+
+\begin{figure}[htbp]
+  \centering
+  % \includegraphics[width=0.9\linewidth]{figures/qualitative_example.png}
+  \fbox{\parbox[c][4cm][c]{0.85\linewidth}{\centering\textit{[Qualitative result placeholder.]}}}
+  \caption{Representative output from the proposed system.}
+  \label{fig:qualitative}
+\end{figure}
+
+\section{Ablation / Comparative Analysis}
+\label{sec:results-ablation}
+
+\textit{[Replace. Optional but strongly recommended.] Which design choices
+mattered? Remove one component at a time and report the delta in the
+headline metric.}
+
+\section{Discussion}
+\label{sec:results-discussion}
+
+\textit{[Replace.] Brief. Two paragraphs at most. What do the numbers mean,
+and what are the most honest limitations of the evaluation itself (e.g.\
+single-centre data, small test set)?}

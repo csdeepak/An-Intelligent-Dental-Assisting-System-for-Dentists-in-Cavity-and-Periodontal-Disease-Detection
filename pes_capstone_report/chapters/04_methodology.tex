@@ -1,0 +1,98 @@
+%% Chapter 4 — Methodology
+%% Guideline target: 1–2 pages.
+%%
+%% Methodology describes the *approach*, not the *code*. Datasets, splits,
+%% preprocessing choices, model selection criteria, training strategy,
+%% evaluation metrics. A reader should be able to replicate the EXPERIMENTAL
+%% DESIGN (not the implementation) from this chapter alone.
+
+\chapter{Methodology}
+\label{ch:methodology}
+
+\section{Dataset}
+\label{sec:method-dataset}
+
+Three datasets were used in this project, each one of them is selected based on the type of annotations relevant to corresponding module in the pipeline.
+
+The DENTEX dataset (Dental Enumeration and Diagnosis on Panoramic X-rays) consists of 
+1,005 panoramic radiographs sourced from multiple institutions. It provides bounding box 
+labels for teeth as well as labels for dental caries. These annotations are used for training the tooth detection model (YOLO) and the caries classification model (ResNet18). The dataset includes two main pathology classes, namely Caries and Deep Caries, which also support severity-based 
+classification.
+
+The Tufts Dental Database is primarily used for periodontal bone loss analysis. It contains around 1,000 panoramic radiographs along with multiple annotation types, including expert text labels, bounding boxes, and pathology masks. During data exploration, it was observed that only a subset of the data contains all required annotations simultaneously. After filtering, 423 images were selected as the working dataset for the bone loss pipeline.These images were further processed to generate tooth-level crops, resulting in a total of 22,806 samples. However, a major challenge observed in this dataset is severe class imbalance. 
+Approximately 96\% of the samples correspond to normal teeth, while only 4\% represent diseased cases. This imbalance occurs because each image contains many teeth, and even in images with disease, most teeth are still healthy. As a result, standard training methods such as cross-entropy loss tend to perform poorly, requiring additional handling strategies such as resampling.
+
+
+The CariesXrays dataset contains 6,000 high-quality panoramic radiographs with over 13,000 expert-annotated caries bounding boxes. This dataset is intended to improve the robustness of the caries detection module, particularly in challenging cases such as teeth with metallic restorations. Integration of this dataset is planned for future work.
+Overall, the use of multiple datasets is necessary due to the lack of a single dataset containing all required annotations. However, this introduces challenges such as annotation inconsistency and class imbalance, which are addressed through preprocessing and data selection techniques.
+
+
+
+
+\begin{table}[htbp]
+  \centering
+  \caption{Dataset summary.}
+  \label{tab:dataset-summary}
+  \begin{tabular}{@{}llll@{}}
+    \toprule
+    Split & Images & Positive class \% & Notes \\
+    \midrule
+    Train & -- & -- & -- \\
+    Val   & -- & -- & -- \\
+    Test  & -- & -- & -- \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Preprocessing}
+\label{sec:method-preprocessing}
+
+\subsection{Bounding Box Correction}
+During the dataset construction it has been observed that the raw bounding box coordinates in the Tufts dataset were not in the standard format [x,y,w,h]. Without the correction, all crop extractions would have been geometrically incorrect. The correction applied is: 
+x = x1, y = y1 , w = x2 - x1 , h = y2 - y1 ,
+with the x and y axes swapped. After conversion, tooth bounding box dimensions were verified to be anatomically plausible, with width ranging from a minimum to a maximum across the 26,005 annotated teeth.
+
+\subsection{Asymmetric Expanded Crop for Bone Loss Assessment}
+Tooth crops for periodontal assessment are expanded asymmetrically: 1.5× in the horizontal direction and 2.0× in the vertical direction. This asymmetric design reflects the anatomical reality that teeth have a mean aspect ratio of approximately 0.35 (they are three times taller than wide). Symmetric expansion would cause excessive horizontal bleed into adjacent teeth, while insufficient vertical expansion would fail to capture the alveolar bone below the root apex, which is the key region for bone loss assessment. The expansion formula computes the centre of the original bounding box, then extends outward by the scaled half-widths and half-heights, clipping to image boundaries.
+
+\subsection{Overlap-Metric based Label}
+The standard Intersection over Union metric was explicitly rejected for labelling bone loss crops. The expert pathology masks in the Tufts dataset are sparse: lesion annotations occupy only 0.5–2\% of the total crop area. When IoU is applied to these sparse annotations, even true positive cases produce IoU values near zero, because the union term is dominated by the large crop area. The overlap metric used instead is: overlap = (non-zero mask pixels inside the expanded crop) / (total crop area). A threshold of 0.01 (1\% coverage) was adopted as the label boundary after visual inspection of the overlap distribution, distinguishing genuine periapical pathology from noise-level mask fragments.
+
+
+\subsection{Bounding Box Jitter for YOLO Noise Simulation}
+To prevent distribution mismatch at inference, a random perturbation of ±15\% is applied to the bounding box coordinates during dataset construction. This simulates the noise introduced by YOLO detection at inference time. Without this jitter, the model trains on geometrically perfect ground-truth crops but receives slightly misaligned crops at inference, causing a systematic performance drop. Random offsets dx, dy, dw, and dh are sampled uniformly and applied to the box, with clipping to ensure the jittered box remains within image boundaries and retains minimum dimensions.
+
+\subsection{CLAHE Preprocessing for CEJ Estimation}
+The CEJ estimation module applies Contrast Limited Adaptive Histogram Equalization (CLAHE) with a clip limit of 2.0 and an 8×8 tile grid before landmark detection. OPG crops exhibit significant local contrast variation due to acquisition geometry, and CLAHE normalizes this variation to make bone-to-tooth boundaries more visible. A gentle Gaussian blur (sigma = 1.5) is applied after CLAHE to suppress pixel noise without destroying structural edges. This preprocessing step was a key improvement in version 2 of the CEJ pipeline, contributing to the increase in successful CEJ detection rate compared to the raw-grayscale version 1 baseline.
+
+\subsection{Data Augmentation}
+The severity classification dataset is constructed from positive crops (bone loss class 1) from the binary dataset. Because the Severe class (overlap > 0.15) is substantially underrepresented relative to the Mild class (overlap 0.01–0.05), augmentation copies are generated for minority classes during dataset construction using random horizontal flip, random rotation within 12 degrees, colour jitter with brightness factor 0.25 and contrast factor 0.15, and random translation within 6\% in both axes. All augmented copies from the same source image are kept in the same split to prevent data leakage.
+
+
+\subsection{Handling Class Imbalance }
+To address the class imbalance, a corrected resampled dataset is constructed from the raw processed dataset output before binary model training. The resampling strategy has two components. First, normal crops are undersampled from 17,473 training samples down to approximately 2,500 using a stratified approach: each source image contributes a proportional share of the 2,500 target, ensuring that no single image dominates the normal class after undersampling. Second, the 739 original diseased training crops are kept in full, and two augmented copies are generated for each using random horizontal flip, random rotation within 10 degrees, colour jitter with brightness 0.2 and contrast 0.1, and random affine translation within 5\%, bringing the total diseased training crop count to approximately 2,217. The resulting train set ratio of approximately 1.1× is close to balanced. Critically, the validation set is kept entirely untouched — no resampling is applied to val — so that evaluation metrics reflect the real-world class distribution rather than a corrected one.
+
+
+
+\section{Model Architecture}
+\label{sec:method-model}
+
+All classification modules use ResNet18 with ImageNet pre-training and the final fully connected layer replaced to match the number of output classes. For caries severity classification (No Caries / Caries / Deep Caries), the output layer maps 512 features to 3 classes. For bone loss binary detection, the output layer maps to 2 classes. For the three-class bone loss severity model (Mild / Moderate / Severe), the same ResNet18 backbone maps to 3 classes. ResNet18 was selected over larger variants after finding that ResNet50 trained on the same dataset exhibited a training-validation accuracy gap of 14 percentage points compared to 7 for ResNet18, indicating insufficient data to support the larger model capacity. The tooth detection module uses a pre-trained YOLOv8 model fine-tuned on DENTEX dataset.
+
+\section{Training Strategy}
+\label{sec:method-training}
+
+\textit{[Replace.] Optimiser, loss function, learning-rate schedule, batch
+size, early-stopping criterion, class-weighting if any. Include the exact
+epoch count and hardware used.}
+
+\section{Evaluation Metrics}
+\label{sec:method-metrics}
+
+All classification modules are evaluated using per-class Precision, Recall, and F1-score, plus macro-averaged F1. Raw accuracy is not used as the primary metric given class imbalance. For the bone loss binary module, Recall for the positive class (bone loss present) is prioritized, because in a screening context false negatives are clinically more harmful than false positives. For the severity modules, macro-F1 is the selection metric, ensuring no class is ignored during model selection. Image-level stratified train-validation splits are used for all modules, with all crops from the same OPG kept within the same split to prevent data leakage from jittered augmentation copies. A leakage check is performed after every split by verifying that the intersection of training and validation image stems is empty.
+
+% Example equation — uses chapter.section numbering automatically.
+\begin{equation}
+  \label{eq:f1}
+  F_1 = \frac{2 \cdot \mathrm{Precision} \cdot \mathrm{Recall}}{\mathrm{Precision} + \mathrm{Recall}}
+\end{equation}

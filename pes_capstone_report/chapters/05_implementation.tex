@@ -1,0 +1,45 @@
+%% Chapter 5 — Implementation (Salient Modules)
+%% Guideline target: ~2 pages.
+%%
+%% This is where the actual code-level details go. Module-by-module walkthrough.
+%% Include representative code snippets (use `listings` if you want syntax
+%% highlighting; it is already available on Overleaf). Keep snippets short —
+%% no one wants to read a whole file in a report.
+
+\chapter{Implementation}
+\label{ch:implementation}
+
+\section{Technology Stack}
+\label{sec:impl-stack}
+
+The system is implemented in Python 3.10. The deep learning framework is PyTorch 2.0 with torchvision 0.15. Tooth detection uses Ultralytics YOLOv8. Dataset loading and annotation parsing use custom parsers for the Tufts JSON format and DENTEX COCO-format annotations. Image processing uses OpenCV 4.8 and PIL/Pillow 10.0. Signal processing for the CEJ estimation module uses scipy.signal (Savitzky-Golay filtering) and scipy.ndimage (Gaussian filtering). Model evaluation uses scikit-learn for F1, classification reports, and confusion matrices. Development and training were conducted on Google Colab using T4 and A100 GPU instances. 
+
+
+\section{Module 1: \textit{Caries Cascade Classifier }}
+\label{sec:impl-module1}
+
+
+
+\section{Module 2: \textit{Dataset Exploration and Annotation Parsing }}
+\label{sec:impl-module2}
+
+
+\section{Module 3: \textit{Bone Loss Dataset Construction}}
+\label{sec:impl-module3}
+
+\section{Module 4: \textit{Bone Loss Binary Classifier Training }}
+\label{sec:impl-module4}
+
+\section{Module 5: \textit{Bone Loss Severity Classification}}
+\label{sec:impl-module5}
+
+\section{Module 6: \textit{CEJ- based Bone Loss Estimation}}
+\label{sec:impl-module6}
+
+
+
+
+\section{Integration and Pipeline Orchestration}
+\label{sec:impl-integration}
+
+The pipeline is orchestrated by a central controller script that accepts an OPG image path and returns a JSON report. The execution sequence is: (1) YOLOv8 tooth detection and FDI numbering; (2) per-tooth dual-path processing where the tight crop is passed to the ResNet18 caries classifier and the expanded crop is passed to the bone loss binary classifier; (3) for teeth flagged as bone-loss positive, the expanded crop is additionally passed to the severity classifier; (4) for all teeth with non-normal caries predictions, Grad-CAM is computed on the last convolutional layer of the ResNet18 caries model; (5) the filtering stage removes teeth where both modules report normal findings; (6) the report generator serializes filtered tooth records to JSON and produces a PDF containing the annotated OPG, per-tooth findings table, and Grad-CAM thumbnails. The pipeline is modular: each module can be upgraded independently without modifying the orchestration layer.

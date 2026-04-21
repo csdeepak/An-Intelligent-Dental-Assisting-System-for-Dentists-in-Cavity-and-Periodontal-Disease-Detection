@@ -1,0 +1,124 @@
+%% ============================================================================
+%%  PES University — Capstone Project Report (Phase 2 and future phases)
+%%  Template based on the UE23CS320B guidelines.
+%%
+%%  How to use:
+%%    1. Fill in the \setup block below (project title, names, SRNs, etc.).
+%%    2. Write your chapter content in chapters/*.tex.
+%%    3. Drop figure images into figures/ and reference them from chapters.
+%%    4. Compile with pdflatex (twice, so TOC/LOF/LOT and refs are correct).
+%%       On Overleaf, the default recipe already does this.
+%%
+%%  Do NOT edit pesreport.cls unless you are changing the *visual* style.
+%%  Content-only edits happen in this file and in chapters/*.tex.
+%% ============================================================================
+
+\documentclass{pesreport}
+
+% ---- Optional extra packages -----------------------------------------------
+% Uncomment what you need. `listings' is commonly wanted for code blocks.
+% \usepackage{listings}
+% \lstset{basicstyle=\footnotesize\ttfamily,breaklines=true,frame=single}
+
+% ============================================================================
+%   PROJECT METADATA — edit these values for your project
+% ============================================================================
+
+\projecttitle{An Intelligent Dental Assisting System for Dentists in Cavity and
+Periodontal Disease Detection}
+\projectid{PW26\_MHR\_06}
+\coursecode{UE23CS320B}
+\phasename{Capstone Project Phase - 2}
+\phaseperiod{January - May 2026}
+\phasesemester{sixth}
+\reportperiod{Jan - May, 2026}          % appears in the page footer
+\reporttitle{Capstone Project Phase - 2}% appears in the running header
+\reportdept{Dept. of CSE}               % appears in the page footer
+
+\guidename{Dr. Mamatha H R}
+\guidedesignation{Designation, Department of CSE}
+\chairperson{Dr. Shylaja S S}
+\registrar{Dr. K S Sridhar}
+
+% Team members — use \addteammember{Name}{SRN} for each author (up to ~6).
+% The same list is reused on the title page, certificate, and declaration.
+\addteammember{C S DEEPAK}{PES1UG23CS907}
+\addteammember{CHENNUPATI GUNADEEP}{PES1UG23CS160}
+\addteammember{ARCHANA}{PES1UG23CS098}
+\addteammember{AVSN SAI SRUJAN}{PES1UG23CS123}
+
+% Same team repeated for the declaration's SRN | Name | Signature table.
+\addteamsign{C S DEEPAK}{PES1UG23CS907}
+\addteamsign{CHENNUPATI GUNADEEP}{PES1UG23CS160}
+\addteamsign{ARCHANA}{PES1UG23CS098}
+\addteamsign{AVSN SAI SRUJAN}{PES1UG23CS123}
+
+% ============================================================================
+%   DOCUMENT BODY
+% ============================================================================
+
+\begin{document}
+
+% ---- Front matter (no page numbers shown, no running headers/footers) ------
+\pagestyle{pesfront}
+\pagenumbering{roman}
+\setcounter{page}{1}
+
+\makepestitlepage
+\makepescertificate
+\makepesdeclaration
+
+\begin{pesacknowledgement}
+I would like to express my gratitude to \textbf{Prof. Guide Name}, Department
+of Computer Science and Engineering, PES University, for his/her continuous
+guidance, assistance, and encouragement throughout the development of this
+UE23CS320B -- Capstone Project Phase -- 2.
+
+I am grateful to the project coordinator, \textbf{Prof. Gayathri R S}, for
+organising, managing, and helping with the entire process.
+
+I take this opportunity to thank \textbf{Dr. Shylaja S S}, Chairperson,
+Department of Computer Science and Engineering, PES University, for all the
+knowledge and support I have received from the department. I would like to
+thank \textbf{Dr. K S Sridhar}, Registrar, PES University, for his help.
+
+I am deeply grateful to \textbf{Prof. Jawahar Doreswamy}, Chancellor, PES
+University, and \textbf{Dr.\ Surya\-prasad~J}, Vice-Chancellor, PES University,
+for providing various opportunities and enlightenment every step of the way.
+Finally, this project could not have been completed without the continual
+support and encouragement received from my family and friends.
+\end{pesacknowledgement}
+
+
+
+\begin{abstract}
+
+Accurate interpretation of dental panoramic radiographs(OPGs) is a complex and challenging task due to the subtle nature of early carious lesions and periodontal bone less, especially for early-stage dental practitioners. Manual analysis is very time consuming, subjective, and results are prone to vary between different examiners. Existing deep learning approaches in this domain are primarily focused on single tasks and are narrowly scoped, addressing either caries detection or periodontal assessment alone, lacking clinical explainability and severity grading.
+
+
+This project presents an unified, end-to-end, multi-task deep learning pipeline that analyzes the dental radiographs to detect caries with severity grading and assess periodontal disease via alveolar bone loss estimation . In this approach, the system decomposes each OPG into individual tooth regions using YOLO-based detection with FDI numbering, which enables localized analysis and improved interpretability,then ResNet18 classifier is applied for binary caries detection and severity grading, which classifies them into Caries vs. Deep Caries. Periodontal bone loss is assessed using pathology mask overlap on expanded tooth crops that are derived from the dental dataset. Explainability is incorporated via Grad-CAM visualizations to support clinical decision making. The system outputs a structured, tooth-level diagnostic report aligned with the FDI standards, designed to assist junior clinicians and dental students in consistent, interpretable radiographic assessment.
+\end{abstract}
+
+% ---- Table of Contents, List of Figures, List of Tables -------------------
+\tableofcontents
+\clearpage
+
+\listoffigures
+\clearpage
+
+\listoftables
+\clearpage
+
+% ---- Main matter: switch to Arabic page numbers and running header/footer --
+\startcontentpages
+
+\input{chapters/01_introduction}
+\input{chapters/02_literature}
+\input{chapters/03_architecture}
+\input{chapters/04_methodology}
+\input{chapters/05_implementation}
+\input{chapters/06_results}
+\input{chapters/07_conclusion}
+\input{chapters/08_references}
+
+\end{document}
