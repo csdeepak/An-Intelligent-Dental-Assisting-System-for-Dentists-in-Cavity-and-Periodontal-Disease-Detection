@@ -1,11 +1,21 @@
 # 🦷 Dental AI Pipeline — Automated OPG Analysis
 
-> **Caries Detection & Bone Loss Detection from Panoramic Dental X-rays**
+> **Caries Detection & Periodontal Bone Loss Detection from Panoramic Dental X-rays**
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-red.svg)](https://pytorch.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-In%20Progress-yellow.svg)]()
+[![Status](https://img.shields.io/badge/Status-4%2F6%20Stages%20Trained-yellow.svg)]()
+
+---
+
+> **📚 Start here:**
+> **[`docs/README.md`](docs/README.md)** is the documentation entry point, and
+> **[`docs/results/PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md)** is the master
+> technical document the paper is written from (all metrics, methods and an honest
+> limitations section). Current numbers at a glance:
+> [`docs/results/model_metrics.md`](docs/results/model_metrics.md).
+> Project history: [`docs/results/RESULTS_LOG.md`](docs/results/RESULTS_LOG.md).
 
 ---
 
@@ -14,6 +24,7 @@
 - [Overview](#overview)
 - [System Architecture](#system-architecture)
 - [Pipeline Stages](#pipeline-stages)
+- [Current Results](#current-results)
 - [Dataset](#dataset)
 - [Project Structure](#project-structure)
 - [Setup & Installation](#setup--installation)
@@ -23,6 +34,7 @@
 - [Known Bugs & Fixes](#known-bugs--fixes)
 - [Evaluation Targets](#evaluation-targets)
 - [Risks & Mitigations](#risks--mitigations)
+- [Universal to FDI Conversion](#universal-to-fdi-conversion)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -30,82 +42,87 @@
 
 ## Overview
 
-This project builds a **fully automated dental diagnostic system** that takes a single **OPG (Orthopantomogram) X-ray** as input and produces a **structured per-tooth clinical report** identifying:
+This project builds a **fully automated dental diagnostic system** that takes a single
+**OPG (Orthopantomogram) X-ray** as input and produces a **structured per-tooth clinical
+report** identifying:
 
-- **Caries** — presence (Yes/No) and severity (Mild / Moderate / Severe)
-- **Bone Loss** — presence (Present / Absent)
+- **Caries** — presence (Yes/No) and depth (shallow `caries` vs `deep_caries`)
+- **Bone Loss** — presence (Present/Absent) and severity (Mild / Moderate / Severe)
 
-Each finding is mapped to the affected tooth using **FDI numbering** (international standard). Only affected teeth appear in the final report.
+Each finding is mapped to the affected tooth using **FDI numbering** (international
+standard). Only affected teeth appear in the final report.
 
 ### Final Output Format
 
 ```
 Tooth [FDI Number]
-  → Caries: Yes | Severity: Moderate
-  → Bone Loss: Present
+  → Caries: Yes | Depth: Deep
+  → Bone Loss: Present | Severity: Moderate
 
 Tooth [FDI Number]
   → Caries: No
-  → Bone Loss: Present
+  → Bone Loss: Present | Severity: Mild
 ```
+
+> ⚠️ **This output format is the design target, not a shipped feature.** The four
+> classification/detection models are trained and evaluated independently; the code that
+> joins them into one runnable inference (Stages 5–6) **does not exist yet**. See
+> [Pipeline Stages](#pipeline-stages).
 
 ---
 
 ## System Architecture
 
-The system processes an OPG through a **six-stage pipeline**, with two parallel analysis branches (caries and bone loss) running on different crop types from the same tooth bounding box.
+The system processes an OPG through a **six-stage pipeline**, with two parallel analysis
+branches (caries and bone loss) running on different crop types from the same tooth
+bounding box.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        OPG X-ray Input                         │
-│                        (840 × 1615 px)                         │
+│                        OPG X-ray Input                          │
+│                        (840 × 1615 px)                          │
 └──────────────────────────┬──────────────────────────────────────┘
-                           │
                            ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│              Stage 1: Tooth Detection (YOLOv8/v11)             │
-│              Output: Per-tooth bounding boxes                  │
+│              Stage 1: Tooth Detection (YOLOv11l)                │
+│              Output: Per-tooth bounding boxes                   │
 └──────────────────────────┬──────────────────────────────────────┘
-                           │
                            ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│              Stage 2: Sorting & FDI Assignment                 │
-│              Left→Right sort, jaw split, Universal→FDI         │
+│              Stage 2: Sorting & FDI Assignment                  │
+│              Left→Right sort, jaw split, Universal→FDI          │
 └──────────┬───────────────────────────────────────┬──────────────┘
-           │                                       │
            ▼                                       ▼
 ┌──────────────────────┐              ┌──────────────────────────┐
 │   CARIES PATH        │              │   BONE LOSS PATH         │
 │                      │              │                          │
 │  Tight Crop (1.0×)   │              │  Expanded Crop           │
-│  Crown-focused       │              │  (1.5× W, 2.0× H)       │
+│  Crown-focused       │              │  (1.5× W, 2.0× H)        │
 │       │              │              │  Crown + root + bone     │
-│       ▼              │              │       │                  │
-│  Resize 224×224      │              │       ▼                  │
-│  ImageNet normalize  │              │  Resize 224×224          │
-│       │              │              │  ImageNet normalize      │
-│       ▼              │              │       │                  │
-│  ResNet18 Binary     │              │       ▼                  │
-│  (Caries Yes/No)     │              │  ResNet18 Binary         │
-│       │              │              │  (Bone Loss Yes/No)      │
-│       ▼ (if Yes)     │              │                          │
-│  ResNet18 Severity   │              │                          │
-│  (Mild/Mod/Severe)   │              │                          │
+│       ▼              │              │       ▼                  │
+│  Resize 224×224      │              │  Resize 224×224          │
+│  ImageNet normalize  │              │  ImageNet normalize      │
+│       ▼              │              │       ▼                  │
+│  ResNet18 Gate       │              │  ResNet18 Binary         │
+│  (caries / no)       │              │  (Bone Loss Yes/No)      │
+│       ▼ (if caries)  │              │       ▼ (if present)     │
+│  ResNet18 Depth      │              │  ResNet18 Severity       │
+│  (caries/deep)       │              │  (Mild/Mod/Severe)       │
 └──────────┬───────────┘              └──────────┬───────────────┘
-           │                                      │
            └──────────────┬───────────────────────┘
                           ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│              Stage 5: Filter & Report Assembly                 │
-│              Keep only: caries=YES OR bone_loss=PRESENT        │
+│      Stage 5: Filter & Report Assembly   ⬜ NOT BUILT           │
+│      Keep only: caries=YES OR bone_loss=PRESENT                 │
 └─────────────────────────┬───────────────────────────────────────┘
                           ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                   Structured Dental Report                     │
+│      Stage 6: JSON + PDF report (Grad-CAM)  ⬜ NOT BUILT        │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-> See [`docs/flowcharts/`](docs/flowcharts/) for the full visual pipeline flowchart.
+> Diagrams: [`docs/architecture/`](docs/architecture/) —
+> `corrected_opg_pipeline_architecture.svg` is the authoritative version.
 
 ---
 
@@ -113,18 +130,35 @@ The system processes an OPG through a **six-stage pipeline**, with two parallel 
 
 | Stage | Component | Input | Output | Status |
 |-------|-----------|-------|--------|--------|
-| 1 | Tooth Detection | Full OPG | Tooth bboxes + position index | 🟡 In Progress |
-| 2 | Tight Crop | Tooth bbox × 1.0 | 224×224 crown crop | ✅ Complete |
-| 3 | Caries Model | Tight crop | Caries Yes/No + Severity | ✅ Complete |
-| 4 | Expanded Crop | Tooth bbox × 1.5W/2.0H | 224×224 bone-visible crop | ✅ Complete |
-| 5 | Bone Loss Model | Expanded crop | Bone loss Present/Absent | 🟡 In Progress |
-| 6 | Filter + Report | All tooth outputs | Final structured report | ⬜ Planned |
+| 1 | Tooth Detection (YOLOv11l) | Full OPG | Tooth bboxes | ✅ **Complete** — test mAP@0.5 **0.782** (two runs, canonical not yet frozen) |
+| 2 | Sorting + FDI assignment | Tooth bboxes | FDI-keyed tooth list | ✅ Complete — ⚠️ mapping bug open, see [FDI](#universal-to-fdi-conversion) |
+| 3 | Caries cascade (ResNet18 ×2) | Tight 1.0× crop | caries / deep_caries | ✅ **Complete** — val acc 81%, macro F1 0.77 (evaluation gaps documented) |
+| 4a | Bone Loss binary (ResNet18) | Expanded 1.5×W/2.0×H crop | Present / Absent | ✅ **Complete** — macro F1 **0.9233** |
+| 4b | Bone Loss severity (ResNet18) | Expanded crop | Mild / Moderate / Severe | ✅ **Complete** — macro F1 0.7208 (only 52 val crops) |
+| — | CEJ bone-level estimation | Expanded crop | bone loss % | 🔬 Exploratory — 15.1% agreement, **not in the pipeline** |
+| 5 | Filter + report assembly | All tooth outputs | Filtered findings | ⬜ **Not built — next milestone** |
+| 6 | JSON / PDF report + Grad-CAM | Filtered findings | Clinical report | ⬜ **Not built** |
+
+---
+
+## Current Results
+
+Full tables and provenance: [`docs/results/model_metrics.md`](docs/results/model_metrics.md).
+
+| Model | Dataset | Split | Headline metric |
+|-------|---------|-------|-----------------|
+| YOLOv11l tooth detection (A100, imgsz 1024, 150 ep) | Tufts | val / **test** | mAP@0.5 0.834 / **0.782** |
+| YOLOv11l tooth detection (H200, imgsz 768, 50 ep) — superseded | Tufts | val | mAP@0.5 0.678 |
+| Caries cascade Phase 2 (caries vs deep_caries) | DENTEX | val (133) | acc **0.81**, macro F1 **0.77** |
+| Bone loss binary | Tufts | val (1,558, real prevalence) | macro F1 **0.9233**, sens 83.05%, spec 99.53% |
+| Bone loss severity (3-class) | Tufts | val (52) | macro F1 **0.7208** |
+| CEJ estimation (exploratory) | Tufts | 296 crops | 15.1% agreement with primary label |
 
 ---
 
 ## Dataset
 
-### Tufts Dental OPG Dataset
+### Tufts Dental OPG Dataset — detection + bone loss
 
 | Component | Count | Description |
 |-----------|-------|-------------|
@@ -133,6 +167,15 @@ The system processes an OPG through a **six-stage pipeline**, with two parallel 
 | Expert Reports | 1,000 | Free-text radiology diagnoses |
 | Expert Pathology Masks | 439 | 285 empty (normal) + 154 annotated |
 | Working Training Pool | 423 | Images with full annotation overlap |
+| Detection split | 700 / 150 / 150 | Frozen image-level 70/15/15 train/val/test |
+| Bone-loss crops built | 22,806 | 23.84× class imbalance (96% normal / 4% diseased) |
+
+### DENTEX — caries
+
+| Split / class | Count |
+|---------------|-------|
+| Phase 1 train — `caries` / `no_caries` | 2,767 / 762 |
+| Phase 2 val — `caries` / `deep_caries` | 101 / 32 (133 total) |
 
 ### Dataset Characteristics
 
@@ -142,7 +185,6 @@ The system processes an OPG through a **six-stage pipeline**, with two parallel 
 | Avg teeth per image | 26.9 |
 | Tooth aspect ratio | ~0.35 (3× taller than wide) |
 | Michelson contrast | 0.999 (high quality) |
-| Class imbalance | 1.85× (moderate) |
 | Bbox coordinate format | `[y1, x1, y2, x2]` corner points |
 | Tooth numbering | Universal (1-32) — converted to FDI |
 | Join key | `External ID` field in JSON records |
@@ -159,72 +201,76 @@ The system processes an OPG through a **six-stage pipeline**, with two parallel 
 ## Project Structure
 
 ```
-dental-ai-pipeline/
+An-Intelligent-Dental-Assisting-System-.../
 │
-├── README.md                          ← You are here
-├── LICENSE
-├── requirements.txt                   ← Python dependencies
-├── .gitignore
-├── setup.py                           ← Package setup (optional)
+├── README.md                       ← You are here
+├── CLAUDE.md                       ← Working rules for AI/automation sessions in this repo
+├── LICENSE  ·  requirements.txt  ·  setup.py  ·  .gitignore
 │
 ├── configs/
-│   └── dataset_config.yaml            ← All hyperparameters & paths
-│
-├── notebooks/
-│   ├── 01_data_exploration.ipynb      ← Tufts dataset exploration (Phase 4)
-│   ├── 02_dataset_construction.ipynb  ← Build training dataset (current step)
-│   ├── 03_model_training.ipynb        ← ResNet18 training (next step)
-│   └── 04_evaluation.ipynb            ← Model evaluation & analysis
+│   └── dataset_config.yaml         ← All paths, hyperparameters, Universal→FDI table
 │
 ├── src/
-│   ├── __init__.py
-│   ├── data_loader.py                 ← JSON parsing, coordinate conversion
-│   ├── crop_generator.py              ← Expanded crop, jitter, resize
-│   ├── label_assigner.py              ← Pixel-overlap ratio, thresholding
-│   ├── dataset_builder.py             ← Main construction pipeline
-│   ├── validation.py                  ← Visual validation, integrity checks
-│   ├── model.py                       ← ResNet18 architecture
-│   ├── train.py                       ← Training loop
-│   ├── evaluate.py                    ← Metrics, confusion matrix
-│   ├── inference.py                   ← Single-image inference
-│   └── utils/
-│       ├── __init__.py
-│       ├── fdi_converter.py           ← Universal → FDI tooth numbering
-│       ├── visualization.py           ← Plotting utilities
-│       └── constants.py               ← Shared constants
+│   ├── data_loader.py              ← JSON parsing, coordinate conversion
+│   ├── crop_generator.py           ← Expanded crop, jitter, resize
+│   ├── label_assigner.py           ← Pixel-overlap ratio, thresholding
+│   └── utils/                      ← fdi_converter, visualization, constants
 │
 ├── scripts/
-│   ├── build_dataset.py               ← CLI: build training dataset
-│   ├── train_model.py                 ← CLI: train bone loss model
-│   └── run_inference.py               ← CLI: run full pipeline on OPG
+│   ├── build_dataset.py            ← CLI: build the crop training dataset
+│   ├── train_model.py              ← CLI: train the bone loss model
+│   ├── run_inference.py            ← CLI: pipeline inference (stub — Stage 5/6 not built)
+│   └── yolo/                       ← Stage 1 detection toolchain (+ its own README)
+│       ├── convert_tufts_to_yolo.py
+│       ├── train_yolo.py
+│       └── evaluate_yolo.py
 │
-├── docs/
+├── notebooks/
+│   ├── yolo_detection/             ← Stage 1 — the two competing runs (+ README)
+│   │   ├── a100_1024px_150ep.ipynb ← current best detector
+│   │   └── h200_768px_50ep.ipynb   ← superseded
+│   ├── caries/                     ← Stage 3 — DENTEX cascade
+│   │   ├── phase-1.ipynb
+│   │   └── approach.txt            ← method + the author's own critique of it
+│   └── bone_loss/                  ← Stage 4 — Tufts (renamed from "Bone Loss")
+│       ├── 01_tufts_data_exploration_v2.ipynb
+│       ├── 02_bone_loss_dataset_construction.ipynb
+│       ├── 03_bone_loss_model_training.ipynb
+│       ├── 04_bone_loss_severity.ipynb
+│       └── 05_cej_estimation_v2.ipynb
+│
+├── docs/                           ← ★ documentation system — start at docs/README.md
+│   ├── README.md                   ← index of everything below
+│   ├── architecture/               ← pipeline diagrams (+ drawio source)
+│   ├── results/
+│   │   ├── PAPER_MATERIAL.md       ← ★ master paper-writing document
+│   │   ├── RESULTS_LOG.md          ← append-only milestone journal
+│   │   ├── model_metrics.md        ← one-page scoreboard
+│   │   └── figures/                ← result plots (detector curves, confusion matrices)
 │   ├── reports/
-│   │   ├── project_report.pdf         ← Full project report
-│   │   └── data_exploration.pdf       ← Tufts exploration report
-│   ├── flowcharts/
-│   │   └── pipeline_flowchart.svg     ← System architecture diagram
-│   └── exploration/
-│       └── README.md                  ← Notes on dataset quirks & bugs
+│   │   ├── project_report.pdf  ·  data_exploration_v2.pdf
+│   │   ├── pes_capstone_report/    ← LaTeX source of the capstone report
+│   │   ├── literature/             ← survey paper + literature review sheet
+│   │   └── legacy/                 ← original all-in-one analysis document
+│   ├── exploration/README.md       ← dataset quirks + the 5 critical bugs caught
+│   ├── session-memory/             ← one dated file per working session
+│   └── research/                   ← maintained by a separate workstream
 │
-├── models/                            ← Trained model checkpoints
-│   ├── .gitkeep
-│   └── README.md
+├── models/                         ← Trained checkpoints + training summaries
+│   ├── 03_bone_loss_model_training_notebook_models/
+│   ├── 04_bone_loss_severity_notebook_models/
+│   ├── 05_cej_estimation_v2_models/
+│   └── 06_yolo_detection_a100_run/ ← best.pt/last.pt (git-ignored), args, results.csv
 │
-├── data/                              ← Processed datasets (git-ignored)
-│   ├── .gitkeep
-│   └── README.md
-│
-├── outputs/                           ← Inference outputs (git-ignored)
-│   ├── .gitkeep
-│   └── README.md
-│
-└── tests/
-    ├── test_data_loader.py
-    ├── test_crop_generator.py
-    ├── test_label_assigner.py
-    └── test_fdi_converter.py
+├── data/                           ← Datasets and metadata (large files git-ignored)
+└── tests/                          ← test_data_loader, test_crop_generator,
+                                       test_label_assigner, test_fdi_converter
 ```
+
+> Bulky untracked material (a stale nested clone, the 2.2 GB raw-data workspace, the YOLO
+> run directory, duplicate diagrams) was **relocated, not deleted**, to `_repo_archive/`,
+> a sibling folder outside this repo. See `_repo_archive/ARCHIVE_MANIFEST.md` for the full
+> inventory and one-line restore commands.
 
 ---
 
@@ -234,40 +280,24 @@ dental-ai-pipeline/
 
 - Python 3.8+
 - CUDA-compatible GPU (recommended for training)
-- Google Colab / Kaggle (with GPU runtime)
+- Google Colab / Kaggle (with GPU runtime) — most notebooks were run this way
 
 ### Local Setup
 
 ```bash
-# Clone the repository
-git clone https://github.com/<your-username>/dental-ai-pipeline.git
-cd dental-ai-pipeline
+git clone https://github.com/csdeepak/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection.git
+cd An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection
 
-# Create virtual environment
 python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# venv\Scripts\activate   # Windows
+source venv/bin/activate        # Linux/Mac
+# venv\Scripts\activate         # Windows
 
-# Install dependencies
 pip install -r requirements.txt
-```
-
-### Colab Setup
-
-```python
-# Mount Google Drive
-from google.colab import drive
-drive.mount('/content/drive')
-
-# Clone repo into Colab
-!git clone https://github.com/<your-username>/dental-ai-pipeline.git
-%cd dental-ai-pipeline
-!pip install -r requirements.txt
 ```
 
 ### Dataset Setup
 
-The Tufts Dental Dataset should be placed in your Google Drive:
+The Tufts Dental Dataset is expected in Google Drive:
 
 ```
 Google Drive/
@@ -279,47 +309,50 @@ Google Drive/
       Expert/Expert/mask/          ← Expert pathology masks (.JPG)
 ```
 
-> Update the `BASE` path in `configs/dataset_config.yaml` to match your drive mount.
+> Update the `paths.base` value in `configs/dataset_config.yaml` to match your mount.
+> The YOLO scripts in `scripts/yolo/` still carry hard-coded macOS paths — edit them
+> before use (noted in `scripts/yolo/README.md`).
 
 ---
 
 ## Usage
 
-### 1. Build Training Dataset
+### 1. Stage 1 — tooth detection
 
-Open `notebooks/02_dataset_construction.ipynb` in Colab and run all cells sequentially:
-
-```
-Cell 1-2:   Mount drive, configure paths
-Cell 3-5:   Load expert labels, bboxes, masks
-Cell 6:     Join sources, clean bboxes
-Cell 7:     Define core functions
-Cell 8:     Build dataset (main loop)
-Cell 9:     Analyze overlap threshold ← REVIEW THIS
-Cell 10:    Stratified train/val split
-Cell 11:    Save to disk
-Cell 12:    Visual validation ← REVIEW THIS
-Cell 13-14: Integrity checks
-Cell 15:    Final summary
+```bash
+python scripts/yolo/convert_tufts_to_yolo.py   # Tufts → YOLO format + data.yaml
+python scripts/yolo/train_yolo.py              # fine-tune YOLOv11l (imgsz 1024)
+python scripts/yolo/evaluate_yolo.py           # evaluate best.pt on the test split
 ```
 
-**Critical checkpoints:**
-- After Cell 9: Review overlap distribution plots. Adjust `OVERLAP_THRESHOLD` if needed.
-- After Cell 12: Review visual validation. If labels don't match pathology, adjust threshold and rerun from Cell 8.
+### 2. Stage 4 — bone loss crop dataset + model
 
-### 2. Train Model (Next Phase)
+Run `notebooks/bone_loss/02_bone_loss_dataset_construction.ipynb` (crop construction,
+overlap labelling, image-level split), then
+`notebooks/bone_loss/03_bone_loss_model_training.ipynb`. Equivalent CLI entry points:
 
-```python
-# After dataset construction is validated
-python scripts/train_model.py --config configs/dataset_config.yaml
+```bash
+python scripts/build_dataset.py --config configs/dataset_config.yaml
+python scripts/train_model.py   --config configs/dataset_config.yaml
 ```
 
-### 3. Run Inference (Future)
+**Critical review points during dataset construction:** inspect the overlap-ratio
+distribution before accepting `overlap_threshold`, and inspect the visual validation grid
+before trusting the labels. If the labels do not match the pathology, adjust the threshold
+and rebuild.
 
-```python
-# Full pipeline inference on a single OPG
+### 3. Stage 3 — caries
+
+`notebooks/caries/phase-1.ipynb` (Kaggle, DENTEX pre-processed crops). Read
+`notebooks/caries/approach.txt` first — it documents both the method and its gaps.
+
+### 4. Full pipeline inference — not available yet
+
+```bash
 python scripts/run_inference.py --image path/to/opg.jpg --output report.json
 ```
+
+Stages 5–6 are not implemented; this entry point is a stub.
 
 ---
 
@@ -327,14 +360,17 @@ python scripts/run_inference.py --image path/to/opg.jpg --output report.json
 
 | Phase | Description | Owner | Status |
 |-------|-------------|-------|--------|
-| Phase 1 | Caries Detection (ResNet18 binary) | Collaborator | ✅ Complete |
-| Phase 2 | Caries Severity (ResNet18 3-class) | Collaborator | ✅ Complete |
-| Phase 3 | Tooth Detection (YOLO) | Separate | 🟡 In Progress |
-| Phase 4a | Bone Loss — Data Exploration | Deepak | ✅ Complete |
-| Phase 4b | Bone Loss — Dataset Construction | Deepak | 🟡 In Progress |
-| Phase 4c | Bone Loss — Model Training | Deepak | ⬜ Planned |
-| Phase 4d | Bone Loss — Evaluation | Deepak | ⬜ Planned |
-| Phase 5 | Full Pipeline Integration | Both | ⬜ Planned |
+| Phase 0 | Literature review & survey paper | Deepak | ✅ Complete |
+| Phase 1 | Caries — gate (ResNet18 binary) | Collaborator | ✅ Complete (Phase 1 metrics not saved) |
+| Phase 2 | Caries — depth (caries vs deep_caries) | Collaborator | ✅ Complete — val acc 81%, macro F1 0.77 |
+| Phase 3 | Tooth Detection (YOLOv11l) | Deepak | ✅ Complete — test mAP@0.5 0.782; canonical run not yet frozen |
+| Phase 4a | Bone Loss — data exploration | Deepak | ✅ Complete |
+| Phase 4b | Bone Loss — dataset construction | Deepak | ✅ Complete — 22,806 crops |
+| Phase 4c | Bone Loss — model training | Deepak | ✅ Complete — macro F1 0.9233 |
+| Phase 4d | Bone Loss — evaluation + severity | Deepak | ✅ Complete — severity macro F1 0.7208 (52 val crops) |
+| Phase 4e | CEJ bone-level estimation | Deepak | 🔬 Exploratory — negative result, not integrated |
+| Phase 5 | Full pipeline integration (Stages 5–6) | Both | ⬜ **Not started — current milestone** |
+| Phase 6 | Paper writing | Both | 🟡 In progress — see `docs/results/PAPER_MATERIAL.md` |
 
 ---
 
@@ -346,66 +382,90 @@ python scripts/run_inference.py --image path/to/opg.jpg --output report.json
 overlap = mask_pixels_inside_crop / crop_area
 ```
 
-**Why not IoU?** Expert mask blobs are tiny sparse lesion annotations. Expanded crop bboxes are large (crown + root + bone). IoU = intersection / union ≈ tiny / large ≈ near zero. Even true positives get IoU ≈ 0, causing systematic false negatives.
+**Why not IoU?** Expert mask blobs are tiny sparse lesion annotations (0.5–2% of an
+expanded crop). IoU = intersection / union ≈ tiny / large ≈ 0, so even true positives get
+IoU ≈ 0 and every crop is labelled negative.
 
-**Threshold:** 0.005–0.02 (0.5%–2%). Even a genuine lesion occupies only a small fraction of the expanded crop area.
+**Threshold:** 0.01 (1%), defensible range 0.005–0.02. The same quantity is reused as the
+severity axis: mild ≤ 0.05, moderate 0.05–0.15, severe > 0.15.
 
 ### 2. Asymmetric Crop Expansion (1.5× W, 2.0× H)
 
-Teeth have a mean aspect ratio of ~0.35 (3× taller than wide). Equal expansion in both directions causes horizontal over-expansion that bleeds into adjacent teeth. More vertical expansion captures the alveolar bone below the root, which is exactly where bone loss is visible.
+Teeth have a mean aspect ratio of ~0.35 (3× taller than wide). Equal expansion in both
+directions bleeds into adjacent teeth horizontally while under-covering vertically. More
+vertical expansion captures the alveolar bone below the root, which is exactly where bone
+loss is visible.
 
 ### 3. Binary Classification Instead of Severity Segmentation
 
-U-Net severity segmentation was ruled out because:
-- Expert masks encode **per-lesion instance IDs**, not severity classes
-- No pixel-level mild/moderate/severe annotation exists in the dataset
-- Only 154 annotated samples — insufficient for U-Net from scratch
-- CEJ estimation requires ground truth points that don't exist
+U-Net severity segmentation was ruled out because expert masks encode **per-lesion instance
+IDs**, not severity classes; no pixel-level mild/moderate/severe annotation exists; only
+154 annotated samples; and CEJ ground-truth points do not exist in the dataset.
 
-### 4. Image-Level Train/Val Split
+### 4. Image-Level (Patient-Level) Train/Val Split
 
-All crops from the same radiograph (including jittered copies) stay in the same split. Splitting at the crop level would leak information between train and val through augmented copies of the same tooth.
+All crops from the same radiograph — including jittered copies — stay in the same split.
+A crop-level split leaks patient-specific exposure and anatomy between train and val.
 
-### 5. Bbox Jitter for YOLO Noise Simulation
+### 5. Bbox Jitter for Detector Noise Simulation
 
-During training, crops come from ground-truth bounding boxes. At inference, they come from YOLO predictions with slight position errors. Adding ±15% random jitter during training teaches the model to be robust to imperfect crop boundaries.
+Training crops come from ground-truth boxes; inference crops come from YOLO predictions
+with small localisation errors. ±15% random jitter during training teaches robustness to
+imperfect crop boundaries. **Not yet validated on real detector output** — the integration
+that would test it does not exist.
+
+### 6. Clinically-Valid Augmentation Only (detector)
+
+Horizontal flip, ±10° rotation, small translate/scale, HSV-value jitter. **No vertical
+flip** (an inverted jaw is anatomically meaningless), **no mosaic**, **no mixup** — both
+destroy the global jaw geometry that tooth ordering depends on.
 
 ---
 
 ## Known Bugs & Fixes
 
-These bugs were discovered during data exploration and are **already fixed** in all code:
+Discovered during data exploration and **already fixed** in all code
+(full detail: [`docs/exploration/README.md`](docs/exploration/README.md)):
 
 | Bug | Root Cause | Fix |
 |-----|-----------|-----|
-| Coverage matrix showed 0 matches | Code compared filename stems against dict keys; actual join field is nested `External ID` | Extract `Path(item['External ID']).stem` as join key |
+| Coverage matrix showed 0 matches | Compared filename stems against dict keys; actual join field is nested `External ID` | Extract `Path(item['External ID']).stem` as join key |
 | All crops extracted from wrong locations | Assumed bbox format `[x, y, w, h]`; actual format is `[y1, x1, y2, x2]` | Convert: `w = x2-x1`, `h = y2-y1`, swap x and y |
-| U-Net architecture selected prematurely | Assumed expert masks encode severity classes; pixel values are actually per-lesion instance IDs | Changed to binary ResNet18 classifier |
-| PIL DecompressionBombError | PIL rejected large composite figures as security threats | Set `PILImage.MAX_IMAGE_PIXELS = None` |
-| Font download 404 | wget from GitHub returned HTML page instead of TTF binary | Use `apt-get install fonts-dejavu-core` |
+| U-Net architecture selected prematurely | Assumed expert masks encode severity; pixel values are per-lesion instance IDs | Changed to binary ResNet18 classifier |
+| PIL DecompressionBombError | PIL rejected large composite figures | `PILImage.MAX_IMAGE_PIXELS = None` |
+| Font download 404 | wget from GitHub returned HTML instead of TTF | `apt-get install fonts-dejavu-core` |
+
+### ⚠️ Open bug
+
+**Universal→FDI mapping is wrong for the lower arch** in `configs/dataset_config.yaml`
+(Universal 23 onward). Left unfixed deliberately so the change is reviewed rather than
+applied silently — see [Universal to FDI Conversion](#universal-to-fdi-conversion).
 
 ---
 
 ## Evaluation Targets
 
-| Metric | Target | Rationale |
-|--------|--------|-----------|
-| Class 0 F1 (normal) | ≥ 0.75 | Avoid false positives in clinical report |
-| Class 1 F1 (bone loss) | ≥ 0.70 | Clinical sensitivity requirement |
-| Macro F1 | ≥ 0.72 | Overall model quality |
-| Accuracy | Secondary | Misleading with imbalanced data |
+| Metric | Target | Achieved (bone loss binary) |
+|--------|--------|------------------------------|
+| Class 0 F1 (normal) | ≥ 0.75 | **0.9943** ✅ |
+| Class 1 F1 (bone loss) | ≥ 0.70 | **0.8522** ✅ |
+| Macro F1 | ≥ 0.72 | **0.9233** ✅ |
+| Accuracy | Secondary | 98.91% (misleading at 4% prevalence) |
 
-### Training Configuration
+Severity model: macro F1 **0.7208** against the same 0.72 target — met, but on 52
+validation crops, so treat as provisional. Detection: test mAP@0.5 **0.782** against a
+literature benchmark of ≥ 0.90 — **not met**.
+
+### Training Configuration (bone loss binary)
 
 | Parameter | Value |
 |-----------|-------|
-| Architecture | ResNet18 pretrained (ImageNet) |
-| Final layer | FC: 512 → 2 (binary) |
-| Loss | CrossEntropyLoss with class weights |
-| Optimizer | Adam, lr=1e-4 |
+| Architecture | ResNet18 pretrained (ImageNet), FC 512 → 2 |
+| Loss | Focal Loss (γ=2.0, α=[0.642, 2.258]) |
+| Optimizer | Adam, lr=1e-4, wd=1e-4 |
 | Scheduler | ReduceLROnPlateau (patience=5) |
-| Batch size | 16 |
-| Epochs | 50 (early stopping on val F1, patience=10) |
+| Batch size | 32 |
+| Epochs | 50 budgeted / 32 run, best epoch 22 (early stopping on val macro-F1, patience 10) |
 | Augmentation | H-flip, brightness jitter, rotation ±10°, bbox jitter ±15% |
 | Normalization | ImageNet mean/std |
 
@@ -415,29 +475,40 @@ These bugs were discovered during data exploration and are **already fixed** in 
 
 | Risk | Level | Mitigation |
 |------|-------|------------|
-| Small training set (423 images) | HIGH | Heavy augmentation, transfer learning from ImageNet |
-| Image-level labels → noisy per-crop assignment | MEDIUM | Spatial overlap with expert mask (not blanket labeling) |
-| YOLO crop variability at inference | MEDIUM | ±15% bbox jitter during training |
-| Moderate class imbalance (1.85×) | LOW-MED | Weighted loss, stratified split, per-class F1 monitoring |
-| Universal vs FDI numbering mismatch | HIGH | Conversion table at YOLO output stage |
-| Domain shift (Tufts vs real OPGs) | MEDIUM | CLAHE normalization at inference |
+| Small training set (423 annotated images) | HIGH | Heavy augmentation, transfer learning from ImageNet |
+| Image-level labels → noisy per-crop assignment | MEDIUM | Spatial overlap with expert mask (not blanket labelling) |
+| Detector recall 0.74 → missed teeth never classified | HIGH | Freeze the 1024 px model; measure error propagation once Stage 5 exists |
+| YOLO crop variability at inference | MEDIUM | ±15% bbox jitter during training (unvalidated end-to-end) |
+| Class imbalance 23.8× (bone loss) | HIGH | Undersampling + minority augmentation + Focal Loss; untouched val set |
+| Universal vs FDI numbering mismatch | HIGH | Conversion at detector output — **currently buggy, see below** |
+| Domain shift (Tufts vs real OPGs) | MEDIUM | CLAHE normalisation at inference (untested) |
+| No external clinical validation | HIGH | Acknowledged limitation; out of scope for the capstone |
 
 ---
 
 ## Universal to FDI Conversion
 
-The Tufts dataset uses Universal numbering (1-32). The final report requires FDI. Conversion is applied at the YOLO output stage:
+Tufts uses Universal numbering (1–32); the clinical report requires FDI. **Correct**
+mapping:
 
 | Universal | FDI | Universal | FDI | Universal | FDI | Universal | FDI |
 |-----------|-----|-----------|-----|-----------|-----|-----------|-----|
-| 1 | 18 | 9 | 21 | 17 | 38 | 25 | 45 |
-| 2 | 17 | 10 | 22 | 18 | 37 | 26 | 46 |
-| 3 | 16 | 11 | 23 | 19 | 36 | 27 | 47 |
-| 4 | 15 | 12 | 24 | 20 | 35 | 28 | 48 |
-| 5 | 14 | 13 | 25 | 21 | 34 | 29 | 31 |
-| 6 | 13 | 14 | 26 | 22 | 33 | 30 | 32 |
-| 7 | 12 | 15 | 27 | 23 | 43 | 31 | 33 |
-| 8 | 11 | 16 | 28 | 24 | 44 | 32 | 34 |
+| 1 | 18 | 9 | 21 | 17 | 38 | 25 | 41 |
+| 2 | 17 | 10 | 22 | 18 | 37 | 26 | 42 |
+| 3 | 16 | 11 | 23 | 19 | 36 | 27 | 43 |
+| 4 | 15 | 12 | 24 | 20 | 35 | 28 | 44 |
+| 5 | 14 | 13 | 25 | 21 | 34 | 29 | 45 |
+| 6 | 13 | 14 | 26 | 22 | 33 | 30 | 46 |
+| 7 | 12 | 15 | 27 | 23 | 32 | 31 | 47 |
+| 8 | 11 | 16 | 28 | 24 | 31 | 32 | 48 |
+
+> ⚠️ **`configs/dataset_config.yaml` does not currently match this table.** From Universal
+> 23 onward the lower arch is shifted: the config maps 23→43, 24→44, 25–28→45–48 and
+> 29–32→31–34 (with 33 and 34 duplicated). Every lower-jaw finding would be reported
+> against the wrong tooth. This is listed as a blocking item in
+> [`docs/results/PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) §9; fix the config,
+> verify `src/utils/fdi_converter.py` against it, and cover it with
+> `tests/test_fdi_converter.py` before Stage 5 integration.
 
 ---
 
@@ -445,10 +516,15 @@ The Tufts dataset uses Universal numbering (1-32). The final report requires FDI
 
 This is a capstone project. Contributions follow this workflow:
 
-1. Create a feature branch: `git checkout -b feature/bone-loss-training`
+1. Create a feature branch: `git checkout -b feature/pipeline-integration`
 2. Make changes and test
-3. Commit with descriptive messages: `git commit -m "Add overlap threshold analysis"`
+3. Commit with descriptive messages
 4. Push and open a pull request
+
+**Automation note:** [`CLAUDE.md`](CLAUDE.md) at the repo root defines the standing rules
+for AI-assisted sessions — every result gets logged to `docs/results/RESULTS_LOG.md`, every
+session leaves a `docs/session-memory/` file, and nothing is ever deleted (only relocated
+to `_repo_archive/`).
 
 ### Commit Message Convention
 
@@ -465,15 +541,16 @@ test:     Adding or updating tests
 
 ## License
 
-This project is licensed under the MIT License — see [LICENSE](LICENSE) for details.
+MIT — see [LICENSE](LICENSE).
 
 ---
 
 ## Acknowledgments
 
-- **Tufts Dental Dataset** — Multi-annotator OPG radiograph collection
-- **PyTorch** and **torchvision** — Model architecture and training
-- **Ultralytics** — YOLOv8/v11 for tooth detection
+- **Tufts Dental Dataset** — multi-annotator OPG radiograph collection
+- **DENTEX** — dental enumeration and diagnosis dataset (caries)
+- **PyTorch** / **torchvision** — model architecture and training
+- **Ultralytics** — YOLOv11 for tooth detection
 
 ---
 
