@@ -126,6 +126,18 @@ accidentally staged. Nothing was deleted; every item is recoverable with a singl
 - Root `README.md` rewritten: same structure, badges and tone, corrected status tables,
   real project structure, pointers to `docs/`.
 
+### Commits
+
+| Hash | Message |
+|------|---------|
+| `fddca67` | `refactor: reorganize repo layout, rescue artifacts from untracked workspaces` |
+| `0a38430` | `docs: add documentation system, results log and CLAUDE.md working rules` |
+| `5f7b3cf` | `docs: correct root README to match actual project state` |
+
+Branch `main`, 3 commits ahead of `origin/main`. **Nothing was pushed** — the remote is
+untouched and the working tree is clean apart from `docs/research/`, which belongs to a
+parallel workstream and was deliberately not staged.
+
 ---
 
 ## Decisions made
