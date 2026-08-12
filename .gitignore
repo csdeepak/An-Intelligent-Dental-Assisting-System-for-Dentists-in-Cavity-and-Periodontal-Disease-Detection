@@ -45,6 +45,7 @@ data/*.json
 *.PNG
 !docs/**/*.png
 !docs/**/*.svg
+!docs/**/*.jpg
 !assets/*.png
 !assets/*.svg
 
@@ -54,6 +55,9 @@ models/*.pt
 models/*.onnx
 models/*.pkl
 models/checkpoints/
+# YOLO detector weights are ~51 MB each (GitHub warns above 50 MB): kept on local
+# disk and in _repo_archive/, never committed. See models/06_*/run_summary.txt.
+models/**/*.pt
 
 # --- Training outputs ---
 outputs/
@@ -80,7 +84,8 @@ sample_data/
 !data/README.md
 !outputs/.gitkeep
 !outputs/README.md
-!docs/flowcharts/*.svg
+!docs/architecture/*.svg
 !docs/reports/*.pdf
+!docs/reports/**/*.pdf
 
 data/tufts/ZIP/Segmentation/Segmentation/teeth_polygon.json

@@ -1,0 +1,91 @@
+=================================================================
+ STAGE 1 — YOLOv11l TOOTH DETECTION (A100 / imgsz 1024 / 150 ep)
+=================================================================
+
+STATUS:   Current best tooth detector. Not yet formally frozen as
+          the canonical Stage-1 model (see docs/results/PAPER_MATERIAL.md,
+          "Known Limitations": two competing runs are unreconciled).
+
+SOURCE:   notebooks/yolo_detection/a100_1024px_150ep.ipynb
+RUN DIR:  runs/detect/tufts_clean_v1  (original workspace now at
+          _repo_archive/yolo_a100_run_workspace/)
+
+-----------------------------------------------------------------
+ HARDWARE / RUNTIME
+-----------------------------------------------------------------
+  GPU:                  NVIDIA A100 80GB PCIe (81038 MiB)
+  Wall-clock training:  0.592 h (35.5 min, 2131 s)
+  Inference speed:      ~3.1 ms / image (preprocess + inference)
+
+-----------------------------------------------------------------
+ DATA
+-----------------------------------------------------------------
+  Dataset:              Tufts Dental OPG, converted to YOLO format
+                        (scripts/yolo/convert_tufts_to_yolo.py)
+  Split:                700 train / 150 val / 150 test images
+                        (frozen 70/15/15, image-level)
+  Classes:              1  ("tooth", single-class detection)
+  Val instances:        3,794 boxes
+  Test instances:       3,924 boxes
+
+-----------------------------------------------------------------
+ TRAINING CONFIGURATION  (full copy in train_args.yaml)
+-----------------------------------------------------------------
+  Model:                yolo11l.pt (pretrained, 25.28M params, 86.6 GFLOPs)
+  imgsz:                1024
+  epochs:               150 requested
+  epochs run:           128  (early stopping, patience=30)
+  best epoch:           98   (by Ultralytics fitness = 0.1*mAP50 + 0.9*mAP50-95)
+  batch:                32
+  optimizer:            AdamW
+  lr0 / lrf:            0.001 / 0.01, cosine schedule (cos_lr=true)
+  momentum / wd:        0.937 / 0.0005
+  warmup:               3 epochs
+  amp:                  true
+  seed:                 42 (deterministic)
+  augmentation:         clinically-valid only —
+                        fliplr 0.5, degrees 10, translate 0.1, scale 0.2,
+                        hsv_v 0.2, erasing 0.4
+                        NO mosaic, NO mixup, NO vertical flip, NO shear
+
+-----------------------------------------------------------------
+ RESULTS
+-----------------------------------------------------------------
+  Validation set (150 images, 3,794 instances):
+    Precision       0.788
+    Recall          0.772
+    mAP@0.5         0.834
+    mAP@0.5:0.95    0.367
+
+  Held-out test set (150 images, 3,924 instances):
+    Precision       0.7643
+    Recall          0.7421
+    mAP@0.5         0.7824
+    mAP@0.5:0.95    0.3351
+
+  Val -> test drop of ~5 mAP@0.5 points is modest and consistent with
+  a genuinely held-out split (no leakage signal).
+
+-----------------------------------------------------------------
+ ARTIFACTS IN THIS FOLDER
+-----------------------------------------------------------------
+  best.pt          51 MB  best-fitness checkpoint (epoch 98)
+  last.pt          51 MB  final epoch checkpoint (epoch 128)
+  train_args.yaml         verbatim Ultralytics args.yaml for the run
+  results.csv             per-epoch metrics (128 rows)
+  run_summary.txt         this file
+
+  NOTE: *.pt weights are git-ignored on purpose (51 MB each; GitHub
+  warns above 50 MB). They exist on local disk only. Re-obtain them
+  from _repo_archive/yolo_a100_run_workspace/runs/... if lost.
+
+  Plots for this run: docs/results/figures/yolo_detection_a100/
+    val_*   = plots from the training/validation run
+    test_*  = plots from the held-out test evaluation
+
+-----------------------------------------------------------------
+ COMPARISON RUN
+-----------------------------------------------------------------
+  H200 / imgsz 768 / 50 epochs reached val mAP@0.5 = 0.678 only.
+  See notebooks/yolo_detection/README.md.
+=================================================================
