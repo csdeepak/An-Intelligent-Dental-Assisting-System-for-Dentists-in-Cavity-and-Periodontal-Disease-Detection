@@ -239,3 +239,34 @@ Copy this block verbatim to the bottom of the file and fill it in.
   `_repo_archive/ARCHIVE_MANIFEST.md`.
 - **Follow-ups:** Fix the lower-arch FDI mapping; freeze the canonical detector; build
   Stages 5–6; close the caries evaluation gaps listed in `PAPER_MATERIAL.md` §9.
+
+## 2026-08-15 — FDI mapping bug fixed; caries augmentation discrepancy resolved (T0.1)
+
+- **What was done:** Closed the two blocking Tier-0 correctness items. (1) Corrected the
+  Universal→FDI lower-arch mapping in **both** `configs/dataset_config.yaml` and
+  `src/utils/fdi_converter.py` — the module carried the same error as the YAML, which prior
+  documentation had not noticed — and rewrote `tests/test_fdi_converter.py` against the FDI
+  standard rather than against the implementation. (2) Audited the caries training code and
+  confirmed at code level that the augmentation pipeline was defined and never applied.
+- **Dataset / config:** n/a — no training was run. Audit and static correction only.
+- **Metrics:** none new. **No existing metric changes.** Verified that no notebook or script
+  ever executed the FDI mapping (the only references in the bone-loss notebooks are in
+  markdown/comments), so no training label, crop assignment, or reported number was produced
+  through the wrong table. The bug was latent and would have first caused damage at Stage 5.
+- **Key decision or insight:** Three findings. (a) The old unit test *asserted the buggy
+  value* (`universal_to_fdi("32") == 34`), having been written from the implementation rather
+  than the dental standard — it reported green while locking the defect in place. The
+  replacement adds two property checks (quadrant correctness, bijectivity) that would have
+  caught it. (b) The unapplied augmentation is **isolated to the caries track**; both
+  bone-loss notebooks genuinely apply it, so the project's strongest result (macro-F1 0.9233)
+  is unaffected. (c) A repo-wide grep for false augmentation claims **found none** —
+  `PAPER_MATERIAL.md` §8.1, `04_methodology.tex` and `approach.txt` had all already disclosed
+  it accurately, which materially lowers the credibility risk `gap_analysis.md` §2C assigned
+  to this item. Decision recorded: enable augmentation and re-run as a **two-arm** experiment
+  during the W2 re-run block, turning the defect into an ablation data point.
+- **Source:** `docs/results/METHODOLOGY_CHANGELOG.md` (full detail),
+  `docs/session-memory/2026-08-15-strategic-replan-foundation-models.md`,
+  `tests/test_fdi_converter.py` (8 tests, all passing).
+- **Follow-ups:** Caries numbers (val acc 0.81, macro-F1 0.77) remain no-augmentation,
+  validation-only, accuracy-checkpointed and must carry those qualifiers until the W2 re-run
+  supersedes them. Next: W2 re-run block (T0.2/T0.3) and canonical detector (T0.6).
