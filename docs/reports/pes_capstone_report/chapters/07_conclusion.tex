@@ -1,9 +1,4 @@
-%% Chapter 7 — Conclusion and Future Work
-%% Guideline target: ~1 page.
-%%
-%% Short. Summarise what was accomplished in THIS phase (Phase 2), not the
-%% whole project narrative. Then state what is left to do. Do not use this
-%% chapter to re-sell the motivation — that belongs in Chapter 1.
+%% Chapter 7 - Conclusion and Future Work
 
 \chapter{Conclusion and Future Work}
 \label{ch:conclusion}
@@ -11,34 +6,79 @@
 \section{Summary of Phase 2}
 \label{sec:concl-summary}
 
-\textit{[Replace.] A paragraph on what this phase delivered. Tie each
-deliverable to the chapter where it is described (Architecture
-Chapter~\ref{ch:architecture}, Implementation Chapter~\ref{ch:implementation},
-Results Chapter~\ref{ch:results}).}
+Phase 2 delivered the core disease-analysis modules required for a future
+tooth-wise OPG reporting system. As described in
+Chapter~\ref{ch:architecture}, the overall design is a modular, tooth-centric
+pipeline with separate caries and periodontal branches. In practical terms, the
+work completed in this phase is concentrated in the preprocessing,
+dataset-engineering, and classifier-development layers documented in
+Chapters~\ref{ch:methodology} and~\ref{ch:implementation}. The periodontal
+branch is the most mature: Tufts annotations were cleaned and joined correctly,
+tooth-level crops were generated with anatomically appropriate context, and
+binary and severity classifiers were trained and evaluated successfully. The
+caries branch, contributed through the collaborator's DENTEX notebook, produced
+a working two-stage ResNet18 cascade for caries presence and severity. The
+quantitative outcomes summarized in Chapter~\ref{ch:results} show that these
+modules are already meaningful building blocks even though the final OPG-level
+integration remains incomplete.
 
 \section{Key Contributions}
 \label{sec:concl-contributions}
 
 \begin{itemize}
-  \item \textit{[Contribution 1 — one line.]}
-  \item \textit{[Contribution 2 — one line.]}
-  \item \textit{[Contribution 3 — one line.]}
+  \item A corrected and reusable Tufts preprocessing pipeline was implemented, including \texttt{External ID}-based joins, bounding-box conversion, mask handling, and overlap-based tooth labeling.
+  \item A strong periodontal baseline was established with binary bone-loss detection macro-F1 0.9233 and overlap-based severity macro-F1 0.7208.
+  \item A collaborator-developed two-stage DENTEX caries cascade was incorporated into the project narrative, with preserved phase-2 macro-F1 improving to 0.77 after refinement.
+  \item An exploratory CEJ-based bone-level estimation branch was implemented and honestly evaluated, revealing both its clinical motivation and its current instability on panoramic OPGs.
 \end{itemize}
 
 \section{Limitations}
 \label{sec:concl-limitations}
 
-\textit{[Replace.] Be honest. If a limitation exists and you hide it,
-examiners will find it anyway and will trust the rest of the report less.}
+The most important limitation is that the project is not yet an end-to-end
+clinical pipeline. The repository does not currently take a full OPG and return
+a final tooth-wise JSON report in one execution path. Tooth detection, FDI
+assignment, confidence calibration, Grad-CAM explainability, and report
+assembly are still pending integration.
+
+The second limitation is uneven experimental maturity across modules. The
+periodontal branch is supported by saved summaries and code-backed utilities,
+whereas the caries branch currently depends on notebook artifacts, and the
+checked export does not preserve the final phase-1 classification report. This
+means the phase-1 caries stage is implemented, but its quantitative evidence is
+less completely documented than the periodontal branch.
+
+The third limitation is clinical. CEJ-based bone-level measurement is closer to
+the clinical gold standard, but OPG geometry, low local contrast, restorations,
+and anatomical overlap make the current heuristic branch unreliable for primary
+severity reporting. Finally, the current datasets come from different sources
+and annotation styles, so cross-dataset domain shift and supervision mismatch
+remain open issues for the final integrated system.
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=0.88\linewidth]{figures/survey_task_hierarchy.jpeg}
+  \caption{Task hierarchy for panoramic dental radiograph analysis adapted from the companion survey paper.}
+  \label{fig:survey-task-hierarchy}
+\end{figure}
+
+Figure~\ref{fig:survey-task-hierarchy} summarizes the practical sequencing of
+the overall problem. It also explains why Phase 2 focused first on reliable
+mid-pipeline disease modules before claiming final clinical report generation.
 
 \section{Future Work}
 \label{sec:concl-future}
 
-\textit{[Replace.] Concrete next steps, not wishlist items. Each bullet
-should be something a successor could pick up and act on.}
-
 \begin{itemize}
-  \item \textit{[Future item 1.]}
-  \item \textit{[Future item 2.]}
-  \item \textit{[Future item 3.]}
+  \item Integrate YOLO-based tooth detection, jaw-wise ordering, and FDI numbering so that a single OPG can be converted into aligned tooth instances for both branches.
+  \item Build the final orchestration layer that joins tooth detection, caries prediction, periodontal prediction, and report generation into one executable pipeline.
+  \item Add calibrated confidence estimation and explicit low-confidence handling so unreliable tooth predictions can be flagged instead of forced into the final report.
+  \item Replace or augment the current CEJ heuristic with a learned landmark-detection model and test it on higher-resolution radiographs when available.
+  \item Improve the periodontal resampling pipeline by deduplicating near-identical diseased crops and limiting per-image dominance before retraining.
+  \item Tighten experiment tracking on the caries branch by exporting final phase-1 metrics, storing checkpoints systematically, and validating whether the current train/validation split is patient clean.
 \end{itemize}
+
+These next steps are consistent with the roadmap identified in the survey
+paper. The gap is no longer conceptual; it is now an engineering integration
+problem: connecting already working components into one clinically usable
+pipeline.

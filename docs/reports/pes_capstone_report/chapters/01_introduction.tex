@@ -1,25 +1,60 @@
-%% Chapter 1 — Introduction
-%% Guideline target: ~1 page.
-%%
-%% Purpose: Set up the problem domain, motivate why it matters, and state
-%% clearly what this phase of the project delivers. Do not dump background
-%% literature here — that goes in Chapter 2.
+%% Chapter 1 - Introduction
 
 \chapter{Introduction}
 \label{ch:introduction}
 
-% Write your introduction here. Replace the placeholder paragraphs below.
+Dental panoramic radiography, also referred to as Orthopantomography (OPG),
+provides a single two-dimensional view of the full dentition, alveolar bone,
+maxilla, mandible, and surrounding anatomical structures. Because one image
+captures most of the clinically relevant oral region, OPGs are routinely used
+for screening dental caries, periodontal bone loss, impacted teeth, and other
+oral pathologies. Their practical value is high, but so is the difficulty of
+interpretation: weak local contrast, overlapping structures, projection
+distortion, and subtle early lesions all increase the risk of missed or
+inconsistent findings.
 
-Dental panoramic radiograph also commonly referred to as Orthopantomograph (OPG), captures a complete 2-D view of the full dentition, alveolar bone, and surrounding anatomical structures in a single image. It is the most widely used modality in routine dental practice for diagnosing dental caries, periodontal bone loss, and other oral pathologies. Despite its widespread use, accurate interpretation
-of OPGs need clinical expertise and it is also prone to inter-examiner variability, especially among the early dental practitioners and dental students who are more prone to commit diagnostic errors.
+The present project aims to build an intelligent dental assisting system that
+uses deep learning to move from a full OPG to a structured tooth-wise report.
+The target system is tooth-centric. Instead of classifying the full radiograph
+as a single unit, the OPG is first decomposed into tooth-level regions and each
+tooth is then analyzed through task-specific models. This design is clinically
+motivated: dentists reason per tooth, and an assistive system is only useful if
+it can localize its findings and map them to a standard numbering scheme.
 
-Dental caries affects approximately 2.3 billion people globally. Periodontal disease remains a leading cause of adult tooth loss affecting over 19\%
-of the global adult population. There is quite a challenge in early diagnosis of these diseases, as features are very subtle and can be easily misinterpreted, even by experienced clinicians.
+The broader survey work conducted alongside this project also reinforced a
+system-level conclusion that directly shaped Phase 2: current dental AI
+literature is strong on isolated subtasks, but weak on complete OPG-to-report
+workflows. This is why the present report emphasizes modular implementation and
+honest integration status instead of claiming a fully finished clinical system.
 
-Our project proposes an intelligent dental assisting system that processes dental radiographs through a multi-stage deep learning pipeline. The system detects and numbers individual teeth using YOLO- based object detection, classifies each tooth for presence of caries and severity using ResNet18 classifier, and assesses periodontal bone loss using pathology mask overlap on expanded crops from the dataset. Grad-CAM explainability is integrated for providing visual explanations, and finally the system generates a structured clinical report. Overall the system is expected to minimize the diagnostic error and specifically meant to be a learning and support tool to junior clinicians.
+At the project level, the intended end-to-end workflow is: full OPG input,
+tooth detection, FDI numbering, caries analysis on tight tooth crops,
+periodontal analysis on expanded bone-aware tooth crops, and final report
+generation. However, this report is restricted to work completed up to the
+current Phase 2 milestone. The major completed contributions are the
+dataset-engineering and model-development steps for the caries and periodontal
+branches. On the caries side, a collaborator has built a two-stage ResNet18
+cascade on DENTEX tooth crops. On the periodontal side, the work completed in
+this repository includes Tufts annotation exploration, correction of critical
+data parsing bugs, tooth-level crop generation, overlap-based label assignment,
+binary bone-loss classification, overlap-based severity classification, and an
+exploratory CEJ-based estimation module.
 
+One of the most important outcomes of this phase is that the periodontal branch
+is already supported by reproducible code and measured results. The bone-loss
+binary classifier trained on resampled Tufts crops achieved a validation
+macro-F1 of 0.9233, while the overlap-based severity model achieved a macro-F1
+of 0.7208. The CEJ-based heuristic branch was investigated because it is closer
+to the clinical standard, but the current OPG-based formulation remains
+insufficiently reliable and is therefore treated as future work rather than the
+primary reporting pathway.
 
-This report presents the system architecture  (Chapter\ref{ch:architecture}) , methodology including datasets, preprocessing, and training stratergy(Chapter \ref{ch:methodology}), implementation details of all modules(Chapter \ref{ch:implementation}), experimental results(Chapter \ref{ch:results}) and conclusions with future directions(Chapter \ref{ch:conclusion}).
-
-
-
+This report is organized as follows. Chapter~\ref{ch:architecture} describes
+the target system architecture and clarifies which parts are already
+implemented. Chapter~\ref{ch:methodology} documents the datasets, preprocessing
+choices, model configurations, and training design used so far.
+Chapter~\ref{ch:implementation} presents the implemented modules in the current
+repository and notebooks. Chapter~\ref{ch:results} summarizes the quantitative
+and qualitative findings supported by the saved artifacts. Finally,
+Chapter~\ref{ch:conclusion} concludes the report and outlines the most
+immediate next steps toward full pipeline integration.

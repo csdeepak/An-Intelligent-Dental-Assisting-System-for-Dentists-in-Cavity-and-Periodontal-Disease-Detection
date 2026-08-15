@@ -32,8 +32,11 @@ Periodontal Disease Detection}
 \phaseperiod{January - May 2026}
 \phasesemester{sixth}
 \reportperiod{Jan - May, 2026}          % appears in the page footer
-\reporttitle{Capstone Project Phase - 2}% appears in the running header
+\reporttitle{An Intelligent Dental Assisting System for Dentists in Cavity and Periodontal Disease Detection}% appears in the running header
 \reportdept{Dept. of CSE}               % appears in the page footer
+\reportlogo{figures/logoPesu.png}
+\headerlogosize{0.78cm}
+\titlelogowidth{0.22\textwidth}
 
 \guidename{Dr. Mamatha H R}
 \guidedesignation{Designation, Department of CSE}
@@ -59,7 +62,7 @@ Periodontal Disease Detection}
 
 \begin{document}
 
-% ---- Front matter (no page numbers shown, no running headers/footers) ------
+% ---- Front matter -----------------------------------------------------------
 \pagestyle{pesfront}
 \pagenumbering{roman}
 \setcounter{page}{1}
@@ -92,11 +95,37 @@ support and encouragement received from my family and friends.
 
 
 \begin{abstract}
+Accurate interpretation of dental panoramic radiographs (Orthopantomograms,
+OPGs) is difficult because early carious lesions and periodontal bone changes
+are subtle, the projection geometry is complex, and interpretation quality
+depends strongly on clinical experience. In routine practice, this can lead to
+slow reading, missed findings, and inter-observer variability, particularly for
+junior clinicians and students.
 
-Accurate interpretation of dental panoramic radiographs(OPGs) is a complex and challenging task due to the subtle nature of early carious lesions and periodontal bone less, especially for early-stage dental practitioners. Manual analysis is very time consuming, subjective, and results are prone to vary between different examiners. Existing deep learning approaches in this domain are primarily focused on single tasks and are narrowly scoped, addressing either caries detection or periodontal assessment alone, lacking clinical explainability and severity grading.
+This Phase 2 report documents the current implementation status of a
+tooth-centric dental AI system under development for OPG analysis. The target
+system is an end-to-end pipeline that will detect teeth on the full OPG, assign
+FDI numbers, and generate a structured tooth-wise report for caries and
+periodontal bone loss. In the work completed so far, two major analysis
+branches have been developed and evaluated independently. The caries branch is
+implemented as a two-stage ResNet18 cascade on DENTEX tooth crops: Phase 1
+performs binary caries versus no-caries classification, and Phase 2 separates
+caries from deep caries. The periodontal branch is built on the Tufts dental
+dataset and includes annotation parsing, corrected tooth bounding-box
+conversion, asymmetric crop generation, overlap-based tooth-level labeling,
+binary bone-loss classification, overlap-based severity classification, and an
+exploratory CEJ-based estimation module.
 
-
-This project presents an unified, end-to-end, multi-task deep learning pipeline that analyzes the dental radiographs to detect caries with severity grading and assess periodontal disease via alveolar bone loss estimation . In this approach, the system decomposes each OPG into individual tooth regions using YOLO-based detection with FDI numbering, which enables localized analysis and improved interpretability,then ResNet18 classifier is applied for binary caries detection and severity grading, which classifies them into Caries vs. Deep Caries. Periodontal bone loss is assessed using pathology mask overlap on expanded tooth crops that are derived from the dental dataset. Explainability is incorporated via Grad-CAM visualizations to support clinical decision making. The system outputs a structured, tooth-level diagnostic report aligned with the FDI standards, designed to assist junior clinicians and dental students in consistent, interpretable radiographic assessment.
+The strongest result obtained in this phase is the binary bone-loss classifier,
+which achieved a validation macro-F1 of 0.9233 with sensitivity 0.8305 and
+specificity 0.9953 on the held-out Tufts validation split. The overlap-based
+bone-loss severity model achieved a macro-F1 of 0.7208, while the caries
+severity stage achieved a macro-F1 of 0.77 on the preserved validation output
+from the collaborator's DENTEX notebook. In contrast, the CEJ-based heuristic
+module remained clinically unstable on OPGs and is therefore retained as an
+exploratory component rather than the primary severity estimator. End-to-end
+integration, YOLO-based tooth detection, FDI-aware report generation, model
+calibration, and explainability overlays are planned for the next phase.
 \end{abstract}
 
 % ---- Table of Contents, List of Figures, List of Tables -------------------

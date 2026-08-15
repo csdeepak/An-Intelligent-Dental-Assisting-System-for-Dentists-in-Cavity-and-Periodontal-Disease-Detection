@@ -108,6 +108,27 @@
 \newcommand{\@reporttitle}{Capstone Project Report}
 \newcommand{\reporttitle}[1]{\renewcommand{\@reporttitle}{#1}}
 
+% Report logo configuration.
+\newcommand{\@reportlogo}{}
+\newcommand{\reportlogo}[1]{\renewcommand{\@reportlogo}{#1}}
+\newcommand{\@headerlogosize}{0.85cm}
+\newcommand{\headerlogosize}[1]{\renewcommand{\@headerlogosize}{#1}}
+\newcommand{\@titlelogowidth}{0.23\textwidth}
+\newcommand{\titlelogowidth}[1]{\renewcommand{\@titlelogowidth}{#1}}
+
+\newcommand{\pesheaderlogo}{%
+  \ifx\@reportlogo\@empty
+  \else
+    \includegraphics[height=\@headerlogosize]{\@reportlogo}%
+  \fi
+}
+
+\newcommand{\pesrunningheader}{%
+  \begin{minipage}[b]{0.78\textwidth}
+    \small\itshape\raggedright \@reporttitle
+  \end{minipage}%
+}
+
 % Footer template (identical on opening and non-opening pages):
 %   | Dept. of CSE | <Month Range, Year> |  <page number>  |
 % The period string is author-settable.
@@ -122,35 +143,45 @@
   \fancyhf{}%
   \renewcommand{\headrulewidth}{0.4pt}%
   \renewcommand{\footrulewidth}{0.4pt}%
-  \fancyhead[L]{\small\itshape\@reporttitle}%
+  \fancyhead[L]{\pesrunningheader}%
+  \fancyhead[R]{\pesheaderlogo}%
   \fancyfoot[L]{\small\@reportdept}%
   \fancyfoot[C]{\small\@reportperiod}%
   \fancyfoot[R]{\small\thepage}%
 }
 
-% Chapter opening page style — no header, footer only
+% Chapter opening page style
 \fancypagestyle{peschapter}{%
   \fancyhf{}%
-  \renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\headrulewidth}{0.4pt}%
   \renewcommand{\footrulewidth}{0.4pt}%
+  \fancyhead[L]{\pesrunningheader}%
+  \fancyhead[R]{\pesheaderlogo}%
   \fancyfoot[L]{\small\@reportdept}%
   \fancyfoot[C]{\small\@reportperiod}%
   \fancyfoot[R]{\small\thepage}%
 }
 
-% Front-matter (title page, certificate, declaration, etc.) — plain, no hf
+% Front-matter (title page, certificate, declaration, etc.)
 \fancypagestyle{pesfront}{%
   \fancyhf{}%
-  \renewcommand{\headrulewidth}{0pt}%
-  \renewcommand{\footrulewidth}{0pt}%
+  \renewcommand{\headrulewidth}{0.4pt}%
+  \renewcommand{\footrulewidth}{0.4pt}%
+  \fancyhead[L]{\pesrunningheader}%
+  \fancyhead[R]{\pesheaderlogo}%
+  \fancyfoot[L]{\small\@reportdept}%
+  \fancyfoot[C]{\small\@reportperiod}%
+  \fancyfoot[R]{\small\thepage}%
 }
 
 % The report class calls \thispagestyle{plain} at the start of each chapter.
 % Redefine "plain" to be our "peschapter" so opening pages get footer only.
 \fancypagestyle{plain}{%
   \fancyhf{}%
-  \renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\headrulewidth}{0.4pt}%
   \renewcommand{\footrulewidth}{0.4pt}%
+  \fancyhead[L]{\pesrunningheader}%
+  \fancyhead[R]{\pesheaderlogo}%
   \fancyfoot[L]{\small\@reportdept}%
   \fancyfoot[C]{\small\@reportperiod}%
   \fancyfoot[R]{\small\thepage}%
@@ -280,6 +311,10 @@
   \thispagestyle{pesfront}%
   \begin{singlespace}
   \begin{center}
+  \ifx\@reportlogo\@empty\else
+    \includegraphics[width=\@titlelogowidth]{\@reportlogo}\par
+    \vspace{0.35cm}
+  \fi
   {\itshape\bfseries\fontsize{16}{19}\selectfont Dissertation on\par}
   \vspace{0.35cm}
   {\bfseries\fontsize{16}{19}\selectfont ``\@projecttitle''\par}
