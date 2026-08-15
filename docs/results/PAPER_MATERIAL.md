@@ -76,8 +76,9 @@ Source material available in the repo:
   survey paper").
 - `docs/reports/literature/Dental X-Ray Capstone Literature Review.xlsx` — the structured
   review sheet; this is the source for the related-work table.
-- `docs/reports/pes_capstone_report/chapters/02_literature.tex` — the literature chapter of
-  the LaTeX capstone report, already prose-formatted and reusable.
+- `_repo_archive/pes_capstone_report/chapters/02_literature.tex` — the literature chapter of
+  the LaTeX capstone report, already prose-formatted and reusable. **Archived 2026-08-15**
+  out of the tracked tree; also recoverable from git at `6310790`.
 
 Anchors that already influenced this project's design decisions:
 
@@ -578,7 +579,7 @@ For whoever drafts the actual paper. Tick items off here as they land.
 
 - [ ] Related Work section — extract from
       `docs/reports/literature/Dental X-Ray Capstone Literature Review.xlsx` and
-      `docs/reports/pes_capstone_report/chapters/02_literature.tex`; build a comparison
+      `_repo_archive/pes_capstone_report/chapters/02_literature.tex` (archived); build a comparison
       table (paper / dataset / task / reported metric / our result).
 - [ ] Formal dataset ethics + licensing statement for Tufts and DENTEX (usage terms,
       de-identification, IRB status).

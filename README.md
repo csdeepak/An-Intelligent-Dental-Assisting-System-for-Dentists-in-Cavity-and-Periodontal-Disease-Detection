@@ -249,7 +249,8 @@ An-Intelligent-Dental-Assisting-System-.../
 │   │   └── figures/                ← result plots (detector curves, confusion matrices)
 │   ├── reports/
 │   │   ├── project_report.pdf  ·  data_exploration_v2.pdf
-│   │   ├── pes_capstone_report/    ← LaTeX source of the capstone report
+│   │   │                              (pes_capstone_report/ archived 2026-08-15 →
+│   │   │                               _repo_archive/, see ARCHIVE_MANIFEST.md)
 │   │   ├── literature/             ← survey paper + literature review sheet
 │   │   └── legacy/                 ← original all-in-one analysis document
 │   ├── exploration/README.md       ← dataset quirks + the 5 critical bugs caught

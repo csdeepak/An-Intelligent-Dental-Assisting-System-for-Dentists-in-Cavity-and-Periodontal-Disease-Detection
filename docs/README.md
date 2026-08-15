@@ -21,10 +21,11 @@ three files in order:
 | `results/PAPER_MATERIAL.md` | **The master paper-writing document.** Problem statement, datasets, architecture, per-stage methods, the five key engineering decisions, all result tables, known limitations, and a checklist of what still has to be written. |
 | `results/RESULTS_LOG.md` | Append-only chronological journal — one entry per milestone, newest at the bottom. Every new training run or evaluation gets an entry. Template is at the top of the file. |
 | `results/model_metrics.md` | Single-glance scoreboard: one table per model, current best numbers only. |
+| `results/METHODOLOGY_CHANGELOG.md` | Append-only record of changes to *how* results are produced (as opposed to what they were): corrected bugs, resolved code-vs-write-up discrepancies, and the reasoning behind each. Required by `research/PUBLICATION_TODO.md` T0.1. |
 | `results/figures/` | Result plots. `yolo_detection_a100/` holds the detector's curves, confusion matrices and qualitative predictions (`val_*` from the training run, `test_*` from the held-out test evaluation). |
 | `reports/project_report.pdf` | Full project report (PDF). |
 | `reports/data_exploration_v2.pdf` | Tufts data-exploration report (PDF). |
-| `reports/pes_capstone_report/` | LaTeX source of the PES capstone report (`main.tex`, `chapters/`, `figures/`). Moved here with `git mv`, history intact. |
+| ~~`reports/pes_capstone_report/`~~ | **Archived 2026-08-15** — the PES capstone report LaTeX source was relocated out of the tracked tree to `_repo_archive/pes_capstone_report/` (a sibling of this repo). Its full content, including the final round of edits, is recoverable from git at commit `6310790`. See `_repo_archive/ARCHIVE_MANIFEST.md`. Writing effort moved to the research paper in `research/MASTER_PLAN_2026H2.md`. |
 | `reports/literature/` | `Survey_paper.pdf` and the literature-review spreadsheet — source material for the Related Work section. |
 | `reports/legacy/DENTAL_AI_ANALYSIS_REPORT.md` | The original all-in-one analysis document (written as placement/interview prep). Technically accurate and still a useful source, but **no longer the entry point** — its content has been reorganised into `results/PAPER_MATERIAL.md`. |
 | `exploration/README.md` | Dataset quirks and the five critical bugs caught during exploration, with root cause and fix for each. Still the best single explanation of *why* the data handling looks the way it does. |
