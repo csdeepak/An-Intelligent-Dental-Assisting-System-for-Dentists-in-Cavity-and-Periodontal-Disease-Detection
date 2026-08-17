@@ -270,3 +270,36 @@ Copy this block verbatim to the bottom of the file and fill it in.
 - **Follow-ups:** Caries numbers (val acc 0.81, macro-F1 0.77) remain no-augmentation,
   validation-only, accuracy-checkpointed and must carry those qualifiers until the W2 re-run
   supersedes them. Next: W2 re-run block (T0.2/T0.3) and canonical detector (T0.6).
+
+## 2026-08-16 — Corrected a wrong premise in MASTER_PLAN_2026H2.md: DentFound's weights are not public
+
+- **What was done:** While fixing the survey paper's citation list, found that the survey's own
+  text correctly states DentFound's fine-tuned weights are not public — contradicting what this
+  project's `MASTER_PLAN_2026H2.md` had assumed ("public Apache-2.0 weights... free baseline for
+  C1"). Re-verified directly against `github.com/ahukui/DentFound` rather than trusting the
+  earlier, less careful pass: the repo's `checkpoints/` folder documents downloading the generic
+  pretrained CLIP-ViT-L/14 and Vicuna-7B base models only; no link to DentFound's own trained
+  checkpoint exists anywhere in the repository. Corrected every affected passage in
+  `MASTER_PLAN_2026H2.md` (§0, §2.2, §2.3 C1, R6, §3.1 diagram, §5 W5, §5.1, §6 compute budget,
+  §7 venue note, §8 risk register, §9 source table) rather than patching only the one place it
+  was first noticed.
+- **Dataset / config:** n/a — planning-document correction, no training run.
+- **Metrics:** none. No experiment has been run yet under either the old or corrected plan.
+- **Key decision or insight:** Contribution C1 (specialist-vs-foundation-model comparison) is
+  **not achievable by running DentFound itself** — its training code is Apache-2.0 but its
+  weights and its 101k-patient training data are both closed, so neither running their
+  checkpoint nor reproducing it from scratch is possible with what's public. Decision: C1 now
+  runs against an accessible open-weight VLM (selected in W5, not locked in now) as the primary
+  comparison, with GPT-4o via API as a secondary point with direct literature precedent (the
+  *Diagnostics* Sep 2025 study). A non-blocking email to DentFound's authors requesting research
+  weight access was added as pure-upside, off the critical path. The underlying scientific
+  question (small specialist vs. general-purpose VLM on subtle radiolucent pathology) is
+  unchanged; only which model sits on the other side of the comparison changed. Net effect on
+  risk is a **decrease** — the plan no longer depends on a third party's unreleased checkpoint
+  at all, where the original version did.
+- **Source:** `docs/research/MASTER_PLAN_2026H2.md` (corrected version, header dated 16 Aug 2026),
+  direct inspection of `github.com/ahukui/DentFound`.
+- **Follow-ups:** Select the specific open-weight VLM in W5 based on what's current and reliably
+  deployable at that time. Send the (optional, non-blocking) email to DentFound's authors. No
+  other plan document referenced the wrong premise — `PUBLICATION_STRATEGY.md`,
+  `gap_analysis.md`, and the survey paper itself were all already correct or already fixed.

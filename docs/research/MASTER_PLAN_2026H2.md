@@ -1,6 +1,7 @@
 # Master Implementation Plan — August to October 2026
 
 **Compiled:** 15 August 2026
+**Corrected:** 16 August 2026 — §0, §2.3 (C1), R6, §3.1, §5 (W5), §5.1, §6, §7, §8, §9 previously assumed DentFound's fine-tuned weights were public ("Apache-2.0 weight release"). Verified directly against the repository: only the training *code* is Apache-2.0; the fine-tuned weights and the 101k-patient training data are both closed. Logged in `../results/RESULTS_LOG.md`. C1 now runs against an accessible open-weight VLM instead of DentFound itself — the scientific question is unchanged, only which model sits on the other side of the comparison.
 **Horizon:** implementation complete by **14 October 2026**; research paper submitted by **26 October 2026**.
 **Supersedes for sequencing purposes:** the week-by-week schedules in `PUBLICATION_STRATEGY.md` §F and `clinical_dataset_plan.md` §7. The *analysis* in those documents stands; the *critical path* changes for the reason given in §1.
 **Companion docs:** `gap_analysis.md`, `PUBLICATION_TODO.md`, `clinical_dataset_plan.md`, `PUBLICATION_STRATEGY.md`, `../results/PAPER_MATERIAL.md`.
@@ -9,7 +10,7 @@
 
 ## 0. The situation in five lines
 
-We have four trained models, no integrated system, no external validation, and eight weeks. The previous plan routed external validation through a private clinic dataset that needs IRB approval and 40–60 hours of dentist annotation — a 12–14 week critical path that cannot land by 14 October. Meanwhile, two things appeared in the literature this month that change the arithmetic: a **free, downloadable, 3-hospital panoramic dataset covering both our target diseases**, and **public Apache-2.0 weights for the frontier dental VLM that supposedly obsoletes our project**. Together they convert a 14-week path into an 8-week one and hand us a sharper novelty claim than the one we had. This document is the plan that follows from that.
+We have four trained models, no integrated system, no external validation, and eight weeks. The previous plan routed external validation through a private clinic dataset that needs IRB approval and 40–60 hours of dentist annotation — a 12–14 week critical path that cannot land by 14 October. Meanwhile, two things appeared in the literature this month that change the arithmetic: a **free, downloadable, 3-hospital panoramic dataset covering both our target diseases**, which converts the 14-week path into an 8-week one, and **DentFound, the frontier dental VLM that supposedly obsoletes our project — whose training code is public (Apache-2.0) but whose trained weights are not**. That second fact hands us a sharper novelty claim than the one we had, once the comparison is built around an accessible open-weight VLM rather than DentFound's own unreleased checkpoint (§2.3, R6). This document is the plan that follows from that.
 
 ---
 
@@ -43,12 +44,12 @@ The Ningxia dataset does something the clinic data never could: it gives us **th
 
 ### 2.2 The central question
 
-Dental foundation models (DentFound, 7B params, 101k patients; DentVLM, 110k images, 2.46M VQA pairs) now exist and are claimed to reach clinical-level interpretation. **Does a 100× smaller specialist pipeline remain competitive on the specific, hard, clinically-load-bearing sub-tasks — subtle radiolucent caries and quantitative bone loss — and how do both degrade across institutions?**
+Dental foundation models (DentFound, 7B params, 101k patients — code released, weights closed; DentVLM, 110k images, 2.46M VQA pairs — closed) now exist and are claimed to reach clinical-level interpretation. **Does a dramatically smaller specialist pipeline remain competitive against an accessible general-purpose VLM on the specific, hard, clinically-load-bearing sub-tasks — subtle radiolucent caries and quantitative bone loss — and how do both degrade across institutions?** (The comparison runs against an open-weight VLM standing in for DentFound, not DentFound itself — R6.)
 
 This is a question nobody has answered, it is answerable in eight weeks, and *both possible answers are publishable*:
 
-- **If the specialist wins or ties** on caries/bone-loss at 1/1000th the compute → a real efficiency-frontier result with direct deployment implications for clinics that cannot run a 7B model.
-- **If DentFound dominates** → we have quantified the specialist-model obsolescence boundary on an independent cohort, which is itself a finding, and our failure taxonomy explains *where* and *why*.
+- **If the specialist wins or ties** on caries/bone-loss at a fraction of the compute → a real efficiency-frontier result with direct deployment implications for clinics that cannot run a multi-billion-parameter model.
+- **If the VLM dominates** → we have quantified the specialist-model obsolescence boundary on an independent cohort, which is itself a finding, and our failure taxonomy explains *where* and *why*.
 
 Prior evidence suggests the first outcome is plausible: the [*Diagnostics* Sep 2025 GPT-4o study](https://pmc.ncbi.nlm.nih.gov/articles/PMC12468776/) found VLMs handle radiopaque features (implants, restorations) well but degrade badly on radiolucent ones (caries, periapical lesions) — exactly our target pathologies. [DentiAsk](https://arxiv.org/abs/2607.08790) independently found VLMs "degrade sharply on spatial localization and counting."
 
@@ -56,7 +57,7 @@ Prior evidence suggests the first outcome is plausible: the [*Diagnostics* Sep 2
 
 | # | Contribution | Novelty status | Effort |
 |---|---|---|---|
-| **C1** | Specialist-vs-foundation-model comparison on subtle radiolucent pathology, at matched evaluation | **New.** Enabled by DentFound's Apache-2.0 weight release (June 2026). Not yet done by anyone. | Medium |
+| **C1** | Specialist-vs-foundation-model comparison on subtle radiolucent pathology, at matched evaluation | **New.** Motivated by DentFound (June 2026) — its code is Apache-2.0 but its fine-tuned weights are not public, so the comparison runs against an accessible open-weight VLM instead (R6). Not yet done by anyone, for either model. | Medium |
 | **C2** | Cross-dataset external validation across 4 independent sources (Tufts, DENTEX, Ningxia ×3 hospitals) | Fills the #1 gap named by three separate 2025–26 reviews | Medium |
 | **C3** | End-to-end system-level metrics + stage-wise error-propagation decomposition | Rare in the field; our own largest gap | High |
 | **C4** | Calibrated abstention ("not assessable") with coverage–accuracy curves | Not found in dental pipelines (`gap_analysis.md` §2B) | Low |
@@ -114,11 +115,20 @@ The 3-class severity model has **6 validation samples in the Mild class**. Per `
 
 **Cost:** ~3h. Mostly a reporting change, not a modelling one.
 
-### R6 — DentFound as a comparison branch, not a component ✅ **do this**
+### R6 — Comparison branch: an accessible VLM baseline, not DentFound itself ✅ **do this** (revised 16 Aug 2026)
 
-Run DentFound's released weights as a parallel baseline over the same test sets. **Do not** attempt to integrate it into the pipeline — that is scope creep and it dilutes the comparison that makes C1 work.
+**Correction to the original plan.** DentFound's training code is Apache-2.0 and public, but its fine-tuned weights are not — the repository's `checkpoints/` folder only documents downloading the generic pretrained CLIP-ViT-L/14 and Vicuna-7B base models anyone would start from, not DentFound's own trained model, and no working link to a DentFound checkpoint exists anywhere in the repo. Its 101k-patient training data is closed too, so training our own copy from the released code isn't an option either. Verified directly against the repository on 16 August 2026 — the original "free baseline" premise in this document was wrong, and is corrected here rather than silently edited. See `../results/RESULTS_LOG.md`.
 
-**Cost:** ~8h setup (Linux, CUDA, CLIP ViT-L/14 + Vicuna-7B from HF) + ~4h inference.
+**Non-blocking, pure-upside action:** email DentFound's corresponding author requesting research-use access to the fine-tuned weights for an independent comparison. Worth sending — it costs one email — but nothing in this schedule waits on a reply, and proceed as below regardless of outcome.
+
+**What C1 actually runs on:** an accessible general-purpose VLM, evaluated zero-shot on the same test sets, standing in for DentFound. Two candidates, not mutually exclusive:
+
+- **An open-weight multimodal model, run locally on the H100** — the primary comparison. Keeps faith with the reproducibility argument this whole project (and the survey) is built on: a result another lab can actually rerun. Which specific model is selected in W5, from whatever is current and reliably deployable at that time — not locked in now, on the same kind of unverified assumption that produced this correction in the first place.
+- **GPT-4o via API**, as a secondary, supplementary comparison point. Direct literature precedent: it is the same model the [*Diagnostics* Sep 2025 study](https://pmc.ncbi.nlm.nih.gov/articles/PMC12468776/) used to establish the radiopaque/radiolucent asymmetry that C1's hypothesis rests on. Not independently reproducible by others without their own API access, and carries a small real cost — useful context, not the primary result.
+
+The scientific question C1 asks is unchanged: does a small specialist pipeline hold up against a general-purpose VLM on subtle radiolucent pathology. What changed is which VLM sits on the other side of the table — and, if anything, this removes a dependency on a third party's code rather than adding one.
+
+**Cost:** ~6h environment setup for the open-weight model (lower risk than the original DentFound estimate — a mainstream model, not DentFound's specific, less-battle-tested repo) + ~4h inference. GPT-4o comparison adds ~2h setup and a small API cost proportional to image count.
 
 ### R7 — Learned CEJ keypoint head ❌ **defer, and say so**
 
@@ -148,7 +158,7 @@ Stage 5  Fusion + calibrated abstention + filtering                   [R3][R4]
   ▼
 Stage 6  Per-tooth JSON report + Grad-CAM overlays                    [R4]
   ▼
-        ══ evaluated against ══  DentFound (7B VLM, frozen)           [R6]
+        ══ evaluated against ══  open-weight VLM baseline (frozen)   [R6]
 ```
 
 ---
@@ -201,7 +211,7 @@ Eight weeks and change. Each week has an exit criterion; if a week's criterion i
 | **W2** | Aug 22–28 | **Canonical models.** **T0.6** — reconcile the two YOLO runs, declare the criterion *before* looking at results, retrain as **YOLOv11l-seg** [R1], freeze and version. **T0.2** — carve DENTEX held-out test split, re-run caries cascade. **T0.3** — macro-F1 checkpointing on all four classifiers. Implement mask-aware cropping [R2]. | One frozen canonical detector with a version tag; all four classifiers retrained with honest val/test separation |
 | **W3** | Aug 29–Sep 4 | **Integration, part 1** [R4]. Single-entry-point inference. Per-tooth structured JSON schema. FDI assignment robust to missing teeth / sparse arches. | `run_inference.py` produces valid per-tooth JSON on a Tufts test image, end to end |
 | **W4** | Sep 5–11 | **Integration part 2 + first external run.** Report assembly, Grad-CAM overlays. Then **run the frozen pipeline over Ningxia** — the three measurements in §4.3. First external numbers exist. | Domain-shift report v1 with real external metrics |
-| **W5** | Sep 12–18 | **DentFound baseline** [R6]. Environment, weights, inference over the same test sets. Head-to-head table vs. our pipeline on caries + bone loss. Efficiency comparison (params, latency, VRAM). | C1 comparison table populated |
+| **W5** | Sep 12–18 | **VLM baseline** [R6]. Select and set up an open-weight VLM (plus GPT-4o as secondary), inference over the same test sets. Head-to-head table vs. our pipeline on caries + bone loss. Efficiency comparison (params, latency, VRAM). | C1 comparison table populated |
 | **W6** | Sep 19–25 | **Rigor block.** Calibration + abstention [R3], coverage–accuracy curves. Bootstrap 95% CIs on every headline metric. PPV/NPV at observed prevalence. Ablations [C5]: jitter, asymmetric crop, mask-aware crop, overlap-vs-IoU. Stage-wise error propagation [C3]. | Every number in the paper has a CI and a support count |
 | **W7** | Sep 26–Oct 2 | **Analysis + figures.** Failure taxonomy with example crops, bucketed by confounder. All result tables final. CLAIM 2024 checklist filled. Figures drawn. | Results section is fully specified — no experiment left to run |
 | **W8** | Oct 3–9 | **Write.** Full draft. `RESULTS_LOG.md`, `model_metrics.md`, `PAPER_MATERIAL.md` updated per `CLAUDE.md` rules. | Complete draft circulated to Dr. Mamatha H R |
@@ -222,7 +232,7 @@ The survey is nearly submittable and depreciating monthly. It runs **in parallel
 
 > *No openly reproducible system — open in both weights and training data — integrates caries detection, severity staging, periodontal bone-loss quantification and explainability in a single panoramic pipeline.*
 
-DentFound releases weights but **not** its 101k-patient training data; DentVLM releases neither. That distinction is real, defensible, and verifiable — and our own research paper then fills exactly the gap the survey names, which is the coherent two-paper structure `PUBLICATION_STRATEGY.md` §D.5 describes.
+DentFound releases its training **code** but neither its fine-tuned weights nor its 101k-patient training data (corrected 16 Aug 2026 — the earlier draft of this note said "weights," which was wrong); DentVLM releases none of the three. That distinction — code open, weights and data both closed — is real, defensible, and verifiable. The survey's own text was already correct on this point (`Survey Paper Latex folder/conference_101719.tex`, the "Reproducibility is also asymmetric" passage); only this planning note had the error. Our own research paper then fills exactly the gap the survey names, which is the coherent two-paper structure `PUBLICATION_STRATEGY.md` §D.5 describes.
 
 ---
 
@@ -233,14 +243,14 @@ DentFound releases weights but **not** its 101k-patient training data; DentVLM r
 | YOLOv11l-seg retrain (1024px, 150 ep) | ~6 | Single H100. H200 if available, no material difference at this size. |
 | 4× ResNet18 retrains (macro-F1 checkpointing) | ~4 | ~1h each |
 | Ablation runs (jitter × crop geometry × imbalance) | ~8 | Parallelisable |
-| DentFound inference (~8,000 images, 7B) | ~4 | Batched; bf16 |
+| Open-weight VLM inference (~8,000 images) | ~4 | Batched; bf16 — exact model set in W5, not DentFound (§R6) |
 | Pipeline inference over Ningxia (×3 preprocessing variants) | ~3 | Cheap |
 | Contingency / reruns | ~10 | Assume at least one full redo |
 | **Total** | **~35 GPU-hours** | |
 
 **Conclusion: compute is not the bottleneck, and no part of this plan should be designed around saving GPU time.** The scarce resources are integration engineering (W3–W4) and honest analysis (W6–W7). If a trade appears between "more GPU" and "less analysis time," always buy GPU.
 
-Note: DentFound was trained on 8×A100-80GB, but we are only running **inference**, which fits comfortably on one H100. LoRA fine-tuning it is possible but is **explicitly out of scope** — it would make DentFound a component rather than a baseline and destroy contribution C1.
+Note: DentFound's own fine-tuned weights are not public (§R6), so DentFound itself is not part of this compute budget at all — C1 runs against an open-weight VLM instead, and inference on it fits comfortably on one H100. If DentFound's authors ever grant weight access on request, only ever run it for **inference**, never fine-tune it — fine-tuning would make it a component rather than a baseline and destroy contribution C1's framing regardless of which model sits opposite our pipeline.
 
 ---
 
@@ -253,7 +263,7 @@ Note: DentFound was trained on 8×A100-80GB, but we are only running **inference
 | *Scientific Reports* | Rolling | £2,290 APC | Research-paper fallback if funding exists. Check PES Read-and-Publish first. |
 | *Computers in Biology and Medicine* | Rolling | Hybrid, free option | Good fit for the methods framing; no deadline pressure. |
 
-**Go/no-go checkpoint: 30 September.** If C1 (DentFound comparison) and C2 (Ningxia external validation) are not both producing final numbers by then, drop ISBI without regret and target *Oral Radiology*. A rushed 4-page submission with half-finished validation wastes the submission and the reviewer goodwill.
+**Go/no-go checkpoint: 30 September.** If C1 (VLM comparison, §R6) and C2 (Ningxia external validation) are not both producing final numbers by then, drop ISBI without regret and target *Oral Radiology*. A rushed 4-page submission with half-finished validation wastes the submission and the reviewer goodwill.
 
 ---
 
@@ -261,9 +271,9 @@ Note: DentFound was trained on 8×A100-80GB, but we are only running **inference
 
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
-| **Baidu Cloud download fails/throttles** | Medium | **Critical — blocks C2** | Day-1 attempt; author email fallback; vzrad2 as last resort. See §4.4. |
+| **Baidu Cloud download fails/throttles** | **Confirmed — hit a CAPTCHA wall on first attempt** | **Critical — blocks C2** | Manual completion by a human (CAPTCHA-solving is a hard line for automated attempts, not attempted); author email fallback; vzrad2 as last resort. See §4.4. |
 | Ningxia label granularity mismatches our per-tooth output | **Certain** | Medium | Already handled — §4.3 defines three honest measurements instead of one dishonest one |
-| DentFound won't run (Linux-only, dependency hell, flash-attn) | Medium | High — blocks C1 | Budget the full W5 for it; start environment setup in W4 as background work; LoRA-free inference path only |
+| Chosen open-weight VLM underperforms or is hard to deploy | Low-Medium | Medium — weakens C1's polish, not its core question | Pick an established, widely-used open VLM in W5, not a bleeding-edge release; GPT-4o (§R6) is a documented, low-effort fallback comparison point regardless |
 | Integration (W3–W4) overruns | **High** | High | This is the historical long pole. Cut C5 ablations first, then C4, never C2. |
 | Models transfer badly to Ningxia | Medium-High | **Low — this is the finding** | Reframed as the result, per Frontiers 2026 precedent (AUC 0.76–0.98 → 0.53–0.57 is *published, expected* behaviour). Do not tune until it looks good — that destroys the contribution. |
 | IRB doesn't clear in time | High | **None** — by design | Clinic data is off the critical path. That is the entire point of §1. |
@@ -277,7 +287,7 @@ Direct answer to "what can I opt for from the study, and what can I redesign."
 
 | Source | What we take | What we do NOT take |
 |---|---|---|
-| **[DentFound](https://github.com/ahukui/DentFound)** (*Nat BME*, Jun 2026) | (a) Apache-2.0 weights → free baseline for C1. (b) The instance-guided principle → justifies R1/R2. (c) Their ablation structure (masks / resolution / staged training) as a template for ours. | Their 101k-patient dataset (not released), their scale, their VLM framing. We are not competing on scale. |
+| **[DentFound](https://github.com/ahukui/DentFound)** (*Nat BME*, Jun 2026) | (a) The instance-guided principle → justifies R1/R2. (b) Their ablation structure (masks / resolution / staged training) as a template for ours. (c) Their Apache-2.0 training code, if a from-scratch reproduction is ever attempted. | Their fine-tuned weights and their 101k-patient training data — **neither is released** (corrects the original "free baseline" premise; verified 16 Aug 2026). Their scale, their VLM framing. C1 runs against an open-weight VLM instead (R6); we are not competing on scale either way. |
 | **[DentVLM](https://arxiv.org/abs/2509.23344)** (*Nat Commun*, 2026) | Their evaluation *structure* — dentist-panel comparison, per-task breakdown, diagnostic-time measurement. Cite as frontier context. | Nothing technical — no code, weights or data released. |
 | **[Ningxia multi-center](https://github.com/qinxin99/qinxini)** (*J Imaging Inform Med*, 2024) | **The dataset itself** — primary external validation, both diseases, 3 hospitals, free, pre-approved. | Their benchmark numbers as a comparison target (within-dataset Dice ~97% is not comparable to our cross-dataset setting). |
 | **[Oral Radiology keypoint staging](https://link.springer.com/article/10.1007/s11282-026-00921-x)** (Apr 2026) | Their honest limitation statement (panoramics underestimate early bone loss; should not be sole diagnostic basis) → quote in our limitations. AAP/EFP staging convention. | The keypoint head itself — deferred, R7. No annotations. |
