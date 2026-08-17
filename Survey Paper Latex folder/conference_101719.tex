@@ -1142,6 +1142,25 @@ system cannot currently be independently re-run or externally
 audited by a third party. An Author Correction was published on 8~July
 2026; readers relying on specific DentFound figures should consult it.
 
+A second, larger system, DentVLM~\cite{meng2026dentvlm}, was published
+in \emph{Nature Communications} in 2026. It is trained on 110,447
+images and 2.46~million bilingual visual-question-answering pairs
+spanning seven 2D oral imaging modalities and 36 diagnostic tasks, and
+a clinical evaluation on 1,946 patients reports that it outperforms
+13 junior dentists on 21 of 36 tasks and 12 senior dentists on 12 of
+36 tasks. DentVLM falls outside this survey's formal inclusion
+criteria (Section~\ref{sec:methodology}): its scope spans multiple oral
+imaging modalities and general oral disease diagnosis rather than
+caries and periodontal assessment specifically on panoramic, bitewing,
+or periapical radiographs, so it is cited here for context rather than
+counted among the corpus of 70. Its code, weights, and training-data
+availability were not confirmed at the time of this survey's final
+search update; if closed, as with DentFound, its existence does not
+by itself satisfy the reproducibility bar this survey's central claim
+sets, but its scale and dentist-benchmarked evaluation make it directly
+relevant context for that claim and it should be read alongside
+DentFound throughout this section.
+
 Three concurrent benchmark efforts test whether general-purpose
 vision-language models can substitute for task-specific pipelines like
 DentFound's or the one proposed in this survey, and all three answer
@@ -1339,8 +1358,8 @@ multi-modality reviews), which supports treating panoramic radiographs
 as the primary modality for this survey while noting that comparisons
 against bitewing- or periapical-only studies elsewhere in this table
 are not strictly like-for-like. Reported metrics are also
-inconsistent enough to limit direct comparison: 8 of the 25 studies
-report an mAP-family detection metric, 7 report accuracy or AUC, 3
+inconsistent enough to limit direct comparison: 7 of the 25 studies
+report an mAP-family detection metric, 8 report accuracy or AUC, 3
 report Dice, and the remaining 7 each report a distinct metric (F1,
 recall, ICC, or sensitivity) used nowhere else in the table. This
 metric fragmentation, more than any single result, is why
