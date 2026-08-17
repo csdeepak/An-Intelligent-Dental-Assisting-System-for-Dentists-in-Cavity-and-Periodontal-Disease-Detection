@@ -224,6 +224,15 @@ applied at the detector output. Full table in `configs/dataset_config.yaml`
   geometry the detector relies on for tooth ordering).
 - Two runs were executed and never reconciled — A100/1024/150ep and H200/768/50ep.
   Details: `notebooks/yolo_detection/README.md`.
+- **Why YOLOv11, not a newer YOLO generation:** verified against
+  [Mutlu et al., "Comparison of YOLOv11 and YOLOv12," *Odontology* (2026)](https://doi.org/10.1007/s10266-026-01333-3),
+  a head-to-head benchmark on 13 dental conditions from panoramic radiographs (2,297 images,
+  internal + external Roboflow test sets). YOLOv11 beat YOLOv12 on both splits (mAP@0.5 0.857
+  internal / 0.806 external) and was named the more robust architecture for multi-class dental
+  detection. The same paper independently reports weaker performance on subtle pathology (bone
+  loss, caries) versus well-defined objects (crowns, implants) — the identical asymmetry this
+  project's own evaluation plan is built around (see `../research/MASTER_PLAN_2026H2.md` §2.2).
+  This is external validation of the backbone choice, not just internal justification.
 
 ### 5.2 Stage 2 — Sorting, jaw split and FDI assignment
 

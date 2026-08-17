@@ -79,6 +79,8 @@ Six changes. Each is justified by a specific paper, and each is costed. **GPU is
 
 **Why:** DentFound's own ablation shows tooth *instance masks* are a load-bearing component of its architecture — the frontier model does not trust raw pixels for spatial dental reasoning, it grounds on instances first. Our pipeline already makes the same bet implicitly (detect → crop → classify); upgrading bbox → mask makes it explicit and defensible, and lets us cite DentFound's ablation as independent justification for our own design.
 
+**Why YOLOv11 specifically, staying on it rather than jumping to YOLOv12+:** [Mutlu et al., *Odontology* (2026)](https://doi.org/10.1007/s10266-026-01333-3) ran the exact head-to-head on dental panoramic radiographs and found YOLOv11 beats YOLOv12 (mAP@0.5 0.857 internal / 0.806 external), naming it the more robust architecture for multi-class dental detection. Verified 17 Aug 2026 — full detail in `../results/PAPER_MATERIAL.md` §5.1. Upgrading to `-seg` stays within the same generation this evidence supports; it is not an argument for chasing the newest release.
+
 **Why it's cheap:** Tufts already ships `Segmentation/Segmentation/teeth_mask` and `teeth_polygon.json` (confirmed in `configs/dataset_config.yaml`). **No new annotation is required.** Ningxia also ships segmentation masks, giving us cross-dataset mask evaluation for free.
 
 **Secondary benefit:** mask-aware cropping (R2) becomes possible, and instance masks give a cleaner signal for FDI assignment on sparse arches.
