@@ -303,3 +303,46 @@ Copy this block verbatim to the bottom of the file and fill it in.
   deployable at that time. Send the (optional, non-blocking) email to DentFound's authors. No
   other plan document referenced the wrong premise — `PUBLICATION_STRATEGY.md`,
   `gap_analysis.md`, and the survey paper itself were all already correct or already fixed.
+
+## 2026-08-18 — Ningxia dataset downloaded; two structural findings change the evaluation design
+
+- **What was done:** The Ningxia multi-center dataset finished downloading to `D:\nangxia_dataset`
+  (Baidu Cloud, manual CAPTCHA, ~3-day throttled transfer — the risk flagged in
+  `MASTER_PLAN_2026H2.md` §4.4 materialised exactly as predicted and was cleared). Inspected the
+  actual folder structure rather than reasoning from the paper's description, and verified
+  extracted counts against the dataset's own README table. Six of seven `.rar` archives are
+  extracted and count-verified; `segmentation/Periodontitis/train.rar` (4.26 GB, 2,000 images)
+  was still extracting at time of writing.
+- **Dataset / config:** Ningxia (Li et al., *J Imaging Inform Med* 2024) — 6,580 panoramic
+  images, 3 hospitals. Segmentation subset: `{Dental caries, Impacted teeth, Periodontitis}` ×
+  `{train, test1–test4}`, each with paired `img/` + `mask/`. Classification subset: 3 disease
+  class folders, randomly split across centers.
+- **Metrics:** none — no model was run. Count verification only. Image+mask pairing yields ~2× the
+  README's per-image count, as expected (e.g. Dental caries/test: 674 PNGs = 337 images × 2).
+- **Key decision or insight:** **Two structural findings, one opportunity and one correction.**
+  (1) *The test splits are center-stratified.* The README states `test2` shares a center with
+  their training data while `test1`/`test3`/`test4` come from different centers — so Ningxia is a
+  built-in **domain-shift gradient**, not a single external set. Every headline metric will now be
+  reported stratified by split, never pooled, which strengthens contribution C2 at zero cost.
+  (2) *There are no healthy controls.* Every image in both subsets is a positive case of its
+  category; there is no normal/healthy class. **Specificity, AUC and PPV are therefore not
+  computable on Ningxia**, contradicting the original §4.3 which claimed "sensitivity/specificity/
+  AUC at the image level." Metrics redistributed: specificity/PPV/NPV/calibration now come from the
+  **Tufts held-out test** (which has genuine negatives at real prevalence, 1,499 normal / 59
+  diseased); Ningxia supplies sensitivity-under-domain-shift plus lesion-localisation agreement.
+  Localisation agreement is **promoted to the primary Ningxia metric** because it requires no
+  negatives and simultaneously satisfies the quantified-XAI requirement (T1.5). Explicitly ruled
+  out: synthesising negatives from other disease categories — the dataset annotates the diagnosis
+  of interest, co-occurrence is clinically common, and that substitution would convert correct
+  predictions into false positives.
+- **Source:** direct inspection of `D:\nangxia_dataset` and its bundled `ReadMe.md`;
+  `docs/research/MASTER_PLAN_2026H2.md` §4.3 (rewritten), §4.4, §5 (W4/W6), §8.
+- **Follow-ups:** Confirm `Periodontitis/train` extracts to 2,000 images + 2,000 masks. Build and
+  freeze a committed manifest CSV (category / split / center / img path / mask path / dimensions)
+  verified against the README table — pixels stay on `D:`, only the manifest enters git. Verify the
+  exact center↔split mapping against the published paper before naming centers in print (the
+  README's qualitative statement does not obviously reconcile with the paper's 4,940 / 716 / 880
+  per-hospital counts). Characterise the resolution gap vs. Tufts (840×1615 portrait vs. ~2976×1536
+  landscape) as input to the preprocessing contract. **Do not delete the `.rar` archives** — a scan
+  found no junk files to clean, and they are the only local fallback until every split has been
+  read end to end.

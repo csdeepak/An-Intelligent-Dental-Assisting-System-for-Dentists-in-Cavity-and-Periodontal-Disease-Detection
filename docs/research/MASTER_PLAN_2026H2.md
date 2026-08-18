@@ -1,6 +1,7 @@
 # Master Implementation Plan — August to October 2026
 
 **Compiled:** 15 August 2026
+**Updated:** 18 August 2026 — §4.3 rewritten and §4.4/§8 updated after inspecting the downloaded Ningxia dataset directly. Two structural findings: (1) the test splits are **center-stratified** (`test1`–`test4`), giving a built-in domain-shift gradient that strengthens C2 at no cost; (2) the dataset contains **no healthy controls**, so specificity/AUC are not computable on it — the original §4.3 claimed they were, and that was wrong. Metrics redistributed across datasets accordingly (§4.3.3). Logged in `../results/RESULTS_LOG.md`.
 **Corrected:** 16 August 2026 — §0, §2.3 (C1), R6, §3.1, §5 (W5), §5.1, §6, §7, §8, §9 previously assumed DentFound's fine-tuned weights were public ("Apache-2.0 weight release"). Verified directly against the repository: only the training *code* is Apache-2.0; the fine-tuned weights and the 101k-patient training data are both closed. Logged in `../results/RESULTS_LOG.md`. C1 now runs against an accessible open-weight VLM instead of DentFound itself — the scientific question is unchanged, only which model sits on the other side of the comparison.
 **Horizon:** implementation complete by **14 October 2026**; research paper submitted by **26 October 2026**.
 **Supersedes for sequencing purposes:** the week-by-week schedules in `PUBLICATION_STRATEGY.md` §F and `clinical_dataset_plan.md` §7. The *analysis* in those documents stands; the *critical path* changes for the reason given in §1.
@@ -183,23 +184,64 @@ The temptation is to fold 6,580 new images into training and watch the numbers r
 | **vzrad2** ([Roboflow](https://github.com/its-deema/ToothTruth-Dental-Disease-Classification)) | 10,580 images, 35 classes | Optional robustness spot-check | Only if time permits. Not on critical path. |
 | **Private clinic** | 4,420 images, Carestream CS 8100 | Bonus stream | IRB-gated. Label-free Tier 1a only, if it clears. |
 
-### 4.3 Honest caveat on Ningxia — read this before building the eval
+### 4.3 What Ningxia can and cannot measure — read this before building the eval
 
-Ningxia provides **image-level disease labels plus lesion segmentation masks**. It does **not** provide per-tooth FDI-keyed annotations. Our pipeline outputs per-tooth findings. These do not match one-to-one, and pretending otherwise would be exactly the kind of unfalsifiable evaluation this project's documentation exists to prevent.
+**Revised 18 August 2026**, after inspecting the downloaded dataset directly rather than reasoning from the paper's description. Two structural facts changed this section: one is an opportunity the original plan missed, one is a constraint the original plan got wrong.
 
-**Therefore the Ningxia evaluation is defined as three distinct, honestly-labelled measurements:**
+#### 4.3.1 Baseline caveat (unchanged, still true)
 
-1. **Image-level disease presence** — does the pipeline flag ≥1 diseased tooth on an image labelled diseased? Gives sensitivity/specificity/AUC at the image level, directly comparable to DentFound's output granularity. *This is the headline external number.*
-2. **Lesion-localisation agreement** — do the predicted diseased teeth spatially overlap the expert lesion mask? Reported as a localisation-agreement rate. This doubles as the **quantified XAI metric** (T1.5), killing two requirements with one experiment.
-3. **Detection + numbering sanity** — teeth-per-image distribution, duplicate-FDI rate, arch-consistency violations vs. Tufts. Label-free, from `clinical_dataset_plan.md` §3 Tier 1a.
+Ningxia provides **image-level disease labels plus lesion segmentation masks**. It does **not** provide per-tooth FDI-keyed annotations. Our pipeline outputs per-tooth findings. These do not match one-to-one, and pretending otherwise would be exactly the kind of unfalsifiable evaluation this project's documentation exists to prevent. Per-tooth FDI-keyed external metrics remain available only from the clinic data, if IRB clears.
 
-Per-tooth FDI-keyed external metrics remain available only from the clinic data, if IRB clears. **State this limitation explicitly in the paper.** It is a limitation, not a flaw — and naming it is what distinguishes us from the 63.3%-of-papers-rated-merely-"intermediate" baseline the DMFR meta-analysis found.
+#### 4.3.2 Finding 1 — the test splits are center-stratified. Exploit this.
 
-### 4.4 Logistical risk — flag now
+Every segmentation category ships **four** test splits (`test1`–`test4`), each with paired `img/` + `mask/` folders. Per the dataset's own README:
 
-The Ningxia dataset is hosted on **Baidu Cloud** (password `3et5`). Baidu downloads from India are frequently slow, sometimes require the desktop client, and occasionally require an account. **This is on the critical path for Week 1.**
+> "test2 and the training set are from the same center, and the remaining three are cross-center testsets from different centers."
 
-Mitigations, in order: (a) attempt direct download immediately, day 1; (b) if throttled, email the maintainer (`qinxinni99@gmail.com`) — the repo explicitly offers contact for technical issues, and academic mirror requests are routine; (c) fall back to vzrad2 + children's dataset as the external source, which is weaker but non-blocking. **Do not let this discover itself in week 3.**
+So Ningxia is **not one external set — it is a built-in domain-shift gradient**:
+
+| Split | Center relationship | What it measures |
+|---|---|---|
+| `test2` | Same center as their train data | Near-ceiling external performance |
+| `test1`, `test3`, `test4` | Three genuinely different centers | True cross-center generalisation |
+
+**This upgrades contribution C2 for free.** Instead of one external number, we report *how performance decays as a function of institutional distance* — which is precisely the "documented failure modes under domain shift" gap that [Frontiers Med](https://www.frontiersin.org/journals/medicine/articles/10.3389/fmed.2026.1879708/full) and [Healthcare](https://www.mdpi.com/2227-9032/14/13/1952) (both Jul 2026) name as unmet. Report every headline metric **stratified by split**, never pooled.
+
+Caveat: the **classification** subset was randomly split across centers (README §Classification), so it carries no center structure and is useless for this analysis. Only the segmentation subset supports it. Also note the exact center↔split mapping is stated qualitatively in the README but its arithmetic does not obviously reconcile with the three per-hospital counts in the published paper (4,940 / 716 / 880) — **verify the mapping against the paper before asserting which center is which in print.**
+
+#### 4.3.3 Finding 2 — there are no healthy controls. This changes which metrics are reportable.
+
+The classification set contains exactly three folders — `Dental caries`, `Impacted teeth`, `Periodontitis` — and **no normal/healthy class**. The segmentation set is the same: every image is a positive case of its category.
+
+**Consequence: sensitivity/recall is computable on Ningxia. Specificity, AUC, and PPV are not.** The original §4.3 claimed "sensitivity/specificity/AUC at the image level" — that was wrong and is corrected here.
+
+**Do not manufacture negatives from other categories.** Using a periodontitis image as a caries-negative assumes the absence of caries annotation means absence of caries. It does not — the dataset annotates the diagnosis of interest, and co-occurrence is clinically common. That substitution would convert correct predictions into false positives and silently corrupt the headline number.
+
+**The fix is a division of labour across datasets, not a workaround within one:**
+
+| Metric | Source | Why that source |
+|---|---|---|
+| Specificity, PPV/NPV at realistic prevalence, calibration | **Tufts held-out test** | Has genuine negatives at real prevalence (1,499 normal / 59 diseased) |
+| Sensitivity under domain shift, stratified per center | **Ningxia** `test1`–`test4` | Positives only — but cross-center, which Tufts is not |
+| Lesion-localisation agreement | **Ningxia masks** | Requires no negatives at all; unaffected by this constraint |
+
+#### 4.3.4 The three Ningxia measurements, revised
+
+1. **Lesion-localisation agreement** *(promoted to primary)* — do the predicted diseased teeth spatially overlap the expert lesion mask? Unaffected by the missing negatives, and doubles as the **quantified XAI metric** (T1.5), satisfying two requirements with one experiment. **This is now the headline external number.**
+2. **Image-level detection sensitivity** *(demoted, relabelled)* — on an image labelled diseased, does the pipeline flag ≥1 diseased tooth? Report as sensitivity/recall only, per split. Explicitly state that specificity is not computable here and comes from Tufts instead.
+3. **Detection + numbering sanity** — teeth-per-image distribution, duplicate-FDI rate, arch-consistency violations vs. Tufts. Label-free, from `clinical_dataset_plan.md` §3 Tier 1a. Also stratify by split — numbering failures are a likely domain-shift symptom.
+
+**State all of this explicitly in the paper.** These are limitations, not flaws — and naming them precisely is what distinguishes us from the 63.3%-of-papers-rated-merely-"intermediate" baseline the DMFR meta-analysis found.
+
+### 4.4 Logistical risk — RESOLVED 18 August 2026
+
+**Outcome: the risk materialised as predicted, and was cleared.** The Baidu Cloud link (password `3et5`) presented a CAPTCHA gate that automated retrieval could not and should not bypass; it was completed manually. The download then ran across roughly three days (file timestamps 16–18 Aug), consistent with the throttling this section anticipated. The maintainer-email and vzrad2 fallbacks were never needed.
+
+**Local location:** `D:\nangxia_dataset`. Structure: `segmentation/{Dental caries,Impacted teeth,Periodontitis}/{train,test}/` with `img/` + `mask/` pairs under `test1`–`test4`, plus `classification/分类数据集/{train,test}/` with three disease class folders. Seven `.rar` source archives are retained deliberately — see below.
+
+**Verification status at time of writing:** six of seven archives extracted and count-verified against the README table (image+mask pairing gives ~2× the per-image count, as expected). `segmentation/Periodontitis/train.rar` (4.26 GB, 2,000 images — the largest single split, and the disease most central to this project) was **still extracting**. Confirm it lands at 2,000 images + 2,000 masks before treating the dataset as complete.
+
+**Do not delete the `.rar` archives yet.** A scan found no junk in the folder — no `.tmp`/`.part`/`.crdownload`/`Thumbs.db`, no zero-byte files — so there is nothing to clean up, and the archives are the only local fallback for a download that cost three days and a manual CAPTCHA. Only counts have been verified, not byte-level integrity. Retire them once the pipeline has successfully read every split end to end.
 
 ---
 
@@ -212,9 +254,9 @@ Eight weeks and change. Each week has an exit criterion; if a week's criterion i
 | **W1** | Aug 15–21 | **Unblock + repair.** Download Ningxia (day 1, see §4.4). Fix the Universal→FDI lower-arch bug in `dataset_config.yaml` **and** `src/utils/fdi_converter.py` (both are wrong), cover with `tests/test_fdi_converter.py`. **T0.1** augmentation audit on the caries track — resolve and document. Start IRB paperwork for clinic data. Provision E2E H100. | Ningxia downloaded and loadable; FDI conversion correct and unit-tested; augmentation question answered in writing |
 | **W2** | Aug 22–28 | **Canonical models.** **T0.6** — reconcile the two YOLO runs, declare the criterion *before* looking at results, retrain as **YOLOv11l-seg** [R1], freeze and version. **T0.2** — carve DENTEX held-out test split, re-run caries cascade. **T0.3** — macro-F1 checkpointing on all four classifiers. Implement mask-aware cropping [R2]. | One frozen canonical detector with a version tag; all four classifiers retrained with honest val/test separation |
 | **W3** | Aug 29–Sep 4 | **Integration, part 1** [R4]. Single-entry-point inference. Per-tooth structured JSON schema. FDI assignment robust to missing teeth / sparse arches. | `run_inference.py` produces valid per-tooth JSON on a Tufts test image, end to end |
-| **W4** | Sep 5–11 | **Integration part 2 + first external run.** Report assembly, Grad-CAM overlays. Then **run the frozen pipeline over Ningxia** — the three measurements in §4.3. First external numbers exist. | Domain-shift report v1 with real external metrics |
+| **W4** | Sep 5–11 | **Integration part 2 + first external run.** Report assembly, Grad-CAM overlays. Then **run the frozen pipeline over Ningxia** — the three measurements in §4.3.4, reported **stratified by `test1`–`test4`**, never pooled (§4.3.2). First external numbers exist. | Domain-shift report v1 showing the per-center performance gradient |
 | **W5** | Sep 12–18 | **VLM baseline** [R6]. Select and set up an open-weight VLM (plus GPT-4o as secondary), inference over the same test sets. Head-to-head table vs. our pipeline on caries + bone loss. Efficiency comparison (params, latency, VRAM). | C1 comparison table populated |
-| **W6** | Sep 19–25 | **Rigor block.** Calibration + abstention [R3], coverage–accuracy curves. Bootstrap 95% CIs on every headline metric. PPV/NPV at observed prevalence. Ablations [C5]: jitter, asymmetric crop, mask-aware crop, overlap-vs-IoU. Stage-wise error propagation [C3]. | Every number in the paper has a CI and a support count |
+| **W6** | Sep 19–25 | **Rigor block.** Calibration + abstention [R3], coverage–accuracy curves. Bootstrap 95% CIs on every headline metric. PPV/NPV at observed prevalence — **on Tufts held-out test, not Ningxia** (§4.3.3). Ablations [C5]: jitter, asymmetric crop, mask-aware crop, overlap-vs-IoU. Stage-wise error propagation [C3]. | Every number in the paper has a CI and a support count |
 | **W7** | Sep 26–Oct 2 | **Analysis + figures.** Failure taxonomy with example crops, bucketed by confounder. All result tables final. CLAIM 2024 checklist filled. Figures drawn. | Results section is fully specified — no experiment left to run |
 | **W8** | Oct 3–9 | **Write.** Full draft. `RESULTS_LOG.md`, `model_metrics.md`, `PAPER_MATERIAL.md` updated per `CLAUDE.md` rules. | Complete draft circulated to Dr. Mamatha H R |
 | **Buffer** | Oct 10–14 | Slack. Revisions, reruns, anything that slipped. **Project deadline: 14 Oct.** | Implementation frozen |
@@ -273,8 +315,9 @@ Note: DentFound's own fine-tuned weights are not public (§R6), so DentFound its
 
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
-| **Baidu Cloud download fails/throttles** | **Confirmed — hit a CAPTCHA wall on first attempt** | **Critical — blocks C2** | Manual completion by a human (CAPTCHA-solving is a hard line for automated attempts, not attempted); author email fallback; vzrad2 as last resort. See §4.4. |
-| Ningxia label granularity mismatches our per-tooth output | **Certain** | Medium | Already handled — §4.3 defines three honest measurements instead of one dishonest one |
+| ~~Baidu Cloud download fails/throttles~~ | **RESOLVED 18 Aug** | — | Materialised as predicted (CAPTCHA + ~3-day throttled transfer), cleared manually. Data local at `D:\nangxia_dataset`. See §4.4. |
+| Ningxia label granularity mismatches our per-tooth output | **Certain** | Medium | Already handled — §4.3.4 defines three honest measurements instead of one dishonest one |
+| **Ningxia has no healthy controls** — specificity/AUC not computable there | **Certain (confirmed 18 Aug)** | Medium — would have silently corrupted the headline number | §4.3.3: specificity/PPV move to Tufts held-out test; Ningxia reports sensitivity + localisation agreement only. **Never synthesise negatives from other disease categories.** |
 | Chosen open-weight VLM underperforms or is hard to deploy | Low-Medium | Medium — weakens C1's polish, not its core question | Pick an established, widely-used open VLM in W5, not a bleeding-edge release; GPT-4o (§R6) is a documented, low-effort fallback comparison point regardless |
 | Integration (W3–W4) overruns | **High** | High | This is the historical long pole. Cut C5 ablations first, then C4, never C2. |
 | Models transfer badly to Ningxia | Medium-High | **Low — this is the finding** | Reframed as the result, per Frontiers 2026 precedent (AUC 0.76–0.98 → 0.53–0.57 is *published, expected* behaviour). Do not tune until it looks good — that destroys the contribution. |
