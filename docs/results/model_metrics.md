@@ -3,7 +3,7 @@
 Current best numbers only. One table per model, nothing else. For how a number was
 obtained see `PAPER_MATERIAL.md`; for when and why it changed see `RESULTS_LOG.md`.
 
-**Last updated:** 2026-08-12
+**Last updated:** 2026-08-19
 
 ---
 
@@ -18,7 +18,10 @@ Best run: A100, imgsz 1024, 150 epochs requested / 128 run, best epoch 98.
 
 Superseded run (H200, imgsz 768, 50 ep): val mAP@0.5 **0.678**. Not test-evaluated.
 Inference ~3.1 ms/image (A100). Weights: `models/06_yolo_detection_a100_run/best.pt`
-(git-ignored, local only). **No canonical detector frozen yet.**
+(git-ignored, local only, and not found on the machine that wrote this line — needs
+locating before it can be hashed). **Config formally reconciled and declared canonical
+19 Aug 2026 (T0.6) — see `docs/research/T0.6_detector_reconciliation.md`; weight hash
+still pending, so "canonical detector frozen" remains not yet true.**
 
 ---
 
@@ -37,7 +40,11 @@ was never saved in the notebook. Outstanding.
 | **Macro F1** | | | **0.77** | |
 | Weighted F1 | | | 0.82 | |
 
-Validation-only — no held-out test split exists for caries.
+Validation-only — no held-out test split exists for caries. These numbers are also from
+accuracy-selected checkpoints; as of 19 Aug 2026 the notebook selects on macro-F1 instead
+(T0.3) and a held-out split script exists (T0.2), but neither fix has been re-run yet — see
+`docs/results/RESULTS_LOG.md` 2026-08-19 entries. This table stays as-is until the re-run
+produces new numbers to replace it with.
 
 ---
 

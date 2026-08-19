@@ -346,3 +346,177 @@ Copy this block verbatim to the bottom of the file and fill it in.
   landscape) as input to the preprocessing contract. **Do not delete the `.rar` archives** — a scan
   found no junk files to clean, and they are the only local fallback until every split has been
   read end to end.
+
+## 2026-08-19 — T0.6: detector reconciliation declared, seg retrain blocked on missing masks
+
+- **What was done:** Formally reconciled the two unreconciled YOLO detection runs (2026-04-22
+  H200, 2026-04-23 A100) per T0.6: the A100 config is declared canonical going forward, on the
+  existing evidence (A100 wins by ~16 mAP@0.5 points on validation alone, before the H200 run's
+  total lack of test-set evaluation is even considered). Corrected `scripts/yolo/train_yolo.py`,
+  which had drifted from the real A100 run (`batch=16` vs. the actual `batch=32`, run name
+  `tufts_v1` vs. the real `tufts_clean_v1`, no explicit seed/deterministic flags). Pre-registered
+  the acceptance criterion for the future YOLOv11l-seg retrain (R1) **before** running it: test box
+  mAP@0.5 ≥ 0.75 and test mask mAP@0.5 ≥ 0.65, same test-set discipline as Ningxia. While
+  investigating, found that Tufts `teeth_mask/` (raster masks) is only 308/1000 complete at the
+  source — not the "no new annotation required" asset the master plan claimed — but
+  `teeth_polygon.json` (1,000/1,000 records, same schema as `teeth_bbox.json`) is complete and is
+  the correct segmentation source. Wrote `scripts/yolo/convert_tufts_to_yolo_seg.py` (polygon →
+  YOLO-seg label converter) and `scripts/yolo/train_yolo_seg.py` (training script matching the
+  canonical config) so the retrain can start immediately once the polygon file is available.
+- **Dataset / config:** n/a — no training was run. Reconciliation and script-writing only.
+- **Metrics:** none new.
+- **Key decision or insight:** the reconciliation and pre-registration are complete and in
+  writing, but **the actual retrain is blocked**: `teeth_polygon.json` is not present on this
+  machine, and the bbox detector's own weights (`best.pt`) could not be located either (searched
+  this machine and the `_repo_archive/`; not found), so "freeze and version" (the W2 exit
+  criterion) is only half done — the config is frozen, the weight hash is not. The
+  largest-polygon-per-object heuristic in the new converter (picking the biggest of several
+  point-list fragments per tooth, since most objects carry one real contour plus small
+  edge-tracing-noise fragments) is unverified beyond a single inspected record and needs a visual
+  spot-check once real data is available.
+- **Source:** `docs/research/T0.6_detector_reconciliation.md` (full detail),
+  `notebooks/bone_loss/01_tufts_data_exploration_v2.ipynb` (polygon JSON schema, cell 6/7 output),
+  `scripts/yolo/{train_yolo.py,train_yolo_seg.py,convert_tufts_to_yolo_seg.py}`.
+- **Follow-ups:** re-fetch `teeth_polygon.json` from the original Tufts source; locate or
+  re-obtain `best.pt` for the A100 run and compute its weight hash; run the seg retrain and
+  evaluate against the pre-registered criterion, not a post-hoc one.
+
+## 2026-08-19 — R2: mask-aware cropping implemented (code only, untested against real masks)
+
+- **What was done:** Implemented mask-aware cropping in `src/crop_generator.py`
+  (`rasterize_polygon`, `extend_mask_below_root`, `apply_soft_mask_attenuation`,
+  `extract_mask_aware_crop`), with 8 new unit tests in `tests/test_crop_generator.py`. Soft
+  attenuation (default: dim non-target pixels to 50%, never zero) rather than hard masking, and
+  the mask is explicitly extended downward within the tooth's own column span before attenuation
+  is applied, so the sub-root alveolar bone region the periodontal branch reads is preserved
+  rather than suppressed as "background."
+- **Dataset / config:** n/a — tested against synthetic arrays only (no real Tufts masks exist
+  locally yet, see the T0.6 entry above). `opencv-python-headless` installed locally to run the
+  test suite; it was already a declared `requirements.txt` dependency, just not installed in this
+  environment.
+- **Metrics:** all 12 tests in `tests/test_crop_generator.py` pass (4 pre-existing + 8 new); full
+  repo test suite (`test_crop_generator.py`, `test_data_loader.py`, `test_fdi_converter.py`,
+  `test_label_assigner.py`) passes with no regressions.
+- **Key decision or insight:** the function has a documented fallback (fewer than 3 polygon
+  points → identical output to the plain `extract_crop`), so it's safe to call on detections that
+  don't have a usable mask yet — no need to branch on mask availability at every call site once
+  it's wired into the bone-loss crop pipeline.
+- **Source:** `src/crop_generator.py`, `tests/test_crop_generator.py`,
+  `docs/results/PAPER_MATERIAL.md` §6.6.
+- **Follow-ups:** wire into the actual bone-loss dataset-construction notebook once T0.6's
+  segmentation masks exist; this becomes ablation C5's fourth cell (rectangular vs. mask-aware).
+
+## 2026-08-19 — T0.3: caries checkpointing switched from accuracy to macro-F1 (code fix, not re-run)
+
+- **What was done:** Fixed a bug flagged in `PUBLICATION_TODO.md` T0.3 and
+  `PAPER_MATERIAL.md` §8.1: `notebooks/caries/phase-1.ipynb` selected its "best" checkpoint by
+  raw validation accuracy at all five training stages (Phase 1 gate; Phase 2 stages 1, fine-tune,
+  fixed, and fixed2), which rewards the majority class on this imbalanced problem. All three
+  `validate()` definitions in the notebook now also compute and return macro-F1
+  (`sklearn.metrics.f1_score(..., average='macro', zero_division=0)`), and all five
+  checkpoint-selection loops now compare on `val_f1_macro` instead of `val_acc`. This already
+  matches the convention the two bone-loss notebooks used correctly, and that
+  `configs/dataset_config.yaml` already declared (`training.early_stop_metric: "val_f1_macro"`)
+  but the caries notebook never read that config at all.
+- **Dataset / config:** n/a — notebook code edited, not re-run (no GPU in this environment).
+- **Metrics:** none new — the numbers in `PAPER_MATERIAL.md` §7.2 still describe the
+  old, accuracy-selected checkpoints until the notebook is actually re-run.
+- **Key decision or insight:** one cell (Phase 2 "fixed2" stage) hardcoded a resume threshold —
+  `best_val_acc = 0.8195  # VERY IMPORTANT` — copied by hand from a previous session's printed
+  accuracy for the checkpoint being resumed from. Since the metric changed, that number is no
+  longer meaningful; rather than guessing an equivalent, the correct macro-F1 for that exact
+  checkpoint (`best_phase2_fixed.pth`) was recovered from the notebook's own already-saved
+  `classification_report` output (cell 114, "macro avg" f1-score = 0.72) and used instead. This
+  is grounded in a real number already in the notebook, not fabricated.
+- **Source:** `notebooks/caries/phase-1.ipynb` (cells 47, 49, 93, 95, 100, 112, 113, 118),
+  `docs/results/PAPER_MATERIAL.md` §8.1.
+- **Follow-ups:** re-run the full cascade on Kaggle/H100 and replace every number in
+  `PAPER_MATERIAL.md` §7.2 with the macro-F1-selected results; combine with the T0.2 split below
+  so val and test are reported separately in the same pass.
+
+## 2026-08-19 — T0.2: DENTEX held-out test split methodology decided and scripted
+
+- **What was done:** Wrote `scripts/dentex/split_dentex_holdout.py`, which carves the existing
+  Kaggle-processed `val/` pool into a new `val/` + `test/`, grouped by source-image ID parsed from
+  crop filenames (`{image_id}_{crop_id}.png`) so crops of the same OPG never land on both sides.
+  Verified the core logic (grouping, deterministic seeded split, file move, no image-ID leakage
+  across the boundary) against a synthetic 20-image fixture before trusting it — not run against
+  the real DENTEX data, which lives on Kaggle, not this machine.
+- **Dataset / config:** DENTEX (processed, Kaggle-hosted). Default `test_fraction=0.5`,
+  `seed=42`, grouped split, manifest written to `data/dentex/splits.json` (committed once
+  generated against real data, per `PUBLICATION_TODO.md` T0.2's "committed splits.json"
+  requirement).
+- **Metrics:** none — synthetic-fixture verification only (44 fixture files, 20 image IDs, split
+  10/10 with the class balance and image-ID partition confirmed programmatically, then the
+  fixture was deleted).
+- **Key decision or insight:** this is a **weaker independence guarantee than a from-scratch
+  three-way split** — there is no patient/study identifier anywhere in this repo's DENTEX
+  pipeline and no raw (pre-crop) DENTEX copy to rebuild train/val/test from, so the new "test"
+  set is carved from a `val` pool that was itself already used to select among model variants
+  across several prior training attempts (see the caries entries above and
+  `PAPER_MATERIAL.md` §7.2). That is a soft leak into whichever half becomes test, and must be
+  named as a limitation in the paper's methods section, not presented as equivalent to an
+  independent held-out set.
+- **Source:** `scripts/dentex/split_dentex_holdout.py`,
+  `docs/results/PAPER_MATERIAL.md` §7.2/§9.
+- **Follow-ups:** run against the real Kaggle dataset, commit the resulting
+  `data/dentex/splits.json`, re-run the cascade (combined with the T0.3 macro-F1 fix above), and
+  report val/test separately per `PUBLICATION_TODO.md` T0.2.
+
+## 2026-08-19 — T0.1: two-arm augmentation ablation built into the caries severity notebook (code only, not run)
+
+- **What was done:** Per the T0.1 decision already closed in `METHODOLOGY_CHANGELOG.md`
+  (2026-08-15) — enable augmentation and re-run as a two-arm comparison rather than just
+  disclosing the gap — added a "Phase 2b — Arm B" section to `notebooks/caries/phase-1.ipynb`
+  (new cells after the existing Arm A flow). Arm B reruns the *same* two-stage fine-tune
+  recipe as Arm A (same starting checkpoint `best_phase2_final.pth`, same class-weight
+  schedule `[0.5, 3.5]` → `[0.6, 3.0]`, same lr 3e-5, same epoch counts 9+3, same macro-F1
+  checkpointing) with the one actual change: `transform_train` (defined back at cell 107,
+  dead code in Arm A per the closed T0.1 finding) is now wired into the training set. `val`
+  is unchanged between arms — `transform_val` is pixel-identical to the plain transform, so
+  Arm A's existing `val_loader` is reused rather than duplicated. A final comparison cell
+  reloads both arms' best checkpoints fresh and prints their macro-F1 and classification
+  reports side by side.
+- **Dataset / config:** n/a — cells added, not executed (no GPU in this environment). DENTEX
+  severity data (`caries` vs `deep_caries`, 133 val crops), same as Arm A.
+- **Metrics:** none new.
+- **Key decision or insight:** caught and fixed a real bug before it could reach Kaggle:
+  `f1_score` is only ever imported *locally* inside the notebook's `validate()` function
+  bodies, never at module/global scope, so the new comparison cell would have raised
+  `NameError` on `f1_score` if left as first written — added an explicit
+  `from sklearn.metrics import f1_score` to that cell. Also caught a self-inflicted error
+  while fixing it: an insert shifted cell indices, so a same-session correction attempt
+  landed on the wrong cell (overwrote a markdown header with code) — caught immediately by
+  re-reading the file's actual cell layout afterward rather than trusting the tool's success
+  response, and fixed both cells. All code cells in the new section verified with
+  `ast.parse`, and grepped for stray references to variables that don't exist.
+- **Source:** `notebooks/caries/phase-1.ipynb` (cells 121–128),
+  `docs/results/METHODOLOGY_CHANGELOG.md` (2026-08-15 T0.1 entry, the decision this
+  implements).
+- **Follow-ups:** run both arms on Kaggle/H100, combined with the T0.2 split above so both
+  arms report val **and** test separately; update `PAPER_MATERIAL.md` §7.2 and
+  `model_metrics.md` with all four resulting numbers (Arm A val/test, Arm B val/test).
+
+## 2026-08-19 — T0.3: checkpoint criterion and operating threshold made explicit for all four classifiers
+
+- **What was done:** Documented (did not change behavior beyond the caries fix already logged
+  above) that all four classifiers — caries gate, caries severity, bone-loss binary, bone-loss
+  severity — now select checkpoints by validation macro-F1, and audited every citation of the
+  bone-loss binary result (macro-F1 0.9233) across the repo to confirm it is consistently and
+  correctly labeled as validation, never test — no mislabels found (`README.md`, `CLAUDE.md`,
+  `model_metrics.md`, `PAPER_MATERIAL.md`, `RESULTS_LOG.md`, session memory all agree).
+  Additionally documented the current **operating threshold** for the first time: all four
+  models use uncalibrated `argmax` over softmax outputs — for the three binary classifiers
+  this is mathematically a fixed 0.5 probability threshold on the positive class, not chosen
+  by any search or calibration step; for bone-loss severity (3-class) argmax has no single
+  scalar-threshold interpretation. No calibration exists yet — that is R3 in
+  `MASTER_PLAN_2026H2.md` §3, scheduled for Week 6, not Week 2.
+- **Dataset / config:** n/a — documentation and a repo-wide grep audit only.
+- **Metrics:** none new.
+- **Key decision or insight:** naming the threshold as "uncalibrated 0.5-equivalent argmax" is
+  itself a decision — it would be easy to leave this unstated and let a reader assume some
+  threshold tuning happened. Stating it plainly now means R3's eventual calibration work reads
+  as an improvement over a named baseline, not a silent fix to an unstated gap.
+- **Source:** `docs/results/PAPER_MATERIAL.md` §6.7 (new).
+- **Follow-ups:** none blocking — this is the documentation companion to the T0.3 code fix
+  already logged above, and to R3 when it lands in Week 6.

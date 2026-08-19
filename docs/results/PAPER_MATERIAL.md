@@ -311,7 +311,7 @@ showing where each classifier looked.
 
 ## 6. Key Engineering Decisions
 
-These five decisions are the methodological contribution of the project. Keep the exact
+These seven decisions are the methodological contribution of the project. Keep the exact
 numbers — they are what makes each argument checkable.
 
 ### 6.1 Asymmetric crop expansion — 1.5× width, 2.0× height
@@ -374,6 +374,54 @@ ResNet to learn translation-tolerant features and closes that train/inference di
 gap. This is the one decision that is **designed for** the not-yet-built integration and
 has therefore never been validated end-to-end — see Section 8.4.
 
+### 6.6 Mask-aware cropping (R2) — soft attenuation, not hard masking
+
+Implemented 19 Aug 2026 (`extract_mask_aware_crop`, `rasterize_polygon`,
+`extend_mask_below_root`, `apply_soft_mask_attenuation` in `src/crop_generator.py`,
+tested in `tests/test_crop_generator.py`), ahead of having real Tufts instance masks to run
+it against (see Section 8.1/T0.6 status). The design problem: a rectangular expanded crop
+(Section 6.1) pulls in neighbouring teeth, which the asymmetric 1.5×/2.0× ratio only
+*mitigates*, not eliminates. Once per-tooth instance masks exist (T0.6/R1), neighbouring-tooth
+pixels can be suppressed directly — but **soft** attenuation (default: dim to 50% outside the
+mask, never zero), not a hard cutout, for two reasons: (1) a noisy mask edge degrades
+gracefully instead of erasing real signal, and (2) the periodontal branch needs bone context
+*below* the tooth root, which a raw instance mask does not cover (masks stop at the tooth
+surface). `extend_mask_below_root` explicitly extends the kept region downward, within the
+tooth's own column span, before attenuation is applied, so this bone context is preserved
+rather than treated as "background." This becomes ablation C5's fourth cell (rectangular vs.
+mask-aware crop) once masks and a retrained instance-segmentation detector exist.
+
+### 6.7 Uniform model-selection criterion and operating threshold across all four classifiers (T0.3)
+
+**Checkpoint-selection criterion, made uniform 19 Aug 2026:** all four classifiers — caries
+gate, caries severity, bone-loss binary, bone-loss severity — now select their "best" epoch
+by **validation macro-F1**, not raw accuracy. Bone-loss binary and severity already did this
+correctly (`f1_score(..., average='macro')`, unchanged this session). The caries notebook
+(`notebooks/caries/phase-1.ipynb`) did not — all five of its training-loop cells compared on
+`val_acc`, which on an imbalanced problem rewards a model that leans toward the majority
+class. Fixed by making every `validate()` definition in that notebook also compute and
+return macro-F1, and every checkpoint condition compare on it instead. This is the same
+criterion `configs/dataset_config.yaml` already declared
+(`training.early_stop_metric: "val_f1_macro"`) but the caries notebook never actually read
+that config file. Not chosen as an alternative: minority-class recall alone — macro-F1 was
+picked to keep one consistent, documented criterion across all four models rather than a
+different one per model, and because it already matched three of the four before this fix.
+
+**Operating threshold, as it stands today:** every classifier here is a softmax network read
+out with `torch.argmax`, not a calibrated, tunable decision threshold. For the three binary
+classifiers (caries gate, caries `caries`-vs-`deep_caries`, bone-loss present/absent), argmax
+on a 2-class softmax is mathematically equivalent to a **fixed 0.5 probability threshold on
+the positive class** — not chosen for a) any particular precision/recall trade-off, or b)
+picked by any search over val; it is simply what falls out of using
+`CrossEntropyLoss` + argmax with no further calibration step. For bone-loss severity
+(3-class), there is no single scalar threshold in the same sense — argmax picks whichever of
+the three classes has the highest predicted probability. **No threshold search or
+calibration has been run on any of the four models.** This is a real, named gap, not an
+oversight to paper over: `docs/research/MASTER_PLAN_2026H2.md` §3 R3 (temperature scaling +
+an explicit `not_assessable` abstention output, reported as a coverage–accuracy curve) is the
+already-planned fix, scheduled for Week 6, not Week 2. Report the current threshold as
+"uncalibrated 0.5-equivalent argmax" wherever these models are described until R3 lands.
+
 ---
 
 ## 7. Results
@@ -395,6 +443,15 @@ All figures for Stage 1 are in `docs/results/figures/yolo_detection_a100/`
   dense, thin-object scene. Epoch count is secondary to resolution.
 - Source: `notebooks/yolo_detection/{a100_1024px_150ep,h200_768px_50ep}.ipynb`,
   `models/06_yolo_detection_a100_run/{run_summary.txt,results.csv,train_args.yaml}`.
+- **Reconciliation status (19 Aug 2026, T0.6):** the A100 config above is now formally
+  declared canonical going forward (data-justified — see
+  `docs/research/T0.6_detector_reconciliation.md`), and `scripts/yolo/train_yolo.py` was
+  corrected to reproduce it exactly (it had drifted: batch 16 vs. the real run's 32). The
+  weights themselves are **not yet frozen** — `best.pt` is git-ignored and was not found on
+  the machine this reconciliation was written on; it must be located and hashed before this
+  table's heading can drop "unreconciled." A YOLOv11l-seg retrain (R1) is planned with a
+  pre-registered acceptance criterion (same document) but is blocked on missing Tufts
+  `teeth_polygon.json`.
 
 ### 7.2 Stage 3 — Caries cascade (DENTEX, ResNet18)
 
@@ -503,6 +560,18 @@ From the project's own critique in `notebooks/caries/approach.txt`:
   recall would be the honest criterion.
 - **Phase 1 gate metrics were never saved**, so the cascade's end-to-end error is unknown.
 
+**Status (19 Aug 2026, T0.2/T0.3):** two of the five items above have code fixes prepared but
+**not yet re-run**, so every number in Section 7.2 still describes the old, uncorrected
+training: (1) checkpoint selection in `notebooks/caries/phase-1.ipynb` now computes and
+selects on macro-F1 rather than raw accuracy (all `validate()` definitions and training-loop
+cells updated); (2) `scripts/dentex/split_dentex_holdout.py` carves a held-out test split
+from the existing val/ pool, grouped by source-image ID to avoid crop-level leakage — but
+since no patient ID or raw DENTEX exists in this repo, it is a split *of val*, not an
+independent three-way split, and that distinction must be stated in the paper's methods, not
+glossed over. Augmentation and LR-scheduler gaps remain untouched. The cascade needs an
+actual re-run (Kaggle/H100, not available in the environment these fixes were written in)
+before Section 7.2's numbers can be replaced.
+
 ### 8.2 Severity model support is too small to trust
 
 52 validation crops total, **6 of them mild**. Macro F1 0.7208 sits exactly on the 0.72
@@ -575,9 +644,14 @@ For whoever drafts the actual paper. Tick items off here as they land.
 - [ ] Re-run the caries notebook and **save** the Phase 1 gate classification report
       (`caries` vs `no_caries`), plus the `Counter` cell confirming DENTEX class counts.
 - [ ] Carve a held-out **test** split for caries and re-report on it (current numbers are
-      validation-only and tuned-on).
+      validation-only and tuned-on). *(19 Aug 2026: split script written and tested against
+      a synthetic fixture — `scripts/dentex/split_dentex_holdout.py` — but not yet run
+      against the real DENTEX data or followed by a re-run + re-report. Not done.)*
 - [ ] Freeze one canonical detector (A100/1024) and record its weight hash + exact config;
-      retire the H200/768 run in writing.
+      retire the H200/768 run in writing. *(19 Aug 2026: config formally declared canonical
+      in writing, `train_yolo.py` drift-corrected to match it — see
+      `docs/research/T0.6_detector_reconciliation.md` — but the weight hash step is still
+      blocked on locating `best.pt`. Not done.)*
 - [ ] Fix the Universal→FDI mapping defect for the lower arch in
       `configs/dataset_config.yaml` (23→32, 24→31, 25–28→41–44, 29–32→45–48), re-verify
       `src/utils/fdi_converter.py` against it, and cover it in `tests/test_fdi_converter.py`.
