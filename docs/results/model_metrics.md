@@ -3,7 +3,7 @@
 Current best numbers only. One table per model, nothing else. For how a number was
 obtained see `PAPER_MATERIAL.md`; for when and why it changed see `RESULTS_LOG.md`.
 
-**Last updated:** 2026-08-19
+**Last updated:** 2026-08-20
 
 ---
 
@@ -18,10 +18,11 @@ Best run: A100, imgsz 1024, 150 epochs requested / 128 run, best epoch 98.
 
 Superseded run (H200, imgsz 768, 50 ep): val mAP@0.5 **0.678**. Not test-evaluated.
 Inference ~3.1 ms/image (A100). Weights: `models/06_yolo_detection_a100_run/best.pt`
-(git-ignored, local only, and not found on the machine that wrote this line — needs
-locating before it can be hashed). **Config formally reconciled and declared canonical
-19 Aug 2026 (T0.6) — see `docs/research/T0.6_detector_reconciliation.md`; weight hash
-still pending, so "canonical detector frozen" remains not yet true.**
+(git-ignored, local only). **Canonical detector: FROZEN, 20 Aug 2026 — version tag
+`tooth-detector-a100-1024-v1.0`, SHA-256 `4d9f099fb90bb03446fd1d81f2a509cd1589bdc0d4de83269894d9128e4b3a2b`.**
+Verified by loading under Ultralytics (task=detect, 1 class, 25.3M params) and by
+byte-identical `args.yaml`/`results.csv` against the copies already committed here — see
+`docs/research/T0.6_detector_reconciliation.md` §1 for the full verification record.
 
 ---
 
