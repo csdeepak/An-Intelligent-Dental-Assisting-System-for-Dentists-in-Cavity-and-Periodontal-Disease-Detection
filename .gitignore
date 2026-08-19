@@ -91,7 +91,16 @@ sample_data/
 data/tufts/ZIP/Segmentation/Segmentation/teeth_polygon.json
 
 # --- Archive ignores ---
-_repo_archive/datasets_workspace/
+_repo_archive/datasets_workspace/Expert/
+_repo_archive/datasets_workspace/Radiographs/
+_repo_archive/datasets_workspace/Radiographs_rotated/
+_repo_archive/datasets_workspace/Segmentation/
+_repo_archive/datasets_workspace/Student/
+_repo_archive/datasets_workspace/Verification Images/
+_repo_archive/datasets_workspace/ZIP/
+_repo_archive/datasets_workspace/dataset/
+_repo_archive/datasets_workspace/opg_env/
+_repo_archive/datasets_workspace/outputs/
 _repo_archive/implementation_stale_clone/
 _repo_archive/yolo_a100_run_workspace/
 
