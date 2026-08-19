@@ -429,7 +429,7 @@ already-planned fix, scheduled for Week 6, not Week 2. Report the current thresh
 All figures for Stage 1 are in `docs/results/figures/yolo_detection_a100/`
 (`val_*` = training/validation run, `test_*` = held-out test evaluation).
 
-### 7.1 Stage 1 — YOLOv11l tooth detection (two runs, unreconciled)
+### 7.1 Stage 1 — YOLOv11l tooth detection (reconciled and frozen, A100 run canonical)
 
 | Run | GPU | imgsz | Epochs | Split | Precision | Recall | mAP@0.5 | mAP@0.5:0.95 |
 |-----|-----|-------|--------|-------|-----------|--------|---------|--------------|
@@ -443,15 +443,20 @@ All figures for Stage 1 are in `docs/results/figures/yolo_detection_a100/`
   dense, thin-object scene. Epoch count is secondary to resolution.
 - Source: `notebooks/yolo_detection/{a100_1024px_150ep,h200_768px_50ep}.ipynb`,
   `models/06_yolo_detection_a100_run/{run_summary.txt,results.csv,train_args.yaml}`.
-- **Reconciliation status (19 Aug 2026, T0.6):** the A100 config above is now formally
+- **Reconciliation status (19–20 Aug 2026, T0.6):** the A100 config above is now formally
   declared canonical going forward (data-justified — see
   `docs/research/T0.6_detector_reconciliation.md`), and `scripts/yolo/train_yolo.py` was
-  corrected to reproduce it exactly (it had drifted: batch 16 vs. the real run's 32). The
-  weights themselves are **not yet frozen** — `best.pt` is git-ignored and was not found on
-  the machine this reconciliation was written on; it must be located and hashed before this
-  table's heading can drop "unreconciled." A YOLOv11l-seg retrain (R1) is planned with a
-  pre-registered acceptance criterion (same document) but is blocked on missing Tufts
-  `teeth_polygon.json`.
+  corrected to reproduce it exactly (it had drifted: batch 16 vs. the real run's 32). **The
+  weights are now frozen** (20 Aug 2026) — `best.pt`/`last.pt` located in
+  `_repo_archive/yolo_a100_run_workspace/`, verified (byte-identical `args.yaml`/`results.csv`
+  against the committed copies, loads cleanly under Ultralytics with the documented param
+  count), and copied into `models/06_yolo_detection_a100_run/`. Version tag
+  `tooth-detector-a100-1024-v1.0`, SHA-256 in `docs/research/T0.6_detector_reconciliation.md`
+  §1 and `model_metrics.md`. This table's heading can drop "unreconciled" now — updated below.
+  A YOLOv11l-seg retrain (R1) is still planned with a pre-registered acceptance criterion
+  (same document) but remains blocked: neither Tufts `teeth_polygon.json` nor the raw source
+  radiograph images have been located, so the retrain and any crop re-derivation from this
+  now-frozen detector both stay blocked regardless of the weights being found.
 
 ### 7.2 Stage 3 — Caries cascade (DENTEX, ResNet18)
 
@@ -584,6 +589,16 @@ before it can carry weight in a paper.
 15.1% exact agreement with the primary label; not integrated into the pipeline; no ground
 truth CEJ landmarks exist in the dataset to validate against. Report as exploratory.
 
+A further iteration exists in the codebase — `notebooks/bone_loss/06_cej_estimation_v3.ipynb`
+("v3, calibrated": strongest-gradient boundary detection, tighter search zone, left/right
+asymmetric bone analysis, artifact-column exclusion, and overlap-label calibration). **It has
+never actually run against real data** — its last saved execution shows `Crops to analyze: 0`
+(the Colab Drive path it reads, `/content/drive/MyDrive/tufts/severity_dataset`, was empty or
+unmounted at run time), so every downstream number in it is `N/A`. Triaged and committed
+2026-08-20 as prepared-but-unexecuted future work, not a second data point — do not cite it
+as having improved on, matched, or failed to match the 15.1% figure above; it simply hasn't
+been run.
+
 ### 8.4 The pipeline has never been run end to end
 
 Stages 5 and 6 do not exist as code. Consequently:
@@ -647,11 +662,11 @@ For whoever drafts the actual paper. Tick items off here as they land.
       validation-only and tuned-on). *(19 Aug 2026: split script written and tested against
       a synthetic fixture — `scripts/dentex/split_dentex_holdout.py` — but not yet run
       against the real DENTEX data or followed by a re-run + re-report. Not done.)*
-- [ ] Freeze one canonical detector (A100/1024) and record its weight hash + exact config;
-      retire the H200/768 run in writing. *(19 Aug 2026: config formally declared canonical
-      in writing, `train_yolo.py` drift-corrected to match it — see
-      `docs/research/T0.6_detector_reconciliation.md` — but the weight hash step is still
-      blocked on locating `best.pt`. Not done.)*
+- [x] Freeze one canonical detector (A100/1024) and record its weight hash + exact config;
+      retire the H200/768 run in writing. **Done 20 Aug 2026** — version tag
+      `tooth-detector-a100-1024-v1.0`, SHA-256 recorded in
+      `docs/research/T0.6_detector_reconciliation.md` §1 and `model_metrics.md`; H200 run
+      documented as superseded in both files and `notebooks/yolo_detection/README.md`.
 - [ ] Fix the Universal→FDI mapping defect for the lower arch in
       `configs/dataset_config.yaml` (23→32, 24→31, 25–28→41–44, 29–32→45–48), re-verify
       `src/utils/fdi_converter.py` against it, and cover it in `tests/test_fdi_converter.py`.

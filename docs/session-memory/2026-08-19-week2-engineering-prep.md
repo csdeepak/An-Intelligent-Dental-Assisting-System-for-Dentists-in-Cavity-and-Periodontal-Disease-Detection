@@ -1,4 +1,4 @@
-# 2026-08-19 — Week 2 engineering prep: T0.6, R2, T0.3, T0.2
+# 2026-08-19/20 — Week 2 engineering prep: T0.6, R2, T0.3, T0.2, detector freeze
 
 **Session goal:** Pick up Week 2 (`MASTER_PLAN_2026H2.md` §5, Aug 22–28) engineering work
 one day early — detector reconciliation, mask-aware cropping, macro-F1 checkpointing, and a
@@ -159,6 +159,46 @@ and two missing files.
 
 ---
 
+## Part 6 — 20 Aug: the missing weights turn up, detector gets frozen for real
+
+After round 2 above, the user located `best.pt`/`last.pt` themselves on a different
+machine/session and synced `_repo_archive/yolo_a100_run_workspace/` and
+`_repo_archive/datasets_workspace/` onto this one (both were confirmed empty here at the end
+of round 1 — see Part 1's blocker note). Also relevant: a `git pull` mid-session brought in a
+new commit (from the user's own account, authored elsewhere, minutes before the pull) that
+restructured `_repo_archive/` to live *inside* the repo rather than as a sibling, with
+`.gitignore` rules anticipating exactly these three folder names — which is what made it
+possible to recognize the sync when it landed.
+
+**Verified before trusting, not just copied on faith:** file sizes (51,227,225 bytes, matches
+`run_summary.txt`'s "51 MB"), `args.yaml`/`results.csv` byte-identical against the
+already-committed copies, and — the strongest check — actually loaded `best.pt` under
+Ultralytics (installed fresh for this) and confirmed `task=detect`, one class (`tooth`),
+25,311,251 parameters, matching the documented 25.28M. Only after all of that copied the
+files into `models/06_yolo_detection_a100_run/` and re-verified the copy byte-identical by
+SHA-256. This closes the one part of T0.6 that was genuinely blocked before: the detector is
+now frozen and versioned (`tooth-detector-a100-1024-v1.0`), not just reconciled on paper.
+
+**What this does NOT unblock, and I was careful to say so rather than let "found the
+weights" imply "Week 2 is done":** `datasets_workspace/` — the other synced folder — turned
+out to hold only the small scripts and notebooks (22 MB), not the 2.2 GB of raw Tufts data
+its own manifest entry describes it as containing. No `teeth_polygon.json`, no raw radiograph
+images, anywhere on this machine, even after the sync. That means the seg retrain (R1) and
+re-deriving crops from the now-frozen detector are still exactly as blocked as they were in
+round 1 — freezing the detector and finding the Tufts source data turned out to be two
+independent problems, and only one of them got solved by this sync.
+
+**Also verified and completed as part of "restructuring the archive" per the user's
+request:** confirmed `YOLO_trained.ipynb` in the archive is byte-identical to the
+already-committed `notebooks/yolo_detection/a100_1024px_150ep.ipynb` (nothing to extract);
+found three test-eval prediction JPGs that existed in the archive but were never copied into
+`docs/results/figures/yolo_detection_a100/` during the original 2026-08-12 cleanup, and
+copied them over. Added an addendum to `_repo_archive/ARCHIVE_MANIFEST.md` recording exactly
+which archived folders are actually present on this machine vs. the original manifest's
+description, so a future session doesn't have to re-run this detective work.
+
+---
+
 ## Decisions made
 
 1. **A100 config is canonical** for Stage-1 detection going forward (§1) — data-justified,
@@ -178,10 +218,13 @@ and two missing files.
 
 ## Open questions
 
-1. Where is `models/06_yolo_detection_a100_run/best.pt`? Not on this machine, not in
-   `_repo_archive/`. Needed to freeze/hash the canonical bbox detector.
-2. Where can `teeth_polygon.json` (Tufts) be re-fetched from? Needed to run the seg retrain
-   and to spot-check the converter's largest-fragment heuristic against real data.
+1. ~~Where is `models/06_yolo_detection_a100_run/best.pt`?~~ **Resolved 20 Aug** — found in
+   `_repo_archive/yolo_a100_run_workspace/`, verified, frozen. See Part 6.
+2. Where can `teeth_polygon.json` (Tufts) be re-fetched from? **Still open** — checked the
+   newly-synced `_repo_archive/datasets_workspace/` on 20 Aug and it wasn't there either
+   (only scripts/notebooks, not the raw 2.2 GB dataset). Most likely lives only in Google
+   Drive at this point (`MyDrive/Capstone/tufts/ZIP/Segmentation/`, per the Colab mount path
+   in `01_tufts_data_exploration_v2.ipynb`), which isn't synced to any machine checked so far.
 3. Is the largest-polygon-fragment-per-object heuristic in
    `convert_tufts_to_yolo_seg.py` actually correct, or do some teeth have genuinely disjoint
    mask regions that it would wrongly discard? Unverifiable without real data.
@@ -190,7 +233,8 @@ and two missing files.
 
 ## Next steps
 
-1. Locate/re-fetch `teeth_polygon.json` and `best.pt`; run the seg retrain against the
+1. Locate/re-fetch `teeth_polygon.json` **and the raw Tufts radiograph images** (both still
+   missing, independent of the now-resolved `best.pt`); run the seg retrain against the
    pre-registered criterion in `docs/research/T0.6_detector_reconciliation.md` §2.
 2. Run `scripts/dentex/split_dentex_holdout.py` against the real Kaggle DENTEX data; commit
    the resulting `data/dentex/splits.json`.

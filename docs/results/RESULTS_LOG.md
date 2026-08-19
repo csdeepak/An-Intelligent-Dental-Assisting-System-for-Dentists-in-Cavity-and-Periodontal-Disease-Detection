@@ -520,3 +520,77 @@ Copy this block verbatim to the bottom of the file and fill it in.
 - **Source:** `docs/results/PAPER_MATERIAL.md` §6.7 (new).
 - **Follow-ups:** none blocking — this is the documentation companion to the T0.3 code fix
   already logged above, and to R3 when it lands in Week 6.
+
+## 2026-08-20 — T0.6: canonical detector located, verified, and frozen
+
+- **What was done:** `_repo_archive/yolo_a100_run_workspace/` and `_repo_archive/datasets_workspace/`
+  — empty on this machine as of 19 Aug — were populated from a separate session between then
+  and now. Located `best.pt`/`last.pt` at
+  `_repo_archive/yolo_a100_run_workspace/runs_backup/runs/detect/runs/detect/tufts_clean_v1/weights/`,
+  exactly where the user pointed. Verified before trusting: both files are exactly 51,227,225
+  bytes; the accompanying `args.yaml` and `results.csv` are byte-identical to the copies
+  already committed at `models/06_yolo_detection_a100_run/`; `best.pt` loads cleanly under
+  Ultralytics (installed for this check) with `task=detect`, one class (`tooth`), 25,311,251
+  parameters, matching `run_summary.txt`'s documented 25.28M. Copied both files into
+  `models/06_yolo_detection_a100_run/` (git-ignored, `models/**/*.pt`) and verified the copy
+  byte-identical by SHA-256 against the archive source. Also diffed the archived
+  `YOLO_trained.ipynb` against the already-committed
+  `notebooks/yolo_detection/a100_1024px_150ep.ipynb` (identical) and found three test-eval
+  prediction JPGs present in the archive but never copied into
+  `docs/results/figures/yolo_detection_a100/` — copied them over.
+- **Dataset / config:** n/a — verification and file relocation only, no training.
+- **Metrics:** none new — same numbers as the 2026-04-23 entry, now with a verified, hashed
+  weight file behind them instead of an unverified claim.
+- **Key decision or insight:** this closes the one remaining piece of T0.6's W2 exit
+  criterion — "one frozen, versioned detector." Version tag `tooth-detector-a100-1024-v1.0`;
+  SHA-256 `4d9f099fb90bb03446fd1d81f2a509cd1589bdc0d4de83269894d9128e4b3a2b` (best.pt). Checked
+  `_repo_archive/datasets_workspace/` at the same time in case it also carried
+  `teeth_polygon.json` or raw Tufts images — it only holds the small scripts/notebooks (22 MB
+  total: `convert_tufts_to_yolo.py`, `evaluate_yolo.py`, `train_yolo.py`, three `.ipynb`
+  files), not the 2.2 GB of raw data the original `ARCHIVE_MANIFEST.md` describes it as
+  having held. **This means R1's seg retrain and re-deriving crops from this now-frozen
+  detector remain blocked** — freezing the detector and finding the missing Tufts source data
+  are two independent blockers, and only the first is resolved.
+- **Source:** `docs/research/T0.6_detector_reconciliation.md` §1 (verification record),
+  `models/06_yolo_detection_a100_run/{best.pt,last.pt}`,
+  `docs/results/figures/yolo_detection_a100/test_val_batch{1_labels,2_labels,2_pred}.jpg`.
+- **Follow-ups:** locate `teeth_polygon.json` and the raw Tufts radiograph images (still not
+  found anywhere on this machine) before R1's seg retrain or any crop re-derivation can
+  start; both also still need GPU access, unavailable in this environment.
+
+## 2026-08-20 — Triaged two of the three untracked-file decisions carried over since the first session
+
+- **What was done:** `survey_paper/` and `notebooks/bone_loss/06_cej_estimation_v3.ipynb` had
+  sat untracked and undecided across three prior sessions (`transfer.md` §1, this session's
+  Part 0, Part 6). Resolved both:
+  - **`survey_paper/`** — confirmed genuinely stale (not just assumed) by comparing
+    `source.bib` reference counts: 47 in this draft vs. 71 in the current, actively-worked
+    `Survey Paper Latex folder/source.bib`, and confirmed it was never tracked by git at any
+    point (`git log --all` on the path: empty). Relocated with `mv` (never `rm`, per `CLAUDE.md`
+    rule 3) to `_repo_archive/survey_paper_stale_47ref_draft/`, recorded as a new item in
+    `_repo_archive/ARCHIVE_MANIFEST.md` with the exact recovery command.
+  - **`06_cej_estimation_v3.ipynb`** — read in full before deciding, rather than assuming from
+    the filename. It's a real further iteration on the CEJ negative result (6 named
+    engineering fixes: strongest-gradient boundary detection, tighter search zone, left/right
+    asymmetric bone analysis, artifact-column exclusion, overlap-label calibration) — but its
+    last saved execution shows `Crops to analyze: 0`: the Colab Drive path it reads
+    (`/content/drive/MyDrive/tufts/severity_dataset`) was empty or unmounted at run time, so
+    every downstream number in the notebook is `N/A`. **Committed as-is** (research artifacts
+    are never deleted per `CLAUDE.md` rule 3, and this is legitimate prepared-but-unexecuted
+    future work, not noise), with a note added to `PAPER_MATERIAL.md` §8.3 stating plainly
+    that it has never run and must not be cited as a second CEJ data point.
+- **Dataset / config:** n/a — file triage and documentation, no training or new analysis.
+- **Metrics:** none new. The CEJ negative-result figure (15.1% exact agreement, v2) is
+  unchanged — v3 produced no numbers to compare it against.
+- **Key decision or insight:** the third untracked item,
+  `docs/research/clinical_dataset_provenance.md`, was deliberately **not** acted on. It
+  documents real patient-data de-identification procedures for the private clinic dataset,
+  was explicitly flagged across two prior sessions as needing human review before entering
+  git history "because of what it describes, not because it's wrong," and `CLAUDE.md` states
+  `docs/research/` is owned by a separate workstream not to be touched without the task being
+  explicitly about it. None of that applies to the other two files, which is why they could be
+  resolved directly — this one still needs the user's explicit decision.
+- **Source:** `_repo_archive/ARCHIVE_MANIFEST.md` (item 6), `notebooks/bone_loss/06_cej_estimation_v3.ipynb`,
+  `docs/results/PAPER_MATERIAL.md` §8.3.
+- **Follow-ups:** `docs/research/clinical_dataset_provenance.md` still needs a decision from
+  the user — commit as-is, redact/edit first, or keep local-only.

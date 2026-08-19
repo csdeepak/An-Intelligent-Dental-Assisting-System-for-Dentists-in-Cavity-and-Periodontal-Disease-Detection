@@ -140,3 +140,47 @@ mv _repo_archive/archi_duplicate_diagrams     "$REPO/Archi"
 mv _repo_archive/empty_docs_flowcharts_dir    "$REPO/docs/flowcharts"
 cd "$REPO" && git checkout -- . && git reset --hard <commit-before-restructure>
 ```
+
+---
+
+## Addendum, 20 August 2026 — verified state of this archive on this machine
+
+This manifest describes what was archived on 2026-08-12, from wherever that restructuring
+originally ran. **As of 20 Aug 2026, on this machine, the archive is only partially
+present** — worth recording so a future session doesn't have to re-derive this:
+
+| Folder | Present here? | What's actually in it | What the manifest above says it should hold |
+|---|---|---|---|
+| `implementation_stale_clone/` | **No** — folder does not exist on this machine | — | The stale nested clone, 175 MB |
+| `datasets_workspace/` | **Partial** — 22 MB | Only `convert_tufts_to_yolo.py`, `convert_tufts_to_yolo.py.bak`, `evaluate_yolo.py`, `train_yolo.py`, `week1_tufts_eda_v2.ipynb`, `x.ipynb`, `y.ipynb` — the three scripts are confirmed byte-identical to `scripts/yolo/` | 2.2 GB: `opg_env/` venv, `dataset.tar.gz`, raw `Radiographs/`, `Radiographs_rotated/`, `Segmentation/` (incl. `teeth_polygon.json`), `Student/`, `Expert/`, `ZIP/`, scratch notebooks |
+| `yolo_a100_run_workspace/` | **Yes, complete** — 106 MB | `YOLO_trained.ipynb` (confirmed byte-identical to `notebooks/yolo_detection/a100_1024px_150ep.ipynb`) and `runs_backup/runs/detect/runs/detect/tufts_clean_v1/` — training + test-eval run dirs, including `weights/best.pt` and `weights/last.pt` | Same — this one matches in full |
+| `archi_duplicate_diagrams/` | **Yes** — 96 KB | Matches; already committed into the repo directly (see the 2026-08-19 commit that added `.gitignore` rules for the other three folders) | Same |
+
+**Practical consequence:** `best.pt`/`last.pt` were recovered from `yolo_a100_run_workspace/`
+and are now copied into `models/06_yolo_detection_a100_run/` — see
+`docs/research/T0.6_detector_reconciliation.md` §1 and the 2026-08-20 `RESULTS_LOG.md` entry.
+`teeth_polygon.json` and the raw Tufts radiograph images are **still missing** — they were
+never in `datasets_workspace/` here, only referenced in this manifest's description of what
+was originally archived elsewhere. If you're reading this from a machine where the full
+`datasets_workspace/` (2.2 GB, matching the table above) is actually present, that's the
+place to look next, not this one.
+
+---
+
+## Item 6 — 20 August 2026: `survey_paper/` → `survey_paper_stale_47ref_draft/`
+
+- **Original path:** `<repo>/survey_paper/` (repo root, alongside `Survey Paper Latex folder/`)
+- **Size:** ~1 MB (`IEEEtran.cls`, `conference_101719.tex`, 5 figure files, `source.bib`)
+- **Git status before move:** untracked (`?? survey_paper/`), and had never been tracked —
+  no commits touch this path anywhere in `git log --all`.
+- **What it was:** an earlier, superseded draft of the survey paper. Confirmed stale by
+  direct comparison, not assumption: its `source.bib` has 47 `@` (reference) entries, vs. 71
+  in the current, committed `Survey Paper Latex folder/source.bib` — the file the project's
+  survey track actually works from (per `docs/research/MASTER_PLAN_2026H2.md` §5.1 and
+  multiple `RESULTS_LOG.md` entries, e.g. the 2026-08-15 "survey: fix metric-count error, add
+  DentVLM citation" commit).
+- **Why moved:** flagged as an open decision across two prior sessions
+  (`transfer.md`, then this session's Part 0); confirmed genuinely superseded rather than a
+  parallel in-progress draft, so archiving rather than deleting was the safe call per
+  `CLAUDE.md` rule 3.
+- **Recovery:** `mv "_repo_archive/survey_paper_stale_47ref_draft" "<repo>/survey_paper"`
