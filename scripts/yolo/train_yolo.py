@@ -12,13 +12,18 @@ Output:
   - runs/detect/tufts_v1/results.csv       (per-epoch metrics)
   - runs/detect/tufts_v1/*.png             (training curves)
 
-Training config (locked — edit only if necessary):
-  - Model: YOLOv11l (detection — not segmentation for v1)
+Training config — reconciled 19 Aug 2026 (T0.6) to match the actual canonical run
+exactly, args-for-args, against models/06_yolo_detection_a100_run/train_args.yaml
+(this script had drifted: batch was 16 here vs. 32 in the real run). Do not edit
+without updating that reconciliation record too — see
+docs/research/T0.6_detector_reconciliation.md.
+  - Model: YOLOv11l (detection — not segmentation; see train_yolo_seg.py for R1)
   - Image size: 1024 (downsampled from 1615 portrait)
-  - Batch: 16 (adjust if OOM on H100 — unlikely)
+  - Batch: 32
   - Epochs: 150 with early stopping patience 30
   - Optimizer: AdamW
   - Learning rate: 0.001 → 0.00001 (cosine)
+  - Seed: 42, deterministic: True (reproducibility)
   - Augmentations: clinically valid only (no vertical flip, no mosaic)
 
 Usage (on E2E H100):
@@ -28,8 +33,12 @@ Usage (on E2E H100):
     # Run training
     python train_yolo.py
 
-Expected runtime: 4-6 hours on H100 at batch 16.
-Expected mAP@0.5 on val: ≥ 0.90 (based on Papers 42, 45 Tufts results)
+Expected runtime: 4-6 hours on H100 at batch 32.
+Achieved by the canonical A100 run (test set, 150/150→128 early stop):
+mAP@0.5 0.7824, mAP@0.5:0.95 0.3351 — see docs/results/RESULTS_LOG.md
+2026-04-23 entry. The original ≥0.90 target below this line was the paper-derived
+acceptance bar, not an achieved result; kept for context, not as a claim.
+Original target context: mAP@0.5 ≥ 0.90 (based on Papers 42, 45 Tufts results).
 """
 
 import sys
@@ -47,7 +56,7 @@ except ImportError:
 # =============================================================================
 
 DATASET_YAML = Path("dataset/data.yaml")
-RUN_NAME = "tufts_v1"
+RUN_NAME = "tufts_clean_v1"  # matches the canonical A100 run's name for traceability
 PROJECT_DIR = "runs/detect"
 
 
@@ -87,11 +96,13 @@ def train():
         # Core training
         epochs=150,
         patience=30,           # early stop if no val improvement for 30 epochs
-        batch=16,              # reduce to 8 if OOM
+        batch=32,              # matches canonical A100 run; reduce if OOM
         imgsz=1024,            # downsample from 1615 portrait
         device=0,              # GPU 0
         workers=8,             # dataloader workers
-        
+        seed=42,
+        deterministic=True,
+
         # Optimizer
         optimizer="AdamW",
         lr0=0.001,
