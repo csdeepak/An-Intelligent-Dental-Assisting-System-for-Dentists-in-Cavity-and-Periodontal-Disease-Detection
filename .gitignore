@@ -89,3 +89,9 @@ sample_data/
 !docs/reports/**/*.pdf
 
 data/tufts/ZIP/Segmentation/Segmentation/teeth_polygon.json
+
+# --- Archive ignores ---
+_repo_archive/datasets_workspace/
+_repo_archive/implementation_stale_clone/
+_repo_archive/yolo_a100_run_workspace/
+
