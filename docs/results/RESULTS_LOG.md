@@ -859,3 +859,67 @@ Copy this block verbatim to the bottom of the file and fill it in.
   evaluation-discipline improvement but the only route to a usable caries model at all. When
   it runs, save the checkpoints into `models/` and record their location per the repo's
   no-large-binaries rule.
+
+## 2026-08-21f — Correction to 2026-08-21e: the caries checkpoints exist, on Kaggle
+
+- **What was done:** Corrects the entry above (`2026-08-21e`). That entry established, correctly,
+  that no caries checkpoint is present locally or in Google Drive — but then speculated they
+  "were presumably left in a Kaggle session output that no longer exists," and concluded the
+  reported caries numbers "can never be re-verified, only replaced." **The speculation was
+  wrong and the conclusion that followed from it was wrong.** The user confirms the checkpoints
+  are on Kaggle. The search was never extended there: Kaggle needs the account holder's
+  credentials, so it is outside what a session here can reach, and that limit should have been
+  stated as a limit rather than filled in with a guess.
+- **Dataset / config:** n/a — record correction.
+- **Metrics:** unchanged. No number in `model_metrics.md` moves.
+- **Key decision or insight:** the caries branch is **recoverable, not lost**, which changes
+  three things. (1) The scoreboard's caries numbers can be re-verified and re-evaluated against
+  the new `data/dentex/splits_v2.json` test split, not merely overwritten by a re-run.
+  (2) Stage-5/6 integration can wire the caries branch for **real** rather than stubbing it —
+  all four models become loadable once these files are pulled down. (3) The re-run is back to
+  being an evaluation-discipline improvement rather than the only route to a working model.
+  Reading `notebooks/caries/phase-1.ipynb` also pins down **which** checkpoint backs the
+  scoreboard: cell 119's saved `classification_report` output (caries 0.94/0.80/0.87 n=101;
+  deep_caries 0.57/0.84/0.68 n=32; accuracy 0.81; macro F1 0.77) matches `model_metrics.md`
+  exactly, and that cell evaluates **`best_phase2_fixed2.pth`** — bundled with its
+  `class_to_idx` as `phase2_final_bundle.pth` in cell 120. That is the file to treat as the
+  canonical caries Phase-2 weight.
+- **Source:** `notebooks/caries/phase-1.ipynb` cells 119–120 (Phase 2) and 49/52/60 (Phase 1);
+  correction supplied by the user, 21 Aug 2026.
+- **Follow-ups:** pull the checkpoints off Kaggle into `models/` (see the entry below for the
+  file list and the convention). Two related gaps re-confirmed from the same notebook while
+  checking this, both still open: **Phase 1's gate cells (49, 56) have no saved outputs**, so
+  the gate classification report is still unrecorded — §9's first blocking item stands; and
+  **Arm B's cells (124, 126, 128) have no saved outputs either**, so the T0.1 augmentation
+  ablation has been written but never run.
+
+## 2026-08-21g — Caries checkpoint retrieval list and storage convention
+
+- **What was done:** Established where the Kaggle caries checkpoints should land, from the
+  existing precedent rather than by invention.
+- **Key decision or insight:** the repo already tracks ResNet18 weights in git — all three
+  present `.pth` files (43 MB each: bone-loss best/final, bone-loss severity) are committed,
+  while the 49 MB YOLO `.pt` files are not (`.gitignore:60`, `models/**/*.pt`). A ResNet18
+  caries checkpoint is the same 43 MB shape as the bone-loss ones, so it follows the same
+  convention: committed, under a numbered `models/<NN>_<name>/` directory with a
+  `run_summary.txt` beside it.
+- **Files to retrieve from the Kaggle notebook's saved output** (`/kaggle/working/`), in
+  priority order:
+  - `phase2_final_bundle.pth` — **the one that matters.** Phase-2 weights + `class_to_idx`,
+    the model behind the current scoreboard numbers.
+  - `best_phase2_fixed2.pth` — the same state_dict without the bundle wrapper; take it if the
+    bundle is missing.
+  - `final_model.pth` — Phase-1 gate weights + `class_to_idx` (cell 60). Needed for the
+    cascade's first stage; the scoreboard has no numbers for it because its report was never
+    saved.
+  - `best_model.pth` — Phase-1 best-by-macro-F1, the input to `final_model.pth`.
+  - `best_phase2_final.pth` — the Phase-2 starting checkpoint both Arm A and Arm B fine-tune
+    from; needed to reproduce either arm or to run the ablation.
+  - `best_phase2_augmented.pth` / `best_phase2_augmented_stage1.pth` — Arm B outputs. Expect
+    these to be **absent**: those cells have no saved outputs, so the ablation appears never
+    to have run.
+- **Source:** `notebooks/caries/phase-1.ipynb` (save/load cells 49, 60, 95, 100, 113, 118, 120,
+  124, 126); `.gitignore:53–60`; `git ls-files models/`.
+- **Follow-ups:** once retrieved, record each file's SHA-256 in a `run_summary.txt` under its
+  `models/` directory, the same way `tooth-detector-a100-1024-v1.0` was frozen in T0.6 §1 —
+  the caries branch is currently the only trained stage with no version tag and no hash.

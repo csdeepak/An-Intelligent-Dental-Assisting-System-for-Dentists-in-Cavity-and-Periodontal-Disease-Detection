@@ -51,11 +51,15 @@ was never saved in the notebook. Outstanding.
 | **Macro F1** | | | **0.77** | |
 | Weighted F1 | | | 0.82 | |
 
-**No checkpoint exists for either phase of this model** (verified 21 Aug 2026: not in the
-repo, not in `_repo_archive/`, not in Google Drive — a whole-Drive search finds two `.pth`
-files and both are bone-loss). These numbers therefore cannot be re-verified, re-evaluated,
-or used for inference — only replaced by a re-run. Treat them as reported-but-unreproducible
-until that happens. An independent image-level test split now exists for the re-run:
+**Checkpoints are on Kaggle, not in this repo** (21 Aug 2026: not present locally, not in
+`_repo_archive/`, not in Google Drive — but they exist in the Kaggle notebook's saved output,
+which a session here cannot reach). The numbers above come from **`best_phase2_fixed2.pth`**,
+bundled with its `class_to_idx` as `phase2_final_bundle.pth` — identified by matching this
+table against the saved `classification_report` output of cell 119 in
+`notebooks/caries/phase-1.ipynb`. Retrieve those files into `models/` before Stage-5
+integration or any re-evaluation; the retrieval list is in `RESULTS_LOG.md` (2026-08-21g).
+Until then this is the only trained stage with no local weight, no version tag and no hash.
+An independent image-level test split now exists for re-evaluation:
 `data/dentex/splits_v2.json`.
 
 Validation-only — no held-out test split exists for caries. These numbers are also from
