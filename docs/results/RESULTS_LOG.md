@@ -829,3 +829,33 @@ Copy this block verbatim to the bottom of the file and fill it in.
 - **Follow-ups:** none for the mapping. Worth a wider sweep of `README.md`'s status tables at
   some point — the Stage-1 row still says "canonical not yet frozen", which the 20 Aug freeze
   (`tooth-detector-a100-1024-v1.0`) also settled.
+
+## 2026-08-21e — Weight inventory for Stage-5 integration: the caries checkpoints do not exist anywhere reachable
+
+- **What was done:** Inventoried every trained weight file reachable from this machine, to
+  establish what an end-to-end Stage-5 run could actually load. Searched the repo, both
+  `_repo_archive/` trees, and the whole of the user's Google Drive.
+- **Dataset / config:** n/a — inventory only.
+- **Metrics:** none new. Present and loadable: the frozen detector
+  (`models/06_yolo_detection_a100_run/best.pt` + `last.pt`, plus the archive originals),
+  bone-loss binary (`bone_loss_resnet18_best.pth` / `_final.pth`), bone-loss severity
+  (`bone_loss_severity_resnet18_best.pth`). **Absent: both caries cascade checkpoints
+  (Phase 1 gate and Phase 2 severity).** Not in the repo, not in either archive, and not in
+  Drive — a whole-Drive search returns exactly two `.pth` files, both bone-loss. They were
+  presumably left in a Kaggle session output that no longer exists.
+- **Key decision or insight:** three of the project's four trained models can be loaded and
+  run today; the caries branch cannot. Two consequences. **(1)** A Stage-5/6 end-to-end
+  integration can be built and demonstrated *now, on CPU, without GPU access* — detection →
+  FDI numbering → bone-loss binary → severity → per-tooth JSON/PDF — with the caries branch
+  stubbed behind the same interface until its weights exist. That makes the project's actual
+  next milestone unblocked, unlike R1 and the caries re-run. **(2)** The caries numbers in
+  `model_metrics.md` (val acc 81%, macro F1 0.77) have **no recoverable checkpoint behind
+  them**. They cannot be re-verified, re-evaluated on the new split, or used for inference —
+  only replaced by a re-run. That is a reproducibility hole in a paper-facing number and
+  should be stated as such rather than discovered by a reviewer.
+- **Source:** filesystem inventory of `models/`, `_repo_archive/`; Google Drive search
+  (`title contains 'pth' and owner = 'me'` → 2 results, both bone-loss).
+- **Follow-ups:** the caries re-run against `data/dentex/splits_v2.json` is now not just an
+  evaluation-discipline improvement but the only route to a usable caries model at all. When
+  it runs, save the checkpoints into `models/` and record their location per the repo's
+  no-large-binaries rule.

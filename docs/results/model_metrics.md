@@ -51,6 +51,13 @@ was never saved in the notebook. Outstanding.
 | **Macro F1** | | | **0.77** | |
 | Weighted F1 | | | 0.82 | |
 
+**No checkpoint exists for either phase of this model** (verified 21 Aug 2026: not in the
+repo, not in `_repo_archive/`, not in Google Drive — a whole-Drive search finds two `.pth`
+files and both are bone-loss). These numbers therefore cannot be re-verified, re-evaluated,
+or used for inference — only replaced by a re-run. Treat them as reported-but-unreproducible
+until that happens. An independent image-level test split now exists for the re-run:
+`data/dentex/splits_v2.json`.
+
 Validation-only — no held-out test split exists for caries. These numbers are also from
 accuracy-selected checkpoints; as of 19 Aug 2026 the notebook selects on macro-F1 instead
 (T0.3) and a held-out split script exists (T0.2), but neither fix has been re-run yet — see
