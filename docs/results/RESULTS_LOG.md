@@ -1129,3 +1129,48 @@ Copy this block verbatim to the bottom of the file and fill it in.
   supersedes the healthy-tooth claims in 2026-08-21j and 2026-08-21k.
 - **Follow-ups:** decide on the detector-derived negative class. `phase1_legacy` and `phase2`
   are ready for the re-run block now.
+
+## 2026-08-21n — Caries re-run training script written and smoke-verified; crop manifest rebuilt
+
+- **What was done:** (1) Regenerated `data/dentex/crops_v2` with the fixed generator, because
+  the manifest and metadata from the first run were **stale artifacts of the buggy run** — they
+  still carried a `phase1_corrected` column, an `enum_sha256`, and 15,531 `Healthy` rows
+  pointing at the quarantined tree. Anyone reading the manifest would have believed those crops
+  were part of the dataset. (2) Wrote `scripts/dentex/train_caries_cascade.py`, the artifact
+  that turns T0.1–T0.4 into a single GPU sitting.
+- **Dataset / config:** `phase1_legacy` train 2,510 / val 515 / test 504 / extern50 182;
+  `phase2` 1,964 / 408 / 395 / 133. Manifest now 3,711 rows, all `src=d`, no `Healthy` rows.
+  `images_read` fell from 748 to 724 (= 678 disease-annotated + 46 val), and
+  `skipped_degenerate` from 19 to **0** — confirming all 19 skips had come from the invalid
+  enumeration path.
+- **Metrics:** none real. Smoke-run numbers (1 epoch, 64 images/split) are meaningless by
+  construction and are not recorded anywhere as results.
+- **Verification performed:** installed CPU torch locally so the script could be *run* rather
+  than only syntax-checked. Both arms execute end to end: Phase 1 → Phase 2 backbone transfer
+  (0 unexpected keys) → all four splits evaluated → checkpoints, `results.json`,
+  `phase1_gate_report.txt`, `phase2_report.txt` written. Checked separately: crop trees have
+  **zero split leakage** (no source image in more than one split), **zero filename collisions**,
+  disk matches manifest exactly, no zero-byte files, and no file sits in a folder disagreeing
+  with its manifest label. Class weights recomputed from the actual training split reproduce a
+  hand calculation to float32 precision, and Arm B's recorded config differs from Arm A's in
+  exactly one key (`arm`) — the single-variable condition an ablation requires.
+- **Bug found and fixed by the smoke test:** `evaluate()` called `confusion_matrix` and
+  `classification_report` without `labels=`, so sklearn inferred the label set from whatever
+  appeared in the data. On a split where a class was absent — or where the model simply never
+  predicted one — this produced a differently-shaped confusion matrix and a report missing a
+  row, i.e. **silently inconsistent `results.json` across runs**, not just a crash. Now passes
+  `labels=range(n_classes)` everywhere and additionally records per-split true and predicted
+  class counts.
+- **Key decision or insight:** the script implements a clean recipe rather than replicating the
+  notebook's ad-hoc multi-stage fine-tune (1e-3 hand-dropped to 3e-5, an accuracy threshold
+  copied by hand out of a printed report). T0.4 asks for scheduling, so cosine replaces the
+  hand-drops; the notebook stays as the historical record of how the current numbers were made.
+  Class weights are computed from the split rather than hardcoded, so the weighting *scheme* is
+  unchanged from the notebook while the values track the new split. It **deliberately does not**
+  attempt to fix the negative class, and records that limitation inside every `results.json`.
+- **Source:** `scripts/dentex/train_caries_cascade.py`; `data/dentex/crops_v2/crops_meta.json`.
+- **Follow-ups:** the block is now GPU-ready. One session runs both arms and produces: T0.1's
+  augmentation delta, T0.2's val-vs-test split reporting, T0.3 macro-F1 selection, T0.4's
+  schedule and config table, and PAPER_MATERIAL §9's first blocking item — the Phase-1 gate
+  classification report, saved rather than printed. Still undecided beforehand: whether to add
+  a detector-derived not-diseased class (RESULTS_LOG 21m).
