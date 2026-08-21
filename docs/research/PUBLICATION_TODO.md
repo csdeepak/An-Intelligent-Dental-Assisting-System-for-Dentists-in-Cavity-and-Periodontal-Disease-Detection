@@ -2,7 +2,44 @@
 
 **Purpose:** a prioritised, concrete work list to get this capstone from "collection of trained models" to something submittable.
 **Companion docs:** `gap_analysis.md` (literature + our weaknesses), `clinical_dataset_plan.md` (clinic dataset implementation plan).
-**Date compiled:** August 2026.
+**Date compiled:** August 2026. **Status reconciled:** 21 August 2026 — see the status block
+below, which is the authority on what is actually done. Checkbox states inside the tiers were
+never maintained; trust the block.
+
+---
+
+## STATUS AS OF 21 AUGUST 2026
+
+Verified against the repo, not asserted. Every "done" here traces to a committed artifact.
+
+| Item | State | What is actually true |
+|---|---|---|
+| **T0.1** augmentation | **OPEN — still the top item** | Discrepancy found and logged (`METHODOLOGY_CHANGELOG.md`, 15 Aug); path (a) chosen and the Arm B ablation section written into `notebooks/caries/phase-1.ipynb`. **It has never been executed** — cells 122/124/126/128 carry no execution count, no outputs, and the Kaggle output directory has no `best_phase2_augmented*.pth`. So the paper still cannot say what augmentation did. |
+| **T0.2** held-out test set | **Split DONE (better than specified); re-run OPEN** | Not a carve from val — rebuilt from the raw 705-image source as an independent image-level 70/15/15 split, stratified on the disease presence-vector, verified disjoint and reproducible. `scripts/dentex/build_dentex_split_from_raw.py` → `data/dentex/splits_v2.json` (train 495 / val 103 / test 107). **No model has been trained or evaluated on it.** Bone-loss audit sub-item: `model_metrics.md` labels 0.9233 as validation — correct, nothing to fix. |
+| **T0.3** model selection | **Caries code fixed, re-run OPEN; bone-loss already compliant** | The caries notebook now checkpoints on macro-F1, but the weights in `models/07_caries_cascade/` predate that fix and are accuracy-selected. Both bone-loss notebooks already select on macro-F1 and have full saved outputs — **no bone-loss re-run is needed for T0.3**, which is a real scope reduction against this item's "re-run all four classifiers". |
+| **T0.4** LR scheduling | **OPEN for caries only** | Both bone-loss notebooks already have a scheduler. The caries track has none — LR was hand-dropped 1e-3 → 3e-5. The training-config table for all models is also still unwritten. |
+| **T0.5** Mild class (n=6) | **OPEN, untouched** | No bootstrap CIs anywhere. The merge-vs-report-3-class decision has not been made. This is the cheapest Tier-0 item — it is a decision plus a re-report, not a re-train. |
+| **T0.6** canonical detector | **DONE** | Frozen and tagged `tooth-detector-a100-1024-v1.0`, SHA-256 recorded, H200 run documented as superseded. Full record in `T0.6_detector_reconciliation.md`. **One sub-item remains open:** "re-derive every downstream crop and reported number from the canonical detector" — that has not happened and folds naturally into T1.1. |
+| **T0.7** CEJ labelling | **DONE** | Documented as an exploratory negative result in `PAPER_MATERIAL.md` §5.6/§7.5 and excluded from the pipeline. |
+| **T1.1** end-to-end | **OPEN — the largest gap, unchanged** | `scripts/run_inference.py` exists but is an explicit placeholder. **All four trained models are now on local disk** (detector `v1.0`, caries cascade `v1.0`, bone-loss binary, bone-loss severity), so this is buildable today. |
+| **T1.2** clinic Tier 1a | **OPEN and now governance-blocked** | Blocked on something new: an unapproved re-identifiable copy of the clinic dataset is on Google Drive with `metadata/index.csv` beside `images/`. See `clinical_dataset_provenance.md` §4a. Resolve before any clinic data is processed. |
+| **T1.3 / T1.4 / T1.5** | OPEN, untouched | Cheap once the re-run block lands. |
+
+**Not in this list, and deliberately so — R1 (YOLOv11l-seg retrain).** It comes from
+`MASTER_PLAN_2026H2.md` §3, not from this Tier-0/1 plan. T0.6 is already satisfied by the
+frozen bbox detector, so R1 is an *enhancement* (it enables R2 mask-aware cropping), **not a
+prerequisite for a submittable paper**. Its data is fully prepared (`data/tufts/dataset_seg/`,
+26,005 instances) with a pre-registered acceptance criterion, so it is cheap to run alongside
+the re-run block — but it must not displace Tier 0. Earlier sessions worked on it heavily
+because it was the thing that happened to be unblocked, which is not the same as it being the
+thing that mattered most.
+
+**The one genuinely missing piece of code**, and the reason the re-run block cannot start
+today: **there is no DENTEX crop generator in this repo.** The existing crops were produced by
+Kaggle notebooks keyed to the old pre-baked train/val split. `data/dentex/splits_v2.json`
+cannot be used until something regenerates crops from the raw 705 X-rays honouring it.
+
+
 
 **Governing principle:** *methodological defects sink papers faster than missing novelty.* A reviewer who discovers that the augmentation pipeline was written but never executed stops evaluating the science and starts questioning everything else in the paper. Tier 0 is not optional and is not negotiable against Tier 1.
 
