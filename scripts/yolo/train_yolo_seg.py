@@ -1,14 +1,16 @@
 """
 T0.6 / R1: Train YOLOv11l-seg on Tufts (instance segmentation)
 
-STILL UNRUN as of 20 Aug 2026 — no GPU in any environment this has been prepared in.
-Upstream of this script is now solid, though: teeth_polygon.json and all 1,000 raw Tufts
-radiographs were located and downloaded 20 Aug 2026, and convert_tufts_to_yolo_seg.py (this
-script's data source) was run end-to-end against them with zero errors — see
-docs/research/T0.6_detector_reconciliation.md §3 for the full verification record. What
-remains unverified is training itself (this script) and the frozen split
-(outputs/eda_tufts/split_v1.csv is still missing — do not point dataset_seg/ at data built
-from a substitute split without reading that doc section first).
+STILL UNRUN as of 21 Aug 2026 — no GPU in any environment this has been prepared in. That
+is now the ONLY thing missing: as of 21 Aug 2026 every input this script needs exists and is
+verified. The frozen split outputs/eda_tufts/split_v1.csv was found (and proven to be the one
+the canonical bbox detector was trained on — zero filename differences against that
+detector's built dataset), and convert_tufts_to_yolo_seg.py was run against it for real,
+producing data/tufts/dataset_seg/ — 26,005 instances over 700/150/150 images. Full record:
+docs/research/T0.6_detector_reconciliation.md §3.3 and §3.5.
+
+Before running: point DATASET_YAML below at that dataset_seg/data.yaml, and fix the absolute
+`path:` inside data.yaml for whatever machine you are on (it is written at conversion time).
 
 This is the R1 upgrade (bbox -> instance mask) from the reconciled canonical detector
 config. Every arg below is IDENTICAL to the canonical bbox run
@@ -55,6 +57,7 @@ A100 at this batch/imgsz); seg heads are somewhat heavier per-step than detect h
 more like 1-2 hours to be safe.
 """
 
+import os
 import sys
 from pathlib import Path
 
@@ -69,7 +72,9 @@ except ImportError:
 # CONFIGURATION
 # =============================================================================
 
-DATASET_YAML = Path("dataset_seg/data.yaml")
+# Override with TUFTS_SEG_DATA_YAML on a machine where the dataset lives elsewhere
+# (on the machine that built it: data/tufts/dataset_seg/data.yaml).
+DATASET_YAML = Path(os.environ.get("TUFTS_SEG_DATA_YAML", "dataset_seg/data.yaml"))
 RUN_NAME = "tufts_seg_v1"
 PROJECT_DIR = "runs/segment"
 

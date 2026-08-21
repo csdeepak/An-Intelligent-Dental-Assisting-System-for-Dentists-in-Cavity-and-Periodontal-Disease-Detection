@@ -16,13 +16,23 @@ scripts/yolo/rotate_tufts_radiographs.py first to produce Radiographs_rotated/ (
 direction — 90 deg clockwise — was empirically determined and visually verified, see that
 script's docstring and the T0.6 doc; do not assume Radiographs_rotated/ already exists).
 
-REMAINING GAP: the test run above used a freshly-generated temporary split, NOT the frozen
-outputs/eda_tufts/split_v1.csv referenced below — that file is still missing (searched
-exhaustively, not found anywhere). Using a different split than the one the canonical bbox
-detector (models/06_yolo_detection_a100_run) was evaluated on breaks direct comparability
-of test-set metrics. Locate the original split before running this for the real training
-data, or make an explicit, documented decision to accept a new split and note the
-comparability caveat everywhere the resulting numbers are reported.
+RUN FOR REAL 21 Aug 2026 — the frozen outputs/eda_tufts/split_v1.csv was found (it was on
+the macOS machine at _repo_archive/datasets_workspace/outputs/eda_tufts/, missed by the
+20 Aug search because that search covered a Windows filesystem) and verified to be the split
+the canonical bbox detector was trained on: its per-split filename lists diff to ZERO against
+that detector's built dataset. This script was then run against it, unpatched, producing the
+real training input at data/tufts/dataset_seg/: 26,005 instances over 700/150/150 images
+(18,268 / 3,807 / 3,930). T0.6 doc §3.3 and §3.5.
+
+KNOWN, DELIBERATE DIFFERENCE FROM THE BBOX DATASET: this converter yields 66 MORE instances
+than convert_tufts_to_yolo.py does on the identical split (+47 train / +13 val / +6 test).
+Those 66 are objects whose "bounding box" field in the source JSON is corrupt (recorded as
+1x1 or 1x2 px) while their polygon is intact and full-size (1,617-13,425 px^2, up to 682
+points, ordinary tooth titles across the arch). The bbox converter drops them as degenerate;
+this one keeps them, because they are real annotated teeth. Do NOT "fix" this by copying the
+bbox converter's <2px filter here — that would propagate a data bug for cosmetic
+comparability. It does mean seg and bbox test metrics are measured against ground truth
+differing by 6 instances (0.15%); that caveat is pre-registered in T0.6 §2.
 
 Input:
   - Radiographs_rotated/{image_id}.jpg          (portrait 840x1615 — see rotation note above)
@@ -53,6 +63,7 @@ Usage:
 """
 
 import json
+import os
 import shutil
 from pathlib import Path
 from collections import Counter
@@ -66,13 +77,18 @@ from PIL import Image
 # CONFIGURATION — edit paths to your local setup (mirrors convert_tufts_to_yolo.py)
 # =============================================================================
 
-TUFTS_ROOT = Path("/Users/chennupatigunadeep/Downloads/Capstone/DataSets")
-IMG_SRC_DIR = TUFTS_ROOT / "Radiographs_rotated"
-POLY_JSON = TUFTS_ROOT / "Segmentation" / "teeth_polygon.json"
-SPLIT_CSV = Path("outputs/eda_tufts/split_v1.csv")
+# Every path below can be overridden by an environment variable, so this script runs
+# unmodified on a GPU box (or any machine whose data lives elsewhere) instead of being
+# copy-patched — copy-patching is how the 20 Aug verification run had to be done, and a
+# patched copy is not the thing that gets reviewed. Defaults are the original hard-coded
+# values, so existing invocations are unaffected.
+TUFTS_ROOT = Path(os.environ.get("TUFTS_ROOT", "/Users/chennupatigunadeep/Downloads/Capstone/DataSets"))
+IMG_SRC_DIR = Path(os.environ.get("TUFTS_IMG_DIR", TUFTS_ROOT / "Radiographs_rotated"))
+POLY_JSON = Path(os.environ.get("TUFTS_POLY_JSON", TUFTS_ROOT / "Segmentation" / "teeth_polygon.json"))
+SPLIT_CSV = Path(os.environ.get("TUFTS_SPLIT_CSV", "outputs/eda_tufts/split_v1.csv"))
 
 # Output — will be created fresh, kept separate from the bbox dataset/ dir
-DATASET_DIR = Path("dataset_seg")
+DATASET_DIR = Path(os.environ.get("TUFTS_SEG_DATASET_DIR", "dataset_seg"))
 
 # Known image dimensions (verified in Week 1, same source images as the bbox conversion)
 IMG_WIDTH = 840

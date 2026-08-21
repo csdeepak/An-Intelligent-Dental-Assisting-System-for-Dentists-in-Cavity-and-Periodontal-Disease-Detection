@@ -89,6 +89,9 @@ sample_data/
 !docs/reports/**/*.pdf
 
 data/tufts/ZIP/Segmentation/Segmentation/teeth_polygon.json
+# Built YOLO-seg training dataset (1,000 images + labels) — regenerate with
+# scripts/yolo/convert_tufts_to_yolo_seg.py, never commit.
+data/tufts/dataset_seg/
 
 # --- Archive ignores ---
 _repo_archive/datasets_workspace/Expert/

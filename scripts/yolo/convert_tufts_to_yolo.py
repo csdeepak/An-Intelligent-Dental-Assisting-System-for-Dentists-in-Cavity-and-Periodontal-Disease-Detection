@@ -132,7 +132,16 @@ def parse_annotations():
             w = x2 - x1
             h = y2 - y1
             
-            # Drop degenerate
+            # Drop degenerate.
+            # NOTE (21 Aug 2026): this filter fires on exactly 66 objects across the 1,000
+            # Tufts images, and every one of them is a REAL tooth whose "bounding box" field
+            # is corrupt (1x1 / 1x2 px) while its polygon in teeth_polygon.json is intact and
+            # full-size. So this dataset is missing 66 annotated teeth (47 train / 13 val /
+            # 6 test). Left in place ON PURPOSE: changing it would invalidate the frozen
+            # canonical detector (tooth-detector-a100-1024-v1.0) that was trained on this
+            # exact output, which docs/research/T0.6_detector_reconciliation.md §1 exists to
+            # protect. convert_tufts_to_yolo_seg.py keeps those 66; see T0.6 §3.5 for the
+            # full analysis and the reasoning behind the asymmetry.
             if w < 2 or h < 2:
                 stats["degenerate"] += 1
                 continue
