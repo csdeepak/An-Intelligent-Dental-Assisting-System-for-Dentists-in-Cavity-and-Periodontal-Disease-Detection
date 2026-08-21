@@ -105,6 +105,10 @@ strongest result), and bone-loss severity (macro F1 0.7208 on only 52 validation
 CEJ estimation is an exploratory negative result and is not part of the pipeline.
 **Stages 5–6 — joining everything into one runnable inference that emits a per-tooth
 JSON/PDF report — do not exist yet, and that is the project's actual next milestone.**
-There is also an open bug: the Universal→FDI table in `configs/dataset_config.yaml`
-mis-maps the whole lower arch from Universal 23 onward (correct: 23→32, 24→31,
-25–28→41–44, 29–32→45–48). See the root `README.md` for the correct table.
+The Universal→FDI lower-arch bug that this paragraph used to list as open is **fixed**
+(`f8b31f8`) — re-verified 21 Aug 2026: `configs/dataset_config.yaml` and
+`src/utils/fdi_converter.py` match each other and the correct table, with regression
+tests in `tests/test_fdi_converter.py`. It had been described as open here and in four
+places in the root `README.md` after it was already closed, which is rule 4's
+"stale status" failure mode pointing the other way — verify before you write, in both
+directions.

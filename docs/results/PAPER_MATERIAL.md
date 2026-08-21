@@ -742,9 +742,13 @@ For whoever drafts the actual paper. Tick items off here as they land.
       `tooth-detector-a100-1024-v1.0`, SHA-256 recorded in
       `docs/research/T0.6_detector_reconciliation.md` §1 and `model_metrics.md`; H200 run
       documented as superseded in both files and `notebooks/yolo_detection/README.md`.
-- [ ] Fix the Universal→FDI mapping defect for the lower arch in
+- [x] Fix the Universal→FDI mapping defect for the lower arch in
       `configs/dataset_config.yaml` (23→32, 24→31, 25–28→41–44, 29–32→45–48), re-verify
       `src/utils/fdi_converter.py` against it, and cover it in `tests/test_fdi_converter.py`.
+      **Already done in `f8b31f8`; confirmed 21 Aug 2026** — config and converter match each
+      other and the correct table, and the tests name the historical bug (shifted lower arch,
+      duplicated FDI 33/34) explicitly. This item, and the matching warnings in the root
+      `README.md`, had stayed open in writing after the fix landed.
 - [ ] Build Stages 5–6 (integration) and report at least one end-to-end example, or state
       unambiguously in the abstract that the system is evaluated stage-wise only.
 

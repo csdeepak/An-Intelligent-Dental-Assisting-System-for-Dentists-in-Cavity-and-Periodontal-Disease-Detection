@@ -802,3 +802,30 @@ Copy this block verbatim to the bottom of the file and fill it in.
   cascade and report Phase 1 and Phase 2 on the **test** split. That re-run also needs to
   save the Phase 1 gate classification report, still missing per §9's first blocking item.
   Both need GPU access, same as R1.
+
+## 2026-08-21d — The "open" Universal→FDI bug has been fixed since `f8b31f8`; five docs said otherwise
+
+- **What was done:** While checking what Stage-5 integration would need, verified the
+  Universal→FDI mapping described as an open blocking bug in `CLAUDE.md` §5, the root
+  `README.md` (four separate places), and `PAPER_MATERIAL.md` §9. It is not open. Commit
+  `f8b31f8` ("fix: correct Universal->FDI lower-arch mapping; close Tier-0 audit items")
+  fixed it. Confirmed entry-by-entry rather than by reading the commit message:
+  `configs/dataset_config.yaml` and `src/utils/fdi_converter.py` hold identical tables, both
+  matching the correct mapping (23→32, 24→31, 25–28→41–44, 29–32→45–48), and
+  `tests/test_fdi_converter.py` carries regression tests that name the historical bug —
+  the shifted lower arch and the duplicated FDI 33/34 that had collapsed the reverse lookup.
+- **Dataset / config:** n/a — verification only, no data and no model touched.
+- **Metrics:** none.
+- **Key decision or insight:** this is `CLAUDE.md` rule 4's stale-status failure mode running
+  in the opposite direction — the README once spent three months calling finished models "in
+  progress"; here it spent an unknown stretch calling a closed bug open, in five places, with
+  the strongest of them ("Left unfixed deliberately so the change is reviewed rather than
+  applied silently") reading as an active decision. A reader planning Stage 5 would have
+  budgeted work that no longer exists. All five corrected to state the fix, its commit, and
+  the date of re-verification. **Nothing about the mapping itself was changed** — the code was
+  already right; only the documentation was wrong.
+- **Source:** `configs/dataset_config.yaml` (lines 99–131), `src/utils/fdi_converter.py`,
+  `tests/test_fdi_converter.py`, commit `f8b31f8`.
+- **Follow-ups:** none for the mapping. Worth a wider sweep of `README.md`'s status tables at
+  some point — the Stage-1 row still says "canonical not yet frozen", which the 20 Aug freeze
+  (`tooth-detector-a100-1024-v1.0`) also settled.

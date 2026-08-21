@@ -131,7 +131,7 @@ bounding box.
 | Stage | Component | Input | Output | Status |
 |-------|-----------|-------|--------|--------|
 | 1 | Tooth Detection (YOLOv11l) | Full OPG | Tooth bboxes | ✅ **Complete** — test mAP@0.5 **0.782** (two runs, canonical not yet frozen) |
-| 2 | Sorting + FDI assignment | Tooth bboxes | FDI-keyed tooth list | ✅ Complete — ⚠️ mapping bug open, see [FDI](#universal-to-fdi-conversion) |
+| 2 | Sorting + FDI assignment | Tooth bboxes | FDI-keyed tooth list | ✅ **Complete** — Universal→FDI mapping fixed and regression-tested (`f8b31f8`) |
 | 3 | Caries cascade (ResNet18 ×2) | Tight 1.0× crop | caries / deep_caries | ✅ **Complete** — val acc 81%, macro F1 0.77 (evaluation gaps documented) |
 | 4a | Bone Loss binary (ResNet18) | Expanded 1.5×W/2.0×H crop | Present / Absent | ✅ **Complete** — macro F1 **0.9233** |
 | 4b | Bone Loss severity (ResNet18) | Expanded crop | Mild / Moderate / Severe | ✅ **Complete** — macro F1 0.7208 (only 52 val crops) |
@@ -436,11 +436,13 @@ Discovered during data exploration and **already fixed** in all code
 | PIL DecompressionBombError | PIL rejected large composite figures | `PILImage.MAX_IMAGE_PIXELS = None` |
 | Font download 404 | wget from GitHub returned HTML instead of TTF | `apt-get install fonts-dejavu-core` |
 
-### ⚠️ Open bug
+### Closed bug — Universal→FDI lower-arch mapping
 
-**Universal→FDI mapping is wrong for the lower arch** in `configs/dataset_config.yaml`
-(Universal 23 onward). Left unfixed deliberately so the change is reviewed rather than
-applied silently — see [Universal to FDI Conversion](#universal-to-fdi-conversion).
+**Fixed in `f8b31f8`.** This section previously said the bug was open and deliberately
+left unfixed. Re-verified 21 Aug 2026 against the actual files: `configs/dataset_config.yaml`
+and `src/utils/fdi_converter.py` both match the correct table below, agree with each other,
+and `tests/test_fdi_converter.py` carries regression tests naming the historical bug
+explicitly. Nothing to do here.
 
 ---
 
@@ -481,7 +483,7 @@ literature benchmark of ≥ 0.90 — **not met**.
 | Detector recall 0.74 → missed teeth never classified | HIGH | Freeze the 1024 px model; measure error propagation once Stage 5 exists |
 | YOLO crop variability at inference | MEDIUM | ±15% bbox jitter during training (unvalidated end-to-end) |
 | Class imbalance 23.8× (bone loss) | HIGH | Undersampling + minority augmentation + Focal Loss; untouched val set |
-| Universal vs FDI numbering mismatch | HIGH | Conversion at detector output — **currently buggy, see below** |
+| Universal vs FDI numbering mismatch | HIGH | Conversion at detector output — fixed and regression-tested (`f8b31f8`) |
 | Domain shift (Tufts vs real OPGs) | MEDIUM | CLAHE normalisation at inference (untested) |
 | No external clinical validation | HIGH | Acknowledged limitation; out of scope for the capstone |
 
@@ -503,13 +505,11 @@ mapping:
 | 7 | 12 | 15 | 27 | 23 | 32 | 31 | 47 |
 | 8 | 11 | 16 | 28 | 24 | 31 | 32 | 48 |
 
-> ⚠️ **`configs/dataset_config.yaml` does not currently match this table.** From Universal
-> 23 onward the lower arch is shifted: the config maps 23→43, 24→44, 25–28→45–48 and
-> 29–32→31–34 (with 33 and 34 duplicated). Every lower-jaw finding would be reported
-> against the wrong tooth. This is listed as a blocking item in
-> [`docs/results/PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) §9; fix the config,
-> verify `src/utils/fdi_converter.py` against it, and cover it with
-> `tests/test_fdi_converter.py` before Stage 5 integration.
+> ✅ **`configs/dataset_config.yaml` matches this table.** Checked entry-by-entry on
+> 21 Aug 2026, along with `src/utils/fdi_converter.py` (identical table, and the two agree)
+> and `tests/test_fdi_converter.py` (regression tests that name the historical bug — the
+> shifted lower arch, and the duplicated FDI 33/34 that collapsed the reverse lookup).
+> The fix landed in `f8b31f8`; this warning had outlived it.
 
 ---
 
