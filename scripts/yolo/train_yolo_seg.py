@@ -1,10 +1,14 @@
 """
 T0.6 / R1: Train YOLOv11l-seg on Tufts (instance segmentation)
 
-UNTESTED as of 19 Aug 2026 — no GPU in the environment this was written in, and
-teeth_polygon.json / dataset_seg/ don't exist locally yet (see
-docs/research/T0.6_detector_reconciliation.md §3). This is a reviewed draft, not a
-verified script.
+STILL UNRUN as of 20 Aug 2026 — no GPU in any environment this has been prepared in.
+Upstream of this script is now solid, though: teeth_polygon.json and all 1,000 raw Tufts
+radiographs were located and downloaded 20 Aug 2026, and convert_tufts_to_yolo_seg.py (this
+script's data source) was run end-to-end against them with zero errors — see
+docs/research/T0.6_detector_reconciliation.md §3 for the full verification record. What
+remains unverified is training itself (this script) and the frozen split
+(outputs/eda_tufts/split_v1.csv is still missing — do not point dataset_seg/ at data built
+from a substitute split without reading that doc section first).
 
 This is the R1 upgrade (bbox -> instance mask) from the reconciled canonical detector
 config. Every arg below is IDENTICAL to the canonical bbox run

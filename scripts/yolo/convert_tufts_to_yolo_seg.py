@@ -1,16 +1,33 @@
 """
 T0.6 / R1: Convert Tufts polygon annotations -> YOLO-seg format
 
-UNTESTED as of 19 Aug 2026 — teeth_polygon.json is not present on this machine
-(see docs/research/T0.6_detector_reconciliation.md §3/§4). Written from the schema
-recorded in notebooks/bone_loss/01_tufts_data_exploration_v2.ipynb cell 6/7 output,
-not from a live file. Re-verify against real data before trusting it for a training run,
-in particular the largest-polygon-per-object heuristic below.
+VERIFIED against real data 20 Aug 2026 — teeth_polygon.json (1,000/1,000 records) and all
+1,000 raw Tufts radiographs were located (Google Drive) and this script's unmodified logic
+was run end-to-end against them (only path constants patched for the local test
+environment): 26,005 instances produced across 700/150/150 train/val/test images, zero
+crashes, val/test instance counts (3,871 / 3,920) closely matching the historical bbox
+conversion's val count (3,794) as a sanity check. The largest-polygon-per-object heuristic
+below was visually spot-checked by overlaying converted polygons on 7 real radiographs
+(random + hand-picked) — every polygon traced a real tooth outline, no noise/garbage shapes.
+Full record: docs/research/T0.6_detector_reconciliation.md §3.
+
+IMPORTANT — the real Radiographs source ships LANDSCAPE (1615x840), not portrait. Run
+scripts/yolo/rotate_tufts_radiographs.py first to produce Radiographs_rotated/ (rotation
+direction — 90 deg clockwise — was empirically determined and visually verified, see that
+script's docstring and the T0.6 doc; do not assume Radiographs_rotated/ already exists).
+
+REMAINING GAP: the test run above used a freshly-generated temporary split, NOT the frozen
+outputs/eda_tufts/split_v1.csv referenced below — that file is still missing (searched
+exhaustively, not found anywhere). Using a different split than the one the canonical bbox
+detector (models/06_yolo_detection_a100_run) was evaluated on breaks direct comparability
+of test-set metrics. Locate the original split before running this for the real training
+data, or make an explicit, documented decision to accept a new split and note the
+comparability caveat everywhere the resulting numbers are reported.
 
 Input:
-  - Radiographs_rotated/{image_id}.jpg          (portrait 840x1615)
+  - Radiographs_rotated/{image_id}.jpg          (portrait 840x1615 — see rotation note above)
   - Segmentation/teeth_polygon.json             (portrait-coordinate polygon annotations)
-  - outputs/eda_tufts/split_v1.csv              (frozen 70/15/15 split — same as bbox conversion)
+  - outputs/eda_tufts/split_v1.csv              (frozen 70/15/15 split — STILL MISSING, see above)
 
 Output:
   - dataset_seg/images/{train,val,test}/*.jpg
@@ -319,9 +336,9 @@ def main():
     print("CONVERSION COMPLETE")
     print("=" * 60)
     print(f"\nDataset ready at: {DATASET_DIR.resolve()}")
-    print("Next step: spot-check a handful of converted labels by overlaying them on the")
-    print("source images (the largest-polygon-per-object heuristic is unverified — see")
-    print("docs/research/T0.6_detector_reconciliation.md §3), then run train_yolo_seg.py")
+    print("Confirm SPLIT_CSV above is the real frozen outputs/eda_tufts/split_v1.csv, not a")
+    print("substitute split — see docs/research/T0.6_detector_reconciliation.md §3 if unsure.")
+    print("Then run train_yolo_seg.py.")
 
 
 if __name__ == "__main__":
