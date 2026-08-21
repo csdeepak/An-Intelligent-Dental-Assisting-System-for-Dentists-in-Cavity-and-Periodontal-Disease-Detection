@@ -1,238 +1,197 @@
-# Transfer document — session handoff
+# Transfer document — session handoff to a different machine
 
-**Written:** 18 August 2026, at the point this session's tool access became unreliable.
-**Updated:** same session, minutes later — the tool-availability problem in §3 resolved
-before this session ended, so the copy/commit/push work originally left pending was
-completed after all. This file is corrected to say so rather than left stale; §0/§1/§4
-below describe the *actual final* state, not the blocked state that prompted writing this
-document in the first place.
-**Purpose:** let a new session continue with zero re-derivation and zero guessing. Every
-claim below is labeled by how it was established. Nothing here is asserted from memory
-alone — anything not independently re-checked in this document says so explicitly.
+**Written:** 20 August 2026, at the user's explicit request to continue this session on a
+friend's laptop. **Purpose:** let a new session (different physical machine) continue with
+zero re-derivation and zero guessing. Every claim below is labeled by how it was established.
 
 ---
 
 ## 0. Read this first
 
-The Ningxia dataset is downloaded, fully restructured, verified correct, has a manifest,
-and that manifest is now **committed and pushed** to `origin/main` (commit `c9105db`),
-alongside the master-plan/results-log edits (commit `9296e7c`). **There is nothing pending
-from this work.** §3's tool-availability problem was real and blocked this for a while
-mid-session, but it resolved before the session ended and the original plan (verify → copy
-→ commit → push) was carried out in full, exactly as originally intended. The only things
-left open for a new session are the three long-standing untracked-file decisions in §1 and
-the genuinely-unresolved research items in §6 — neither is a continuation of blocked work.
+1. **There are uncommitted, unpushed changes on THIS machine right now.** §2 lists them
+   exactly. Until they're committed and pushed, `git clone`/`git pull` on the friend's laptop
+   will **not** include them — a chunk of this session's work (the GPU setup doc, the DENTEX
+   raw-data discovery, the Tufts real-data verification writeup) would simply be invisible
+   there. **Do one of these before switching machines:**
+   - Ask the current session to commit + push (same pattern used all session:
+     say "commit this" then "push it") — recommended, keeps the git history the
+     source of truth like everything else this session.
+   - Or manually copy the modified/untracked files listed in §2 across via USB/cloud drive if
+     you need to switch machines before that's done.
+2. **Nothing on the new machine will have the ~390 MB of Tufts data, the SSH keys, or an E2E
+   instance already set up** — those are local-machine or account-level, not git-tracked, by
+   design. §4 says exactly how to reproduce what's needed.
+3. **Read `docs/research/GPU_SETUP.md` and `docs/research/T0.6_detector_reconciliation.md`
+   in full before doing anything else** — they contain the verified, current state of every
+   blocker and every piece of prep work. Do not re-derive anything from scratch that's already
+   answered there.
 
 ---
 
-## 1. Verified git state (checked via `git status`, `git log`, `git rev-list` — read-only,
-confirmed working throughout the outage described in §3, and re-confirmed after the
-outage resolved)
+## 1. Verified git state
 
-**HEAD is `c9105db`, and local is exactly even with `origin/main` (0 ahead, 0 behind).**
-Every commit through `c9105db` is already pushed. Do not re-push those; do not re-do
-that work.
+Checked via `git status`, `git log` on this machine, just now.
 
 ```
-c9105db data: add Ningxia dataset manifest (13,160 rows)
-9296e7c docs: Ningxia is center-stratified and has no healthy controls
-e51e86f docs: cite YOLOv11-vs-YOLOv12 benchmark as external validation for detector choice
-e852942 fix: correct wrong DentFound-weights premise in the master plan
-1ca4da0 survey: fix metric-count error, add DentVLM citation
-f8b31f8 fix: correct Universal->FDI lower-arch mapping; close Tier-0 audit items
+HEAD: 3c7059b  docs: log Week 2 detector-freeze and archive-triage results
+Branch: main, tracking origin/main
 ```
 
-**`9296e7c` contains** the §4.3 rewrite of `MASTER_PLAN_2026H2.md` (center-stratification
-+ no-healthy-controls findings, detailed in §2 below) plus the matching
-`RESULTS_LOG.md` entry, per `CLAUDE.md` rule 1. **`c9105db` contains** `data/ningxia/manifest.csv`
-(13,160 rows, copied verbatim from `D:\nangxia_dataset\manifest.csv`, row count re-verified
-after copying: 13,161 lines including the header). Both were committed and pushed in the
-same session this document was written in, once §3's outage cleared — nothing about them
-is still pending.
-
-**Untracked, long-standing, each needs a human decision (not new to this session, carried
-forward unresolved, and unaffected by anything above):**
-
-- `docs/research/clinical_dataset_provenance.md` — documents real patient-data handling
-  for the *private clinic* dataset (unrelated to Ningxia). Flagged for review before it
-  enters git history because of what it describes, not because it's wrong. Still
-  unreviewed as of this writing.
-- `notebooks/bone_loss/06_cej_estimation_v3.ipynb` — never triaged this session.
-- `survey_paper/` — a stale 47-reference draft of the survey, superseded by
-  `Survey Paper Latex folder/` (70 refs, already committed and current). Per `CLAUDE.md`
-  rule 3 this gets *relocated* to `_repo_archive/` if it's retired, never `rm`'d. No
-  decision made yet.
-
-**`data/ningxia/manifest.csv` is now in the repo** — this section originally reported it
-as missing (the `cp` was blocked by §3's outage at the time of writing); the outage
-resolved later in the same session and the copy completed and is now committed as
-`c9105db`. Verify with `git show c9105db --stat` if you want independent confirmation
-rather than trusting this sentence.
+Everything through `3c7059b` is already pushed — confirmed earlier this session via
+`git push` (output: `2fd2721..3c7059b main -> main`). **Do not re-push those commits; do not
+re-do that work.** A `git log --oneline -12` on the new machine will show the same history
+back through `61eed08` (T0.6 reconciliation start) if you want to independently verify.
 
 ---
 
-## 2. The Ningxia dataset — verified state (this is solid; re-verify only if paranoid)
-
-**Location:** `D:\nangxia_dataset` (local disk, outside the repo — same convention as
-Tufts). **This is the primary external-validation dataset** per
-`MASTER_PLAN_2026H2.md` §4.2, sourced from Li et al. 2024
-(https://github.com/qinxin99/qinxini).
-
-**Final structure**, after a full restructuring pass this session:
+## 2. Uncommitted local changes on THIS machine (not yet pushed)
 
 ```
-D:\nangxia_dataset\
-  ReadMe.md                     <- the dataset's own documentation, authoritative for counts
-  manifest.csv                  <- built this session, 13,160 rows, NOT yet copied into git
-  segmentation\
-    dental_caries\  {train, test1, test2, test3, test4}\ {img, mask}\
-    impacted_teeth\ {train, test1, test2, test3, test4}\ {img, mask}\
-    periodontitis\  {train, test1, test2, test3, test4}\ {img, mask}\
-  classification\
-    train\ {dental_caries, impacted_teeth, periodontitis}\
-    test\  {dental_caries, impacted_teeth, periodontitis}\
+ M docs/research/T0.6_detector_reconciliation.md
+ M docs/results/PAPER_MATERIAL.md
+ M docs/results/RESULTS_LOG.md
+ M docs/session-memory/2026-08-19-week2-engineering-prep.md
+ M scripts/yolo/convert_tufts_to_yolo_seg.py
+ M scripts/yolo/train_yolo_seg.py
+?? docs/research/GPU_SETUP.md
+?? docs/research/clinical_dataset_provenance.md
+?? scripts/yolo/rotate_tufts_radiographs.py
 ```
 
-No spaces in any path, no Chinese folder names (the original ship had `分类数据集`), no
-double-nesting (the original archives extracted to `test/test/testN/...` and
-`train/train/...`), no `.rar` archives, no stray files.
+What's in this batch, so nothing here reads as mysterious:
 
-**Verified counts — every single one matches the dataset's own README table exactly**,
-cross-checked by two independent methods (a Python walk, and separately Glob's own
-match-counts, which is a different code path):
+- **`GPU_SETUP.md` (new)** — E2E Networks provisioning checklist, verified live against
+  `docs.e2enetworks.com` (not written from memory): exact console click-path, image choice
+  (Pre-built → PyTorch), current GPU pricing table, disk budget, and the DENTEX raw-data
+  finding (§3 below).
+- **`T0.6_detector_reconciliation.md`, `PAPER_MATERIAL.md`, `RESULTS_LOG.md`,
+  session-memory file** — updated to record that `teeth_polygon.json` and all 1,000 raw Tufts
+  radiographs were located (Google Drive), downloaded, and the seg-conversion pipeline was
+  run end-to-end against real data successfully (26,005 instances, zero errors). Also records
+  the still-missing `outputs/eda_tufts/split_v1.csv`.
+- **`rotate_tufts_radiographs.py` (new)** — formalizes the empirically-determined 90°
+  clockwise rotation needed to turn the raw Tufts landscape images into the portrait shape
+  every other script assumes. Was previously undocumented tribal knowledge; now it's code.
+- **`convert_tufts_to_yolo_seg.py`, `train_yolo_seg.py`** — docstring/status updates only
+  (moved from "untested" to "verified against real data") — logic unchanged from what's
+  already committed.
+- **`clinical_dataset_provenance.md` (untracked, deliberately NOT part of any commit)** — this
+  one is intentionally left out of every commit this whole session. It documents real patient
+  de-identification procedures for the private clinic dataset and needs your explicit
+  decision (commit as-is / redact / keep local-only) before it ever enters git history. Don't
+  sweep it into a commit by accident with a blanket `git add`.
 
-| Category | train | test1 | test2 | test3 | test4 | segmentation total |
-|---|---|---|---|---|---|---|
-| dental_caries | 940 | 134 | 110 | 40 | 53 | 1,277 |
-| impacted_teeth | 2,000 | 280 | 210 | 36 | 41 | 2,567 |
-| periodontitis | 2,000 | 320 | 297 | 50 | 69 | 2,736 |
-
-Segmentation grand total: **6,580**, matching the paper exactly. Classification (train+test
-per category: dental_caries 894+383, impacted_teeth 1797+770, periodontitis 1915+821) also
-totals **6,580**, matching exactly. Total real images across both tasks: 13,160. Total
-physical PNG files on disk: 19,740 (13,160 images + 6,580 segmentation masks — classification
-has no masks). Total disk size: ~15 GB.
-
-**What was removed this session, and why each was confirmed safe before deletion:**
-- 3 stray files — `dental_caries/train/mask/113-output.png`,
-  `impacted_teeth/train/mask/1066-output.png`, `periodontitis/train/mask/94-output.png`.
-  Each confirmed to have a properly-named numeric mask already present alongside it
-  (e.g. `mask/94.png` existed independently of `94-output.png`) before removal — these were
-  leftover artifacts, not orphaned data.
-- 7 `.rar` archives (~12.7 GB) — deleted only after every corresponding folder's extracted
-  contents were count-verified against the README. Nothing was deleted before its
-  extraction was confirmed complete; `segmentation/Periodontitis/train.rar` in particular
-  (the largest archive, 4.26 GB) was still extracting earlier in this session and was
-  explicitly re-checked before removal.
-
-**One bug found and fixed during the restructuring itself, worth knowing about if anything
-looks odd later:** Windows/NTFS is case-insensitive but case-preserving. Renaming
-`Periodontitis` → `periodontitis` in the same move as flattening its `train/train/`
-subfolder caused a silent no-op (moving a folder into what the filesystem considered its
-own parent). Caught because post-move verification showed the old nested path still
-populated instead of empty. Fixed with a two-hop rename through a distinct intermediate
-name (`Periodontitis_TMP`), then re-verified. No data was lost — the failure mode was a
-no-op, not a deletion — but if you ever rename another all-different-only-in-case folder
-on this dataset, use the same two-hop pattern rather than a direct `mv`.
-
-**`manifest.csv` schema** (13,160 rows, one per real image):
-`task, category, split, center_group, filename, img_path, mask_path` — `task` is
-`segmentation` or `classification`; `center_group` is `train_center` / `same_center_as_train`
-(test2) / `cross_center` (test1, test3, test4) for segmentation, or
-`not_applicable_random_split` for classification (the classification split is randomised
-across centers per the README, so it carries no center signal); `mask_path` is empty for
-classification rows. Paths are relative to `D:\nangxia_dataset` and use forward slashes.
-
-**Not independently verified:** byte-level PNG integrity (i.e., that no file is truncated
-or corrupted) and an exhaustive orphan cross-reference between every disk file and every
-manifest row. A verification script for this exists at
-`C:\Users\csdee\AppData\Local\Temp\claude\...\scratchpad\verify_dataset.py` (session-specific
-temp path, may not survive into a new session — recreate if needed; the logic is simple:
-load the manifest, confirm every path exists and starts with the PNG magic bytes
-`\x89PNG\r\n\x1a\n`, then walk the disk tree and confirm every real `.png` is listed in the
-manifest). This was attempted multiple times but never completed due to the tool outage in
-§3. The count-based verification is strong (exact matches on every split, from two
-independent methods), but it is not the same guarantee as a byte-level check. Recommended,
-not urgent.
+**Recommendation:** commit the first group (everything except `clinical_dataset_provenance.md`)
+in whatever scoped grouping makes sense — the session already has a clean precedent from
+earlier commits like `5c0b442` and `f42933d` if you want to match that style — then push.
 
 ---
 
-## 3. Why the last steps didn't finish — a tool availability problem, not a data problem
+## 3. Major state as of this session (all independently verified, not just asserted)
 
-Partway through this session, Bash and PowerShell commands that **write or modify
-anything** began failing with: *"claude-sonnet-5 is temporarily unavailable (overloaded),
-so auto mode cannot determine the safety of Bash right now."* Read-only commands
-(`git status`, `git log`, `ls`, `echo`, `python3 --version`) kept working the entire time —
-this is a safety-classifier availability issue specific to mutating commands, not a general
-outage, and not something to work around (e.g. by trying to disguise a write as a read-only
-call). It was intermittent (occasionally a simple write-command got through, most attempts
-did not) and never fully recovered before this document was written.
+### T0.6 / R1 — YOLOv11l-seg retrain: went from 3 blockers to 1 (plus GPU access)
 
-**If the new session hits the same error:** don't loop-retry the same command many times in
-a row. Try a trivial read-only command first to distinguish "everything is down" from
-"write-classifier specifically is down." If writes are still blocked, this document is
-what lets work continue anyway — the verified state above doesn't depend on the blocked
-actions having succeeded.
+- **Canonical bbox detector: frozen and versioned.** `best.pt`/`last.pt` located, verified
+  (byte size, args.yaml/results.csv diff, loads under Ultralytics with correct params), copied
+  to `models/06_yolo_detection_a100_run/` (gitignored). Version tag
+  `tooth-detector-a100-1024-v1.0`, SHA-256 in `T0.6_detector_reconciliation.md` §1.
+- **`teeth_polygon.json`** (1,000/1,000 records, 285 MB) and **all 1,000 raw radiographs**
+  located at `https://drive.google.com/drive/folders/1_pPXCzNGlRuLaQhpqScX7sszSXSLQI-U`,
+  downloaded to this machine at `data/tufts/ZIP/...` (gitignored, ~390 MB local, does **not**
+  transfer via git).
+- **Rotation direction (90° CW) empirically determined and visually verified** — 7 real
+  images overlaid with real tooth polygons, every one traced correctly. See
+  `rotate_tufts_radiographs.py` and `T0.6_detector_reconciliation.md` §3.2.
+- **The real, unmodified `convert_tufts_to_yolo_seg.py` was run end-to-end against real
+  data** (only path constants patched for the local test) — 26,005 instances, zero errors,
+  instance counts closely matching the historical bbox baseline. The largest-polygon-fragment
+  heuristic, previously flagged as unverified, is now confirmed correct.
+- **Still missing: `outputs/eda_tufts/split_v1.csv`** — the frozen split the canonical bbox
+  detector was evaluated on. Searched exhaustively (this Drive folder, both `_repo_archive/`
+  locations, whole-machine filename search) — not found anywhere. **This is the one
+  remaining blocker**, plus GPU access to actually run `train_yolo_seg.py`.
+
+### T0.2 — DENTEX: a second Drive folder revealed more than expected
+
+`https://drive.google.com/drive/folders/1DtdE_TYuYTeyvuaveQEvuhSpwL6U8Ovp` (10,446 files,
+enumerated, not just assumed) contains not only the pre-processed crops `phase-1.ipynb`
+reads, but also the **raw 705 source X-rays**, the **original COCO annotation file**
+(`train_quadrant_enumeration_disease.json`), and the **original crop-generation notebooks**
+for the disease-labeled subset. Full structure in `GPU_SETUP.md` §4.
+
+**This means `scripts/dentex/split_dentex_holdout.py`'s "carve from val" fallback (written
+19 Aug under the assumption raw DENTEX access was unavailable) may no longer be the best
+option — a genuinely independent three-way split could now be built from scratch.** This was
+**deliberately not rebuilt** this session — it's a real methodology decision (redo T0.2
+properly now vs. proceed with the existing fallback), not something to default into silently.
+**Needs a decision from you or whoever picks this up next.**
+
+### Notebook version check — resolved, but re-confirm on the new machine
+
+`C:\Users\csdee\Downloads\phase-1.ipynb` (this machine, "used for 4 months") was 123 cells,
+pre-T0.3-fix. The repo's `notebooks/caries/phase-1.ipynb` (131 cells, includes the macro-F1
+fix and the new Arm B augmentation-ablation section) is authoritative — already committed
+and pushed. **Confirm the friend's laptop doesn't have its own older cached copy lying around
+that could get confused with the repo's version.**
+
+### GPU setup — verified against E2E's live docs, nothing launched yet
+
+`GPU_SETUP.md` (§2 above, uncommitted) has the exact console click-path: **Pre-built → PyTorch**
+image, **A100 80GB** recommended (matches what the existing detector was already trained on;
+H100/H200 give "no material difference at this size" per the master plan's own compute
+budget), storage set to **≥100 GB** (30 GB default is too tight). **No E2E instance has
+actually been launched yet, as far as this session knows** — everything so far is
+provisioning research and prep.
+
+### SSH keys — a real security incident this session, now contained but not fully closed out
+
+- The user pasted two private key files (`capstone.pem`, `ssh-key.pem` in Downloads,
+  identical key material) into this conversation via `@` file-reference, which caused the
+  full private key content to be read into the transcript. **Treat that key as compromised.**
+  **Not confirmed: whether the matching public key was ever added to an E2E account, and if
+  so whether it's since been removed/rotated there. Not confirmed: whether the two `.pem`
+  files were deleted from Downloads.** Check both on whichever machine continues this.
+- A fresh keypair was generated on **this machine only**: `~/.ssh/id_ed25519_e2e` (private,
+  never displayed, 600 permissions) / `~/.ssh/id_ed25519_e2e.pub` (public, safe to share).
+  **Not confirmed: whether the public key was actually added to the E2E account yet** — the
+  user asked for this to be done, but it requires logging into E2E's console, which is
+  something no Claude Code session will do (private-key generation is fine and was done;
+  entering account credentials anywhere is a hard line that doesn't get crossed regardless of
+  request). Manual steps are in this session's own chat history and are simple: My Account →
+  SSH Keys → Add New SSH Key → paste the `.pub` content → Add SSH Key.
+- **On the friend's laptop: do not copy `id_ed25519_e2e` over.** Generate a fresh keypair
+  there instead (`ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_e2e -N ""`, same as this session)
+  and add *that* machine's public key to the E2E account as an additional key — E2E supports
+  multiple SSH keys per account, so both machines can have their own without sharing one
+  private key across machines.
 
 ---
 
-## 4. Immediate next steps
+## 4. What does NOT transfer to the new machine, and how to get it back
 
-Steps 1–5 as originally planned here (test write access, copy the manifest, commit the
-doc edits, commit the manifest, push) **are all done** — see §1 for the resulting commits.
-A new session does not need to repeat any of them.
-
-What's actually next:
-
-1. Revisit the three long-standing untracked-file decisions in §1 (`clinical_dataset_provenance.md`
-   review, `survey_paper/` archive-or-keep, the CEJ notebook triage).
-2. Optional, not blocking: wire `data/ningxia/manifest.csv` into `configs/dataset_config.yaml`
-   so pipeline code has a canonical path to load it from. Discussed but never explicitly
-   requested as an action — ask before assuming this scope.
-3. Move on to the actual Week 2 engineering in `MASTER_PLAN_2026H2.md` §5 (canonical
-   detector reconciliation, DENTEX held-out split, macro-F1 checkpointing, mask-aware
-   cropping) — the dataset-side work this document covers was ahead of schedule, not a
-   blocker for this.
+| Item | Where it lives now | How to reproduce elsewhere |
+|---|---|---|
+| Tufts `teeth_polygon.json` + rotated radiographs (~390 MB) | `data/tufts/ZIP/...` on this machine, gitignored | Re-download from the Google Drive link in §3 / `GPU_SETUP.md` §4 |
+| SSH keypair(s) | `~/.ssh/id_ed25519_e2e*` on this machine only | Generate a fresh pair on the new machine (see §3 above) — do not copy the private key |
+| Any E2E instance state | E2E's own infrastructure, account-level | Same E2E account is shared across machines by design — just log in from the new machine |
+| The compromised `.pem` files | `C:\Users\csdee\Downloads\` on this machine | Don't copy these anywhere. Rotate/delete per §3. |
 
 ---
 
-## 5. Where this sits in the bigger plan
+## 5. Immediate next steps for whoever picks this up
 
-`docs/research/MASTER_PLAN_2026H2.md` is the master schedule (8 weeks, Aug 15 → Oct 14
-implementation freeze, ISBI 2027 submission deadline Oct 26). Read it in full before doing
-anything else — it supersedes the older `PUBLICATION_STRATEGY.md` / `clinical_dataset_plan.md`
-schedules for sequencing purposes (their analysis still stands, only the critical path
-changed). Its header's "Corrected"/"Updated" notes record every factual correction made to
-it and why — read those before trusting any specific number in the body.
-
-Currently in **Week 1** (Aug 15–21) of that plan. Status against that week's checklist:
-- FDI mapping bug: **fixed and committed** (`f8b31f8`).
-- T0.1 augmentation audit: **closed** (same commit) — caries track never applied
-  augmentation, bone-loss tracks are clean; documented in `docs/results/METHODOLOGY_CHANGELOG.md`.
-- Ningxia download: **done**, ahead of where Week 1 expected it to be, plus the
-  restructuring and manifest work described above (not originally scoped for Week 1, but
-  free progress).
-- E2E H100 provisioning, IRB paperwork start, PES library email re: Read-and-Publish: **not
-  confirmed done** — ask the user directly, this document can't verify those.
-
-`docs/results/RESULTS_LOG.md` and `docs/results/METHODOLOGY_CHANGELOG.md` hold the
-append-only history of every result and every correction. Read newest-entry-first in each
-before assuming any number is still current.
-
-**Do not re-litigate already-closed items**: the FDI bug, the augmentation audit, the
-DentFound-weights correction (its fine-tuned weights are confirmed *not* public — only
-training code is Apache-2.0), and the survey paper's metric-count fix are all done,
-verified, committed, and pushed. Re-checking them from scratch would be wasted effort
-unless new evidence specifically contradicts them.
-
----
-
-## 6. Open items that are genuinely unresolved (not blockers, just unfinished)
-
-1. Survey paper Table IV: only ~3 of ~25 rows have been checked against their original
-   source papers (per the 2026-08-13 session memory). Still true.
-2. The Ningxia README's center↔split description is qualitative and hasn't been
-   numerically reconciled against the published paper's per-hospital counts
-   (4,940 / 716 / 880). Needed before naming specific centers in the eventual paper.
-3. The three untracked-file decisions in §1.
-4. Byte-level integrity check on the Ningxia PNGs (§2, low urgency).
+1. Commit and push the changes in §2 (or manually transfer them) so the new machine's `git
+   pull` actually has everything.
+2. Read `GPU_SETUP.md` and `T0.6_detector_reconciliation.md` in full.
+3. Decide: rebuild the DENTEX split from the newly-found raw data, or proceed with the
+   existing `split_dentex_holdout.py` fallback (§3).
+4. Locate `outputs/eda_tufts/split_v1.csv`, or make an explicit decision to accept a new
+   split for the seg retrain with the comparability caveat documented everywhere the
+   resulting numbers get reported.
+5. On whichever machine actually drives the E2E instance: generate its own SSH keypair, add
+   the public half to the E2E account, launch the instance per `GPU_SETUP.md`, and confirm
+   the old compromised key situation (§3) is fully closed out.
+6. The three untracked-file decisions carried over from before this session
+   (`docs/research/clinical_dataset_provenance.md`, and two already resolved —
+   `survey_paper/` archived, CEJ v3 notebook triaged and committed) — only
+   `clinical_dataset_provenance.md` is still open.
