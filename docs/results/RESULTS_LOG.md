@@ -1040,3 +1040,42 @@ Copy this block verbatim to the bottom of the file and fill it in.
   (gitignored, re-downloadable).
 - **Follow-ups:** decide the negative-class definition, then write the generator. Everything
   else in the re-run block is blocked behind that one decision.
+
+## 2026-08-21k — DENTEX crop generator written and verified against the original crops
+
+- **What was done:** Wrote `scripts/dentex/build_dentex_crops.py`, replacing the three Drive
+  notebooks that could only produce DENTEX's pre-baked release split. It regenerates every
+  caries crop honouring `data/dentex/splits_v2.json`, and emits **both** negative-class
+  definitions so the difference between them is measurable rather than assumed.
+- **Dataset / config:** DENTEX. Planned output, from a dry run that reads no images —
+  **phase1_legacy** train 2,510 / val 515 / test 504 (+182 extern50);
+  **phase1_corrected** train 13,375 / val 2,775 / test 2,929 (+182 extern50);
+  **phase2** train 1,964 / val 408 / test 395 (+133 extern50). 19,261 crops indexed in total.
+- **Metrics:** no model metrics. Every planned count reconciles against the source files:
+  legacy train+val+test = 3,529 = the annotation total (caries 2,767 / no_caries 762);
+  phase2 = 2,767 (2,189 / 578); corrected minus legacy = 15,550 healthy teeth; extern50 = 182
+  (133/49) and its phase2 = 133 (101/32) — the 133 crops behind every reported caries number.
+- **Verification — the crop contract was checked, not trusted.** Downloaded four original
+  Kaggle crops and their two source X-rays, regenerated them, and compared pixel-for-pixel:
+  **three are bit-identical**; the fourth differs by exactly ±1 grey level on ~20% of
+  subpixels. That one is the only sample where *both* dimensions downscale (243×300 → 224×224),
+  and the deviation is a cv2 version difference in the bilinear downscale path (verified under
+  cv2 5.0.0; the notebooks ran a 4.x). No logic difference. Also confirmed: the same crop is
+  byte-identical across all three variant trees, the manifest matches the files on disk
+  exactly (44/44 in the smoke test), and healthy crops appear only in the corrected variant.
+- **Key decision or insight:** the generator emits `phase1_legacy` and `phase1_corrected` from
+  the same crops. The re-run already changes four things at once (split, selection criterion,
+  LR schedule, augmentation); making the negative class a fifth would leave any metric movement
+  unattributable. Legacy stays comparable to the reported 0.81 / macro-F1 0.77 and isolates the
+  four fixes; corrected is what the paper reports for the system, since it is what the gate
+  actually faces. **The delta between the two arms is itself a reportable result.** Also
+  established: **3 images** (`train_666`, `train_677`, `train_695`, all in train) have neither
+  disease annotations nor enumeration entries and yield zero crops — reported explicitly by the
+  script, because otherwise its per-split image counts silently disagree with `splits_v2.json`.
+  And the 50-image extern set has no enumeration counterpart, so the **corrected** gate cannot
+  be evaluated with healthy teeth on it — a real asymmetry, stated rather than papered over.
+- **Source:** `scripts/dentex/build_dentex_crops.py` (contract and reasoning in its docstring);
+  `notebooks/caries/dataset_construction/` (the originals it replaces).
+- **Follow-ups:** the generator needs the 705 source X-rays (~2.5 GB, Drive) to run for real —
+  they are not on this machine, and downloading them is the next concrete step. After that the
+  re-run block can start.
