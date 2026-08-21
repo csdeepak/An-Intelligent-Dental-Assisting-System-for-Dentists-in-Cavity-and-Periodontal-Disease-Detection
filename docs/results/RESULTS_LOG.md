@@ -955,3 +955,38 @@ Copy this block verbatim to the bottom of the file and fill it in.
   `run_summary.txt`, and give the caries branch the version tag it currently lacks. Then the
   GPU session covers three things at once: caries re-run on `splits_v2.json`, the Phase-1 gate
   report, and the Arm A/B ablation.
+
+## 2026-08-21i — Caries cascade weights retrieved, verified structurally, and frozen as v1.0
+
+- **What was done:** The user retrieved five checkpoints from Kaggle. Placed in
+  `models/07_caries_cascade/` with a `run_summary.txt` recording every SHA-256, the
+  provenance, and the limitations — giving the caries branch the version tag it was the only
+  trained stage to lack: **`caries-cascade-resnet18-v1.0`**.
+- **Metrics:** no model metric changes. All five files are ResNet18, 122 tensors,
+  44,748,712 bytes of tensor payload each.
+- **Verification (no torch on this machine, so structural rather than functional):** read the
+  `.pth` zip archives directly. All five are valid archives with readable pickles; opcode
+  scans confirm the `fc.weight`/`fc.bias` 512→2 head in each. **The two bundles carry the
+  correct and distinct `class_to_idx`** — `{caries, no_caries}` for Phase 1's
+  `final_model.pth`, `{caries, deep_caries}` for Phase 2's `phase2_final_bundle.pth`. That
+  was the check worth making: a swapped bundle would fail silently inside the cascade.
+  Tensor-payload digests (storage records only, pickle wrapper excluded) reproduce the
+  notebook's execution order exactly — `best_model.pth` and `final_model.pth` are
+  **byte-identical**, confirming cell 52 loaded, cells 54/56 only evaluated, and cell 60
+  wrapped without training in between; the three Phase-2 checkpoints are all mutually
+  distinct, matching three successive fine-tune stages.
+- **Key decision or insight:** two files were deliberately **not** retrieved, and the reasons
+  are now verified rather than assumed. `best_phase2_fixed2.pth` is superseded —
+  `phase2_final_bundle.pth` is that same in-memory state_dict with `class_to_idx` attached
+  (cell 120, `execution_count=19`, straight after cell 119's evaluation). `best_phase2_stage1.pth`
+  is dead weight; nothing downstream loads it. **Storage split:** the two bundles are tracked
+  in git — together they are the complete runnable cascade, 86 MB — while the three lineage
+  checkpoints stay on local disk with hashes recorded, the same handling the YOLO weights get.
+  Committing all five would have added 214 MB for 86 MB of usable model, and one of the five
+  is a byte-identical duplicate.
+- **Source:** `models/07_caries_cascade/run_summary.txt`; `notebooks/caries/phase-1.ipynb`
+  cells 52/56/60/95/100/113/116/118/119/120; `.gitignore`.
+- **Follow-ups:** functional verification still owed — load each state_dict into a resnet18
+  and reproduce cell 119's macro F1 0.77 from the bundle. That needs torch, so it lands in the
+  same GPU session as the caries re-run on `splits_v2.json`, the Phase-1 gate report, and the
+  never-executed Arm A/B ablation.

@@ -1,0 +1,114 @@
+CARIES CASCADE — ResNet18 x2 (DENTEX)
+Version tag: caries-cascade-resnet18-v1.0
+Frozen and recorded: 21 August 2026
+
+Until this date the caries branch was the only trained stage in the project with no local
+weight, no version tag and no hash — the checkpoints existed solely in a Kaggle notebook's
+/kaggle/working output. Retrieved and recorded here. Full history: docs/results/RESULTS_LOG.md
+entries 2026-08-21e (the gap), 21f (correction), 21g (retrieval list), 21h (Kaggle inventory).
+
+--------------------------------------------------------------------------------
+FILES
+--------------------------------------------------------------------------------
+All five are ResNet18 (fc 512 -> 2), 122 tensors, 44,748,712 bytes of tensor payload each.
+
+  final_model.pth                            [TRACKED IN GIT]
+    Phase 1 gate — caries vs no_caries. Bundle: {'model_state_dict', 'class_to_idx'}
+    class_to_idx: {caries, no_caries}
+    sha256  ab2f792b26842f1950f0d71d961e75385fb453531b59dc28fd3342125daf128a
+    payload 4b59a40c25e215f5a403...
+    Written by notebooks/caries/phase-1.ipynb cell 60.
+
+  phase2_final_bundle.pth                    [TRACKED IN GIT]
+    Phase 2 severity — caries vs deep_caries. Bundle: {'model_state_dict', 'class_to_idx'}
+    class_to_idx: {caries, deep_caries}
+    sha256  aa0a8a7ebf47a8acab0d24a6ecd948542c220196d1c71cbebbf56952beacbc86
+    payload 34dbf66ce4bf16b1c13c...
+    Written by cell 120. THIS IS THE MODEL BEHIND THE REPORTED CARIES NUMBERS — cell 119
+    loaded best_phase2_fixed2.pth into `model` and printed the classification report that
+    matches model_metrics.md exactly (caries 0.94/0.80/0.87 n=101; deep_caries 0.57/0.84/0.68
+    n=32; accuracy 0.81; macro F1 0.77); cell 120 then saved that same in-memory state_dict
+    here, with class_to_idx attached. best_phase2_fixed2.pth itself was therefore not
+    retrieved — this bundle supersedes it.
+
+  best_phase2_final.pth                      [local + archive only, gitignored]
+    Phase 2 after STEP-11 full fine-tune. Raw state_dict, no class_to_idx.
+    sha256  8668bffbf3953862efbed660232590e3dc84b89a9e9f43dc125191372475fecd
+    payload bf87d8aadf835dca18e9...
+    Written by cell 100. Load-bearing: the shared starting checkpoint that BOTH Arm A
+    (cell 109) and Arm B (cell 124) fine-tune from. Required to reproduce either arm or to
+    run the T0.1 augmentation ablation, which has never been executed.
+
+  best_phase2_fixed.pth                      [local + archive only, gitignored]
+    Phase 2 "Fix Training" stage 1 output. Raw state_dict, no class_to_idx.
+    sha256  765773344a0f98c1884d414e3f5519e25dbdc5be58a59be18605711c4bc844fd
+    payload cf3cfa8a110448028134...
+    Written by cell 113. Load-bearing: cell 116 reloads it as the starting point for the
+    stage producing fixed2, and cell 118's hardcoded resume threshold (best_val_f1 = 0.72)
+    was read off cell 114's classification report on THIS checkpoint.
+
+  best_model.pth                             [local + archive only, gitignored]
+    Phase 1 best-by-checkpoint. Raw state_dict, no class_to_idx.
+    sha256  16dd23e955f7db9a01d298643a6b2364ed48d66f5d20648ba325d32002a722ac
+    payload 4b59a40c25e215f5a403...
+    REDUNDANT — its tensor payload is BYTE-IDENTICAL to final_model.pth (verified, see
+    below). Kept per CLAUDE.md rule 3, not because anything needs it.
+
+NOT RETRIEVED:
+  best_phase2_stage1.pth  — cell 95, frozen-backbone FC-only stage. Nothing downstream loads
+    it (cell 100 continues from the in-memory model). Archive-only; still on Kaggle.
+  best_phase2_fixed2.pth  — superseded by phase2_final_bundle.pth (see above).
+  best_phase2_augmented*.pth — DO NOT EXIST. Arm B was never executed (cells 122/124/126/128
+    carry no execution_count and no outputs; the Kaggle directory confirms it).
+
+--------------------------------------------------------------------------------
+VERIFICATION PERFORMED (21 Aug 2026)
+--------------------------------------------------------------------------------
+No torch is installed in any environment on this machine, so the checkpoints were NOT loaded.
+They were verified structurally instead, by reading the .pth zip archives directly:
+
+  - Each is a valid PyTorch zip archive with 128 entries and a readable data.pkl.
+  - Pickle opcode scan confirms fc.weight / fc.bias present (the 512->2 head) and 122 tensor
+    storage records in every file.
+  - The two bundles carry the CORRECT and DISTINCT class_to_idx for their stages —
+    {caries, no_caries} for Phase 1, {caries, deep_caries} for Phase 2. A swapped bundle
+    would fail silently in the cascade, so this was the check worth making.
+  - Tensor-payload digests (raw storage records, pickle wrapper excluded) confirm the
+    lineage matches the notebook's execution order exactly:
+        best_model      == final_model          IDENTICAL  (cell 52 load -> eval -> cell 60 save,
+                                                            no training in between)
+        best_phase2_final != best_phase2_fixed   different
+        best_phase2_fixed != phase2_final_bundle different
+        best_model        != best_phase2_final   different
+
+STILL UNVERIFIED — requires torch, do this on the GPU box before trusting inference:
+  - Actually loading each state_dict into a resnet18 and confirming it accepts them.
+  - Re-running cell 119's evaluation to reproduce macro F1 0.77 from phase2_final_bundle.pth.
+
+--------------------------------------------------------------------------------
+KNOWN LIMITATIONS OF THESE WEIGHTS
+--------------------------------------------------------------------------------
+  - Selected by ACCURACY, not macro-F1. The T0.3 fix rewrote the checkpointing cells (113,
+    118) to select on macro-F1, which cleared their execution counts — these files predate
+    that fix and came from the accuracy-selected code.
+  - Evaluated on VALIDATION ONLY, on the pre-T0.2 split, with tuning and reporting on the
+    same 133 crops. An independent image-level test split now exists and these weights have
+    never been evaluated against it: data/dentex/splits_v2.json.
+  - Phase 1 gate metrics DO NOT EXIST. Phase 1 of the notebook has zero saved outputs and
+    zero execution counts across all its cells, so the gate's classification report was
+    never recorded. The cascade's end-to-end error is unknown.
+  - Trained WITHOUT augmentation (PAPER_MATERIAL.md §8.1) and with no LR scheduler and no
+    early stopping.
+
+--------------------------------------------------------------------------------
+PROVENANCE
+--------------------------------------------------------------------------------
+Source notebook : notebooks/caries/phase-1.ipynb (131 cells; authoritative copy)
+Origin          : Kaggle, /kaggle/working (558.8 MiB), retrieved by the user 21 Aug 2026
+Phase 1 data    : /kaggle/input/.../dentex-processed-data/processed_dataset
+Phase 2 data    : /kaggle/input/.../dentex-severity-processed-dataset/severity_data
+Architecture    : ResNet18, ImageNet-pretrained, fc 512->2, input 224x224,
+                  ImageNet mean/std normalization
+Phase 1 loss    : CrossEntropyLoss, weights [0.6376942537043729, 2.3156167979002626]
+Phase 2 loss    : CrossEntropyLoss, weights [0.5, 3.5] then [0.6, 3.0]
+Phase 2 optim   : Adam, lr 1e-3 (FC-only stage) then 3e-5 (full fine-tune)

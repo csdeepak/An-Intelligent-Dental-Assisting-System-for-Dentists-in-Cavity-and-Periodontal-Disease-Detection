@@ -96,6 +96,17 @@ data/tufts/dataset_seg/
 # them, data/dentex/splits_v2.json, IS committed and must stay tracked.
 data/dentex/raw/
 
+# Caries cascade weights — the two BUNDLES (final_model.pth, phase2_final_bundle.pth) are
+# tracked: together they are the complete runnable cascade, each carrying its own
+# class_to_idx. The three below are training lineage, needed to REPRODUCE the runs but not
+# to run them, so they stay on local disk with their SHA-256 recorded in
+# models/07_caries_cascade/run_summary.txt — same handling as the YOLO weights. Committing
+# all five would add 214 MB for 86 MB of usable model, and best_model.pth is byte-identical
+# to final_model.pth anyway.
+models/07_caries_cascade/best_model.pth
+models/07_caries_cascade/best_phase2_final.pth
+models/07_caries_cascade/best_phase2_fixed.pth
+
 # --- Archive ignores ---
 _repo_archive/datasets_workspace/Expert/
 _repo_archive/datasets_workspace/Radiographs/
