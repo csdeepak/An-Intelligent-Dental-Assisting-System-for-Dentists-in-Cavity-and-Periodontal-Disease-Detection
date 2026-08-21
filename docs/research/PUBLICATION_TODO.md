@@ -34,10 +34,21 @@ the re-run block — but it must not displace Tier 0. Earlier sessions worked on
 because it was the thing that happened to be unblocked, which is not the same as it being the
 thing that mattered most.
 
-**The one genuinely missing piece of code**, and the reason the re-run block cannot start
-today: **there is no DENTEX crop generator in this repo.** The existing crops were produced by
-Kaggle notebooks keyed to the old pre-baked train/val split. `data/dentex/splits_v2.json`
-cannot be used until something regenerates crops from the raw 705 X-rays honouring it.
+~~**The one genuinely missing piece of code** ... there is no DENTEX crop generator in this
+repo.~~ **Written and verified 21 Aug 2026** — `scripts/dentex/build_dentex_crops.py`. The
+three original crop notebooks were recovered from Drive (now at
+`notebooks/caries/dataset_construction/`), their crop contract was reproduced and checked
+pixel-for-pixel against real Kaggle crops, and the generator honours `splits_v2.json`.
+**Remaining prerequisite: the 705 source X-rays (~2.5 GB) are not on this machine** and must be
+downloaded before the re-run block can start.
+
+**A T0.1-class defect found while doing that, now the reason T0.1 is bigger than it looked:**
+the Phase-1 gate's negative class contains **no healthy teeth** — `no_caries` was exactly
+Impacted + Periapical Lesion (762 train / 49 val), while the assembled pipeline feeds the gate
+every tooth the detector finds. 15,550 real healthy teeth are derivable from
+`train_quadrant_enumeration.json`, and the generator emits both the legacy and the corrected
+definition so the difference is measured rather than assumed. Full record:
+`RESULTS_LOG.md` 2026-08-21j and 21k.
 
 
 
