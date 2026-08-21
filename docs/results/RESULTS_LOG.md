@@ -990,3 +990,53 @@ Copy this block verbatim to the bottom of the file and fill it in.
   and reproduce cell 119's macro F1 0.77 from the bundle. That needs torch, so it lands in the
   same GPU session as the caries re-run on `splits_v2.json`, the Phase-1 gate report, and the
   never-executed Arm A/B ablation.
+
+## 2026-08-21j — The caries gate's negative class contains no healthy teeth
+
+- **What was done:** Before writing a DENTEX crop generator, recovered and read the three
+  notebooks that actually built the caries datasets (found on Google Drive, committed to
+  `notebooks/caries/dataset_construction/` — they existed nowhere in this repo despite being
+  the provenance of every caries number). Re-derived every count they print, directly from the
+  annotation files, to confirm the code does what it appears to do.
+- **Dataset / config:** DENTEX quadrant-enumeration-disease. No training, no crops generated.
+- **Metrics:** none new. All verification arithmetic reproduced the notebooks' saved outputs
+  exactly.
+- **Finding 1 — the Phase-1 gate has never seen a healthy tooth.** The label rule is
+  `category_id_3 in [1,3] -> 'caries', else -> 'no_caries'`, applied to a file in which every
+  annotation is a *diseased* tooth. So `no_caries` is exactly **Impacted + Periapical Lesion**:
+  604 + 158 = **762** in train, 40 + 9 = **49** in val — reproducing the notebooks' printed
+  counts to the unit. The gate is really "caries/deep-caries vs impacted/periapical-lesion".
+  **This is a train/deploy mismatch, not just a naming problem:** in the assembled pipeline the
+  detector feeds *every* tooth into this gate, overwhelmingly healthy ones, and the gate has no
+  training signal for that class at all. It also explains the notebook's own unanswered margin
+  note, "why no_caries recall is lower?".
+- **Finding 2 — train and val are different DENTEX releases, not a split.** 705 `train_*.png`
+  images (3,529 anns) vs 50 `val_*.png` images (182 anns), **intersection zero**. Phase 2's val
+  is 101 + 32 = 133 crops — the "133 validation crops" behind every reported caries metric.
+  Consequence for this session's work: `data/dentex/splits_v2.json` splits the 705 and is
+  **unaffected and needs no rebuild** (it is an image-level split, agnostic to label grouping),
+  but the 50-image pool is a naturally independent set and should be preserved as a second
+  evaluation set rather than merged into it.
+- **Finding 3 — the fix exists in data already available.** `train_quadrant_enumeration.json`
+  holds 634 images — **all of them a subset of the 705** — with 18,095 teeth annotated by
+  quadrant and tooth number but no disease label. Joining enumeration teeth to disease
+  annotations on `(file_name, quadrant, tooth_number)`: 2,545 match a disease annotation and
+  **15,550 do not — genuinely healthy teeth**, averaging 24.5 per image, present in all 634.
+  The remaining 71 disease-only images have no enumeration, so no healthy teeth are derivable
+  there.
+- **Key decision or insight:** this is a T0.1-class problem — a factual-accuracy defect rather
+  than a performance one, and `PUBLICATION_TODO.md`'s governing principle names exactly this
+  kind of thing as what sinks papers. It must be resolved **before** the crop generator is
+  written, because it determines what the generator emits. Deliberately not resolved
+  unilaterally: choosing the negative class redefines the task and decides whether the existing
+  81% / macro-F1 0.77 remain comparable at all.
+- **The verified crop contract**, for whatever is built next — identical across all three
+  notebooks: raw COCO `bbox` with `floor`/`ceil` and bounds clipping, **no expansion of any
+  kind** (unlike the bone-loss track's 1.5xW/2.0xH), `cv2.resize` to 224x224 with no
+  aspect-ratio preservation, BGR PNG via OpenCV, filename `{image_id}_{annotation_id}.png`
+  where `image_id` is the COCO id local to its own annotation file.
+- **Source:** `notebooks/caries/dataset_construction/` (the three notebooks + README);
+  `data/dentex/raw/{train_quadrant_enumeration_disease,train_quadrant_enumeration,validation_triple}.json`
+  (gitignored, re-downloadable).
+- **Follow-ups:** decide the negative-class definition, then write the generator. Everything
+  else in the re-run block is blocked behind that one decision.
