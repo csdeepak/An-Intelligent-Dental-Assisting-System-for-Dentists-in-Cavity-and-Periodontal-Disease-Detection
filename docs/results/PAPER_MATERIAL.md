@@ -592,6 +592,28 @@ glossed over. Augmentation and LR-scheduler gaps remain untouched. The cascade n
 actual re-run (Kaggle/H100, not available in the environment these fixes were written in)
 before Section 7.2's numbers can be replaced.
 
+**Update (21 Aug 2026) — the held-out-split item is now structurally fixed, and the
+carve-from-val compromise above is withdrawn.** The raw disease-labelled DENTEX subset (705
+source X-rays, original COCO annotations) turned out to be available, so the split was rebuilt
+from scratch instead: `scripts/dentex/build_dentex_split_from_raw.py` draws a 70/15/15
+**image-level** split (train 495 / val 103 / test 107), stratified on each image's 4-bit
+disease presence-vector so the rare Periapical Lesion class (158 annotations) is spread
+115/21/22 rather than landing by luck. Because the split is drawn on source images *before any
+crop is generated*, crop-level leakage is structurally impossible rather than merely avoided —
+every crop inherits its source image's split. Verified: zero overlap on all three pairs,
+705/705 images and 3,529/3,529 annotations accounted for, manifest byte-identical on re-run.
+`scripts/dentex/split_dentex_holdout.py` is retired.
+
+Two honest qualifications remain. **First, DENTEX ships no patient or study identifier**, so
+one image is treated as one patient; if the source data contains multiple radiographs of the
+same patient, that grouping cannot be recovered and a residual leak is possible. This is the
+strongest guarantee the data supports and the paper should say so in exactly those terms.
+**Second, nothing has been retrained yet** — §7.2's numbers still describe the old,
+uncorrected training on the old split. The manifest (`data/dentex/splits_v2.json`) is an
+input, not a result. The remaining §8.1 items — augmentation never applied, no LR scheduler,
+no early stopping, unsaved Phase 1 gate metrics — are all untouched and all still need the
+re-run.
+
 ### 8.2 Severity model support is too small to trust
 
 52 validation crops total, **6 of them mild**. Macro F1 0.7208 sits exactly on the 0.72
@@ -709,6 +731,12 @@ For whoever drafts the actual paper. Tick items off here as they land.
       validation-only and tuned-on). *(19 Aug 2026: split script written and tested against
       a synthetic fixture — `scripts/dentex/split_dentex_holdout.py` — but not yet run
       against the real DENTEX data or followed by a re-run + re-report. Not done.)*
+      **21 Aug 2026: the split half is done and done better** — rebuilt from the raw 705-image
+      source as an independent image-level 70/15/15 split
+      (`scripts/dentex/build_dentex_split_from_raw.py`, manifest
+      `data/dentex/splits_v2.json`, train 495 / val 103 / test 107, verified disjoint and
+      reproducible). The **re-run and re-report half is still open** and needs GPU access —
+      that is what keeps this item unticked.
 - [x] Freeze one canonical detector (A100/1024) and record its weight hash + exact config;
       retire the H200/768 run in writing. **Done 20 Aug 2026** — version tag
       `tooth-detector-a100-1024-v1.0`, SHA-256 recorded in

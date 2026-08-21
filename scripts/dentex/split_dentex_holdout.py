@@ -1,6 +1,17 @@
 """
 T0.2: Carve a held-out DENTEX test split from the existing val/ folder.
 
+SUPERSEDED 21 Aug 2026 — DO NOT RUN THIS FOR NEW WORK.
+Use scripts/dentex/build_dentex_split_from_raw.py instead, which draws an independent
+three-way split from the raw 705-image source before any crop exists. The premise of this
+script — "there is no raw (pre-crop) DENTEX copy to rebuild train/val/test from scratch",
+stated below — stopped being true on 20 Aug 2026 when the raw subset and the original COCO
+annotations were located. The soft-leak weakness this file honestly documents is exactly
+what the replacement removes. Kept, not deleted, per CLAUDE.md rule 3: it is the record of
+what was done under the earlier constraint, and the reasoning in it is still worth reading.
+Decision recorded in docs/results/RESULTS_LOG.md (2026-08-21c entry).
+
+
 UNTESTED against real data as of 19 Aug 2026 — the DENTEX processed dataset
 (BASE_PATH below) lives on Kaggle, not on this machine (see
 docs/research/PUBLICATION_TODO.md T0.2 and the phase-1.ipynb notebooks, which read

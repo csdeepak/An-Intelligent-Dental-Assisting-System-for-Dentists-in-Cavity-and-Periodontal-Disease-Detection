@@ -66,6 +66,15 @@ to, and clear the last blocker standing in front of the R1 YOLOv11l-seg retrain.
    (rewritten, no data blockers left); `PAPER_MATERIAL.md` §7.1, new §8.9, §9 checklist;
    `model_metrics.md` Stage-1 ground-truth caveat.
 
+10. **Rebuilt the DENTEX split from raw** (the decision taken this session). Downloaded
+    `train_quadrant_enumeration_disease.json` from Drive — 705 images, 3,529 annotations, 4
+    disease classes — wrote `scripts/dentex/build_dentex_split_from_raw.py`, and ran it:
+    70/15/15 image-level, seed 42, stratified on the 4-bit disease presence-vector,
+    train 495 / val 103 / test 107. Manifest at `data/dentex/splits_v2.json` (committed; the
+    raw annotations are gitignored as re-downloadable). Verified disjoint on all three pairs,
+    705/705 images and 3,529/3,529 annotations accounted for, and byte-identical on re-run.
+    `split_dentex_holdout.py` kept and marked SUPERSEDED, not deleted.
+
 ## Decisions made
 
 - **Keep all 66 extra instances in the seg dataset; do not replicate the bbox converter's
@@ -127,6 +136,9 @@ to, and clear the last blocker standing in front of the R1 YOLOv11l-seg retrain.
    new `RESULTS_LOG.md` entry whichever way it goes.
 4. **Separate `index.csv` from `images/` on the Drive copy** — the one item here with a real
    external clock on it. Owner action; see `clinical_dataset_provenance.md` §4a for all five.
-5. Rebuild the DENTEX split from raw (decided), before spending GPU time on the caries re-run.
+5. ~~Rebuild the DENTEX split from raw.~~ **Done this session.** What remains is the half
+   that needs a GPU: regenerate DENTEX crops honouring `data/dentex/splits_v2.json`, re-run
+   the caries cascade, and report Phase 1 *and* Phase 2 on the test split — saving the Phase 1
+   gate classification report this time.
 6. Stages 5–6 (end-to-end inference + per-tooth JSON/PDF report) remain the project's actual
    next milestone and are still unstarted.

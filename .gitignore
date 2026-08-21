@@ -92,6 +92,9 @@ data/tufts/ZIP/Segmentation/Segmentation/teeth_polygon.json
 # Built YOLO-seg training dataset (1,000 images + labels) — regenerate with
 # scripts/yolo/convert_tufts_to_yolo_seg.py, never commit.
 data/tufts/dataset_seg/
+# Raw DENTEX source annotations (re-downloadable) — the SPLIT MANIFEST built from
+# them, data/dentex/splits_v2.json, IS committed and must stay tracked.
+data/dentex/raw/
 
 # --- Archive ignores ---
 _repo_archive/datasets_workspace/Expert/

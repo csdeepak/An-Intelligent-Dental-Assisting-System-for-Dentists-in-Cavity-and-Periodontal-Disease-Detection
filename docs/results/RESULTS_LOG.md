@@ -761,3 +761,44 @@ Copy this block verbatim to the bottom of the file and fill it in.
   `clinical_dataset_plan.md` (ethics approval, written clinic agreement, PHI sign-off) are
   unchanged and now have a concrete trigger: an unapproved re-identifiable copy of patient
   data already exists off the origin machine.
+
+## 2026-08-21c — DENTEX split rebuilt from raw source; the carve-from-val fallback is retired
+
+- **What was done:** Acted on the 21 Aug decision to rebuild rather than keep the fallback.
+  Downloaded the original COCO annotation file for the disease-labelled subset
+  (`train_quadrant_enumeration_disease.json`, 1,188,275 bytes, SHA-256
+  `6e1f702cfd6c83bc…`) from the DENTEX Drive folder, wrote
+  `scripts/dentex/build_dentex_split_from_raw.py`, and ran it. Output manifest:
+  `data/dentex/splits_v2.json` (committed; the raw annotations are gitignored as
+  re-downloadable). `scripts/dentex/split_dentex_holdout.py` is kept and marked SUPERSEDED
+  rather than deleted.
+- **Dataset / config:** DENTEX quadrant-enumeration-disease subset — 705 source X-rays,
+  3,529 disease annotations, 4 classes (Caries 2,189 · Impacted 604 · Deep Caries 578 ·
+  Periapical Lesion 158). Split 70/15/15 at **image level**, seed 42, stratified on each
+  image's 4-bit disease presence-vector (16 distinct signatures observed), largest-remainder
+  proportional allocation per stratum. The 27 images carrying no disease annotation are kept,
+  not dropped.
+- **Metrics:** split composition — train 495 images (70.2%): Caries 1,564 · Deep Caries 400 ·
+  Impacted 431 · Periapical 115. val 103 (14.6%): 314 · 94 · 86 · 21. test 107 (15.2%):
+  311 · 84 · 87 · 22. Verified: zero image-id and zero filename overlap across all three
+  pairs, union = 705/705, annotations accounted 3,529/3,529, and the manifest is
+  byte-identical on re-run (SHA-256 `36d2bbb4f54c48e4…`) — the split is reproducible, not
+  just seeded.
+- **Key decision or insight:** this closes the **structural** half of `PAPER_MATERIAL.md`
+  §8.1. The old fallback could only cut the existing val pool in two, and val had already
+  been used repeatedly to select among model variants, so whichever half became "test"
+  inherited a soft leak — its own docstring said so. Splitting at image level on the raw data
+  *before any crop is generated* makes crop-level leakage structurally impossible rather than
+  merely avoided: every crop inherits its source image's split. DENTEX ships no patient or
+  study identifier, so one image is treated as one patient — the strongest grouping the data
+  supports, and a caveat that still needs stating in the paper. **The caries numbers in
+  `model_metrics.md` are NOT yet superseded** — no model has been retrained against this
+  split. It is the input to that re-run, not a result.
+- **Source:** `scripts/dentex/build_dentex_split_from_raw.py` (method in its docstring),
+  `data/dentex/splits_v2.json` (manifest, carries source SHA-256, seed, and per-split
+  per-class counts), `scripts/dentex/split_dentex_holdout.py` (superseded header).
+- **Follow-ups:** regenerate DENTEX crops honouring `splits_v2.json` — crop generation must
+  read the manifest and place each crop by its source image's split — then re-run the caries
+  cascade and report Phase 1 and Phase 2 on the **test** split. That re-run also needs to
+  save the Phase 1 gate classification report, still missing per §9's first blocking item.
+  Both need GPU access, same as R1.
