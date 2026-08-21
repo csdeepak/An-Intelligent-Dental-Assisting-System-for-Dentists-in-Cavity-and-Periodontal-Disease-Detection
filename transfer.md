@@ -4,6 +4,28 @@
 friend's laptop. **Purpose:** let a new session (different physical machine) continue with
 zero re-derivation and zero guessing. Every claim below is labeled by how it was established.
 
+> **STATUS UPDATE — 21 August 2026. The handoff completed; most of this document is now
+> history.** Read this block before acting on anything below it.
+>
+> - **§2's uncommitted changes were committed and pushed** before the switch (`9e3099d`,
+>   `9fcf0d1`, `ad71ee4`). §0's warning and §5 step 1 are done. `clinical_dataset_provenance.md`
+>   was correctly left out and is **not** on this machine.
+> - **§3 / §5 step 4 — `outputs/eda_tufts/split_v1.csv` is NOT missing.** It is at
+>   `_repo_archive/datasets_workspace/outputs/eda_tufts/split_v1.csv` on this (macOS) machine,
+>   and has been verified to be the split the canonical detector was trained on. The 20 Aug
+>   "exhaustive search" that missed it searched `C:\` and `D:\`. No decision is needed; no
+>   substitute split is needed.
+> - **§4's table is wrong for this machine.** The Tufts data did not need re-downloading — the
+>   raw radiographs, the rotated radiographs, and `teeth_polygon.json` were all already here.
+> - **The R1 seg dataset has been built for real** at `data/tufts/dataset_seg/` (26,005
+>   instances). R1's only remaining blocker is GPU access.
+> - **Still genuinely open:** the DENTEX split decision (§3, §5 step 3),
+>   `clinical_dataset_provenance.md` (§5 step 6), and every SSH/E2E item in §3 and §5 step 5 —
+>   none of which can be confirmed from this machine.
+>
+> Current state lives in `docs/session-memory/2026-08-21-split-recovery-and-seg-dataset-build.md`
+> and `docs/research/T0.6_detector_reconciliation.md`, not here.
+
 ---
 
 ## 0. Read this first

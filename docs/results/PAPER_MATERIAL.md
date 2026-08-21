@@ -15,7 +15,7 @@ not in a saved notebook output or a summary file, mark it `[UNVERIFIED]`. Never 
 limitation to make the work look better — Section 8 exists precisely so reviewers'
 questions are answered before they are asked.
 
-**Last updated:** 2026-08-12
+**Last updated:** 2026-08-21
 
 ---
 
@@ -461,11 +461,17 @@ All figures for Stage 1 are in `docs/results/figures/yolo_detection_a100/`
   (same document). **Update, later on 20 Aug 2026:** `teeth_polygon.json` and all 1,000 raw
   Tufts radiographs were located (Google Drive) and the conversion pipeline
   (`scripts/yolo/convert_tufts_to_yolo_seg.py`) was run end-to-end against them successfully
-  — see `docs/research/T0.6_detector_reconciliation.md` §3. One new blocker surfaced in the
-  process: the frozen `outputs/eda_tufts/split_v1.csv` is *also* missing, and is now the only
-  thing standing between this and an actual training run (plus GPU access). Crop
-  re-derivation from the frozen detector is separately still blocked — it needs the raw
-  images too, which are now available, but no inference has been run yet.
+  — see `docs/research/T0.6_detector_reconciliation.md` §3. **Update, 21 Aug 2026:** the
+  frozen `outputs/eda_tufts/split_v1.csv` — reported missing on 20 Aug and treated as the
+  last blocker — was found on the macOS machine and verified to be the split behind this
+  table's numbers (its per-split filename lists diff to zero against the built dataset the
+  A100 run trained on). The real `dataset_seg/` has now been built from it: 26,005 instances
+  over the same 700/150/150 images. **R1 has no remaining data blockers, only GPU access.**
+  That build also surfaced a data-quality defect in the bbox dataset underlying this very
+  table — 66 real teeth silently dropped on corrupt `bounding box` fields, 6 of them in the
+  test set; see §8.9, which is where it should be reported in the paper. Crop re-derivation
+  from the frozen detector is separately still blocked — it needs the raw images too, which
+  are now available, but no inference has been run yet.
 
 ### 7.2 Stage 3 — Caries cascade (DENTEX, ResNet18)
 
@@ -657,6 +663,38 @@ These were caught during exploration and are already fixed — they are worth a 
 | PIL DecompressionBombError | large composite figures rejected | `MAX_IMAGE_PIXELS = None` | reporting blocked |
 | Font download 404 | `wget` returned HTML, not TTF | `apt-get install fonts-dejavu-core` | PDF generation blocked |
 
+### 8.9 The detection ground truth itself is missing 66 annotated teeth
+
+Found 21 August 2026, while building the segmentation dataset on the same frozen split as
+the detector. `teeth_polygon.json` and `teeth_bbox.json` describe the **same objects** for
+all 1,000 Tufts images — verified, no image differs in object count. But for 66 of those
+objects the `bounding box` field is corrupt, recorded as 1×1 or 1×2 px, while the polygon for
+the same object is intact and full-size (1,617–13,425 px², up to 682 vertices, ordinary
+Universal tooth titles spread across both arches; three were rendered over the radiograph and
+are unmistakably real teeth). Our bbox converter drops objects under 2 px on a side as
+degenerate — a reasonable guard that, on this data, silently removes 66 correctly annotated
+teeth: **47 from train, 13 from val, 6 from test.**
+
+Two consequences worth stating plainly in the paper:
+
+1. The reported Stage-1 numbers (§7.1) were measured against test ground truth containing
+   3,924 of the 3,930 annotated teeth. At 0.15% of instances this cannot meaningfully move
+   mAP@0.5 = 0.7824 — but any tooth the detector correctly found among those 6 was scored as
+   a false positive.
+2. The segmentation dataset built for R1 **keeps** all 66, because they are valid
+   annotations. Its test ground truth therefore holds 3,930 instances against the bbox
+   set's 3,924, so the seg-vs-bbox box-mAP comparison in R1's pre-registered criterion is
+   near-like-for-like rather than exactly like-for-like. This was recorded in
+   `docs/research/T0.6_detector_reconciliation.md` §2 *before* the retrain was run, and the
+   acceptance bar was not adjusted for it.
+
+The bbox converter was deliberately left unfixed: correcting it would invalidate the frozen
+canonical detector's reproducibility. The right framing for the paper is a public-dataset
+annotation-quality finding, not a bug we introduced — it argues for deriving boxes from
+polygons where both exist, which is what the seg pipeline effectively does.
+
+---
+
 ---
 
 ## 9. What's not yet written — checklist
@@ -684,6 +722,10 @@ For whoever drafts the actual paper. Tick items off here as they land.
 
 **Content still to write**
 
+- [ ] Write up §8.9 (66 annotated teeth missing from the detection ground truth, from
+      corrupt `bounding box` fields in the source data) as a short data-quality paragraph —
+      it is both an honest limitation of our Stage-1 numbers and a reusable finding about
+      the public dataset.
 - [ ] Related Work section — extract from
       `docs/reports/literature/Dental X-Ray Capstone Literature Review.xlsx` and
       `_repo_archive/pes_capstone_report/chapters/02_literature.tex` (archived); build a comparison

@@ -3,7 +3,7 @@
 Current best numbers only. One table per model, nothing else. For how a number was
 obtained see `PAPER_MATERIAL.md`; for when and why it changed see `RESULTS_LOG.md`.
 
-**Last updated:** 2026-08-20
+**Last updated:** 2026-08-21
 
 ---
 
@@ -23,6 +23,16 @@ Inference ~3.1 ms/image (A100). Weights: `models/06_yolo_detection_a100_run/best
 Verified by loading under Ultralytics (task=detect, 1 class, 25.3M params) and by
 byte-identical `args.yaml`/`results.csv` against the copies already committed here — see
 `docs/research/T0.6_detector_reconciliation.md` §1 for the full verification record.
+
+**Ground-truth caveat (found 21 Aug 2026, numbers above unchanged):** the instance counts in
+this table are the counts the model was actually scored against, but the Tufts source data
+holds **66 more annotated teeth** than this dataset contains — objects with a corrupt
+`bounding box` field (1×1 / 1×2 px) but an intact full-size polygon, dropped by the
+converter's degenerate-box guard. Test ground truth is therefore 3,924 of 3,930 real
+instances (0.15% missing); val is 3,794 of 3,807. Too small to move mAP@0.5 = 0.7824
+materially, and the numbers above are **not** being restated — but the R1 seg dataset keeps
+all 66, so its instance counts will legitimately differ. Analysis:
+`docs/research/T0.6_detector_reconciliation.md` §3.5; paper framing: `PAPER_MATERIAL.md` §8.9.
 
 ---
 

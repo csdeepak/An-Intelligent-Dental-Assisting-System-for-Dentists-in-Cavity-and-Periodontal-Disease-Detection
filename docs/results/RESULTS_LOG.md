@@ -673,3 +673,53 @@ Copy this block verbatim to the bottom of the file and fill it in.
   data before the caries cascade re-run, or proceed with the existing val-carve fallback and
   revisit later. Confirm which `phase-1.ipynb` copy (repo vs. Downloads) is authoritative
   before running anything on GPU.
+
+## 2026-08-21 — Frozen split found; real `dataset_seg/` built; 66 teeth found missing from the bbox dataset
+
+- **What was done:** Located `outputs/eda_tufts/split_v1.csv` — reported on 2026-08-20 as
+  the last remaining blocker for the R1 seg retrain and as "not findable anywhere". It was
+  at `_repo_archive/datasets_workspace/outputs/eda_tufts/split_v1.csv` the whole time; the
+  20 Aug search missed it because that search covered a Windows filesystem (`C:\`, `D:\`)
+  while this repo and its archive sibling live on macOS, and because
+  `.gitignore:103` hides `_repo_archive/datasets_workspace/outputs/` from any git-based
+  search. Verified it is the *right* split rather than assuming: its per-split filename
+  lists were diffed against the built bbox dataset the canonical A100 detector was trained
+  on — **zero differences on all three splits** (700/700, 150/150, 150/150) — and that
+  dataset's label files total 3,794 val / 3,924 test instances, matching the A100 run's
+  reported instance counts exactly. Then ran `convert_tufts_to_yolo_seg.py` against it for
+  real (not the throwaway split used on 20 Aug), producing the actual R1 training input.
+- **Dataset / config:** Tufts, frozen 70/15/15 image-level split
+  (`split_v1.csv`, SHA-256 `6de8cef2af1e73ff843f0353dccc0f93ddac34f33422c418f8ac07c67accb58b`),
+  1,000 rotated radiographs (840×1615), `teeth_polygon.json`. Output
+  `data/tufts/dataset_seg/` (gitignored). Script run unpatched — its path constants were made
+  environment-overridable instead of copy-patching a throwaway, which is how the 20 Aug
+  verification run had to be done.
+- **Metrics:** `dataset_seg/` contents — train 700 img / 18,268 instances / 21 empty labels;
+  val 150 / 3,807 / 5; test 150 / 3,930 / 6. Total **26,005 instances**, zero conversion
+  errors. No model was trained; these are dataset counts, not model metrics.
+- **Key decision or insight:** Comparing the new seg labels against the bbox labels for the
+  *same images on the same split* showed 942/1,000 images identical and 58 images with 1–3
+  **more** seg instances — never fewer, a gap of exactly 66 objects. Root cause found:
+  `teeth_polygon.json` and `teeth_bbox.json` carry identical object lists for all 1,000
+  images, but `convert_tufts_to_yolo.py` drops any object whose `bounding box` field is under
+  2 px on a side, and for these 66 objects **that field is corrupt (1×1 or 1×2 px) while the
+  polygon is intact and full-size** — 1,617–13,425 px², up to 682 points, ordinary Universal
+  tooth titles spread across the arch, and confirmed by rendering three of them over the
+  radiograph as real tooth-sized structures. **The existing bbox dataset is therefore missing
+  66 real annotated teeth** (47 train / 13 val / 6 test), which means the frozen detector's
+  reported numbers were measured against test ground truth missing 6 of 3,930 instances
+  (0.15%) — far too small to move mAP@0.5 = 0.7824 materially, but a genuine data-quality
+  defect in the baseline. **Decision: keep all 66 in the seg dataset and do not replicate the
+  bbox filter** (propagating a known bug for cosmetic comparability is the wrong trade), and
+  **do not modify `convert_tufts_to_yolo.py`** (that would invalidate the frozen detector's
+  reproducibility, which T0.6 §1 exists to protect). The resulting 6-instance ground-truth
+  difference was written into T0.6 §2's pre-registered acceptance criterion **before** the
+  retrain is run, not after seeing results; the 0.75 box-mAP bar is unchanged.
+- **Source:** `docs/research/T0.6_detector_reconciliation.md` §3.3 (split recovery + proof),
+  §3.5 (dataset build table + the 66-teeth analysis), §2 (criterion caveat);
+  `scripts/yolo/convert_tufts_to_yolo_seg.py` (docstring), `scripts/yolo/convert_tufts_to_yolo.py`
+  (inline note at the degenerate filter); dataset at `data/tufts/dataset_seg/` (gitignored).
+- **Follow-ups:** R1 now has **no data blockers** — only GPU access. Remaining open decisions
+  are unchanged from 20 Aug: rebuild the DENTEX split from the newly-found raw data or keep
+  the val-carve fallback; and whether `docs/research/clinical_dataset_provenance.md` (written
+  on the other machine, not present here) ever enters git history.
