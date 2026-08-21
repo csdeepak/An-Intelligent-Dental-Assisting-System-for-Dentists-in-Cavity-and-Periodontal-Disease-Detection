@@ -723,3 +723,41 @@ Copy this block verbatim to the bottom of the file and fill it in.
   are unchanged from 20 Aug: rebuild the DENTEX split from the newly-found raw data or keep
   the val-carve fallback; and whether `docs/research/clinical_dataset_provenance.md` (written
   on the other machine, not present here) ever enters git history.
+
+## 2026-08-21b — Clinic dataset found on Google Drive with its re-identification mapping intact
+
+- **What was done:** `docs/research/clinical_dataset_provenance.md` (compiled 16 Aug on the
+  other machine, held out of every commit pending a decision) was supplied along with Google
+  Drive access. Its §1 asserted the clinic dataset is "local to this machine only" and its §7
+  listed "confirm whether it has already left this machine" as an open item. Enumerated the
+  Drive tree through the connector — **metadata only; no image and no CSV content was opened**
+  — to answer that item.
+- **Dataset / config:** SDH clinic dataset, Stage 2 (`D:\SDH dataset\dataset\`, 3,219 enhanced
+  8-bit PNGs). No processing run, no model touched.
+- **Metrics:** none — this is a governance/data-handling finding, not a result.
+- **Key decision or insight:** **The claim was false.** The entire Stage-2 tree has been on
+  Google Drive since **2026-06-04**, owned by `csdeepak2005@gmail.com` and shared with a
+  second Google account: `images/`, `logs/`, `reports/`, `checkpoint.json`,
+  `SESSION_MEMORY.md`, and `metadata/index.csv` — 267,337 bytes, the table mapping each
+  opaque `000001.png` back to its clinic patient folder. `index.csv` and `images/` are
+  siblings under the same shared parent, which is exactly the condition §4 of that same
+  document names as voiding the de-identification: *"index.csv must never travel with
+  images\ to anywhere the images go."* It travelled ten weeks before the document asserting
+  containment was written. Mitigating: the share is account-to-account, not a public link —
+  no `type: anyone` permission on `SDH dataset/` or `dataset/`. **Separately**, the Tufts
+  research-data folder (`1_pPXCzNGlRuLaQhpqScX7sszSXSLQI-U`) *is* shared
+  `role: writer, type: anyone` — world-writable. Public data, so that one is an integrity
+  risk (this project re-downloads from it), not a confidentiality one. **Nothing on Drive was
+  changed** — it is not this project's account to reconfigure. Two decisions taken: commit the
+  provenance record (repo is private) with §1 struck through rather than deleted and the
+  literal `index.csv` example row redacted to schema-only; and **rebuild the DENTEX split from
+  the raw source data** rather than keeping the val-carve fallback, which is the fix for
+  `PAPER_MATERIAL.md` §8.1.
+- **Source:** `docs/research/clinical_dataset_provenance.md` §4a (Drive tree, file IDs,
+  permissions, and the five recommended actions), §1 (struck claim), §7 (item closed);
+  `docs/session-memory/2026-08-21-split-recovery-and-seg-dataset-build.md`.
+- **Follow-ups:** all five §4a actions need the Drive owner, not this repo — separating
+  `index.csv` from `images/` is the one with a real clock on it. The governance items in
+  `clinical_dataset_plan.md` (ethics approval, written clinic agreement, PHI sign-off) are
+  unchanged and now have a concrete trigger: an unapproved re-identifiable copy of patient
+  data already exists off the origin machine.

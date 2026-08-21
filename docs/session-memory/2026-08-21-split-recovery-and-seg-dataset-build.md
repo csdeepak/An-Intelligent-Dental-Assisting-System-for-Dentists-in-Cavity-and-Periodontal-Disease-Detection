@@ -42,7 +42,26 @@ to, and clear the last blocker standing in front of the R1 YOLOv11l-seg retrain.
 6. **Found a data-quality defect in the existing bbox dataset** while cross-checking the two
    datasets against each other on the now-shared split. Details under Decisions.
 
-7. **Documentation, per `CLAUDE.md` rule 1:** new `RESULTS_LOG.md` entry; `T0.6` §2 (criterion
+7. **`clinical_dataset_provenance.md` was supplied and its central claim turned out to be
+   false.** The user provided the file (written 16 Aug on the other machine) plus Google Drive
+   access. §1 asserted the clinic dataset is "local to this machine only" and §7 listed
+   "confirm whether it has left this machine" as an open item. Enumerating Drive through the
+   connector — metadata only, no image or CSV content opened — showed the entire
+   `D:\SDH dataset\dataset\` tree has been on Drive since **2026-06-04**, owned by
+   `csdeepak2005@gmail.com` and shared with a second account: `images/`, `logs/`, `reports/`,
+   `checkpoint.json`, `SESSION_MEMORY.md`, and **`metadata/index.csv`** (267 KB, the
+   re-identification mapping) sitting as a sibling of `images/`. That is precisely the
+   condition §4 of the same document names as voiding the de-identification. Recorded as a new
+   §4a with the file IDs, the §1 claim struck through rather than deleted, and the literal
+   `index.csv` example row redacted to schema-only before committing.
+
+8. **Separately: the Tufts Drive folder is world-writable.** Permissions on
+   `1_pPXCzNGlRuLaQhpqScX7sszSXSLQI-U` are `role: writer, type: anyone` — anyone with the link
+   can edit or delete it. The content is public research data, so this is an integrity problem
+   (the project re-downloads from there), not a confidentiality one. Nothing on Drive was
+   changed; it is not this project's account to reconfigure.
+
+9. **Documentation, per `CLAUDE.md` rule 1:** new `RESULTS_LOG.md` entry; `T0.6` §2 (criterion
    caveat), §3.3 (split recovery), §3.5 (new — dataset build + the 66-teeth analysis), §4
    (rewritten, no data blockers left); `PAPER_MATERIAL.md` §7.1, new §8.9, §9 checklist;
    `model_metrics.md` Stage-1 ground-truth caveat.
@@ -74,13 +93,19 @@ to, and clear the last blocker standing in front of the R1 YOLOv11l-seg retrain.
 
 ## Open questions
 
-- **DENTEX split — still undecided, carried over from 20 Aug.** Raw DENTEX (705 source
-  X-rays, the original COCO annotations, the crop-generation notebooks) is available in the
-  second Drive folder, which means `scripts/dentex/split_dentex_holdout.py`'s "carve from
-  val" fallback is no longer the only option. Rebuild a genuinely independent three-way
-  split, or proceed with the fallback? Not a default-into-it decision.
-- **`docs/research/clinical_dataset_provenance.md`** — not on this machine. Its
-  commit/redact/keep-local decision is still open and still needs the file itself.
+- ~~**DENTEX split — still undecided.**~~ **Decided 21 Aug 2026: rebuild from raw.** Build a
+  genuinely independent patient-level three-way split from the 705 source X-rays rather than
+  carving a held-out set out of the val pool the model was tuned on. This is the fix for
+  `PAPER_MATERIAL.md` §8.1, the project's weakest evaluation-discipline point.
+- ~~**`clinical_dataset_provenance.md`** — commit/redact/keep-local decision open.~~
+  **Decided 21 Aug 2026: commit, corrected and redacted.** The repo is private (GitHub API
+  returns 404 unauthenticated; remote reachable with cached credentials). Revisit if it is
+  ever made public at submission — the doc names the clinic, states no IRB approval exists,
+  and points at where the re-identification mapping lives.
+- **Clinic-data governance is now an active problem, not a background one.** An unapproved,
+  re-identifiable copy of patient data has been sitting on a shared Drive for ten weeks. The
+  five recommended actions are in `clinical_dataset_provenance.md` §4a; all five need the
+  Drive owner (`csdeepak2005@gmail.com`), not this repo.
 - **SSH / E2E, unverified from here:** whether the compromised `.pem` key's public half was
   ever added to the E2E account (and removed since), whether those `.pem` files were deleted,
   and whether `id_ed25519_e2e.pub` was ever added. This machine has no E2E instance and no
@@ -100,6 +125,8 @@ to, and clear the last blocker standing in front of the R1 YOLOv11l-seg retrain.
    `dataset_seg/` on the target machine.
 3. Run `train_yolo_seg.py` against T0.6 §2's pre-registered criterion. Report the result as a
    new `RESULTS_LOG.md` entry whichever way it goes.
-4. Make the DENTEX split decision before spending GPU time on the caries re-run.
-5. Stages 5–6 (end-to-end inference + per-tooth JSON/PDF report) remain the project's actual
+4. **Separate `index.csv` from `images/` on the Drive copy** — the one item here with a real
+   external clock on it. Owner action; see `clinical_dataset_provenance.md` §4a for all five.
+5. Rebuild the DENTEX split from raw (decided), before spending GPU time on the caries re-run.
+6. Stages 5–6 (end-to-end inference + per-tooth JSON/PDF report) remain the project's actual
    next milestone and are still unstarted.
