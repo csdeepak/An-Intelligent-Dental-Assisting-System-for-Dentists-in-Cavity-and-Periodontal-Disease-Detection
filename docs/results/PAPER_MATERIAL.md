@@ -379,7 +379,11 @@ has therefore never been validated end-to-end — see Section 8.4.
 Implemented 19 Aug 2026 (`extract_mask_aware_crop`, `rasterize_polygon`,
 `extend_mask_below_root`, `apply_soft_mask_attenuation` in `src/crop_generator.py`,
 tested in `tests/test_crop_generator.py`), ahead of having real Tufts instance masks to run
-it against (see Section 8.1/T0.6 status). The design problem: a rectangular expanded crop
+it against. **Update, 20 Aug 2026:** real masks (`teeth_polygon.json`) are now available and
+verified (§6.7/T0.6 status, `docs/research/T0.6_detector_reconciliation.md` §3) — this
+function has not yet been re-run against them (that requires wiring it into the bone-loss
+crop pipeline, not attempted today), but the blocker that motivated "ahead of having" is
+resolved. The design problem: a rectangular expanded crop
 (Section 6.1) pulls in neighbouring teeth, which the asymmetric 1.5×/2.0× ratio only
 *mitigates*, not eliminates. Once per-tooth instance masks exist (T0.6/R1), neighbouring-tooth
 pixels can be suppressed directly — but **soft** attenuation (default: dim to 50% outside the
@@ -454,9 +458,14 @@ All figures for Stage 1 are in `docs/results/figures/yolo_detection_a100/`
   `tooth-detector-a100-1024-v1.0`, SHA-256 in `docs/research/T0.6_detector_reconciliation.md`
   §1 and `model_metrics.md`. This table's heading can drop "unreconciled" now — updated below.
   A YOLOv11l-seg retrain (R1) is still planned with a pre-registered acceptance criterion
-  (same document) but remains blocked: neither Tufts `teeth_polygon.json` nor the raw source
-  radiograph images have been located, so the retrain and any crop re-derivation from this
-  now-frozen detector both stay blocked regardless of the weights being found.
+  (same document). **Update, later on 20 Aug 2026:** `teeth_polygon.json` and all 1,000 raw
+  Tufts radiographs were located (Google Drive) and the conversion pipeline
+  (`scripts/yolo/convert_tufts_to_yolo_seg.py`) was run end-to-end against them successfully
+  — see `docs/research/T0.6_detector_reconciliation.md` §3. One new blocker surfaced in the
+  process: the frozen `outputs/eda_tufts/split_v1.csv` is *also* missing, and is now the only
+  thing standing between this and an actual training run (plus GPU access). Crop
+  re-derivation from the frozen detector is separately still blocked — it needs the raw
+  images too, which are now available, but no inference has been run yet.
 
 ### 7.2 Stage 3 — Caries cascade (DENTEX, ResNet18)
 

@@ -1,4 +1,4 @@
-# 2026-08-19/20 — Week 2 engineering prep: T0.6, R2, T0.3, T0.2, detector freeze
+# 2026-08-19/20 — Week 2 engineering prep: T0.6, R2, T0.3, T0.2, detector freeze, Tufts seg data
 
 **Session goal:** Pick up Week 2 (`MASTER_PLAN_2026H2.md` §5, Aug 22–28) engineering work
 one day early — detector reconciliation, mask-aware cropping, macro-F1 checkpointing, and a
@@ -199,6 +199,57 @@ description, so a future session doesn't have to re-run this detective work.
 
 ---
 
+## Part 7 — 20 Aug: real Tufts seg data obtained, one blocker down to one
+
+Later the same day, the user set a concrete goal: "complete notebook ready for executing in
+the gpu," and handed over a Google Drive link to the Tufts dataset plus the location of the
+clinical/Ningxia data on `D:\`. Focused specifically on Tufts per the stated target.
+
+**Getting into the Drive folder:** the in-app browser tool couldn't reliably navigate the
+Drive SPA in this environment (double-clicks on folder rows didn't register, and screenshots
+failed because the pane wasn't visually displayed) — after a few attempts, switched to
+`gdown` (installed via pip) driven directly from Bash, which worked cleanly: enumerated the
+whole shared folder (17,300 files) to get exact file IDs, then downloaded `teeth_polygon.json`
+(285 MB) and all 1,000 raw radiographs by ID, in parallel (16 workers) for speed once a first
+sequential attempt looked too slow.
+
+**A second undocumented gap, found by actually looking at the downloaded images:** the raw
+radiographs are landscape (1615×840), not the portrait (840×1615) shape every script in this
+repo assumes `Radiographs_rotated/` already is. That rotation step had never been captured as
+code anywhere — pure tribal knowledge that had gone missing. Rather than guess a direction,
+tested both 90° rotations against real `teeth_bbox.json` boxes on one image first (clockwise
+produced a coherent tooth, counter-clockwise produced an incoherent blob), then confirmed
+much more thoroughly by overlaying real `teeth_polygon.json` polygons on 7 different rotated
+images and visually checking each one traced an actual tooth outline — all 7 did, cleanly.
+Wrote this up as a new script, `scripts/yolo/rotate_tufts_radiographs.py`, specifically so
+this doesn't become lost knowledge a third time.
+
+**Proved the conversion pipeline correct on real data, not just synthetic tests:** ran
+`scripts/yolo/convert_tufts_to_yolo_seg.py` — the exact committed script, only path constants
+patched for this local test — against all 1,000 real images and the real polygon file. Clean
+run, 26,005 instances, val-split instance count landed within 2% of the historical bbox
+conversion's val count despite using a different (temporary) image split, which was a useful
+independent sanity check that the whole pipeline is behaving sensibly at scale, not just on
+hand-picked examples.
+
+**A third blocker found, and deliberately not worked around:** the frozen
+`outputs/eda_tufts/split_v1.csv` — the exact train/val/test partition the canonical bbox
+detector was evaluated on — is missing everywhere checked (the Drive folder, both
+`_repo_archive/` locations, an exhaustive filename search of the whole machine). Checked
+whether the bone-loss crop metadata already in the repo could substitute; it only covers 145
+of 1,000 source images (the disease-positive subset used for crop construction), nowhere near
+enough. Generated a throwaway split purely to run the validation pass above, named and
+gitignored specifically to make it hard to mistake for the real one, and did **not** copy its
+output into the repo or present it as training-ready data — using a different split than the
+bbox baseline's would silently break the direct comparability that T0.6's whole pre-registered
+criterion exists to protect, and that's not a call to make unilaterally.
+
+**Net effect:** T0.6/R1 went from three blockers (weights, polygon data, raw images) at the
+start of the day to one (the split CSV) plus the standing GPU-access gap. Everything that
+doesn't need those two things is now genuinely done, not just prepared.
+
+---
+
 ## Decisions made
 
 1. **A100 config is canonical** for Stage-1 detection going forward (§1) — data-justified,
@@ -215,35 +266,45 @@ description, so a future session doesn't have to re-run this detective work.
    (script docstring, `RESULTS_LOG.md`, `PAPER_MATERIAL.md` §7.2/§9), that this is a weaker
    independence guarantee than a from-scratch three-way split, so it can't quietly get
    presented as equivalent in the eventual paper.
+5. **Did not substitute a new split for the missing `split_v1.csv`** (§Part 7) — generated one
+   only to validate the conversion code, kept it clearly quarantined (name, gitignore, never
+   copied into the repo), and did not use it to build anything presented as real training
+   data. Silently swapping splits would break comparability with the bbox baseline's reported
+   test mAP@0.5, which is exactly what T0.6's pre-registered criterion protects against.
 
 ## Open questions
 
 1. ~~Where is `models/06_yolo_detection_a100_run/best.pt`?~~ **Resolved 20 Aug** — found in
    `_repo_archive/yolo_a100_run_workspace/`, verified, frozen. See Part 6.
-2. Where can `teeth_polygon.json` (Tufts) be re-fetched from? **Still open** — checked the
-   newly-synced `_repo_archive/datasets_workspace/` on 20 Aug and it wasn't there either
-   (only scripts/notebooks, not the raw 2.2 GB dataset). Most likely lives only in Google
-   Drive at this point (`MyDrive/Capstone/tufts/ZIP/Segmentation/`, per the Colab mount path
-   in `01_tufts_data_exploration_v2.ipynb`), which isn't synced to any machine checked so far.
-3. Is the largest-polygon-fragment-per-object heuristic in
-   `convert_tufts_to_yolo_seg.py` actually correct, or do some teeth have genuinely disjoint
-   mask regions that it would wrongly discard? Unverifiable without real data.
-4. The three untracked-file decisions from `transfer.md` (§1 there) are still open — not
+2. ~~Where can `teeth_polygon.json` (Tufts) be re-fetched from?~~ **Resolved 20 Aug** — the
+   user's Google Drive folder. Downloaded, verified against the schema already documented
+   here, and the full conversion pipeline run against it end-to-end. See Part 7.
+3. ~~Is the largest-polygon-fragment-per-object heuristic in `convert_tufts_to_yolo_seg.py`
+   actually correct?~~ **Resolved 20 Aug** — visually confirmed correct on 7 real images, no
+   noise/garbage shapes, no genuinely-disjoint-region failures observed. See Part 7.
+4. **New, found 20 Aug:** where is `outputs/eda_tufts/split_v1.csv` (the frozen bbox-detector
+   train/val/test split)? Not in the Google Drive folder, not in either `_repo_archive/`
+   location, not findable anywhere on this machine by exhaustive search. This is now T0.6/R1's
+   only remaining non-GPU blocker.
+5. The three untracked-file decisions from `transfer.md` (§1 there) are still open — not
    touched this session, by the user's explicit choice to prioritize engineering instead.
 
 ## Next steps
 
-1. Locate/re-fetch `teeth_polygon.json` **and the raw Tufts radiograph images** (both still
-   missing, independent of the now-resolved `best.pt`); run the seg retrain against the
-   pre-registered criterion in `docs/research/T0.6_detector_reconciliation.md` §2.
-2. Run `scripts/dentex/split_dentex_holdout.py` against the real Kaggle DENTEX data; commit
+1. **Locate `outputs/eda_tufts/split_v1.csv`** — the one remaining blocker for T0.6/R1 that
+   isn't GPU access. If it's genuinely unrecoverable, that needs an explicit decision (accept
+   a new split and document the comparability caveat everywhere) rather than a silent
+   substitution.
+2. Once found (or the substitution decision is made) and GPU is available: run
+   `scripts/yolo/rotate_tufts_radiographs.py` → `convert_tufts_to_yolo_seg.py` →
+   `train_yolo_seg.py` against the pre-registered criterion in
+   `docs/research/T0.6_detector_reconciliation.md` §2.
+3. Run `scripts/dentex/split_dentex_holdout.py` against the real Kaggle DENTEX data; commit
    the resulting `data/dentex/splits.json`.
-3. Re-run the caries cascade (`notebooks/caries/phase-1.ipynb`, both Arm A and the new Arm B
+4. Re-run the caries cascade (`notebooks/caries/phase-1.ipynb`, both Arm A and the new Arm B
    augmentation-ablation section) on Kaggle/H100 with T0.2's new split and T0.3's macro-F1
    checkpointing in effect; report both arms' val **and** test numbers, and replace
    `PAPER_MATERIAL.md` §7.2 and `model_metrics.md`'s caries table with them.
-4. Spot-check the polygon-noise heuristic in `convert_tufts_to_yolo_seg.py` visually against
-   a handful of real OPGs before trusting it for a full training run.
 5. Once T0.6's seg retrain and T0.2/T0.3's caries re-run both land, re-derive every downstream
    crop and classifier input from the frozen canonical detector, per the Week 2 checklist's
    first item — this depends on both of the above and hasn't been started.
@@ -251,3 +312,6 @@ description, so a future session doesn't have to re-run this detective work.
    operating threshold in place of today's uncalibrated argmax — not a Week 2 item, but now
    explicitly named as a gap in `PAPER_MATERIAL.md` §6.7 so it doesn't get forgotten.
 7. Revisit the three untracked-file decisions carried over from the prior session.
+8. The clinical dataset and Ningxia data locations on `D:\` were confirmed today
+   (`D:\raw data`, `D:\SDH dataset`, `D:\nangxia_dataset`) but not touched — today's target
+   was specifically the Tufts seg pipeline.

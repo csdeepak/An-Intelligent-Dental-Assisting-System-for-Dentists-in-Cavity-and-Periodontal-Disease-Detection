@@ -594,3 +594,82 @@ Copy this block verbatim to the bottom of the file and fill it in.
   `docs/results/PAPER_MATERIAL.md` §8.3.
 - **Follow-ups:** `docs/research/clinical_dataset_provenance.md` still needs a decision from
   the user — commit as-is, redact/edit first, or keep local-only.
+
+## 2026-08-20 — T0.6/R1: real Tufts seg data obtained, conversion pipeline verified end-to-end; one blocker down to one
+
+- **What was done:** User provided the Tufts Google Drive folder
+  (`drive.google.com/drive/folders/1_pPXCzNGlRuLaQhpqScX7sszSXSLQI-U`, public, no sign-in).
+  Enumerated it with `gdown` (17,300 files) and downloaded `teeth_polygon.json` (285 MB) and
+  all 1,000 raw radiographs from `ZIP/Radiographs/Radiographs/`. Discovered the raw images are
+  **landscape (1615x840)**, not the portrait (840x1615) every conversion script assumes
+  `Radiographs_rotated/` already is — that rotation step had never been captured as code
+  anywhere in this repo. Determined the correct rotation (90° clockwise) empirically: tested
+  both directions against real `teeth_bbox.json` boxes, then confirmed far more thoroughly by
+  overlaying `teeth_polygon.json` polygons on 7 real rotated radiographs and visually checking
+  every one traces an actual tooth. Formalized as new `scripts/yolo/rotate_tufts_radiographs.py`.
+  Rotated and verified all 1,000 images (840x1615, zero corrupt). Ran
+  `scripts/yolo/convert_tufts_to_yolo_seg.py` **unmodified** (only path constants patched)
+  end-to-end against the real data as a validation pass.
+- **Dataset / config:** Tufts (Google Drive source), 1,000 images, single-class ("tooth")
+  instance segmentation. Validation run used a throwaway temporary split
+  (`outputs/eda_tufts/split_TEMP_not_frozen_do_not_use_for_gpu_run.csv`, fixed seed,
+  70/15/15), explicitly NOT the frozen `split_v1.csv` — which is a new, separate blocker
+  found in the process (see below) — and NOT copied into the repo.
+- **Metrics:** validation run only, not a training result: 26,005 polygon instances across
+  700/150/150 images (18,214 / 3,871 / 3,920 train/val/test). Val instance count (3,871)
+  closely matches the historical bbox conversion's val count (3,794) despite using a
+  different image split — a meaningful sanity check on scale. Zero conversion errors; 21
+  train / 8 val / 3 test images had no usable polygon instances (normal-range annotation
+  gaps, not a pipeline bug).
+- **Key decision or insight:** two of the three original T0.6 blockers are now closed
+  (`teeth_polygon.json` located and verified; raw images located, and the previously-lost
+  rotation transform rederived and validated) — but a **third, previously-unknown blocker**
+  surfaced: `outputs/eda_tufts/split_v1.csv` (the frozen split the canonical bbox detector was
+  evaluated on) is missing from every location checked (this Drive folder, both
+  `_repo_archive/` locations, an exhaustive filename search of this machine). Deliberately did
+  **not** generate a replacement split to use as the real training input — doing so would
+  silently break direct comparability with the bbox detector's reported test mAP@0.5 (0.7824),
+  which is exactly what T0.6's pre-registered criterion (§2) exists to protect. The temporary
+  split was used only to prove the code correct, then discarded.
+- **Source:** `docs/research/T0.6_detector_reconciliation.md` §3 (full record, includes the
+  Drive link, rotation-determination method, and validation-run numbers),
+  `scripts/yolo/rotate_tufts_radiographs.py` (new),
+  `scripts/yolo/convert_tufts_to_yolo_seg.py` / `train_yolo_seg.py` (status headers updated).
+- **Follow-ups:** locate `outputs/eda_tufts/split_v1.csv` — the one remaining blocker before
+  the real (non-test) `dataset_seg/` can be assembled — or make an explicit, documented
+  decision to accept a new split with the comparability caveat stated everywhere the
+  resulting numbers are reported. GPU access is separately still needed to actually run
+  `train_yolo_seg.py`.
+
+## 2026-08-20 — Raw DENTEX source data located; GPU setup checklist written
+
+- **What was done:** User provided a second Google Drive folder
+  (`drive.google.com/drive/folders/1DtdE_TYuYTeyvuaveQEvuhSpwL6U8Ovp`) and their own
+  `phase-1.ipynb` copy from Downloads. Enumerated the Drive folder with `gdown` (10,446
+  files) rather than assuming it only held the pre-processed crops `phase-1.ipynb` reads.
+  Wrote `docs/research/GPU_SETUP.md` — a from-scratch provisioning checklist for an E2E
+  Networks GPU instance (OS/CUDA/Python/package versions, disk budget, data-fetch steps,
+  run order) covering everything currently queued (Tufts seg retrain, DENTEX cascade).
+- **Dataset / config:** n/a — enumeration and documentation only, nothing downloaded in
+  full or trained.
+- **Metrics:** none new.
+- **Key decision or insight:** the DENTEX Drive folder is not just the processed crops —
+  it also has the **raw source `xrays/`** (705 images for the disease-labeled subset),
+  the **original COCO-style annotation file** (`train_quadrant_enumeration_disease.json`),
+  and the **original crop-generation notebooks**. `scripts/dentex/split_dentex_holdout.py`
+  (2026-08-19) was written under the assumption that raw DENTEX access was unavailable, and
+  deliberately fell back to carving a new split out of the existing `val/` pool rather than
+  building an independent one — that assumption no longer holds. A genuinely independent,
+  from-scratch three-way split may now be possible. **Not rebuilt in this session** — this is
+  a scope/methodology decision (redo T0.2 properly now vs. proceed with the existing
+  fallback) that needs to be made deliberately, not defaulted into either direction. Also
+  confirmed the user's Downloads copy of `phase-1.ipynb` (123 cells, accuracy-checkpointed
+  throughout) predates the repo's committed version (131 cells, includes the T0.3 macro-F1
+  fix and the Arm B augmentation-ablation section) — flagged so GPU time isn't spent running
+  the older copy by mistake.
+- **Source:** `docs/research/GPU_SETUP.md` (new, full directory listing and counts),
+  `scripts/dentex/split_dentex_holdout.py` (2026-08-19 entry, the assumption this updates).
+- **Follow-ups:** decide whether to rebuild the DENTEX split from the newly-available raw
+  data before the caries cascade re-run, or proceed with the existing val-carve fallback and
+  revisit later. Confirm which `phase-1.ipynb` copy (repo vs. Downloads) is authoritative
+  before running anything on GPU.
