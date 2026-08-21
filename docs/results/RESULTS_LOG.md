@@ -1079,3 +1079,53 @@ Copy this block verbatim to the bottom of the file and fill it in.
 - **Follow-ups:** the generator needs the 705 source X-rays (~2.5 GB, Drive) to run for real —
   they are not on this machine, and downloading them is the next concrete step. After that the
   re-run block can start.
+
+## 2026-08-21m — CORRECTION to 21j and 21k: healthy teeth are NOT derivable from DENTEX
+
+- **What was done:** Ran the crop generator for real against the full local DENTEX copy (which
+  turned out to be already on this machine at `~/Downloads/Capstone/DENTEX`, so no download was
+  needed). Two anomalies in the output — 748 images read where 752 were expected, and 19
+  "skipped_degenerate" crops where the original notebooks reported zero skips — were traced
+  rather than waved through, and they exposed a **serious error in entries 2026-08-21j and
+  2026-08-21k**.
+- **The error:** those entries claimed 15,550 healthy teeth were derivable by joining
+  `train_quadrant_enumeration.json` to the disease annotations on
+  `(file_name, quadrant, tooth_number)`, on the basis that "all 634 enumeration images are a
+  subset of the 705". **That inference was wrong.** The filenames overlap; the *images* do not.
+  DENTEX's three training subsets (quadrant / quadrant_enumeration /
+  quadrant-enumeration-disease) number their files independently and cover **disjoint sets of
+  patients**. Verified three ways: 622 of the 634 shared filenames have different declared
+  dimensions; 58 of 60 sampled files differ in actual dimensions on disk; and rendering
+  `train_0.png` and `train_1.png` side by side from both subsets shows plainly different people
+  (an adult with heavy amalgam restorations vs. a young patient with developing dentition).
+  Only the filename matched — never the patient.
+- **Consequence:** the `phase1_corrected` tree produced by the first real run is invalid in two
+  compounding ways — the join matched teeth belonging to unrelated patients, and the crops were
+  then taken from the disease-subset image at enumeration-subset coordinates. All 15,531
+  "healthy" crops are meaningless. The 19 degenerate skips were the visible symptom: boxes
+  falling outside what was simply a different, narrower scan. Moved to
+  `data/dentex/crops_v2/_INVALID_phase1_corrected_DO_NOT_USE/` with an explanation file rather
+  than deleted, so the error stays inspectable.
+- **What is UNAFFECTED and correct:** `phase1_legacy` (train 2,510 / val 515 / test 504 /
+  extern50 182) and `phase2` (1,964 / 408 / 395 / 133), both built purely from the disease
+  subset's own annotations and its own images; `data/dentex/splits_v2.json`, which only ever
+  split the 705 disease images; and the crop-contract verification in 21k, which was checked
+  against disease-subset crops. Counts on disk match the dry-run prediction in every cell.
+- **Key decision or insight:** **the negative-class defect from 21j is real and now has no
+  known fix within DENTEX's labelled data.** The disease subset annotates only diseased teeth;
+  the enumeration subset carries no disease labels, so an un-tagged tooth there is *unknown*,
+  not healthy. The recommendation given in 21j — "add healthy teeth" — is withdrawn. The one
+  sound alternative left: run the frozen tooth detector (`tooth-detector-a100-1024-v1.0`) over
+  the 705 disease images and treat detections that match no disease box as not-diseased. That
+  stays within one image and one coordinate space, so it cannot repeat this class of error, but
+  it introduces detector error into the labels and needs its own decision. Until then
+  `phase1_legacy` is the only valid Phase-1 dataset, and the gate's behaviour on healthy teeth
+  remains uncharacterised — a limitation to state, not to quietly fix.
+- **Guard added:** `build_dentex_crops.py` now **refuses** `--enum` outright, printing the
+  dimension evidence, because the filename overlap makes the join look plausible and it is not.
+  The healthy-tooth code path is removed, not merely commented.
+- **Source:** `scripts/dentex/build_dentex_crops.py`;
+  `data/dentex/crops_v2/_INVALID_phase1_corrected_DO_NOT_USE/WHY_THIS_IS_INVALID.txt`;
+  supersedes the healthy-tooth claims in 2026-08-21j and 2026-08-21k.
+- **Follow-ups:** decide on the detector-derived negative class. `phase1_legacy` and `phase2`
+  are ready for the re-run block now.

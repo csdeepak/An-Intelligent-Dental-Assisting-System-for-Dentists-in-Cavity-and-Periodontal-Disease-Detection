@@ -95,6 +95,9 @@ data/tufts/dataset_seg/
 # Raw DENTEX source annotations (re-downloadable) — the SPLIT MANIFEST built from
 # them, data/dentex/splits_v2.json, IS committed and must stay tracked.
 data/dentex/raw/
+# Generated DENTEX crops (~26k PNGs across three variant trees). Rebuild with
+# scripts/dentex/build_dentex_crops.py; the manifest + meta inside record provenance.
+data/dentex/crops_v2/
 
 # Caries cascade weights — the two BUNDLES (final_model.pth, phase2_final_bundle.pth) are
 # tracked: together they are the complete runnable cascade, each carrying its own

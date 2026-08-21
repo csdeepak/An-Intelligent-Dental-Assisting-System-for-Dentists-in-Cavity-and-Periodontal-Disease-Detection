@@ -45,10 +45,13 @@ downloaded before the re-run block can start.
 **A T0.1-class defect found while doing that, now the reason T0.1 is bigger than it looked:**
 the Phase-1 gate's negative class contains **no healthy teeth** — `no_caries` was exactly
 Impacted + Periapical Lesion (762 train / 49 val), while the assembled pipeline feeds the gate
-every tooth the detector finds. 15,550 real healthy teeth are derivable from
-`train_quadrant_enumeration.json`, and the generator emits both the legacy and the corrected
-definition so the difference is measured rather than assumed. Full record:
-`RESULTS_LOG.md` 2026-08-21j and 21k.
+every tooth the detector finds. ~~15,550 real healthy teeth are derivable from `train_quadrant_enumeration.json`~~ — **that
+was wrong and is withdrawn**: DENTEX's training subsets cover disjoint patients despite sharing
+filenames, so no healthy teeth are derivable from its labelled data at all. **The defect is
+real and currently has no fix**; the gate's behaviour on healthy teeth is uncharacterised and
+must be stated as a limitation. The one sound alternative — deriving a not-diseased class by
+running the frozen detector over the 705 disease images — needs a decision. Full record:
+`RESULTS_LOG.md` 2026-08-21j, 21k and **21m (the correction)**.
 
 
 

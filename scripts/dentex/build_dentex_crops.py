@@ -36,24 +36,28 @@ Impacted + Periapical Lesion (762 train / 49 val) and contained NO HEALTHY TEETH
 assembled pipeline feeds the gate every tooth the detector finds -- overwhelmingly healthy.
 Full record: docs/results/RESULTS_LOG.md 2026-08-21j.
 
-This script emits BOTH definitions, from the same crops, so the difference is measurable
-rather than assumed:
+  phase1_legacy -- the original rule, unchanged. Directly comparable to the reported accuracy
+                   0.81 / macro-F1 0.77, so a re-run on it isolates the effect of the split +
+                   selection-criterion + LR-schedule + augmentation fixes.
+  phase2        -- caries vs deep_caries. Unaffected by the above (both classes are diseased);
+                   regenerated only so it honours splits_v2.
 
-  phase1_legacy    -- the original rule, unchanged. Directly comparable to the reported
-                      accuracy 0.81 / macro-F1 0.77, so a re-run on it isolates the effect of
-                      the split + selection-criterion + LR-schedule + augmentation fixes.
-  phase1_corrected -- same rule, but the dataset now also contains real healthy teeth, so
-                      no_caries = healthy + impacted + periapical. This is what the gate
-                      actually faces in deployment, and is the variant the paper should report
-                      for the system.
-  phase2           -- caries vs deep_caries. Unaffected by the above (both classes are
-                      diseased); regenerated only so it honours splits_v2.
+A `phase1_corrected` variant WAS attempted, adding "healthy" teeth derived from
+train_quadrant_enumeration.json by treating any enumerated tooth with no disease annotation as
+healthy. **That was wrong and has been removed.** DENTEX's three training subsets
+(quadrant / quadrant_enumeration / quadrant-enumeration-disease) NUMBER THEIR FILES
+INDEPENDENTLY and cover DISJOINT sets of patients. `train_0.png` in the enumeration subset is a
+different radiograph, of a different person, from `train_0.png` in the disease subset --
+622 of 634 shared filenames differ in dimensions, and a visual check shows plainly different
+patients. Joining the two on file_name matched teeth across unrelated patients. Full record:
+docs/results/RESULTS_LOG.md 2026-08-21m.
 
-Healthy teeth come from train_quadrant_enumeration.json: 634 images, all of them a subset of
-the 705, with 18,095 teeth annotated by quadrant + tooth number and no disease label. An
-enumeration tooth is HEALTHY iff no disease annotation exists for the same
-(file_name, category_id_1, category_id_2). The remaining 71 disease-only images have no
-enumeration and therefore contribute no healthy teeth -- reported per split, not hidden.
+**Healthy teeth are therefore NOT derivable from DENTEX's labelled data.** The disease subset
+annotates only diseased teeth; the enumeration subset has no disease labels at all, so an
+un-tagged tooth there is unknown, not healthy. The negative-class defect described above is
+real and remains OPEN -- see the RESULTS_LOG entry for the detector-based alternative (run the
+frozen tooth detector over the 705 disease images and treat detections not matching any
+disease box as not-diseased, which stays inside one image and one coordinate space).
 
 FILE NAMING
 -----------
@@ -140,7 +144,6 @@ def index_records(disease, enum, splits, val50):
             "source_image": f, "split": split_of[f], "src": "d", "ann_id": a["id"],
             "bbox": a["bbox"],
             "phase1_legacy": legacy,
-            "phase1_corrected": legacy,          # same rule; healthy teeth are ADDED below
             "phase2": ("deep_caries" if c3 == DEEP_CARIES else
                        "caries" if c3 in CARIES_CLASSES else ""),
             "disease_class": dname[c3],
@@ -148,26 +151,24 @@ def index_records(disease, enum, splits, val50):
             "pool": "main",
         })
 
-    # --- healthy teeth, from the enumeration file (corrected variant only) ---
-    e_id2f = {i["id"]: i["file_name"] for i in enum["images"]}
-    enum_files = set(e_id2f.values())
-    assert enum_files <= set(d_id2f.values()), "enumeration images are not a subset of the 705"
-
-    for a in enum["annotations"]:
-        f = e_id2f[a["image_id"]]
-        key = (f, a["category_id_1"], a["category_id_2"])
-        if key in diseased_teeth:
-            continue                              # this tooth already has a disease annotation
-        records.append({
-            "source_image": f, "split": split_of[f], "src": "e", "ann_id": a["id"],
-            "bbox": a["bbox"],
-            "phase1_legacy": "",                  # absent from the legacy dataset by definition
-            "phase1_corrected": "no_caries",
-            "phase2": "",
-            "disease_class": "Healthy",
-            "quadrant": a["category_id_1"], "tooth": a["category_id_2"],
-            "pool": "main",
-        })
+    # --- enumeration file: REFUSED as a healthy-tooth source, with proof ---
+    # Kept as an active guard rather than a comment, because the filenames overlap so
+    # convincingly that this looks joinable and is not.
+    if enum is not None:
+        e_dims = {i["file_name"]: (i["width"], i["height"]) for i in enum["images"]}
+        d_dims = {i["file_name"]: (i["width"], i["height"]) for i in disease["images"]}
+        shared = set(e_dims) & set(d_dims)
+        mismatched = [f for f in shared if e_dims[f] != d_dims[f]]
+        raise SystemExit(
+            "REFUSING to derive healthy teeth from the enumeration subset.\n"
+            f"  {len(shared)} filenames appear in both subsets, but {len(mismatched)} of them "
+            "have DIFFERENT image dimensions.\n"
+            "  DENTEX's training subsets number their files independently and cover disjoint\n"
+            "  patients: enumeration/train_0.png is not the same scan as disease/train_0.png.\n"
+            "  Joining them on file_name matches teeth across unrelated people.\n"
+            "  See this script's docstring and docs/results/RESULTS_LOG.md 2026-08-21m.\n"
+            "  Re-run without --enum."
+        )
 
     # --- the separate 50-image DENTEX validation release ---
     # Zero overlap with the 705 (verified), and no enumeration counterpart exists, so no
@@ -183,7 +184,6 @@ def index_records(disease, enum, splits, val50):
             "source_image": f, "split": "extern50", "src": "d", "ann_id": a["id"],
             "bbox": a["bbox"],
             "phase1_legacy": legacy,
-            "phase1_corrected": legacy,
             "phase2": ("deep_caries" if c3 == DEEP_CARIES else
                        "caries" if c3 in CARIES_CLASSES else ""),
             "disease_class": dname[c3],
@@ -202,9 +202,7 @@ def summarise(records, splits):
     print("\n" + "=" * 78)
     print("PLANNED OUTPUT")
     print("=" * 78)
-    for variant, key in (("phase1_legacy", "phase1_legacy"),
-                         ("phase1_corrected", "phase1_corrected"),
-                         ("phase2", "phase2")):
+    for variant, key in (("phase1_legacy", "phase1_legacy"), ("phase2", "phase2")):
         print(f"\n{variant}:")
         per = defaultdict(Counter)
         for r in records:
@@ -215,22 +213,6 @@ def summarise(records, splits):
                 total = sum(per[split].values())
                 bits = "  ".join(f"{k}={v}" for k, v in sorted(per[split].items()))
                 print(f"  {split:9s} {total:6d} crops   {bits}")
-
-    print("\nHealthy-tooth availability (corrected variant only):")
-    imgs_by_split = defaultdict(set)
-    healthy_imgs = defaultdict(set)
-    for r in records:
-        if r["pool"] != "main":
-            continue
-        imgs_by_split[r["split"]].add(r["source_image"])
-        if r["disease_class"] == "Healthy":
-            healthy_imgs[r["split"]].add(r["source_image"])
-    for split in ("train", "val", "test"):
-        n, h = len(imgs_by_split[split]), len(healthy_imgs[split])
-        print(f"  {split:5s}: {h}/{n} images yield healthy teeth "
-              f"({n - h} disease-only images have no enumeration)")
-    print("  extern50: 0/50 — the 50-image release has no enumeration file at all, so the")
-    print("            corrected gate cannot be evaluated with healthy teeth on it.")
 
     # Images that yield nothing at all. Reported explicitly: without this, the per-split image
     # counts above silently disagree with splits_v2.json and the next reader loses an hour to it.
@@ -246,7 +228,7 @@ def summarise(records, splits):
         for split, files in sorted(barren.items()):
             n_split = len(splits["splits"][split])
             print(f"  {split:5s}: {len(files)} of {n_split} — {', '.join(sorted(files))}")
-        print("  (no disease annotations AND absent from the enumeration file — nothing to crop.")
+        print("  (these images carry no disease annotations at all, so there is nothing to crop.")
         print("   This is why the per-split image counts above are lower than splits_v2.json's.)")
 
 
@@ -254,9 +236,7 @@ def generate(records, xrays_dir: Path, out_dir: Path, val50_xrays: Path | None):
     import cv2
     import numpy as np
 
-    variants = {"phase1_legacy": "phase1_legacy",
-                "phase1_corrected": "phase1_corrected",
-                "phase2": "phase2"}
+    variants = {"phase1_legacy": "phase1_legacy", "phase2": "phase2"}
     by_image = defaultdict(list)
     for r in records:
         by_image[(r["pool"], r["source_image"])].append(r)
@@ -309,7 +289,8 @@ def generate(records, xrays_dir: Path, out_dir: Path, val50_xrays: Path | None):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--disease", type=Path, default=DEF_DISEASE)
-    ap.add_argument("--enum", type=Path, default=DEF_ENUM)
+    ap.add_argument("--enum", type=Path, default=None,
+                    help="DO NOT USE — see docstring; the script refuses and explains why")
     ap.add_argument("--val50", type=Path, default=DEF_VAL50)
     ap.add_argument("--splits", type=Path, default=DEF_SPLITS)
     ap.add_argument("--xrays", type=Path, help="dir with the 705 train_*.png source X-rays")
@@ -320,7 +301,7 @@ def main():
     args = ap.parse_args()
 
     disease = load_coco(args.disease)
-    enum = load_coco(args.enum, need_disease=False)
+    enum = load_coco(args.enum, need_disease=False) if args.enum else None
     val50 = load_coco(args.val50)
     splits = json.loads(args.splits.read_text())
 
@@ -344,7 +325,7 @@ def main():
 
     man = args.out / "crops_manifest.csv"
     cols = ["crop_name", "source_image", "split", "pool", "src", "ann_id", "disease_class",
-            "quadrant", "tooth", "phase1_legacy", "phase1_corrected", "phase2"]
+            "quadrant", "tooth", "phase1_legacy", "phase2"]
     with open(man, "w", newline="") as f:
         wr = csv.DictWriter(f, fieldnames=cols, extrasaction="ignore")
         wr.writeheader()
@@ -356,7 +337,6 @@ def main():
                          "cv2.resize to 224x224 INTER_LINEAR; BGR PNG",
         "splits_manifest": str(args.splits.relative_to(REPO_ROOT)),
         "disease_sha256": sha256_of(args.disease),
-        "enum_sha256": sha256_of(args.enum),
         "val50_sha256": sha256_of(args.val50),
         "counts": {k: v for k, v in sorted(stats.items())},
     }

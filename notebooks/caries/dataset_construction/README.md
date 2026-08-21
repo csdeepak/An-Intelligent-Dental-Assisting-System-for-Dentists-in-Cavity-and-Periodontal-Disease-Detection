@@ -33,6 +33,13 @@ which *every annotation is a diseased tooth*. So `no_caries` is precisely
 gate is therefore "caries/deep-caries vs impacted/periapical-lesion", never
 "caries vs healthy". See `docs/results/RESULTS_LOG.md` 2026-08-21j.
 
+> **And it cannot be fixed from `train_quadrant_enumeration.json`,** despite that file sharing
+> 634 filenames with this subset. DENTEX's training subsets number their files independently
+> and cover **disjoint patients** — `enumeration/train_0.png` is a different person's scan than
+> `disease/train_0.png` (622 of 634 shared names differ in dimensions; a visual check settles
+> it). An attempt to derive healthy teeth that way produced 15,531 crops of the wrong patients
+> before the error was caught. Correction: `RESULTS_LOG.md` 2026-08-21m.
+
 **2. train and val are different DENTEX releases, not a split.** 705 `train_*.png` images vs
 50 `val_*.png` images, **zero overlap**. Phase 2's val is 101 + 32 = 133 crops — the "133
 validation crops" every caries metric in this project is measured on.
