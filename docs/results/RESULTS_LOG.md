@@ -923,3 +923,35 @@ Copy this block verbatim to the bottom of the file and fill it in.
 - **Follow-ups:** once retrieved, record each file's SHA-256 in a `run_summary.txt` under its
   `models/` directory, the same way `tooth-detector-a100-1024-v1.0` was frozen in T0.6 §1 —
   the caries branch is currently the only trained stage with no version tag and no hash.
+
+## 2026-08-21h — Kaggle output confirmed against the retrieval list; Arm B never ran
+
+- **What was done:** The user showed `/kaggle/working` (558.8 MiB). Checks the predictions in
+  `2026-08-21g` against reality rather than leaving them as inference.
+- **Present — all five priority files, confirmed:** `phase2_final_bundle.pth`,
+  `best_phase2_fixed2.pth`, `final_model.pth`, `best_model.pth`, `best_phase2_final.pth`,
+  plus `best_phase2_stage1.pth` and `best_phase2_fixed.pth` (the two intermediate Phase-2
+  checkpoints). Seven caries checkpoints in total. Nothing on the retrieval list is missing.
+- **Absent, as predicted:** `best_phase2_augmented.pth` and
+  `best_phase2_augmented_stage1.pth`. The notebook evidence pointed here already — cells 122,
+  124, 126 and 128 carry **no `execution_count` and no outputs**, unlike cells that ran but
+  legitimately print nothing (111, 117, and 120, which has `execution_count=19` and is what
+  wrote `phase2_final_bundle.pth`). The empty Kaggle directory confirms it.
+- **Key decision or insight:** **the T0.1 augmentation ablation has never been executed.**
+  Not "run and unrecorded" — never run. `PAPER_MATERIAL.md` §8.1's first bullet ("augmentation
+  was defined but never applied") is the defect; the Arm B section in
+  `notebooks/caries/phase-1.ipynb` is the fix that was written for it on 2026-08-15 and then
+  left unexecuted. It needs the same GPU session as the caries re-run and should be folded
+  into it, not treated as separate work. Note also that Arm B fine-tunes from
+  `best_phase2_final.pth` — present, so the ablation is runnable as written.
+- **Also settled:** Phase 1 of the notebook has **zero** saved outputs and zero execution
+  counts across all its cells, so nothing from the gate stage is recoverable from the file —
+  not the class counts, not the train/val sizes, not the classification report. §9's first
+  blocking item is confirmed open by direct evidence, not just by absence of a number.
+- **Source:** `/kaggle/working` directory listing supplied by the user 21 Aug 2026; raw
+  `.ipynb` JSON inspection of `notebooks/caries/phase-1.ipynb` (8 of 72 code cells carry saved
+  outputs — 79, 83, 104, 106, 108, 109, 114, 119 — all in Phase 2).
+- **Follow-ups:** transfer the seven checkpoints into `models/`, hash them into a
+  `run_summary.txt`, and give the caries branch the version tag it currently lacks. Then the
+  GPU session covers three things at once: caries re-run on `splits_v2.json`, the Phase-1 gate
+  report, and the Arm A/B ablation.
