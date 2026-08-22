@@ -1,12 +1,30 @@
 # `scripts/yolo/` — Stage 1 tooth-detection scripts
 
-These three scripts were recovered from the ad-hoc `DataSets/` exploration workspace that
-used to sit at the repo root (that workspace has since been relocated to
-`_repo_archive/datasets_workspace/`, a sibling of this repo — nothing was deleted).
+**Last verified: 22 August 2026.**
+
+Three of these were recovered from the ad-hoc `DataSets/` exploration workspace that used to
+sit at the repo root (relocated to `_repo_archive/datasets_workspace/`, a sibling of this repo
+— nothing was deleted). Two more were added in August 2026 for the **R1 bbox → instance-mask
+upgrade** (`docs/research/MASTER_PLAN_2026H2.md` §3 R1).
 
 They are the **Stage 1 (YOLOv11 tooth detection)** toolchain and are kept separate from the
 scripts in `scripts/` one level up, which belong to the **Stage 2–5 crop/classifier**
 toolchain. Both sets are live; they simply serve different halves of the pipeline.
+
+## The two toolchains here
+
+| | bbox (current canonical) | seg (R1 upgrade, prepared not run) |
+|---|---|---|
+| convert | `convert_tufts_to_yolo.py` | `convert_tufts_to_yolo_seg.py` |
+| train | `train_yolo.py` | `train_yolo_seg.py` |
+| evaluate | `evaluate_yolo.py` | — (use Ultralytics val) |
+| dataset | `_repo_archive/datasets_workspace/dataset/` | `data/tufts/dataset_seg/` (built, 26,005 instances) |
+| status | **frozen**, `tooth-detector-a100-1024-v1.0` | **needs GPU only** — data ready, criterion pre-registered in `T0.6_detector_reconciliation.md` §2 |
+
+`rotate_tufts_radiographs.py` sits upstream of both: the raw Tufts release ships **landscape
+1615×840**, and every converter expects portrait 840×1615. That 90° clockwise rotation was
+undocumented tribal knowledge until Aug 2026; it is now code, with the direction empirically
+derived and visually verified.
 
 | Script | What it does |
 |--------|--------------|
@@ -16,17 +34,28 @@ toolchain. Both sets are live; they simply serve different halves of the pipelin
 
 ## Relationship to the rest of the repo
 
-- The run these scripts produced (A100, imgsz 1024, 150 epochs) is the current best
-  detector — see `models/06_yolo_detection_a100_run/` and
-  `docs/results/figures/yolo_detection_a100/`.
+- The run these scripts produced (A100, imgsz 1024, 150 epochs) is the **frozen canonical
+  detector**, tag `tooth-detector-a100-1024-v1.0` — see `models/06_yolo_detection_a100_run/`
+  and `docs/results/figures/yolo_detection_a100/`. T0.6 is closed.
 - The notebooks that actually executed the two competing runs live in
   `notebooks/yolo_detection/`.
 
 ## Caveats before re-running
 
+- **`convert_tufts_to_yolo.py` silently drops 66 real teeth.** Its degenerate-box guard
+  (`w < 2 or h < 2`) fires on 66 objects whose `bounding box` field in the source JSON is
+  corrupt (1×1 / 1×2 px) while their polygon is intact and full-size — verified, and three
+  were rendered to confirm they are real teeth. So the bbox dataset is missing 47 train / 13
+  val / 6 test teeth, and the frozen detector's numbers were scored against test ground truth
+  holding 3,924 of 3,930 real instances. **Left unfixed on purpose** — changing it would
+  invalidate the frozen detector's reproducibility. `convert_tufts_to_yolo_seg.py` keeps all
+  66. Full analysis: `docs/research/T0.6_detector_reconciliation.md` §3.5.
 - Paths at the top of `convert_tufts_to_yolo.py` are **hard-coded to the original macOS
-  workspace** (`/Users/.../Downloads/Capstone/DataSets`). Edit `TUFTS_ROOT`, `SPLIT_CSV`
-  and `DATASET_DIR` before use.
+  workspace** (`/Users/.../Downloads/Capstone/DataSets`, which no longer exists). Edit
+  `TUFTS_ROOT`, `SPLIT_CSV` and `DATASET_DIR` before use. The **seg** converter does not have
+  this problem — its paths are environment-overridable (`TUFTS_ROOT`, `TUFTS_IMG_DIR`,
+  `TUFTS_POLY_JSON`, `TUFTS_SPLIT_CSV`, `TUFTS_SEG_DATASET_DIR`), so the script that runs is
+  the script under review.
 - The docstring targets in `train_yolo.py` / `evaluate_yolo.py` (mAP@0.5 ≥ 0.90) were
   copied from published Tufts benchmarks and are **not** what this project achieved.
   Actual numbers: val mAP@0.5 = 0.834, test mAP@0.5 = 0.782. See

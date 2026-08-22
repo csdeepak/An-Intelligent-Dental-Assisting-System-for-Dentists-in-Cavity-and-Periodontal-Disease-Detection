@@ -130,11 +130,19 @@ bounding box.
 
 | Stage | Component | Input | Output | Status |
 |-------|-----------|-------|--------|--------|
-| 1 | Tooth Detection (YOLOv11l) | Full OPG | Tooth bboxes | ✅ **Complete** — test mAP@0.5 **0.782** (two runs, canonical not yet frozen) |
+| 1 | Tooth Detection (YOLOv11l) | Full OPG | Tooth bboxes | ✅ **Complete** — test mAP@0.5 **0.782**; canonical run **frozen** as `tooth-detector-a100-1024-v1.0` (T0.6, 20 Aug 2026) |
 | 2 | Sorting + FDI assignment | Tooth bboxes | FDI-keyed tooth list | ✅ **Complete** — Universal→FDI mapping fixed and regression-tested (`f8b31f8`) |
-| 3 | Caries cascade (ResNet18 ×2) | Tight 1.0× crop | caries / deep_caries | ✅ **Complete** — val acc 81%, macro F1 0.77 (evaluation gaps documented) |
+| 3 | Caries cascade (ResNet18 ×2) | Tight 1.0× crop | caries / deep_caries | ✅ **Complete** — val acc 81%, macro F1 0.77; weights retrieved and tagged `caries-cascade-resnet18-v1.0` (21 Aug 2026). **Re-run pending** — see the note below the table. |
 | 4a | Bone Loss binary (ResNet18) | Expanded 1.5×W/2.0×H crop | Present / Absent | ✅ **Complete** — macro F1 **0.9233** |
 | 4b | Bone Loss severity (ResNet18) | Expanded crop | Mild / Moderate / Severe | ✅ **Complete** — macro F1 0.7208 (only 52 val crops) |
+
+> **"Complete" means trained, not validated to publication standard.** As of 22 Aug 2026 the
+> Tier-0 re-run block is prepared but unrun: the caries numbers above are validation-only,
+> from accuracy-selected checkpoints, on a split that has since been replaced by an
+> independent one (`data/dentex/splits_v2.json`). `scripts/dentex/train_caries_cascade.py`
+> is the re-run that fixes T0.1–T0.4 in one GPU session. Stages 5–6 (integration) do not
+> exist yet — `scripts/run_inference.py` is a 38-line placeholder. Current state:
+> `docs/research/PUBLICATION_TODO.md` status block.
 | — | CEJ bone-level estimation | Expanded crop | bone loss % | 🔬 Exploratory — 15.1% agreement, **not in the pipeline** |
 | 5 | Filter + report assembly | All tooth outputs | Filtered findings | ⬜ **Not built — next milestone** |
 | 6 | JSON / PDF report + Grad-CAM | Filtered findings | Clinical report | ⬜ **Not built** |
@@ -364,7 +372,7 @@ Stages 5–6 are not implemented; this entry point is a stub.
 | Phase 0 | Literature review & survey paper | Deepak | ✅ Complete |
 | Phase 1 | Caries — gate (ResNet18 binary) | Collaborator | ✅ Complete (Phase 1 metrics not saved) |
 | Phase 2 | Caries — depth (caries vs deep_caries) | Collaborator | ✅ Complete — val acc 81%, macro F1 0.77 |
-| Phase 3 | Tooth Detection (YOLOv11l) | Deepak | ✅ Complete — test mAP@0.5 0.782; canonical run not yet frozen |
+| Phase 3 | Tooth Detection (YOLOv11l) | Deepak | ✅ Complete — test mAP@0.5 0.782; canonical run **frozen + tagged** 20 Aug 2026 |
 | Phase 4a | Bone Loss — data exploration | Deepak | ✅ Complete |
 | Phase 4b | Bone Loss — dataset construction | Deepak | ✅ Complete — 22,806 crops |
 | Phase 4c | Bone Loss — model training | Deepak | ✅ Complete — macro F1 0.9233 |

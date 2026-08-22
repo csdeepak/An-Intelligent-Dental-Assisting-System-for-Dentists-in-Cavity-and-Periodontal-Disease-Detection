@@ -10,6 +10,10 @@ three files in order:
    limitations section. This is the master document the paper gets written from.
 3. **`session-memory/`** (newest file) — what the last person to work here actually did.
 
+If you want to know **what to do next** rather than what was done, read
+`research/MASTER_PLAN_2026H2.md` §5 (the week-by-week schedule) and the status block at the
+top of `research/PUBLICATION_TODO.md`. The plan supersedes the older schedules elsewhere.
+
 ---
 
 ## Layout
@@ -30,7 +34,7 @@ three files in order:
 | `reports/legacy/DENTAL_AI_ANALYSIS_REPORT.md` | The original all-in-one analysis document (written as placement/interview prep). Technically accurate and still a useful source, but **no longer the entry point** — its content has been reorganised into `results/PAPER_MATERIAL.md`. |
 | `exploration/README.md` | Dataset quirks and the five critical bugs caught during exploration, with root cause and fix for each. Still the best single explanation of *why* the data handling looks the way it does. |
 | `session-memory/` | One dated file per substantial working session: goal, what was done, decisions, open questions, next steps. See `session-memory/README.md`. |
-| `research/` | Maintained separately by a parallel workstream — see that folder's own README. Not covered by this index. |
+| `research/` | Maintained by a parallel workstream. **It has no README of its own** (this index used to claim it did). Contents, in reading order: `MASTER_PLAN_2026H2.md` — the governing 8-week plan, which *supersedes the other docs for sequencing*; `PUBLICATION_TODO.md` — the tiered T0–T3 work list, with a verified status block at the top; `gap_analysis.md`, `PUBLICATION_STRATEGY.md`; `T0.6_detector_reconciliation.md` — detector freeze + the pre-registered R1 criterion; `GPU_SETUP.md` — E2E provisioning checklist; `clinical_dataset_plan.md` and `clinical_dataset_provenance.md` — the clinic track, currently governance-blocked. |
 
 ---
 

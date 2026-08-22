@@ -1174,3 +1174,50 @@ Copy this block verbatim to the bottom of the file and fill it in.
   schedule and config table, and PAPER_MATERIAL §9's first blocking item — the Phase-1 gate
   classification report, saved rather than printed. Still undecided beforehand: whether to add
   a detector-derived not-diseased class (RESULTS_LOG 21m).
+
+## 2026-08-22 — A 250-image FDI-keyed disease set found in the DENTEX release, with healthy teeth
+
+- **What was done:** Full inventory of `~/Downloads/Capstone/DENTEX/` while updating the repo's
+  READMEs. Five subsets were already known; a sixth, `disease/{input,label}/`, had never been
+  looked at. It is not part of the DENTEX challenge's four-class disease subset and is
+  materially different from it.
+- **Dataset / config:** 250 PNG images + 250 LabelMe-format JSONs, stem-for-stem matched.
+  1,600 polygon annotations, median 6 per image (range 1–31). Label format
+  `{id}-{Turkish name}-{FDI}`, parsed cleanly on all 1,600 with zero exceptions.
+- **The eight classes** (Turkish, with counts): `çürük` caries 747 · `küretaj` curettage 265 ·
+  `gömülü` impacted 221 · `kanal` root-canal 161 · **`saglam` sound/healthy 91** · `lezyon`
+  lesion 75 · `çekim` extraction-indicated 29 · `kırık` fractured 11.
+- **Why it matters — three distinct things this unlocks:**
+  1. **Per-tooth FDI-keyed ground truth.** Tooth numbers span 11–48, all 32 permanent
+     positions. `MASTER_PLAN_2026H2.md` §4.3.1 states that per-tooth FDI-keyed external
+     metrics "remain available only from the clinic data, if IRB clears" — **that is no longer
+     true**, and it changes what C2/C3 can measure without waiting on governance.
+  2. **Real healthy teeth, explicitly labelled.** 91 `saglam` annotations, in the same images
+     and the same coordinate space as the diseased ones. This is the first genuine healthy
+     class found anywhere in DENTEX, and it does not repeat the disjoint-patient error of
+     2026-08-21m. **Caveat that must not be lost:** annotation is not exhaustive — only teeth
+     with a finding are marked — so "unannotated tooth = healthy" is still invalid here. Only
+     the 91 explicit `saglam` teeth are usable, which is a small class.
+  3. **End-to-end evaluation with per-tooth truth**, enabling the stage-wise error-propagation
+     decomposition that is contribution C3 and `PUBLICATION_TODO.md` T1.1's hardest item.
+- **Leakage check — the finding this rests on:** hashed and signature-matched all 250 against
+  the 705 training images and the 50-image extern set. **Exactly one exact duplicate:**
+  `disease/input/test_181.png` is byte-identical (MD5 and correlation 1.0000) to
+  `training_data/quadrant-enumeration-disease/xrays/train_332.png`. Every other pairing tops
+  out at 0.887, which is just "both are OPGs of similar anatomy". Zero overlap with the
+  50-image set. **So this is a usable held-out set once `test_181.png` is excluded** — 249
+  clean images. Dimension modes match the 705 exactly, so it is the same equipment and
+  population, i.e. an internal held-out set, **not** an external-validation cohort. Do not
+  present it as cross-institutional evidence; Ningxia remains the external set.
+- **Key decision or insight:** nothing was built on this yet, deliberately. It arrived while
+  auditing documentation, and the 2026-08-21m error came precisely from acting on an apparent
+  dataset relationship before verifying it. The leakage check above is that verification done
+  first; what to *use* it for is a scoping decision that belongs with the schedule, not with a
+  README pass.
+- **Source:** `~/Downloads/Capstone/DENTEX/disease/` (outside the repo, unmodified);
+  inventory recorded in `data/README.md`.
+- **Follow-ups:** decide whether this becomes (a) the caries cascade's honest held-out test
+  set with per-tooth truth, (b) the source of a small real healthy class for the Phase-1 gate
+  defect, (c) the substrate for C3's error-propagation analysis, or some combination. All
+  three need a parser from LabelMe polygons to the repo's FDI conventions, which does not
+  exist yet.

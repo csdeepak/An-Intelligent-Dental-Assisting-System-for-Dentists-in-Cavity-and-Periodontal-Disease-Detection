@@ -1,8 +1,9 @@
 # `notebooks/yolo_detection/` — Stage 1 tooth detection runs
 
 Two YOLOv11l fine-tuning runs were executed on the same Tufts dataset and the same
-70/15/15 image-level split. They were never reconciled into a single canonical model, so
-both notebooks are kept here side by side.
+70/15/15 image-level split. They were **reconciled on 20 August 2026 (T0.6)** — the A100 run
+is the frozen canonical detector, tag `tooth-detector-a100-1024-v1.0`, and the H200 run is
+formally superseded. Both notebooks are kept side by side as the record of that comparison.
 
 | Notebook | GPU | imgsz | Epochs | Val mAP@0.5 | Test mAP@0.5 | Verdict |
 |----------|-----|-------|--------|-------------|--------------|---------|
@@ -38,7 +39,14 @@ Any future detection work should start at imgsz ≥ 1024 and budget the longer s
 - Curves, confusion matrices, qualitative predictions: `docs/results/figures/yolo_detection_a100/`
 - Reusable CLI versions of the same pipeline: `scripts/yolo/`
 
-## Open item
+## Open item — CLOSED 20 August 2026
 
-Pick one canonical detector and freeze it (weights hash + config recorded in
-`docs/results/model_metrics.md`) before the full-pipeline integration in Stage 5/6.
+~~Pick one canonical detector and freeze it before the full-pipeline integration.~~ Done:
+`best.pt`/`last.pt` located, verified (loads under Ultralytics, byte-identical
+`args.yaml`/`results.csv` against the committed copies), copied into
+`models/06_yolo_detection_a100_run/`, tagged `tooth-detector-a100-1024-v1.0`, SHA-256 recorded
+in `docs/results/model_metrics.md` and `docs/research/T0.6_detector_reconciliation.md` §1.
+
+**What replaced it as the open item:** the R1 retrain to `YOLOv11l-seg`. Its dataset is built
+(`data/tufts/dataset_seg/`, 26,005 instances on the same frozen split) and its acceptance
+criterion is pre-registered in T0.6 §2. It needs GPU time and nothing else.

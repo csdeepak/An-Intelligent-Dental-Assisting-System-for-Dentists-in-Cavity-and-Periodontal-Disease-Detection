@@ -1,22 +1,70 @@
-# Models Directory
+# `models/` — trained checkpoints
 
-Trained model checkpoints are stored here. **Model files (.pth, .pt) are git-ignored** due to file size.
+**Last verified: 22 August 2026.** Every claim below was checked against the working tree,
+not carried over from a previous version of this file.
 
-## Expected Files After Training
+## What is actually here
 
-```
-models/
-  bone_loss_resnet18_best.pth    ← Best checkpoint (by val F1)
-  bone_loss_resnet18_final.pth   ← Final epoch checkpoint
-  training_history.json           ← Loss/metric curves per epoch
-```
+One numbered directory per trained stage, each with a `*summary*.txt` beside the weights.
 
-## Model Specifications
+| Directory | Stage | Weights | Tracked in git? |
+|---|---|---|---|
+| `06_yolo_detection_a100_run/` | Stage 1 — tooth detection, YOLOv11l | `best.pt`, `last.pt` (49 MB each) | **No** — `.gitignore` `models/**/*.pt`. Location + SHA-256 in `run_summary.txt`. |
+| `07_caries_cascade/` | Stage 3 — caries cascade, ResNet18 ×2 | 5 `.pth` (43 MB each) | **Partly** — the two bundles are tracked; the three lineage checkpoints are not. See below. |
+| `03_bone_loss_model_training_notebook_models/` | Stage 4a — bone-loss binary | `bone_loss_resnet18_{best,final}.pth` | **Yes** |
+| `04_bone_loss_severity_notebook_models/` | Stage 4b — bone-loss severity | `bone_loss_severity_resnet18_best.pth` | **Yes** |
+| `05_cej_estimation_v2_models/` | Exploratory CEJ (negative result, not in the pipeline) | summary only | n/a |
 
-| Property | Value |
-|----------|-------|
-| Architecture | ResNet18 (pretrained ImageNet) |
-| Input | 224×224 expanded crop (1.5× W, 2.0× H) |
-| Output | Binary — Bone loss Present / Absent |
-| FC layer | 512 → 2 |
-| Normalization | ImageNet mean/std |
+> The previous version of this file claimed "**Model files (.pth, .pt) are git-ignored** due
+> to file size" and showed a flat `models/*.pth` layout. Both were wrong: the ResNet18 `.pth`
+> files are and always were tracked, and the layout has been `models/<NN>_<name>/` throughout.
+
+## Version tags
+
+| Tag | Covers | Frozen |
+|---|---|---|
+| `tooth-detector-a100-1024-v1.0` | Stage 1 detector | 20 Aug 2026 — `docs/research/T0.6_detector_reconciliation.md` §1 |
+| `caries-cascade-resnet18-v1.0` | Stage 3 cascade | 21 Aug 2026 — `07_caries_cascade/run_summary.txt` |
+
+Bone-loss weights (Stages 4a/4b) are **not yet version-tagged** — the one gap in this table.
+
+## `07_caries_cascade/` — which file is which
+
+Retrieved from Kaggle on 21 Aug 2026; before that the caries branch was the only trained
+stage with no local weight, no tag and no hash.
+
+- `phase2_final_bundle.pth` **[tracked]** — Phase 2 severity, `{model_state_dict, class_to_idx}`,
+  `{caries, deep_caries}`. **This is the model behind the reported caries numbers.**
+- `final_model.pth` **[tracked]** — Phase 1 gate, `{model_state_dict, class_to_idx}`,
+  `{caries, no_caries}`.
+- `best_phase2_final.pth`, `best_phase2_fixed.pth`, `best_model.pth` **[gitignored]** —
+  training lineage. Needed to *reproduce* the runs, not to *run* them. `best_model.pth` is
+  byte-identical to `final_model.pth` (verified).
+
+Storage split rationale: the two bundles are the complete runnable cascade at 86 MB; tracking
+all five would add 214 MB for the same usable model. SHA-256 for all five is in
+`run_summary.txt`.
+
+## Model specifications
+
+| | Stage 1 detector | Caries cascade | Bone-loss binary | Bone-loss severity |
+|---|---|---|---|---|
+| Architecture | YOLOv11l | ResNet18 ×2 (ImageNet) | ResNet18 (ImageNet) | ResNet18 (ImageNet) |
+| Input | 1024 px OPG | 224×224 **tight** crop (no expansion) | 224×224 expanded 1.5×W / 2.0×H | same expanded crop |
+| Output | tooth boxes, `nc=1` | caries/no_caries → caries/deep_caries | Present / Absent | 3-class severity |
+| Head | — | 512 → 2 | 512 → 2 | 512 → 3 |
+| Normalisation | Ultralytics default | ImageNet mean/std | ImageNet mean/std | ImageNet mean/std |
+
+Note the crop geometries differ by design: the caries track uses the raw bbox with **no
+expansion**, the bone-loss track uses asymmetric expansion (`PAPER_MATERIAL.md` §6.1).
+
+## Caveats worth knowing before using these
+
+- **The caries weights are accuracy-selected**, predating the T0.3 macro-F1 fix, and were
+  evaluated on validation only. `scripts/dentex/train_caries_cascade.py` is the re-run that
+  replaces them.
+- **The caries weights have never been loaded on this machine** — no torch was installed when
+  they were recorded, so they were verified structurally (valid archives, correct
+  `class_to_idx`, 512→2 head, lineage confirmed by tensor-payload digests) but not
+  functionally. Reproduce cell 119's macro-F1 0.77 before trusting inference.
+- Current numbers for all stages: `docs/results/model_metrics.md`.
