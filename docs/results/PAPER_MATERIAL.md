@@ -720,15 +720,19 @@ polygons where both exist, which is what the seg pipeline effectively does.
 ### 8.10 FDI numbering is the pipeline's weakest link, and it was never measured until now
 
 Measured 22 August 2026 against the 1,534 FDI-labelled teeth in DENTEX `disease/` — the first
-Stage-2 evaluation this project has ever run. **End-to-end FDI exact accuracy is 26.3%.**
+Stage-2 evaluation this project has ever run. **End-to-end FDI exact accuracy is 28.0%.**
 
-The failure is specific, not diffuse. Quadrant assignment is reliable (90.2% of detected
+The failure is specific, not diffuse. Quadrant assignment is reliable (93.0% of detected
 teeth): the jaw split works and the image-left/patient-right convention holds. The **position
 digit** is what breaks, and asymmetrically — 40.2% of position errors are too low against
-20.6% too high. The cause is a clean propagation from Stage 1: detector recall falls from
-98.3% at position 1 to **61.0% at position 8**, and positional assignment numbers teeth by
-rank order from the midline, so every missed premolar or molar shifts each tooth distal to it
-one place inward.
+20.6% too high. The cause is a clean propagation from Stage 1: detector recall falls sharply
+toward the posterior arch, and positional assignment numbers teeth by rank order from the
+midline, so every missed premolar or molar shifts each tooth distal to it one place inward.
+
+(Numbers corrected 22 Aug 2026: a first run rotated the detector input clockwise when the
+detector was trained on counter-clockwise. Fixing it moved end-to-end accuracy 26.3% → 28.0%
+and quadrant 90.2% → 93.0% — better, but not enough to change the conclusion, which is the
+substantive point. `RESULTS_LOG.md` 2026-08-22d.)
 
 This is the stage-wise error-propagation decomposition the paper needs (C3), and it says
 something sharper than "accuracy compounds": **losing a tooth at detection does not merely
@@ -742,7 +746,7 @@ latter already exists — DENTEX's `quadrant_enumeration` subset labels 18,095 t
 quadrant and position across 634 images, on **disjoint patients** from the `disease/` set used
 here, so it can train a numbering head while `disease/` remains a clean held-out test.
 
-Report the 26.3% honestly. It is the most informative number the project currently has about
+Report the 28.0% honestly. It is the most informative number the project currently has about
 whether the system works end to end, and the answer today is that it does not.
 
 ---

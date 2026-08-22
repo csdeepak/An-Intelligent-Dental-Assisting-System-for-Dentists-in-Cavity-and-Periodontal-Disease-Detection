@@ -9,15 +9,23 @@ substrate for C3's stage-wise error-propagation decomposition.
 ORIENTATION — the step that makes or breaks this
 ------------------------------------------------
 The frozen detector was trained on Tufts' portrait-space annotations, i.e. **sideways**
-panoramics. DENTEX ships upright. On an upright DENTEX image the detector finds ~3 boxes, in
-the nasal region; rotated 90 deg clockwise it finds ~35, on the arches (RESULTS_LOG
-2026-08-22b). So both the image AND the ground-truth polygons are rotated here.
+panoramics; DENTEX ships upright. Measured on 60 images against this same ground truth, with
+everything else held constant:
 
-The point transform for cv2.ROTATE_90_CLOCKWISE on a WxH image is `(x, y) -> (H-1-y, x)`,
-verified three ways before this script was written: algebraically on all four corners; against
-cv2 on 4,000 random pixels (zero mismatches); and by a mask round-trip — rasterise-then-rotate
-vs rotate-then-rasterise agree at IoU 0.99994. `--save-viz` renders the overlays so it can be
-checked by eye as well.
+    upright : recall  7.5%,  FDI exact end-to-end  0.0%   (mean 3.2 detections/image)
+    CW      : recall 73.7%,  FDI exact end-to-end 21.8%
+    CCW     : recall 71.5%,  FDI exact end-to-end 26.1%   <- correct
+
+**Counter-clockwise**, confirmed independently by comparing all 1,000 Tufts
+`Radiographs/` vs `Radiographs_rotated/` pairs: 1000/1000 consistent with
+ROTATE_90_COUNTERCLOCKWISE, 0/1000 with clockwise. An earlier version of this script used CW,
+inferred from a visual overlay without checking how the rotated files were produced — it still
+"worked" because a tooth detector is fairly robust to a 180 deg flip, which is exactly why the
+error survived a visual check. See `src/orientation.py`.
+
+Detection runs through `src.orientation.detect_upright`, which rotates and un-rotates as one
+call: the ground truth here is NOT rotated, because all geometry downstream of the detector
+lives in the upright frame.
 
 WHAT IS AND IS NOT MEASURED
 ---------------------------

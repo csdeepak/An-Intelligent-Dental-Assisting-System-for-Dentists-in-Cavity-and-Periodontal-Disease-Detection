@@ -40,24 +40,27 @@ all 66, so its instance counts will legitimately differ. Analysis:
 
 First measured 22 Aug 2026. Frozen detector (`tooth-detector-a100-1024-v1.0`, imgsz 1024,
 conf 0.25, NMS IoU 0.50) + `src/fdi_assignment.py`, against 1,534 FDI-labelled teeth across
-249 images. `test_181.png` excluded (byte-identical to a training image).
+249 images. `test_181.png` excluded (byte-identical to a training image). **Detector input is
+rotated 90° COUNTER-clockwise** — verified against all 1,000 Tufts pairs (1000/1000 CCW,
+0/1000 CW). Corrected 22 Aug after a first run used clockwise; see `RESULTS_LOG.md`
+2026-08-22d.
 
 | Metric | Value |
 |--------|-------|
-| Detection recall | 74.6% (1,144 / 1,534) |
-| Quadrant correct (of detected) | 90.2% |
-| **FDI exact (of detected)** | **35.3%** |
-| **FDI exact, end-to-end** | **26.3%** |
-| Within ±1 position (correct quadrant) | 78.0% |
+| Detection recall | 71.8% (1,101 / 1,534) |
+| Quadrant correct (of detected) | 93.0% |
+| **FDI exact (of detected)** | **39.1%** |
+| **FDI exact, end-to-end** | **28.0%** |
+| Within ±1 position (correct quadrant) | 74.0% |
 
 **This is a negative result and should be reported as one.** Quadrant assignment works; the
 position digit does not. Errors are asymmetric — 40.2% too low vs 20.6% too high — because
-detector recall decays toward the back of the arch (98.3% at position 1, **61.0% at position
-8**), and each missed tooth shifts every tooth distal to it one place inward. At 26.3%
-end-to-end, ~3 of 4 teeth in a per-tooth report would carry the wrong number.
+detector recall decays toward the back of the arch, and each missed tooth shifts every tooth
+distal to it one place inward. At 28.0% end-to-end, ~7 of 10 teeth in a per-tooth report would
+carry the wrong number.
 
-Assignment confidence is calibrated in the right direction: 41.2% exact at confidence 1.0,
-27.5% in [0.30, 0.60), 22.7% below 0.30 — so Stage-5 filtering can act on it.
+Assignment confidence is calibrated in the right direction — unflagged assignments are 43.9%
+exact against 29.1% for flagged ones — so Stage-5 filtering can act on it.
 
 Evaluates **GT → detection** only; detector precision is not reported because DENTEX
 `disease/` annotates only teeth carrying a finding (~6 of ~30 per image). Full analysis:

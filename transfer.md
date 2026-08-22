@@ -5,7 +5,7 @@ what is next" for a session that is starting cold. It is **rewritten, not append
 unlike `docs/results/RESULTS_LOG.md` (append-only history) and `docs/session-memory/`
 (one file per session, never edited). Those two are the record; this is the snapshot.
 
-**Last updated: 22 August 2026 (third update — Stage 2 validated).** Rewritten from a one-off machine-handoff document — the
+**Last updated: 22 August 2026 (fourth update — rotation direction corrected).** Rewritten from a one-off machine-handoff document — the
 20–21 Aug handoff it described is complete, and its content is preserved in git history
 (`git show ad71ee4:transfer.md`) and in §6 below.
 
@@ -46,7 +46,7 @@ long pole."
 | **Caries re-run script** written, smoke-verified on CPU | `scripts/dentex/train_caries_cascade.py` |
 | **Stage 2 FDI assignment** built + tested (R4, part 1) | `src/fdi_assignment.py` |
 | **Orientation contract** — rotate for detector, un-rotate immediately | `src/orientation.py` |
-| **Stage 2 validated** — first ever, and it fails (26.3%) | `scripts/eval/validate_fdi_assignment.py` |
+| **Stage 2 validated** — first ever, and it fails (28.0%) | `scripts/eval/validate_fdi_assignment.py` |
 | Test suite | **45/45 pass** |
 
 **Findings that changed the science** (all in `RESULTS_LOG.md`):
@@ -64,8 +64,8 @@ long pole."
      Conventions derived from DENTEX FDI ground truth, not assumed.
    - ✅ **Orientation rule found and must be honoured** — see the warning box below.
    - ✅ **Stage 2 validated against DENTEX FDI ground truth** — 249 images, 1,534 teeth.
-     **Negative and important: 26.3% end-to-end FDI exact accuracy.** Quadrant is fine
-     (90.2%); the position digit fails because detector recall decays from 98.3% at position 1
+     **Negative and important: 28.0% end-to-end FDI exact accuracy.** Quadrant is fine
+     (93.0%); the position digit fails because detector recall decays from 98.3% at position 1
      to 61.0% at position 8, and each missed tooth shifts everything distal to it inward.
      `RESULTS_LOG.md` 2026-08-22c, `model_metrics.md` Stage 2, `PAPER_MATERIAL.md` §8.10.
    - ⬜ **DECISION NEEDED — fix Stage 2 before Stages 5–6 mean anything** (see §4).
@@ -73,9 +73,12 @@ long pole."
 
 > ### ⚠️ ORIENTATION — read before running the pipeline on ANY non-Tufts image
 > The frozen detector was trained on Tufts' **portrait-space** annotations, i.e. *sideways*
-> panoramics. On a DENTEX image as shipped it finds **3 boxes, in the nasal region**; rotated
-> **90° clockwise** it finds **35**. DENTEX, Ningxia and the clinic data are all shipped
-> upright. **Rotate 90° CW before inference.** `MASTER_PLAN` §8 pre-frames weak cross-dataset
+> panoramics. DENTEX, Ningxia and the clinic data are all shipped upright. **Rotate 90°
+> COUNTER-CLOCKWISE before inference** — verified against all 1,000 Tufts pairs (1000/1000 CCW,
+> 0/1000 CW). Measured against ground truth: upright gives 7.5% recall and 0% FDI accuracy;
+> CW 73.7%/21.8%; **CCW 71.5%/26.1%**. Use `src/orientation.py::detect_upright`, which rotates
+> and un-rotates as one call. An earlier note here said clockwise — wrong, and it survived a
+> visual check because a tooth detector barely notices a 180° flip. `MASTER_PLAN` §8 pre-frames weak cross-dataset
 > transfer as "this is the finding", so skipping this would log a preprocessing bug as a
 > domain-shift result on C2. Full record: `RESULTS_LOG.md` 2026-08-22b.
 2. **Provision the E2E GPU instance.** *Blocker for everything in W2.* `docs/research/GPU_SETUP.md`
@@ -96,7 +99,7 @@ long pole."
 
 | Decision | Why it needs a human |
 |---|---|
-| **How to fix FDI numbering.** At 26.3% exact a per-tooth report mislabels ~3 of 4 teeth, and a finding on the wrong tooth is worse than none. Route A: raise posterior detector recall. **Route B (stronger): train a per-tooth enumeration head** — DENTEX `quadrant_enumeration` labels 18,095 teeth with quadrant+position across 634 images, on patients disjoint from the `disease/` eval set, so it trains without leaking. | Changes the architecture |
+| **How to fix FDI numbering.** At 28.0% exact a per-tooth report mislabels ~3 of 4 teeth, and a finding on the wrong tooth is worse than none. Route A: raise posterior detector recall. **Route B (stronger): train a per-tooth enumeration head** — DENTEX `quadrant_enumeration` labels 18,095 teeth with quadrant+position across 634 images, on patients disjoint from the `disease/` eval set, so it trains without leaking. | Changes the architecture |
 | **Detector-derived not-diseased class?** Running the frozen detector over the 705 disease images and treating unmatched detections as not-diseased is the one sound fix for the gate's negative-class defect — but it puts detector error into training labels. | Trade-off, not a fact |
 | **What to use `DENTEX/disease/` (250 imgs, FDI-keyed) for** — honest per-tooth test set / small healthy class / C3 error-propagation substrate. Needs a LabelMe→FDI parser that does not exist. Exclude `test_181.png`. | Scoping call |
 | **Clinic data governance.** `index.csv` sits beside `images/` on a shared Drive, which voids the de-identification. Five actions in `clinical_dataset_provenance.md` §4a, all needing the Drive owner. | Not this repo's account |

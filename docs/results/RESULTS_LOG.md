@@ -1342,3 +1342,58 @@ Copy this block verbatim to the bottom of the file and fill it in.
 - **Follow-ups:** decide between raising posterior recall and training an enumeration head
   (the latter looks stronger and its data is ready). Until Stage 2 is fixed, Stages 5–6 can be
   built but **any per-tooth report they emit is not clinically trustworthy** and must say so.
+
+## 2026-08-22d — CORRECTION to 22b and 22c: the rotation direction was clockwise, and it is counter-clockwise
+
+- **What was done:** Re-checked the orientation claim after being asked to verify it again.
+  Entries 2026-08-22b and 2026-08-22c both state the detector requires a **90° clockwise**
+  rotation. **That is wrong. It is counter-clockwise.** All numbers in 22c were therefore
+  measured through a 180°-wrong input and are superseded below.
+- **How the error happened, precisely:** the direction was inferred from a visual overlay on
+  the *pre-existing* `Radiographs_rotated/` files — which showed annotations landing correctly
+  on teeth, and did — but **how those files were produced was never checked**. Comparing all
+  1,000 `Radiographs/` ↔ `Radiographs_rotated/` pairs directly settles it:
+
+  | Hypothesis | Pairs consistent | mean abs diff |
+  |---|---|---|
+  | `cv2.ROTATE_90_CLOCKWISE` | **0 / 1000** | ~70 |
+  | `cv2.ROTATE_90_COUNTERCLOCKWISE` | **1000 / 1000** | **0.49** (JPEG re-encode noise) |
+
+  The visual check could not have caught this: CW and CCW differ by 180°, and a tooth detector
+  is largely indifferent to a 180° flip, so the wrong direction still produced plausible-looking
+  detections. **A check that cannot fail is not a check** — the earlier "verified three ways"
+  claim in 22b verified the *transform arithmetic*, never the *direction*.
+- **Measured cost, 60 images / 372 GT teeth, everything else held constant:**
+
+  | Detector input | Recall | Quadrant | FDI exact | End-to-end |
+  |---|---|---|---|---|
+  | upright (no rotation) | 7.5% | 71.4% | 0.0% | **0.0%** |
+  | 90° CW (what 22c used) | 73.7% | 86.9% | 29.6% | 21.8% |
+  | **90° CCW (correct)** | 71.5% | **92.1%** | **36.5%** | **26.1%** |
+
+- **Corrected full-set numbers** — 249 images, 1,534 GT teeth, replacing 22c's table:
+
+  | Metric | 22c (CW, wrong) | **Corrected (CCW)** |
+  |---|---|---|
+  | Detection recall | 74.6% | **71.8%** |
+  | Quadrant correct | 90.2% | **93.0%** |
+  | FDI exact (of detected) | 35.3% | **39.1%** |
+  | **FDI exact, end-to-end** | 26.3% | **28.0%** |
+  | Within ±1 position | 78.0% | 74.0% |
+
+- **Key decision or insight:** **the conclusion of 22c is unchanged and if anything firmer.**
+  Stage 2 still fails — 28.0% end-to-end means roughly 7 of 10 teeth carry the wrong number —
+  and the failure is still the position digit rather than the quadrant (93.0% correct). Fixing
+  the rotation improved every numbering metric without rescuing the approach, which is the
+  point: the defect is structural, not a preprocessing artefact. Everything said in 22c about
+  detector recall decaying toward the posterior arch and shifting distal teeth inward stands.
+- **Fixed in code:** `src/orientation.py` now defaults to CCW, supports both directions
+  explicitly, and carries the 1000/1000 evidence in its docstring so the next reader does not
+  re-derive it from a visual. Note CCW's inverse needs the original **width** where CW's needs
+  the **height** — a detail that silently produces mirrored boxes if carried over unchanged.
+  `tests/test_orientation.py` now round-trips both directions against cv2 on real pixels.
+- **Source:** `src/orientation.py`, `tests/test_orientation.py`,
+  `scripts/eval/validate_fdi_assignment.py`; supersedes the rotation direction in 2026-08-22b
+  and all metrics in 2026-08-22c.
+- **Follow-ups:** unchanged from 22c — the Stage-2 fix decision (raise posterior recall vs
+  train an enumeration head) is what matters, and neither is affected by this correction.
