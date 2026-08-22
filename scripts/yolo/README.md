@@ -22,9 +22,11 @@ toolchain. Both sets are live; they simply serve different halves of the pipelin
 | status | **frozen**, `tooth-detector-a100-1024-v1.0` | **needs GPU only** — data ready, criterion pre-registered in `T0.6_detector_reconciliation.md` §2 |
 
 `rotate_tufts_radiographs.py` sits upstream of both: the raw Tufts release ships **landscape
-1615×840**, and every converter expects portrait 840×1615. That 90° clockwise rotation was
-undocumented tribal knowledge until Aug 2026; it is now code, with the direction empirically
-derived and visually verified.
+1615×840**, and every converter expects portrait 840×1615. That rotation is **90° counter-clockwise** —
+undocumented tribal knowledge until Aug 2026, then recorded as *clockwise* until 22 Aug, when
+comparing all 1,000 raw/rotated pairs settled it (1000/1000 CCW, 0/1000 CW). The visual check
+that originally set the direction could not have caught the error: CW and CCW differ by 180°,
+and tooth detection is largely indifferent to a 180° flip.
 
 | Script | What it does |
 |--------|--------------|

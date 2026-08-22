@@ -13,7 +13,8 @@ Full record: docs/research/T0.6_detector_reconciliation.md §3.
 
 IMPORTANT — the real Radiographs source ships LANDSCAPE (1615x840), not portrait. Run
 scripts/yolo/rotate_tufts_radiographs.py first to produce Radiographs_rotated/ (rotation
-direction — 90 deg clockwise — was empirically determined and visually verified, see that
+direction — 90 deg COUNTER-clockwise, corrected 22 Aug 2026 after being recorded as
+clockwise; verified against all 1,000 raw/rotated pairs — see that
 script's docstring and the T0.6 doc; do not assume Radiographs_rotated/ already exists).
 
 RUN FOR REAL 21 Aug 2026 — the frozen outputs/eda_tufts/split_v1.csv was found (it was on

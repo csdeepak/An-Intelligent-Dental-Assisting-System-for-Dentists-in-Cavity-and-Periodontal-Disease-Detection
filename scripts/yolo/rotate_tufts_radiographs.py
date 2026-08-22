@@ -1,4 +1,19 @@
 """
+CORRECTED 22 August 2026 — this script rotated the WRONG WAY.
+
+It used `Image.ROTATE_270` (90 deg clockwise). The `Radiographs_rotated/` files that every
+converter consumes, and that the frozen detector `tooth-detector-a100-1024-v1.0` was trained
+on, are 90 deg COUNTER-clockwise. Checked against all 1,000 raw/rotated pairs:
+
+    Image.ROTATE_90  (90 CCW)  mean|diff| = 0.494   <- matches, JPEG re-encode noise
+    Image.ROTATE_270 (90 CW)   mean|diff| = 70.2    <- a different image
+
+This mattered because `docs/research/T0.6_detector_reconciliation.md` §4 lists running this
+script as step 2 of the GPU run order. Re-running it as committed would have regenerated the
+Tufts images 180 deg flipped, and the R1 seg retrain would have trained on them — silently,
+since a tooth detector trains perfectly happily on upside-down teeth. Record:
+`docs/results/RESULTS_LOG.md` 2026-08-22d.
+
 Rebuild Radiographs_rotated/ from the raw Tufts Radiographs/ folder.
 
 Both convert_tufts_to_yolo.py and convert_tufts_to_yolo_seg.py assume
@@ -57,8 +72,12 @@ def main():
     ok = 0
     for src in tqdm(files, desc="Rotating"):
         img = Image.open(src)
-        # ROTATE_270 = 270 deg counter-clockwise = 90 deg clockwise
-        rotated = img.transpose(Image.ROTATE_270)
+        # PIL ROTATE_90 == 90 deg COUNTER-clockwise. This is the direction that reproduces
+        # the existing Radiographs_rotated/ files, which are what the frozen detector was
+        # trained on. Verified against all 1,000 pairs: ROTATE_90 gives mean|diff| 0.494
+        # (JPEG re-encode noise), ROTATE_270 gives 70.2 (a different image entirely).
+        # This line said ROTATE_270 until 22 Aug 2026 — see the docstring.
+        rotated = img.transpose(Image.ROTATE_90)
         assert rotated.size == EXPECTED_ROTATED_SIZE, (
             f"{src.name}: rotated size {rotated.size} != expected {EXPECTED_ROTATED_SIZE}"
         )
