@@ -5,7 +5,7 @@ what is next" for a session that is starting cold. It is **rewritten, not append
 unlike `docs/results/RESULTS_LOG.md` (append-only history) and `docs/session-memory/`
 (one file per session, never edited). Those two are the record; this is the snapshot.
 
-**Last updated: 22 August 2026.** Rewritten from a one-off machine-handoff document — the
+**Last updated: 22 August 2026 (second update — R4 started).** Rewritten from a one-off machine-handoff document — the
 20–21 Aug handoff it described is complete, and its content is preserved in git history
 (`git show ad71ee4:transfer.md`) and in §6 below.
 
@@ -44,7 +44,8 @@ long pole."
 | **R1 seg dataset** built on the frozen split | `data/tufts/dataset_seg/` — 26,005 instances, 700/150/150 |
 | **R2 mask-aware cropping** implemented + unit-tested (**unwired** — needs R1's masks) | `src/crop_generator.py`, `tests/test_crop_generator.py` |
 | **Caries re-run script** written, smoke-verified on CPU | `scripts/dentex/train_caries_cascade.py` |
-| Test suite | **29/29 pass** |
+| **Stage 2 FDI assignment** built + tested (R4, part 1) | `src/fdi_assignment.py` |
+| Test suite | **40/40 pass** |
 
 **Findings that changed the science** (all in `RESULTS_LOG.md`):
 - The bbox detector's ground truth is **missing 66 real teeth** (corrupt `bounding box` fields); test GT holds 3,924 of 3,930. Left unfixed on purpose to preserve the frozen detector.
@@ -56,8 +57,22 @@ long pole."
 
 ## 3. What is NEXT — ordered, with the real blocker named
 
-1. **R4 — Stages 5–6 integration.** *No blocker.* `scripts/run_inference.py` is a 38-line
-   placeholder; all four models are on local disk. This is C3 and the plan's long pole.
+1. **R4 — Stages 5–6 integration. IN PROGRESS.** *No blocker.*
+   - ✅ **Stage 2 positional FDI assignment built** — `src/fdi_assignment.py`, 11 tests.
+     Conventions derived from DENTEX FDI ground truth, not assumed.
+   - ✅ **Orientation rule found and must be honoured** — see the warning box below.
+   - ⬜ Validate FDI assignment against the 250-image `DENTEX/disease/` ground truth
+     (detector → assign → match to GT polygons). Gives the project its first real Stage-2
+     accuracy number and is the substrate for C3's error-propagation decomposition.
+   - ⬜ `scripts/run_inference.py` — still a 38-line placeholder. Stages 5–6 proper.
+
+> ### ⚠️ ORIENTATION — read before running the pipeline on ANY non-Tufts image
+> The frozen detector was trained on Tufts' **portrait-space** annotations, i.e. *sideways*
+> panoramics. On a DENTEX image as shipped it finds **3 boxes, in the nasal region**; rotated
+> **90° clockwise** it finds **35**. DENTEX, Ningxia and the clinic data are all shipped
+> upright. **Rotate 90° CW before inference.** `MASTER_PLAN` §8 pre-frames weak cross-dataset
+> transfer as "this is the finding", so skipping this would log a preprocessing bug as a
+> domain-shift result on C2. Full record: `RESULTS_LOG.md` 2026-08-22b.
 2. **Provision the E2E GPU instance.** *Blocker for everything in W2.* `docs/research/GPU_SETUP.md`
    has the verified click-path. Still not launched.
 3. **One GPU session, once provisioned:** R1 seg retrain (~6h; criterion pre-registered in
