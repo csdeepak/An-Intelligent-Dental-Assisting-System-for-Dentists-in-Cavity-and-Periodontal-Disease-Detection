@@ -3,7 +3,7 @@
 Current best numbers only. One table per model, nothing else. For how a number was
 obtained see `PAPER_MATERIAL.md`; for when and why it changed see `RESULTS_LOG.md`.
 
-**Last updated:** 2026-08-21
+**Last updated:** 2026-08-22
 
 ---
 
@@ -33,6 +33,35 @@ instances (0.15% missing); val is 3,794 of 3,807. Too small to move mAP@0.5 = 0.
 materially, and the numbers above are **not** being restated — but the R1 seg dataset keeps
 all 66, so its instance counts will legitimately differ. Analysis:
 `docs/research/T0.6_detector_reconciliation.md` §3.5; paper framing: `PAPER_MATERIAL.md` §8.9.
+
+---
+
+## Stage 2 — FDI numbering · positional assignment · evaluated on DENTEX `disease/`
+
+First measured 22 Aug 2026. Frozen detector (`tooth-detector-a100-1024-v1.0`, imgsz 1024,
+conf 0.25, NMS IoU 0.50) + `src/fdi_assignment.py`, against 1,534 FDI-labelled teeth across
+249 images. `test_181.png` excluded (byte-identical to a training image).
+
+| Metric | Value |
+|--------|-------|
+| Detection recall | 74.6% (1,144 / 1,534) |
+| Quadrant correct (of detected) | 90.2% |
+| **FDI exact (of detected)** | **35.3%** |
+| **FDI exact, end-to-end** | **26.3%** |
+| Within ±1 position (correct quadrant) | 78.0% |
+
+**This is a negative result and should be reported as one.** Quadrant assignment works; the
+position digit does not. Errors are asymmetric — 40.2% too low vs 20.6% too high — because
+detector recall decays toward the back of the arch (98.3% at position 1, **61.0% at position
+8**), and each missed tooth shifts every tooth distal to it one place inward. At 26.3%
+end-to-end, ~3 of 4 teeth in a per-tooth report would carry the wrong number.
+
+Assignment confidence is calibrated in the right direction: 41.2% exact at confidence 1.0,
+27.5% in [0.30, 0.60), 22.7% below 0.30 — so Stage-5 filtering can act on it.
+
+Evaluates **GT → detection** only; detector precision is not reported because DENTEX
+`disease/` annotates only teeth carrying a finding (~6 of ~30 per image). Full analysis:
+`RESULTS_LOG.md` 2026-08-22c.
 
 ---
 

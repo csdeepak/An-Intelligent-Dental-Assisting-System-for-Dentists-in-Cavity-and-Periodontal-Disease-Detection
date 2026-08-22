@@ -1275,3 +1275,70 @@ Copy this block verbatim to the bottom of the file and fill it in.
   250-image `DENTEX/disease/` FDI ground truth — detector → assign → match to GT polygons —
   which would give the project its first real Stage-2 accuracy number and is the substrate for
   C3's error-propagation decomposition. (3) Then Stages 5–6 proper.
+
+## 2026-08-22c — Stage 2 validated for the first time: positional FDI assignment does not work
+
+- **What was done:** Ran the frozen detector + `src/fdi_assignment.py` against the 250-image
+  `DENTEX/disease/` FDI ground truth (`test_181.png` excluded — byte-identical to a training
+  image). 249 images, 1,534 annotated teeth. **This is the project's first Stage-2 number of
+  any kind**, and the first stage-wise error-propagation measurement (C3).
+- **Dataset / config:** detector `tooth-detector-a100-1024-v1.0`, imgsz 1024, conf 0.25,
+  NMS IoU 0.50, GT↔detection matching at IoU ≥ 0.30 with centroid-containment fallback.
+  Evaluated **GT → detection**: DENTEX annotation is not exhaustive (~6 annotated teeth per
+  image against ~28–32 real ones), so detector *precision* is deliberately not reported — an
+  unmatched detection is usually a real tooth that simply carries no annotation.
+- **Metrics:**
+
+  | | |
+  |---|---|
+  | Detection recall | **74.6%** (1,144 / 1,534) |
+  | Quadrant correct (of detected) | **90.2%** |
+  | **FDI exact (of detected)** | **35.3%** |
+  | **FDI exact, end-to-end (of all GT teeth)** | **26.3%** |
+  | Within ±1 position, correct quadrant | 78.0% |
+
+- **The causal chain, which is the actual result:** quadrant assignment is fine (90.2%) — the
+  jaw split and the image-left/patient-right convention both hold. **The position digit is
+  what fails**, and not randomly. Errors are asymmetric: **40.2% predict too low against 20.6%
+  too high.** Detector recall falls off sharply toward the back of the arch — 98.3% at position
+  1 (central incisor) down to **61.0% at position 8** (third molar). A missed premolar or molar
+  means every tooth distal to it becomes the *n*-th detected instead of the *(n+1)*-th, so its
+  number comes out one or more too low. Detection loss does not merely reduce coverage — it
+  **systematically corrupts the numbering of the teeth that were detected successfully.**
+- **Key decision or insight:** **positional FDI assignment is not viable for the clinical
+  report as designed.** At 26.3% end-to-end exact accuracy, roughly three of every four teeth
+  in a per-tooth report would carry the wrong tooth number — and a wrong number is worse than
+  no number, because it attributes a finding to the wrong tooth. Better sorting cannot fix
+  this; the information needed is simply absent from the box geometry once a tooth is missing.
+  Two real routes: raise posterior detector recall, or replace sorting with a learned
+  per-tooth enumeration head. **The training data for the second already exists** —
+  DENTEX's `quadrant_enumeration` subset carries 18,095 teeth labelled with quadrant *and*
+  position across 634 images, and it covers **disjoint patients** from the `disease/` subset
+  (RESULTS_LOG 2026-08-21m), so it can train a numbering head while `disease/` stays a clean
+  held-out evaluation set. The property that made it useless for deriving healthy teeth is
+  exactly what makes it correct here.
+- **The confidence flags work.** Exact accuracy falls monotonically with the assigned
+  confidence: 41.2% at confidence 1.0 (n=777), 27.5% in [0.30, 0.60) (n=269), 22.7% below 0.30
+  (n=22). Unflagged assignments are 41.2% exact against 22.9% for flagged ones. So Stage 5
+  filtering can act on these rather than trusting every code equally — which is what
+  `MASTER_PLAN` §R3's abstention head is for.
+- **A bug this validation caught before it reached the pipeline:** the first run scored **0.0%
+  exact and 5.9% quadrant — worse than the 25% of guessing.** Cause: rotated boxes were being
+  fed to an assigner that reasons about upright anatomy, where jaws separate vertically and the
+  midline runs vertically; in the rotated frame those axes are swapped. Fixing it to un-rotate
+  the boxes immediately after detection moved quadrant accuracy from 5.9% to 90.2%. The rule is
+  now enforced in code by `src/orientation.py::detect_upright`, which does the rotate and
+  un-rotate as one operation so the pair cannot be separated by accident.
+- **NMS choice, stated because it matters:** the frozen run's recorded inference default is
+  `iou: 0.70`, which leaves duplicate boxes — 31 detections on a sample image with 14 pairs
+  overlapping above 0.5 IoU, versus 21 detections and zero such pairs at 0.50. Duplicates are
+  specifically corrosive here because every spurious box shifts positional numbering for its
+  whole quadrant. **0.50 was chosen a priori on anatomy** — real teeth in a panoramic do not
+  overlap by half their area — **not by sweeping the threshold against this evaluation set**,
+  which would have contaminated it.
+- **Source:** `scripts/eval/validate_fdi_assignment.py`; `src/orientation.py`;
+  `outputs/stage2_validation/stage2_{summary,rows,per_image}.json` (gitignored);
+  14 overlays at `outputs/stage2_validation/viz/`.
+- **Follow-ups:** decide between raising posterior recall and training an enumeration head
+  (the latter looks stronger and its data is ready). Until Stage 2 is fixed, Stages 5–6 can be
+  built but **any per-tooth report they emit is not clinically trustworthy** and must say so.

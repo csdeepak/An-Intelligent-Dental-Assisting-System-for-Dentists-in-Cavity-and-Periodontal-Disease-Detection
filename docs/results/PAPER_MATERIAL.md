@@ -15,7 +15,7 @@ not in a saved notebook output or a summary file, mark it `[UNVERIFIED]`. Never 
 limitation to make the work look better — Section 8 exists precisely so reviewers'
 questions are answered before they are asked.
 
-**Last updated:** 2026-08-21
+**Last updated:** 2026-08-22
 
 ---
 
@@ -714,6 +714,36 @@ The bbox converter was deliberately left unfixed: correcting it would invalidate
 canonical detector's reproducibility. The right framing for the paper is a public-dataset
 annotation-quality finding, not a bug we introduced — it argues for deriving boxes from
 polygons where both exist, which is what the seg pipeline effectively does.
+
+---
+
+### 8.10 FDI numbering is the pipeline's weakest link, and it was never measured until now
+
+Measured 22 August 2026 against the 1,534 FDI-labelled teeth in DENTEX `disease/` — the first
+Stage-2 evaluation this project has ever run. **End-to-end FDI exact accuracy is 26.3%.**
+
+The failure is specific, not diffuse. Quadrant assignment is reliable (90.2% of detected
+teeth): the jaw split works and the image-left/patient-right convention holds. The **position
+digit** is what breaks, and asymmetrically — 40.2% of position errors are too low against
+20.6% too high. The cause is a clean propagation from Stage 1: detector recall falls from
+98.3% at position 1 to **61.0% at position 8**, and positional assignment numbers teeth by
+rank order from the midline, so every missed premolar or molar shifts each tooth distal to it
+one place inward.
+
+This is the stage-wise error-propagation decomposition the paper needs (C3), and it says
+something sharper than "accuracy compounds": **losing a tooth at detection does not merely
+reduce coverage, it corrupts the labels of teeth that were detected correctly.** A per-tooth
+report at 26.3% numbering accuracy is not clinically usable — a finding attributed to the
+wrong tooth is worse than an unattributed finding.
+
+Two routes forward, and the second looks stronger: raise posterior detector recall, or replace
+rank-order assignment with a learned per-tooth enumeration head. The training data for the
+latter already exists — DENTEX's `quadrant_enumeration` subset labels 18,095 teeth with
+quadrant and position across 634 images, on **disjoint patients** from the `disease/` set used
+here, so it can train a numbering head while `disease/` remains a clean held-out test.
+
+Report the 26.3% honestly. It is the most informative number the project currently has about
+whether the system works end to end, and the answer today is that it does not.
 
 ---
 
