@@ -10,9 +10,13 @@ three files in order:
    limitations section. This is the master document the paper gets written from.
 3. **`session-memory/`** (newest file) — what the last person to work here actually did.
 
-If you want to know **what to do next** rather than what was done, read
-`research/MASTER_PLAN_2026H2.md` §5 (the week-by-week schedule) and the status block at the
-top of `research/PUBLICATION_TODO.md`. The plan supersedes the older schedules elsewhere.
+**Starting cold? Read `../transfer.md` first** — it is the project's living snapshot of where
+we are, what is done, and what is next, maintained per `CLAUDE.md` rule 5. It is rewritten in
+place; the append-only history is `results/RESULTS_LOG.md`.
+
+If you want the *plan* rather than the snapshot, read `research/MASTER_PLAN_2026H2.md` §5 (the
+week-by-week schedule) and the status block at the top of `research/PUBLICATION_TODO.md`. The
+plan supersedes the older schedules elsewhere for sequencing.
 
 ---
 

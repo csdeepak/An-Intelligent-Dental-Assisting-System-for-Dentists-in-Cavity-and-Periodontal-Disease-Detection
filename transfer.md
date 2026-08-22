@@ -1,219 +1,111 @@
-# Transfer document — session handoff to a different machine
+# CURRENT STATE — read this first
 
-**Written:** 20 August 2026, at the user's explicit request to continue this session on a
-friend's laptop. **Purpose:** let a new session (different physical machine) continue with
-zero re-derivation and zero guessing. Every claim below is labeled by how it was established.
+**This file is the project's living state-of-play.** It answers "where are we, what is done,
+what is next" for a session that is starting cold. It is **rewritten, not appended to** —
+unlike `docs/results/RESULTS_LOG.md` (append-only history) and `docs/session-memory/`
+(one file per session, never edited). Those two are the record; this is the snapshot.
 
-> **STATUS UPDATE — 21 August 2026. The handoff completed; most of this document is now
-> history.** Read this block before acting on anything below it.
->
-> - **§2's uncommitted changes were committed and pushed** before the switch (`9e3099d`,
->   `9fcf0d1`, `ad71ee4`). §0's warning and §5 step 1 are done. `clinical_dataset_provenance.md`
->   was correctly left out and is **not** on this machine.
-> - **§3 / §5 step 4 — `outputs/eda_tufts/split_v1.csv` is NOT missing.** It is at
->   `_repo_archive/datasets_workspace/outputs/eda_tufts/split_v1.csv` on this (macOS) machine,
->   and has been verified to be the split the canonical detector was trained on. The 20 Aug
->   "exhaustive search" that missed it searched `C:\` and `D:\`. No decision is needed; no
->   substitute split is needed.
-> - **§4's table is wrong for this machine.** The Tufts data did not need re-downloading — the
->   raw radiographs, the rotated radiographs, and `teeth_polygon.json` were all already here.
-> - **The R1 seg dataset has been built for real** at `data/tufts/dataset_seg/` (26,005
->   instances). R1's only remaining blocker is GPU access.
-> - **Still genuinely open:** the DENTEX split decision (§3, §5 step 3),
->   `clinical_dataset_provenance.md` (§5 step 6), and every SSH/E2E item in §3 and §5 step 5 —
->   none of which can be confirmed from this machine.
->
-> Current state lives in `docs/session-memory/2026-08-21-split-recovery-and-seg-dataset-build.md`
-> and `docs/research/T0.6_detector_reconciliation.md`, not here.
+**Last updated: 22 August 2026.** Rewritten from a one-off machine-handoff document — the
+20–21 Aug handoff it described is complete, and its content is preserved in git history
+(`git show ad71ee4:transfer.md`) and in §6 below.
+
+> **Maintenance rule (CLAUDE.md rule 5):** whenever a session finishes something, decides
+> something, or changes what should happen next, update §1–§4 here **before the session ends**.
+> A stale snapshot is worse than none — it is the exact failure mode `CLAUDE.md` rule 4 exists
+> to prevent, and this file has already caused one wasted search (§6).
 
 ---
 
-## 0. Read this first
+## 1. Where we are, in five lines
 
-1. **There are uncommitted, unpushed changes on THIS machine right now.** §2 lists them
-   exactly. Until they're committed and pushed, `git clone`/`git pull` on the friend's laptop
-   will **not** include them — a chunk of this session's work (the GPU setup doc, the DENTEX
-   raw-data discovery, the Tufts real-data verification writeup) would simply be invisible
-   there. **Do one of these before switching machines:**
-   - Ask the current session to commit + push (same pattern used all session:
-     say "commit this" then "push it") — recommended, keeps the git history the
-     source of truth like everything else this session.
-   - Or manually copy the modified/untracked files listed in §2 across via USB/cloud drive if
-     you need to switch machines before that's done.
-2. **Nothing on the new machine will have the ~390 MB of Tufts data, the SSH keys, or an E2E
-   instance already set up** — those are local-machine or account-level, not git-tracked, by
-   design. §4 says exactly how to reproduce what's needed.
-3. **Read `docs/research/GPU_SETUP.md` and `docs/research/T0.6_detector_reconciliation.md`
-   in full before doing anything else** — they contain the verified, current state of every
-   blocker and every piece of prep work. Do not re-derive anything from scratch that's already
-   answered there.
+We are on **W2 of the 8-week plan** (`docs/research/MASTER_PLAN_2026H2.md` §5; W2 = Aug 22–28,
+implementation freeze **14 Oct**, ISBI submission **26 Oct**). Four of six pipeline stages are
+trained; **Stages 5–6 do not exist** and are the largest single gap. The Tier-0 credibility
+repairs are *prepared but unrun* — every one of them needs a GPU, and **no GPU instance is
+provisioned**. The paper's two headline contributions (C1 VLM comparison, C2 external
+validation) are at **0%**. Overall ≈35% complete: strong foundation, paper barely started.
+
+**The single highest-leverage action right now: start R4 (Stages 5–6 integration).** It needs
+no GPU, all four models are local, and `MASTER_PLAN` §8 flags it High/High as "the historical
+long pole."
 
 ---
 
-## 1. Verified git state
+## 2. What is DONE — verified, not assumed
 
-Checked via `git status`, `git log` on this machine, just now.
+| Item | Evidence |
+|---|---|
+| **T0.6** detector reconciled, frozen, tagged `tooth-detector-a100-1024-v1.0` | `docs/research/T0.6_detector_reconciliation.md` §1 |
+| **T0.7** CEJ labelled as a documented negative result | `PAPER_MATERIAL.md` §5.6/§7.5 |
+| **T0.2 (split half)** independent image-level 70/15/15 built **from raw**, not carved from val | `data/dentex/splits_v2.json` (tracked), train 495 / val 103 / test 107 |
+| **Universal→FDI bug** fixed, regression-tested; 5 stale docs corrected | `f8b31f8`, `tests/test_fdi_converter.py` |
+| **Caries weights** retrieved from Kaggle, hashed, tagged `caries-cascade-resnet18-v1.0` | `models/07_caries_cascade/run_summary.txt` |
+| **DENTEX crops** regenerated on the new split | `data/dentex/crops_v2/` — phase1_legacy 2,510/515/504 (+182 extern50); phase2 1,964/408/395 (+133) |
+| **R1 seg dataset** built on the frozen split | `data/tufts/dataset_seg/` — 26,005 instances, 700/150/150 |
+| **R2 mask-aware cropping** implemented + unit-tested (**unwired** — needs R1's masks) | `src/crop_generator.py`, `tests/test_crop_generator.py` |
+| **Caries re-run script** written, smoke-verified on CPU | `scripts/dentex/train_caries_cascade.py` |
+| Test suite | **29/29 pass** |
 
-```
-HEAD: 3c7059b  docs: log Week 2 detector-freeze and archive-triage results
-Branch: main, tracking origin/main
-```
-
-Everything through `3c7059b` is already pushed — confirmed earlier this session via
-`git push` (output: `2fd2721..3c7059b main -> main`). **Do not re-push those commits; do not
-re-do that work.** A `git log --oneline -12` on the new machine will show the same history
-back through `61eed08` (T0.6 reconciliation start) if you want to independently verify.
-
----
-
-## 2. Uncommitted local changes on THIS machine (not yet pushed)
-
-```
- M docs/research/T0.6_detector_reconciliation.md
- M docs/results/PAPER_MATERIAL.md
- M docs/results/RESULTS_LOG.md
- M docs/session-memory/2026-08-19-week2-engineering-prep.md
- M scripts/yolo/convert_tufts_to_yolo_seg.py
- M scripts/yolo/train_yolo_seg.py
-?? docs/research/GPU_SETUP.md
-?? docs/research/clinical_dataset_provenance.md
-?? scripts/yolo/rotate_tufts_radiographs.py
-```
-
-What's in this batch, so nothing here reads as mysterious:
-
-- **`GPU_SETUP.md` (new)** — E2E Networks provisioning checklist, verified live against
-  `docs.e2enetworks.com` (not written from memory): exact console click-path, image choice
-  (Pre-built → PyTorch), current GPU pricing table, disk budget, and the DENTEX raw-data
-  finding (§3 below).
-- **`T0.6_detector_reconciliation.md`, `PAPER_MATERIAL.md`, `RESULTS_LOG.md`,
-  session-memory file** — updated to record that `teeth_polygon.json` and all 1,000 raw Tufts
-  radiographs were located (Google Drive), downloaded, and the seg-conversion pipeline was
-  run end-to-end against real data successfully (26,005 instances, zero errors). Also records
-  the still-missing `outputs/eda_tufts/split_v1.csv`.
-- **`rotate_tufts_radiographs.py` (new)** — formalizes the empirically-determined 90°
-  clockwise rotation needed to turn the raw Tufts landscape images into the portrait shape
-  every other script assumes. Was previously undocumented tribal knowledge; now it's code.
-- **`convert_tufts_to_yolo_seg.py`, `train_yolo_seg.py`** — docstring/status updates only
-  (moved from "untested" to "verified against real data") — logic unchanged from what's
-  already committed.
-- **`clinical_dataset_provenance.md` (untracked, deliberately NOT part of any commit)** — this
-  one is intentionally left out of every commit this whole session. It documents real patient
-  de-identification procedures for the private clinic dataset and needs your explicit
-  decision (commit as-is / redact / keep local-only) before it ever enters git history. Don't
-  sweep it into a commit by accident with a blanket `git add`.
-
-**Recommendation:** commit the first group (everything except `clinical_dataset_provenance.md`)
-in whatever scoped grouping makes sense — the session already has a clean precedent from
-earlier commits like `5c0b442` and `f42933d` if you want to match that style — then push.
+**Findings that changed the science** (all in `RESULTS_LOG.md`):
+- The bbox detector's ground truth is **missing 66 real teeth** (corrupt `bounding box` fields); test GT holds 3,924 of 3,930. Left unfixed on purpose to preserve the frozen detector.
+- The **caries gate's negative class contains no healthy teeth** — `no_caries` is Impacted + Periapical Lesion. Real defect, no fix inside DENTEX's labelled data.
+- **DENTEX's subsets cover disjoint patients despite sharing filenames.** Cost one bug (15,531 crops of the wrong patients) before it was caught.
+- `DENTEX/disease/` holds **250 images, 1,600 FDI-keyed polygons, 8 classes, 91 explicitly healthy teeth** — leakage-checked, exactly 1 duplicate (`test_181.png` = `train_332.png`). Internal held-out set, **not** external validation.
 
 ---
 
-## 3. Major state as of this session (all independently verified, not just asserted)
+## 3. What is NEXT — ordered, with the real blocker named
 
-### T0.6 / R1 — YOLOv11l-seg retrain: went from 3 blockers to 1 (plus GPU access)
-
-- **Canonical bbox detector: frozen and versioned.** `best.pt`/`last.pt` located, verified
-  (byte size, args.yaml/results.csv diff, loads under Ultralytics with correct params), copied
-  to `models/06_yolo_detection_a100_run/` (gitignored). Version tag
-  `tooth-detector-a100-1024-v1.0`, SHA-256 in `T0.6_detector_reconciliation.md` §1.
-- **`teeth_polygon.json`** (1,000/1,000 records, 285 MB) and **all 1,000 raw radiographs**
-  located at `https://drive.google.com/drive/folders/1_pPXCzNGlRuLaQhpqScX7sszSXSLQI-U`,
-  downloaded to this machine at `data/tufts/ZIP/...` (gitignored, ~390 MB local, does **not**
-  transfer via git).
-- **Rotation direction (90° CW) empirically determined and visually verified** — 7 real
-  images overlaid with real tooth polygons, every one traced correctly. See
-  `rotate_tufts_radiographs.py` and `T0.6_detector_reconciliation.md` §3.2.
-- **The real, unmodified `convert_tufts_to_yolo_seg.py` was run end-to-end against real
-  data** (only path constants patched for the local test) — 26,005 instances, zero errors,
-  instance counts closely matching the historical bbox baseline. The largest-polygon-fragment
-  heuristic, previously flagged as unverified, is now confirmed correct.
-- **Still missing: `outputs/eda_tufts/split_v1.csv`** — the frozen split the canonical bbox
-  detector was evaluated on. Searched exhaustively (this Drive folder, both `_repo_archive/`
-  locations, whole-machine filename search) — not found anywhere. **This is the one
-  remaining blocker**, plus GPU access to actually run `train_yolo_seg.py`.
-
-### T0.2 — DENTEX: a second Drive folder revealed more than expected
-
-`https://drive.google.com/drive/folders/1DtdE_TYuYTeyvuaveQEvuhSpwL6U8Ovp` (10,446 files,
-enumerated, not just assumed) contains not only the pre-processed crops `phase-1.ipynb`
-reads, but also the **raw 705 source X-rays**, the **original COCO annotation file**
-(`train_quadrant_enumeration_disease.json`), and the **original crop-generation notebooks**
-for the disease-labeled subset. Full structure in `GPU_SETUP.md` §4.
-
-**This means `scripts/dentex/split_dentex_holdout.py`'s "carve from val" fallback (written
-19 Aug under the assumption raw DENTEX access was unavailable) may no longer be the best
-option — a genuinely independent three-way split could now be built from scratch.** This was
-**deliberately not rebuilt** this session — it's a real methodology decision (redo T0.2
-properly now vs. proceed with the existing fallback), not something to default into silently.
-**Needs a decision from you or whoever picks this up next.**
-
-### Notebook version check — resolved, but re-confirm on the new machine
-
-`C:\Users\csdee\Downloads\phase-1.ipynb` (this machine, "used for 4 months") was 123 cells,
-pre-T0.3-fix. The repo's `notebooks/caries/phase-1.ipynb` (131 cells, includes the macro-F1
-fix and the new Arm B augmentation-ablation section) is authoritative — already committed
-and pushed. **Confirm the friend's laptop doesn't have its own older cached copy lying around
-that could get confused with the repo's version.**
-
-### GPU setup — verified against E2E's live docs, nothing launched yet
-
-`GPU_SETUP.md` (§2 above, uncommitted) has the exact console click-path: **Pre-built → PyTorch**
-image, **A100 80GB** recommended (matches what the existing detector was already trained on;
-H100/H200 give "no material difference at this size" per the master plan's own compute
-budget), storage set to **≥100 GB** (30 GB default is too tight). **No E2E instance has
-actually been launched yet, as far as this session knows** — everything so far is
-provisioning research and prep.
-
-### SSH keys — a real security incident this session, now contained but not fully closed out
-
-- The user pasted two private key files (`capstone.pem`, `ssh-key.pem` in Downloads,
-  identical key material) into this conversation via `@` file-reference, which caused the
-  full private key content to be read into the transcript. **Treat that key as compromised.**
-  **Not confirmed: whether the matching public key was ever added to an E2E account, and if
-  so whether it's since been removed/rotated there. Not confirmed: whether the two `.pem`
-  files were deleted from Downloads.** Check both on whichever machine continues this.
-- A fresh keypair was generated on **this machine only**: `~/.ssh/id_ed25519_e2e` (private,
-  never displayed, 600 permissions) / `~/.ssh/id_ed25519_e2e.pub` (public, safe to share).
-  **Not confirmed: whether the public key was actually added to the E2E account yet** — the
-  user asked for this to be done, but it requires logging into E2E's console, which is
-  something no Claude Code session will do (private-key generation is fine and was done;
-  entering account credentials anywhere is a hard line that doesn't get crossed regardless of
-  request). Manual steps are in this session's own chat history and are simple: My Account →
-  SSH Keys → Add New SSH Key → paste the `.pub` content → Add SSH Key.
-- **On the friend's laptop: do not copy `id_ed25519_e2e` over.** Generate a fresh keypair
-  there instead (`ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_e2e -N ""`, same as this session)
-  and add *that* machine's public key to the E2E account as an additional key — E2E supports
-  multiple SSH keys per account, so both machines can have their own without sharing one
-  private key across machines.
+1. **R4 — Stages 5–6 integration.** *No blocker.* `scripts/run_inference.py` is a 38-line
+   placeholder; all four models are on local disk. This is C3 and the plan's long pole.
+2. **Provision the E2E GPU instance.** *Blocker for everything in W2.* `docs/research/GPU_SETUP.md`
+   has the verified click-path. Still not launched.
+3. **One GPU session, once provisioned:** R1 seg retrain (~6h; criterion pre-registered in
+   T0.6 §2 — do not adjust it after seeing results), then both caries arms
+   (`train_caries_cascade.py --arm a` / `--arm b`, minutes). That closes T0.1–T0.4.
+4. **T0.5 — the Mild n=6 decision.** *No blocker, no compute.* Report 2-class severity as
+   headline, 3-class in appendix with bootstrap CIs. Untouched since written.
+5. **Reconnect the Ningxia drive.** Images are on an external drive, **not on this machine**
+   (`data/ningxia/` holds only `manifest.csv`). W4's external run depends on it. It is
+   **external test data — never train on it** (`MASTER_PLAN` §4.1).
+6. **Start IRB paperwork.** Flagged as zero-cost since 15 Aug, still not begun.
 
 ---
 
-## 4. What does NOT transfer to the new machine, and how to get it back
+## 4. Decisions PENDING — do not default into these silently
 
-| Item | Where it lives now | How to reproduce elsewhere |
+| Decision | Why it needs a human |
+|---|---|
+| **Detector-derived not-diseased class?** Running the frozen detector over the 705 disease images and treating unmatched detections as not-diseased is the one sound fix for the gate's negative-class defect — but it puts detector error into training labels. | Trade-off, not a fact |
+| **What to use `DENTEX/disease/` (250 imgs, FDI-keyed) for** — honest per-tooth test set / small healthy class / C3 error-propagation substrate. Needs a LabelMe→FDI parser that does not exist. Exclude `test_181.png`. | Scoping call |
+| **Clinic data governance.** `index.csv` sits beside `images/` on a shared Drive, which voids the de-identification. Five actions in `clinical_dataset_provenance.md` §4a, all needing the Drive owner. | Not this repo's account |
+| **Bone-loss weights have no version tag** — the only trained stage still lacking one. | Trivial, just undone |
+
+---
+
+## 5. Local state that git does NOT carry
+
+| Item | Where | Note |
 |---|---|---|
-| Tufts `teeth_polygon.json` + rotated radiographs (~390 MB) | `data/tufts/ZIP/...` on this machine, gitignored | Re-download from the Google Drive link in §3 / `GPU_SETUP.md` §4 |
-| SSH keypair(s) | `~/.ssh/id_ed25519_e2e*` on this machine only | Generate a fresh pair on the new machine (see §3 above) — do not copy the private key |
-| Any E2E instance state | E2E's own infrastructure, account-level | Same E2E account is shared across machines by design — just log in from the new machine |
-| The compromised `.pem` files | `C:\Users\csdee\Downloads\` on this machine | Don't copy these anywhere. Rotate/delete per §3. |
+| DENTEX full release (~14 GB) | `~/Downloads/Capstone/DENTEX/` | Complete and verified. Subset map in `data/README.md`. |
+| Tufts raw + rotated radiographs | `_repo_archive/datasets_workspace/` | 1,000 each; `Radiographs_rotated/` is what scripts expect |
+| Tufts frozen split | `_repo_archive/datasets_workspace/outputs/eda_tufts/split_v1.csv` | Gitignored — which is why a previous session wrongly declared it lost |
+| Ningxia images | **External drive, disconnected** | Only `manifest.csv` is in-repo |
+| Clinic (SDH) data | Not on this machine | Governance-blocked |
+| torch/cv2 | **Not installed in any repo env** | A scratch venv was used for verification; it is outside the repo |
+| E2E instance / SSH keys | Account-level | No instance launched. Treat the `.pem` pasted on 20 Aug as compromised. |
 
 ---
 
-## 5. Immediate next steps for whoever picks this up
+## 6. History — the 20–21 Aug machine handoff (closed)
 
-1. Commit and push the changes in §2 (or manually transfer them) so the new machine's `git
-   pull` actually has everything.
-2. Read `GPU_SETUP.md` and `T0.6_detector_reconciliation.md` in full.
-3. Decide: rebuild the DENTEX split from the newly-found raw data, or proceed with the
-   existing `split_dentex_holdout.py` fallback (§3).
-4. Locate `outputs/eda_tufts/split_v1.csv`, or make an explicit decision to accept a new
-   split for the seg retrain with the comparability caveat documented everywhere the
-   resulting numbers get reported.
-5. On whichever machine actually drives the E2E instance: generate its own SSH keypair, add
-   the public half to the E2E account, launch the instance per `GPU_SETUP.md`, and confirm
-   the old compromised key situation (§3) is fully closed out.
-6. The three untracked-file decisions carried over from before this session
-   (`docs/research/clinical_dataset_provenance.md`, and two already resolved —
-   `survey_paper/` archived, CEJ v3 notebook triaged and committed) — only
-   `clinical_dataset_provenance.md` is still open.
+This file began as a one-off handoff to a second laptop. That handoff is complete: the
+uncommitted work was committed and pushed, and the machine switch happened. Two of its claims
+turned out to be **wrong**, and both are worth remembering as cautionary examples:
+
+- It declared `outputs/eda_tufts/split_v1.csv` missing after an "exhaustive search". The search
+  covered `C:\` and `D:\` — a Windows filesystem — while the repo lives on macOS. The file was
+  there all along.
+- Its §4 table said the Tufts data would need re-downloading. It was already local.
+
+Full original text: `git show ad71ee4:transfer.md`.

@@ -96,19 +96,38 @@ deliberately outside the working tree so it can never be picked up by `git add`.
 - **Do not "fix" a stale status table by guessing.** Verify against notebook outputs and
   summary files first — that is how the previous README drifted three months out of date.
 
-## 5. Current state, in one paragraph
+## 5. Keep `transfer.md` current — it is the cold-start snapshot
 
-Four of six pipeline stages are trained and evaluated: tooth detection (A100/1024px run,
-test mAP@0.5 0.782 — best of two unreconciled runs), the caries cascade (val acc 81%,
-macro F1 0.77, with known evaluation gaps), bone-loss binary (macro F1 0.9233 — the
-strongest result), and bone-loss severity (macro F1 0.7208 on only 52 validation crops).
-CEJ estimation is an exploratory negative result and is not part of the pipeline.
-**Stages 5–6 — joining everything into one runnable inference that emits a per-tooth
-JSON/PDF report — do not exist yet, and that is the project's actual next milestone.**
-The Universal→FDI lower-arch bug that this paragraph used to list as open is **fixed**
-(`f8b31f8`) — re-verified 21 Aug 2026: `configs/dataset_config.yaml` and
-`src/utils/fdi_converter.py` match each other and the correct table, with regression
-tests in `tests/test_fdi_converter.py`. It had been described as open here and in four
-places in the root `README.md` after it was already closed, which is rule 4's
-"stale status" failure mode pointing the other way — verify before you write, in both
-directions.
+`transfer.md` at the repo root answers "where are we, what is done, what is next" for a
+session starting with no context. **Before any substantial session ends, update its §1–§4**
+if that session finished something, decided something, or changed what should happen next.
+
+It is **rewritten in place**, not appended to — it is a snapshot, not a journal. The journals
+are `docs/results/RESULTS_LOG.md` (append-only, never edit an entry) and
+`docs/session-memory/` (one file per session, never edit a previous one). Do not duplicate
+their content here; `transfer.md` links to them.
+
+A stale snapshot is worse than no snapshot. It has already cost this project one wasted
+search — see `transfer.md` §6.
+
+## 6. Current state — pointer only
+
+**Do not maintain project status here.** This section goes stale faster than anything else in
+the repo, and has twice described a closed item as open. The authoritative snapshot is
+**`transfer.md`** (§1 "Where we are, in five lines"); the authoritative history is
+`docs/results/RESULTS_LOG.md`; the authoritative work list is
+`docs/research/PUBLICATION_TODO.md` (status block at the top), sequenced by
+`docs/research/MASTER_PLAN_2026H2.md`, which supersedes the other planning docs for ordering.
+
+The only durable facts worth repeating here, because they shape almost every task:
+
+- The pipeline is **six stages; Stages 5–6 (integration → per-tooth JSON/PDF report) do not
+  exist.** That is the project's largest gap and its central paper claim (C3).
+- **Four models are trained** (detection, caries cascade ×2, bone-loss binary + severity) and
+  all their weights are on local disk. "Trained" does **not** mean validated to publication
+  standard — the Tier-0 repairs are prepared but unrun.
+- **Ningxia is external test data.** Never train on it, never tune on it
+  (`MASTER_PLAN_2026H2.md` §4.1).
+- The Universal→FDI lower-arch bug is **fixed** (`f8b31f8`), regression-tested in
+  `tests/test_fdi_converter.py`. It was described as open in five places long after it closed
+  — rule 4's failure mode running in reverse. Verify before you write, in both directions.
