@@ -1221,3 +1221,57 @@ Copy this block verbatim to the bottom of the file and fill it in.
   defect, (c) the substrate for C3's error-propagation analysis, or some combination. All
   three need a parser from LabelMe polygons to the repo's FDI conventions, which does not
   exist yet.
+
+## 2026-08-22b — The canonical detector only works on 90°-rotated panoramics (R4 groundwork)
+
+- **What was done:** Started R4 (Stages 5–6 integration) by building the missing half of
+  Stage 2 — positional FDI assignment — and, before building on it, verified the two
+  assumptions it rests on: the laterality convention and the input orientation the frozen
+  detector expects. The second check found a preprocessing requirement nobody had recorded.
+- **Metrics:** detector (`tooth-detector-a100-1024-v1.0`, conf 0.25, imgsz 1024) on one DENTEX
+  image, `train_0.png`:
+
+  | Input | Teeth found | Mean conf |
+  |---|---|---|
+  | DENTEX **as shipped** (upright, 2850×1316) | **3** | 0.361 |
+  | DENTEX **rotated 90° CW** (1316×2850) | **35** | 0.418 |
+
+  A healthy adult OPG should yield ~28–32 teeth. The three boxes found on the upright image
+  are in the **nasal/sinus region** — not teeth at all. Verified visually, not just by count.
+- **Key decision or insight:** **Tufts ships its annotations in portrait coordinates**, so
+  `Radiographs_rotated/` (840×1615) is what every converter consumes and therefore what the
+  detector was trained on — a *sideways* panoramic, arch running vertically. Confirmed two
+  ways: the annotation y-range for image 1 reaches 993, which exceeds the raw height of 840
+  but fits 1615; and overlaying `teeth_bbox.json` on both orientations shows the boxes
+  tracking the tooth row only on the rotated one. So the rotation established on 20 Aug is
+  correct — but its consequence was never followed through: **every non-Tufts image must be
+  rotated 90° CW before it touches the detector.**
+- **Why this mattered more than it looks:** DENTEX, Ningxia and the clinic data are all shipped
+  upright. Running the pipeline on any of them as-is yields near-zero detections, and
+  `MASTER_PLAN_2026H2.md` §8's risk register pre-frames poor cross-dataset transfer as
+  **"Low — this is the finding"**. A preprocessing bug would have been recorded as a
+  scientific result about domain shift, on the project's single most important contribution
+  (C2). This is the second time an orientation assumption has cost this project real work;
+  the first produced `rotate_tufts_radiographs.py`.
+- **Also built:** `src/fdi_assignment.py` — Stage 2 positional assignment, which did not exist
+  in any form (`src/utils/fdi_converter.py` is only the Universal→FDI lookup *table*, and
+  `src/label_assigner.py` is pixel-overlap for bone-loss *training labels*). Conventions were
+  derived from the 1,600 FDI-keyed annotations in `DENTEX/disease/label/` rather than assumed:
+  Q1 (patient upper-right) sits at mean normalised x=0.350 and Q2 at x=0.654, so
+  **patient-right is image-left** — the standard radiographic convention, now verified rather
+  than trusted. Position digit rises monotonically with midline distance across all eight
+  positions (0.021 → 0.221), which is what licenses sort-by-distance.
+- **What the module deliberately does not do:** positional assignment cannot survive a missing
+  tooth — everything distal shifts one place and silently gets the wrong code. Rather than
+  assign confidently through that, it flags it (`suspected_gap_before`) and drops confidence.
+  All four failure modes named in `MASTER_PLAN` §R4 are reported, none silently corrected:
+  missing teeth, position overflow (>8 per quadrant), off-arch detections, sparse quadrants.
+  Duplicate codes are impossible by construction and asserted against.
+- **Source:** `src/fdi_assignment.py`, `tests/test_fdi_assignment.py` (11 tests, all passing;
+  suite now 40/40).
+- **Follow-ups:** (1) the orientation rule belongs in the preprocessing contract
+  (`MASTER_PLAN` §3.1) and in `run_inference.py` as an explicit, tested step — **not** as tribal
+  knowledge, which is how it was lost the first time. (2) Validate FDI assignment against the
+  250-image `DENTEX/disease/` FDI ground truth — detector → assign → match to GT polygons —
+  which would give the project its first real Stage-2 accuracy number and is the substrate for
+  C3's error-propagation decomposition. (3) Then Stages 5–6 proper.
