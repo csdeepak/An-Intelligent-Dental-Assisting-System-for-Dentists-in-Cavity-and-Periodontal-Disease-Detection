@@ -9,13 +9,28 @@
 
 ---
 
-> **📚 Start here:**
-> **[`docs/README.md`](docs/README.md)** is the documentation entry point, and
-> **[`docs/results/PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md)** is the master
-> technical document the paper is written from (all metrics, methods and an honest
-> limitations section). Current numbers at a glance:
-> [`docs/results/model_metrics.md`](docs/results/model_metrics.md).
-> Project history: [`docs/results/RESULTS_LOG.md`](docs/results/RESULTS_LOG.md).
+> ## 📍 START HERE
+>
+> **Picking this up cold — human or AI session? Read [`transfer.md`](transfer.md) first.**
+> It is the living snapshot: where we are against the 8-week plan, what is verified done,
+> what is next with the actual blocker named, and which decisions are pending. It is
+> rewritten in place every substantial session (`CLAUDE.md` rule 5), so it is current in a
+> way this README cannot be.
+>
+> Then, depending on what you need:
+>
+> | Question | File |
+> |---|---|
+> | What are the current numbers? | [`docs/results/model_metrics.md`](docs/results/model_metrics.md) |
+> | Full technical story + honest limitations (the paper is written from this) | [`docs/results/PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) |
+> | Why is it like this? What happened when? | [`docs/results/RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) (append-only) |
+> | What should I work on? | [`docs/research/PUBLICATION_TODO.md`](docs/research/PUBLICATION_TODO.md) status block, sequenced by [`MASTER_PLAN_2026H2.md`](docs/research/MASTER_PLAN_2026H2.md) |
+> | How is the documentation laid out? | [`docs/README.md`](docs/README.md) |
+> | What does the code do? | [`src/README.md`](src/README.md), [`scripts/README.md`](scripts/README.md) |
+>
+> ⚠️ **Before running the pipeline on any non-Tufts image, rotate it 90° counter-clockwise**
+> — the frozen detector was trained on sideways panoramics. Upright input gives 7.5% recall
+> and 0% FDI accuracy. Use `src.orientation.detect_upright`. See [`src/README.md`](src/README.md).
 
 ---
 
@@ -131,7 +146,7 @@ bounding box.
 | Stage | Component | Input | Output | Status |
 |-------|-----------|-------|--------|--------|
 | 1 | Tooth Detection (YOLOv11l) | Full OPG | Tooth bboxes | ✅ **Complete** — test mAP@0.5 **0.782**; canonical run **frozen** as `tooth-detector-a100-1024-v1.0` (T0.6, 20 Aug 2026) |
-| 2 | Sorting + FDI assignment | Tooth bboxes | FDI-keyed tooth list | ✅ **Complete** — Universal→FDI mapping fixed and regression-tested (`f8b31f8`) |
+| 2 | Sorting + FDI assignment | Tooth bboxes | FDI-keyed tooth list | ⚠️ **Implemented, measured, INADEQUATE** — quadrant 93.0% but FDI exact **28.0% end-to-end** ([validated](scripts/eval/README.md) on 1,534 teeth). Universal→FDI table is correct (`f8b31f8`); *positional* numbering needs replacing. |
 | 3 | Caries cascade (ResNet18 ×2) | Tight 1.0× crop | caries / deep_caries | ✅ **Complete** — val acc 81%, macro F1 0.77; weights retrieved and tagged `caries-cascade-resnet18-v1.0` (21 Aug 2026). **Re-run pending** — see the note below the table. |
 | 4a | Bone Loss binary (ResNet18) | Expanded 1.5×W/2.0×H crop | Present / Absent | ✅ **Complete** — macro F1 **0.9233** |
 | 4b | Bone Loss severity (ResNet18) | Expanded crop | Mild / Moderate / Severe | ✅ **Complete** — macro F1 0.7208 (only 52 val crops) |

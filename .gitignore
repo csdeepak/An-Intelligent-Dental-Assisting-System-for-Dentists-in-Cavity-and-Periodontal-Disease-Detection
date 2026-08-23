@@ -123,3 +123,6 @@ _repo_archive/datasets_workspace/opg_env/
 _repo_archive/datasets_workspace/outputs/
 _repo_archive/implementation_stale_clone/
 
+
+# --- pytest cache (auto-generated) ---
+.pytest_cache/
