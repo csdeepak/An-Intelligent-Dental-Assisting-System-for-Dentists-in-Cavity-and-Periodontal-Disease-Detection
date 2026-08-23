@@ -5,7 +5,7 @@ what is next" for a session that is starting cold. It is **rewritten, not append
 unlike `docs/results/RESULTS_LOG.md` (append-only history) and `docs/session-memory/`
 (one file per session, never edited). Those two are the record; this is the snapshot.
 
-**Last updated: 22 August 2026 (fourth update — rotation direction corrected).** Rewritten from a one-off machine-handoff document — the
+**Last updated: 22 August 2026 (fifth update — Stage-2 ceiling measured, READMEs refreshed).** Rewritten from a one-off machine-handoff document — the
 20–21 Aug handoff it described is complete, and its content is preserved in git history
 (`git show ad71ee4:transfer.md`) and in §6 below.
 
@@ -99,11 +99,32 @@ long pole."
 
 | Decision | Why it needs a human |
 |---|---|
-| **How to fix FDI numbering.** At 28.0% exact a per-tooth report mislabels ~3 of 4 teeth, and a finding on the wrong tooth is worse than none. Route A: raise posterior detector recall. **Route B (stronger): train a per-tooth enumeration head** — DENTEX `quadrant_enumeration` labels 18,095 teeth with quadrant+position across 634 images, on patients disjoint from the `disease/` eval set, so it trains without leaking. | Changes the architecture |
+| **How to fix FDI numbering — Route A is ruled out, so this is really "go or no-go on Route B".** At 28.0% exact a per-tooth report mislabels ~7 of 10 teeth. ~~Route A: raise posterior detector recall~~ — **measured ceiling 68.7%** even with a complete 8-tooth quadrant, because eight detected teeth are not positions 1–8, they are eight teeth that survived extraction; no detector work breaches that. **Route B: train a per-tooth enumeration head** — DENTEX `quadrant_enumeration` labels 18,095 teeth with quadrant+position across 634 images, on patients disjoint from the `disease/` eval set, so it trains without leaking. ResNet18-scale, minutes of GPU. `RESULTS_LOG.md` 2026-08-22f. | Changes the architecture |
 | **Detector-derived not-diseased class?** Running the frozen detector over the 705 disease images and treating unmatched detections as not-diseased is the one sound fix for the gate's negative-class defect — but it puts detector error into training labels. | Trade-off, not a fact |
 | **What to use `DENTEX/disease/` (250 imgs, FDI-keyed) for** — honest per-tooth test set / small healthy class / C3 error-propagation substrate. Needs a LabelMe→FDI parser that does not exist. Exclude `test_181.png`. | Scoping call |
 | **Clinic data governance.** `index.csv` sits beside `images/` on a shared Drive, which voids the de-identification. Five actions in `clinical_dataset_provenance.md` §4a, all needing the Drive owner. | Not this repo's account |
 | **Bone-loss weights have no version tag** — the only trained stage still lacking one. | Trivial, just undone |
+
+---
+
+## 4b. Where the documentation lives
+
+`CLAUDE.md` loads automatically every session and points here. After this file:
+
+| Question | File |
+|---|---|
+| Current numbers | `docs/results/model_metrics.md` |
+| Full technical story + honest limitations | `docs/results/PAPER_MATERIAL.md` |
+| What happened, when, and why (append-only) | `docs/results/RESULTS_LOG.md` |
+| What to work on next | `docs/research/PUBLICATION_TODO.md` status block, sequenced by `MASTER_PLAN_2026H2.md` |
+| Narrative of each session | `docs/session-memory/` (newest file) |
+| Documentation layout | `docs/README.md` |
+| **Pipeline code, and the two contracts easy to get wrong** | **`src/README.md`** |
+| Entry points / how to run things | `scripts/README.md`, and `scripts/{yolo,dentex,eval}/README.md` |
+| Datasets: what is where, what is usable | `data/README.md` |
+| Weights, version tags, what is tracked | `models/README.md` |
+
+Every directory containing code has a README, and all were re-verified 22 Aug 2026.
 
 ---
 
