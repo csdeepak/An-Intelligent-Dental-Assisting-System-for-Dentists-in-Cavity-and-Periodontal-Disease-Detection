@@ -1495,3 +1495,50 @@ Copy this block verbatim to the bottom of the file and fill it in.
   634 images, quadrant+position labels, patients disjoint from the `disease/` eval set). It is
   a ResNet18-scale classification problem on tooth crops — minutes of GPU, and it folds into
   the session already planned for R1 and the caries re-run.
+
+## 2026-08-22g — Enumeration head built and smoke-verified; the Stage-2 fix is now GPU-ready
+
+- **What was done:** Built the replacement for positional FDI assignment — a per-tooth
+  classifier — as two scripts, both verified before any rented GPU time is spent on them:
+  `scripts/dentex/build_enumeration_crops.py` (run: 33,461 crops) and
+  `scripts/dentex/train_enumeration_head.py` (smoke-run end to end on MPS).
+- **Dataset / config:** DENTEX `quadrant_enumeration` — 634 images, 18,095 teeth, all 32 FDI
+  classes, 341–630 examples each. Split **by image** 85/15: 538 train images (15,366 teeth,
+  30,732 crops after ±15% jitter copies) / 96 val images (2,729 teeth). Crops are 1.5×-expanded
+  and 224×224.
+- **The FDI mapping was verified, not assumed** — the third time this class of assumption has
+  been checked in this project, after two prior ones proved wrong.
+  `FDI = (category_id_1 + 1) * 10 + (category_id_2 + 1)`, confirmed spatially: Q1 mean
+  normalised x=0.400 vs Q2 x=0.606 (patient-right on image-left, matching the independent
+  finding from `disease/`), Q1 above Q3, and mean |x−0.5| rising monotonically 0.015 → 0.227
+  across positions 1–8.
+- **Key design decision — positional features are load-bearing, not a convenience.** The head
+  is a ResNet18 over the crop **concatenated with four positional features** (normalised centre
+  x/y, box w/h), feeding two heads: quadrant (4-way) and position (8-way). The reason is
+  anatomical: **teeth 16 and 26 are near mirror images**, as are 36/46, 11/21 and every other
+  left/right pair. Laterality is not recoverable from crop pixels at all — a pure image
+  classifier would be guessing on half of every label. Normalised x resolves it, which is the
+  same signal that already gives *geometric* quadrant assignment 93.0%. What the image
+  contributes is the position digit, which is precisely where geometry has its 68.7% ceiling.
+  The two problems are complementary, and the architecture reflects that rather than hoping one
+  model absorbs both.
+- **Two heads rather than a 32-way softmax**, so a wrong FDI is diagnostic: it says whether the
+  error was the wrong side of the mouth or the wrong tooth along the arch.
+- **Horizontal flip is excluded from augmentation** — it would mirror the arch and silently
+  invert the quadrant label. Rotation and colour jitter only.
+- **Training crops carry ±15% box jitter** (`src.crop_generator.apply_bbox_jitter`) because at
+  inference the crops come from *detector* boxes, not ground-truth boxes. Without it the head
+  would be trained on a box distribution the pipeline never produces.
+- **Evaluation discipline:** train/val come from `quadrant_enumeration`; the **test set is
+  `DENTEX/disease/`**, scored by `scripts/eval/validate_fdi_assignment.py` on the *same 249
+  images* as the 28.0% baseline, with detector boxes. Disjoint patients (verified 2026-08-21m),
+  so the before/after is like-for-like rather than a benchmark chosen after seeing results.
+- **Metrics:** none real. The smoke run (1 epoch, 512 crops) produced quadrant 53.5% /
+  position 21.9% / FDI 12.9% — meaningless by construction and recorded here only to note that
+  the code path executes.
+- **Source:** `scripts/dentex/build_enumeration_crops.py`,
+  `scripts/dentex/train_enumeration_head.py`, `data/dentex/enumeration_v1/` (gitignored).
+- **Follow-ups:** train on the rented GPU, then re-run the Stage-2 validation on `disease/` for
+  the number that matters. Baseline to beat: **28.0% end-to-end**, with the positional ceiling
+  at 68.7%. If the head lands materially above 68.7% it has done something rank-order sorting
+  provably cannot.
