@@ -1542,3 +1542,45 @@ Copy this block verbatim to the bottom of the file and fill it in.
   the number that matters. Baseline to beat: **28.0% end-to-end**, with the positional ceiling
   at 68.7%. If the head lands materially above 68.7% it has done something rank-order sorting
   provably cannot.
+
+## 2026-08-22h — Enumeration head clears the positional ceiling after ONE epoch (83.3%)
+
+- **What was done:** Timed one full epoch of `train_enumeration_head.py` on the local M4 Pro
+  (MPS) to size the job. The timing answer was 3.2 min/epoch; the accuracy was the headline.
+- **Metrics — 1 epoch, 2,729 held-out val teeth, GT boxes:**
+
+  | | Value |
+  |---|---|
+  | Quadrant accuracy | **98.6%** (macro-F1 0.986) |
+  | Position accuracy | **84.5%** (macro-F1 0.846) |
+  | **FDI exact** | **83.3%** |
+  | Position within ±1 (given correct quadrant) | 97.7% |
+
+- **Against the thing it replaces:** positional rank-order assignment scores 28.0% end-to-end
+  and has a **measured ceiling of 68.7%** even with a fully-detected quadrant. **One epoch of
+  the learned head is at 83.3% — already ~15 points above a ceiling that sorting provably
+  cannot cross.**
+- **Why it crosses the ceiling, mechanically:** rank-order assignment numbers a tooth by *its
+  rank among the teeth that were detected*, so a missing or spurious neighbour shifts it. The
+  head uses each tooth's *absolute* normalised position plus its appearance, and is therefore
+  **order-independent** — it does not care how many other teeth were found. That is exactly the
+  failure mode the 68.7% ceiling encodes, and the reason a better sorter could never have
+  fixed it.
+- **Leakage checked before believing the number:** 0 of 634 source images appear in both
+  splits, 0 annotation ids span splits, and all 15,366 jittered copies are train-only. The
+  split is by image, so no radiograph contributes to both sides.
+- **What this number is NOT:** it is measured on **ground-truth boxes** from the enumeration
+  subset. The comparable figure against the 28.0% baseline requires running the head inside
+  `scripts/eval/validate_fdi_assignment.py` on `DENTEX/disease/` with **detector** boxes, which
+  is a harder setting — detector boxes are noisier and recall is only 71.8%, which caps
+  end-to-end accuracy regardless of how good numbering is. **Do not quote 83.3% as the
+  end-to-end result.** The honest end-to-end figure is still pending that run.
+- **Local timing (M4 Pro, MPS, batch 64, workers 4):** 190.7 s per epoch including validation
+  and checkpointing — so 15 epochs ≈ 48 min, 25 epochs ≈ 80 min. Peak memory is a small
+  fraction of the 24 GB available.
+- **Source:** `scripts/dentex/train_enumeration_head.py`; run artifacts in the session
+  scratchpad (not committed — this was a timing run, not the real training run).
+- **Follow-ups:** (1) train properly for 15–25 epochs; (2) wire the head into
+  `validate_fdi_assignment.py` and re-run on `disease/` for the like-for-like number; (3) run
+  the with/without-positional-features ablation, which would substantiate the design claim that
+  laterality is not recoverable from crop pixels — a clean C5 ablation costing one extra run.
