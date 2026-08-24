@@ -129,3 +129,8 @@ _repo_archive/implementation_stale_clone/
 
 # --- pytest cache (auto-generated) ---
 .pytest_cache/
+
+# Generated status page (duplicates transfer.md; regenerate on request)
+worklist.html
+# Ultralytics pretrained weights downloaded on demand (re-downloadable)
+yolo11l-seg.pt
