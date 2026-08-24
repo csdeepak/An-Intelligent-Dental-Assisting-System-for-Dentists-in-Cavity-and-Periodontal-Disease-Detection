@@ -22,10 +22,14 @@ positional's **66.3%** ceiling, a **+13.9 point** margin on an identical populat
 detector's recall. RESULTS_LOG 2026-08-24a.)*
 
 **Why positional features, and why no horizontal flip.** Teeth 16 and 26 are near mirror
-images, as are 36/46 and every other left/right pair, so laterality is not recoverable from
-crop pixels — a crop-only classifier would guess half of every label. Normalised x resolves it.
-The same fact means horizontal flip **inverts** the quadrant label and must be excluded from
-augmentation. DPML (Cao et al., *ESWA* 254:124446, 2024) §3.4 argues the same design
+images, as are 36/46 and every other left/right pair. Normalised x helps disambiguate them —
+worth **+3.2 points of laterality** and +2.8 FDI exact, measured by
+`scripts/eval/ablate_head_inputs.py`. *(This previously claimed laterality was "not recoverable
+from crop pixels" and that a crop-only classifier "would guess half of every label". Measured:
+the image alone recovers side at **96.3%**. The features are a refinement, not the load-bearing
+element. RESULTS_LOG 2026-08-24c.)* Independently of that, horizontal flip **inverts** the
+quadrant label and must stay excluded from augmentation — that reasoning never depended on
+what the model can recover. DPML (Cao et al., *ESWA* 254:124446, 2024) §3.4 argues the same design
 independently, and sidesteps the problem entirely by collapsing mirrored pairs into 8 classes —
 which FDI's 32 cannot do.
 

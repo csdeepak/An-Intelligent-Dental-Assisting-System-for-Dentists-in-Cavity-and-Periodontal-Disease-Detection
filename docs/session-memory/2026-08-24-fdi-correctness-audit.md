@@ -133,3 +133,65 @@ clean measurement makes the component look *better*, not worse.
 
 Unchanged and now unblocked: **R4 integration first.** The environment works, Stage 2 is
 verified reproducible, and nothing is waiting on compute.
+
+---
+
+# Addendum 2 — third FDI pass, focused on ML principles
+
+## What was checked that the first two passes had not
+
+Deliberately different ground: data contracts at both ends, split hygiene, class balance,
+preprocessing equivalence, edge cases, and an input ablation.
+
+- **DENTEX category→FDI mapping** — verified *at source*, and it turns out to be stronger than
+  the docs claimed. The COCO metadata's `name` fields literally read 1,2,3,4 and "1".."8", so
+  the `+1` is the file's own labelling, not an inference. Spatial signature corroborates.
+- **`disease/` GT parsing** — format is `<finding_id>-<finding_name_tr>-<FDI>` (`1-çürük-26`).
+  1,600 shapes, 0 regex failures, exactly 32 distinct valid FDI codes.
+- **Split hygiene** — 0 image overlap, 0 ann_id overlap, 0 jittered rows in val.
+- **Class balance** — 1.83× overall, 1.01× on quadrants. Unweighted CE is correct here.
+- **Preprocessing** — train and inference paths are **bit-identical** (max|diff| 0.0), verified
+  on a real crop rather than by reading the code.
+- **Edge case** — 2 images exceed 32 detections; Hungarian still emits 0 duplicates.
+
+## The finding: a documented claim was wrong
+
+Five places asserted "laterality is not recoverable from crop pixels" and that a pure image
+classifier "would be guessing on half the label". That was the stated justification for the
+architecture, and **it had never been tested**. So I tested it, decomposing quadrant into jaw
+and side (side *is* laterality — a quadrant score hides it behind the trivially easy jaw split):
+
+- image alone, neutral position → **side 96.3%**, not the 50% of guessing
+- positional features contribute **+3.2 points of laterality, +2.8 FDI exact**
+- the position digit comes **entirely** from the image (92.1% either way)
+- *wrong* positional features cost **22.9 points of laterality**
+
+Corrected in all five places.
+
+## Decisions made
+
+- **Corrected the rationale rather than the design.** The features earn their keep at +3.2/+2.8
+  and cost almost nothing; nothing about the architecture needs to change. What was wrong was
+  the *argument*, and that argument was headed into the paper.
+- **Kept the no-horizontal-flip rule and re-grounded it.** It had been justified by the same
+  refuted claim, but it never depended on it: flipping inverts the *label*, which is a fact
+  about FDI notation, not about what the model can recover. Same rule, honest reason.
+- **Reported the over-trust finding as a risk, not a footnote.** −22.9 points from wrong
+  coordinates is larger than the entire benefit of having them, and inference feeds detector
+  boxes. It is now the strongest — and only *quantified* — argument for the v1.1 retrain.
+- **Discarded the `no_image` condition from the conclusions.** Its jaw score fell below chance,
+  which means the blanked input is out of distribution and the model's behaviour there is
+  undefined. Kept in the output for transparency, excluded from the claims.
+
+## Open questions
+
+- **Why is laterality recoverable from a crop at all?** Working hypothesis: the 1.5× expansion
+  pulls in neighbours and arch curvature, so mirrored teeth sit in mirrored contexts. Not
+  verified — a crop-size sweep would settle it, and would also say whether 1.5× is optimal.
+- **Would the model still over-trust coordinates after the jitter fix?** That is the natural
+  before/after for v1.1, and this ablation is now the instrument to measure it.
+
+## Next steps
+
+Unchanged. **R4 first.** The implementation is correct and verified three ways; v1.1 now has a
+measured justification but is still not the priority.

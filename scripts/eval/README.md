@@ -8,6 +8,7 @@ Scripts that measure the pipeline rather than build or train it. This is where c
 |---|---|---|
 | `validate_fdi_assignment.py` | Stage 1 → Stage 2: does the pipeline give each tooth the right FDI number? | ✅ run for both methods |
 | `analyze_stage2_ceiling.py` | Why rank-order assignment has a ceiling, and by how much the head clears it | ✅ run on `outputs/stage2_clean` |
+| `ablate_head_inputs.py` | Which input carries which FDI digit — tests the architecture's stated rationale | ✅ run on the 2,729-crop val split |
 
 ## `validate_fdi_assignment.py`
 

@@ -1935,3 +1935,75 @@ Copy this block verbatim to the bottom of the file and fill it in.
 - **Follow-ups:** none blocking. Stage 2 is verified reproducible; **R4 integration is next and
   has no blocker.** Record `numpy==1.26.4` as a hard constraint for this repo — a future
   `pip install` that bumps numpy will silently break the Hungarian assignment again.
+
+## 2026-08-24c — Third FDI pass: data contracts verified at source; the architecture rationale was overstated
+
+- **What was done:** A third audit pass, deliberately checking what the first two had *not*:
+  the data contracts at both ends of the chain, split hygiene, class balance, preprocessing
+  equivalence, edge cases, and — new — an **input ablation** testing the architecture's stated
+  rationale. The implementation remains correct. **One documented claim was refuted by
+  measurement.**
+
+- **The DENTEX category→FDI mapping is verified at source, and more strongly than claimed.**
+  Previous docs said it was "confirmed spatially". It is in fact **documented in the COCO
+  metadata**: `categories_1` carries `name` 1,2,3,4 and `categories_2` carries `name` "1".."8",
+  so `(category_id_1+1, category_id_2+1)` is the file's own labelling, not an inference.
+  The spatial signature corroborates independently: Q1 cx=0.400/cy=0.421, Q2 cx=0.606/cy=0.420,
+  Q3 cx=0.603/cy=0.669, Q4 cx=0.403/cy=0.671 — upper-right, upper-left, lower-left, lower-right
+  exactly as FDI requires — and mean |cx−0.5| rises monotonically 0.015→0.227 across positions
+  1–8. 18,095 annotations, 634 images.
+- **The `disease/` ground-truth parsing is verified.** Label format is
+  `<finding_id>-<finding_name_tr>-<FDI>` (e.g. `1-çürük-26` = caries, tooth 26). Across 250
+  files and **1,600 shapes there are 0 regex failures**; group(3) yields exactly **32 distinct
+  values, every one a valid FDI code**, all 32 present; group(1) correlates perfectly with the
+  finding names (747 `1` ↔ 747 `çürük`), confirming it is the finding id and not the tooth.
+- **Split hygiene is clean:** 538 train / 96 val images, **0 image overlap, 0 ann_id overlap,
+  0 jittered rows in val**. Augmentation never touches the validation split.
+- **Class balance does not require weighting.** Train imbalance is **1.83×** (588–1074 per FDI
+  class) and quadrants are near-perfectly balanced at **1.01×** (7652–7744). Unweighted
+  cross-entropy is the right choice below roughly 10×, and macro-F1 is already reported
+  alongside accuracy. Val carries all 32 classes, min support 47.
+- **Train and inference preprocessing are bit-identical**, verified on a real crop rather than
+  by reading: the redundant `Resize((224,224))` on an already-224 image is a true no-op
+  (max|diff| 0.0), and PIL-RGB equals cv2 `BGR2RGB` exactly. Channels are identical, confirming
+  these are greyscale radiographs stored as 3-channel.
+- **The >32-detection edge case is exercised and handled.** Two images exceed the 32 available
+  FDI codes (36 and 34 detections); Hungarian assignment still emitted **0 duplicates** and left
+  **0 detected GT teeth unassigned**.
+
+- **REFUTED — "laterality is not recoverable from crop pixels".** This claim appeared in five
+  places and was the stated justification for the architecture. Input ablation on the 2,729-crop
+  val split (`scripts/eval/ablate_head_inputs.py`), reporting quadrant decomposed into jaw and
+  **side** (side *is* laterality; a quadrant score hides it behind the much easier jaw split):
+
+  | Condition | jaw | **side (laterality)** | position | FDI exact |
+  |---|---|---|---|---|
+  | full | 99.9% | **99.5%** | 92.1% | 91.6% |
+  | positional features → dataset mean | 99.9% | **96.3%** | 92.1% | 88.8% |
+  | positional features shuffled (wrong) | 99.8% | **76.6%** | 92.2% | 70.8% |
+
+  With neutral positional input **the image alone recovers laterality at 96.3%**, not the 50%
+  of guessing. A 1.5× expanded crop carries its neighbours and the local arch curvature, so
+  mirrored teeth sit in mirrored contexts. **The honest contribution of the positional features
+  is +3.2 points of laterality and +2.8 FDI exact** — real, cheap, worth keeping, but a
+  refinement rather than the load-bearing element. Corrected in all five places.
+- **What survives unchanged:** the image *is* load-bearing for the **position digit** (92.1%,
+  and it collapses without the image), which is exactly where rank-order geometry fails — so the
+  reason the head beats positional assignment is intact. **Excluding horizontal flip also stands
+  on its own**: flipping inverts the *label*, which is a fact about FDI, not about what the model
+  can recover.
+- **New risk, measured:** supplying *wrong* positional features costs **22.9 points of
+  laterality** — far more than removing them. The head **over-trusts this input**. That compounds
+  the half-applied jitter defect (2026-08-24a): training paired clean ground-truth coordinates
+  with shifted crops, while inference supplies noisy **detector** coordinates. This is now the
+  strongest argument for the v1.1 retrain, and it is a *quantified* one.
+- **Caveat on the fourth ablation condition:** a blanked image is far out of distribution, so
+  `no_image` measures "model fed an impossible input", not "positional features alone". Its jaw
+  score of 47.5% is *below* the 50% chance line, which is the tell — real `cy` separates jaws
+  trivially. Conclusions above rest only on the three in-distribution conditions.
+- **Source:** `scripts/eval/ablate_head_inputs.py`, `outputs/enumeration_head/input_ablation.json`,
+  `models/08_fdi_enumeration_head/enumeration_manifest.csv`, DENTEX
+  `train_quadrant_enumeration.json`, `DENTEX/disease/label/*.json`.
+- **Follow-ups:** none blocking — the implementation is correct and Stage 2 stands. The v1.1
+  retrain now has a measured justification rather than a theoretical one, but **R4 still comes
+  first**.

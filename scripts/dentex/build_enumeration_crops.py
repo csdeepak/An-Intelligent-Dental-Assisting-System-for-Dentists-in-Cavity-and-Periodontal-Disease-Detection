@@ -151,8 +151,9 @@ def main():
                     "ann_id": a["id"], "fdi": fdi,
                     "quadrant": a["category_id_1"] + 1, "position": a["category_id_2"] + 1,
                     "jittered": int(bool(tag)),
-                    # positional features — the head needs these: teeth 16 and 26 are near
-                    # mirror images, so laterality is not recoverable from pixels alone.
+                    # positional features — worth +3.2 points of laterality and +2.8 FDI
+                    # exact (measured, RESULTS_LOG 2026-08-24c). NOT the decisive signal an
+                    # earlier comment here claimed: the image alone recovers side at 96.3%.
                     # These come from the JITTERED box (vx,vy,vw,vh), not the ground-truth
                     # one: at inference both the crop and these features are derived from the
                     # same detector box, so pairing a jittered crop with clean features would

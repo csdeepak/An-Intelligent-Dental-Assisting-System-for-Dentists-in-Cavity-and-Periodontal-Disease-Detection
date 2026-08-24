@@ -74,8 +74,16 @@ maximum; the head captures 69.4% of it. Detector recall is the binding constrain
 Prior art: DPML (Cao et al., *ESWA* 254:124446, 2024) §3.4 argues the same design independently
 — dentists identify teeth by relative position, and ML models rarely get that signal. Its
 8-class formulation, justified by bilateral symmetry, sidesteps the left/right problem that FDI
-cannot; that is why positional features here are load-bearing rather than merely helpful, and
-why horizontal flip must be excluded from augmentation (it inverts a quadrant label).
+cannot, so positional features are supplied to help disambiguate mirrored pairs. Horizontal flip
+stays excluded from augmentation because it **inverts a quadrant label** — a fact about the
+labels, independent of the model.
+
+**Measured contribution** (`scripts/eval/ablate_head_inputs.py`): replacing the positional
+features with their dataset mean costs **3.2 points of laterality** (99.5% → 96.3%) and nothing
+at all on the position digit. *(This previously called them "load-bearing rather than merely
+helpful"; the image alone recovers laterality at 96.3%, so that was overstated.)* Feeding
+*wrong* features costs **22.9 points** — the head over-trusts them, which interacts with the
+half-applied jitter augmentation. RESULTS_LOG 2026-08-24c.
 Full record: `docs/results/RESULTS_LOG.md` 2026-08-22i, 22j (leakage) and 22k (prior art).
 
 ## Conventions

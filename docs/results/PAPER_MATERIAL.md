@@ -773,9 +773,28 @@ argues for exactly this design — *"dentists typically identify tooth categorie
 the relative position of the target tooth… we have developed a mechanism to provide the model
 with positional information"* — and is the citation for spatial priors in tooth classification.
 DPML classifies into **8** classes, justified by bilateral symmetry, which sidesteps the
-left/right problem; FDI's 32 classes cannot, and that is precisely why positional features are
-load-bearing here rather than merely helpful. (It also explains why DPML can flip images in
-augmentation and we must not: flipping preserves their labels and inverts ours.)
+left/right problem; FDI's 32 classes cannot, so we supply positional features to help
+disambiguate mirrored pairs. (It also explains why DPML can flip images in augmentation and we
+must not: flipping preserves their labels and inverts ours — a fact about the *labels*, so it
+holds regardless of what the model can recover.)
+
+**How much those features actually contribute — measured, and less than we first claimed.**
+An input ablation on the 2,729-crop val split (`scripts/eval/ablate_head_inputs.py`) replaced
+the positional features with their dataset mean: laterality fell only **99.5% → 96.3%** and the
+position digit did not move at all (92.1%). **The image alone recovers laterality at 96.3%**,
+not the 50% of guessing — a 1.5×-expanded crop carries its neighbours and the local arch
+curvature, so mirrored teeth sit in mirrored contexts. Earlier drafts of this section asserted
+laterality was "not recoverable from crop pixels"; that is **false** and is withdrawn. The
+honest claim is that positional features are worth **+3.2 points of laterality / +2.8 FDI
+exact** — real, cheap, and worth keeping, but a refinement rather than the load-bearing
+element. What the image is load-bearing for is the **position digit**, which collapses without
+it, and that is exactly where rank-order geometry fails.
+
+**A sensitivity worth reporting.** Supplying *wrong* positional features (a random other
+tooth's) costs **22.9 points of laterality** — far more than removing them. The head
+over-trusts this input. That matters because inference feeds it **detector** boxes while
+training used clean ground-truth ones, and the jitter augmentation meant to bridge that gap was
+found to be only half-applied (RESULTS_LOG 2026-08-24a). RESULTS_LOG 2026-08-24c.
 
 DentFound (Zhu et al., *Nature Biomedical Engineering*, 2026) reports **73.58% accuracy /
 84.78% F1** on aligning tooth positions with disease findings across 56,351 teeth, and states

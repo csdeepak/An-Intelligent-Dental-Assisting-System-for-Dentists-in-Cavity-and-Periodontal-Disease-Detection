@@ -17,12 +17,25 @@ ResNet18 backbone over a 1.5x-expanded tooth crop, **concatenated with four posi
 features** (normalised centre x/y and box width/height), then two heads: quadrant (4-way) and
 position (8-way). FDI = quadrant * 10 + position.
 
-The positional features are not a convenience, they are load-bearing. **Teeth 16 and 26 are
-near mirror images**; so are 36/46, 11/21, and every other left/right pair. Laterality is
-simply not recoverable from crop pixels, and a pure image classifier would be guessing on
-half the label. Feeding normalised x resolves it — the same signal that already gives
-geometric quadrant assignment 93.0% accuracy. What the *image* adds is the position digit,
-which is exactly where geometry fails.
+The positional features are a real but **modest** refinement — measured, not assumed
+(`scripts/eval/ablate_head_inputs.py`, RESULTS_LOG 2026-08-24c). Replacing them with their
+dataset mean costs only **3.2 points of laterality** (side 99.5% -> 96.3%) and 2.8 points of
+FDI exact, and costs the position digit **nothing at all** (92.1% either way).
+
+**An earlier version of this docstring claimed laterality was "simply not recoverable from
+crop pixels" and that a pure image classifier "would be guessing on half the label". That is
+false.** With neutral positional input the image alone recovers side at **96.3%**, not the 50%
+of guessing: a 1.5x-expanded crop carries its neighbours and the local arch curvature, and
+mirrored teeth sit in mirrored contexts. Keep the features — +3.2 points is worth having — but
+do not build an argument on them.
+
+**What the image is genuinely load-bearing for is the position digit**, which collapses without
+it, and that is exactly where rank-order geometry fails.
+
+**Known sensitivity:** feeding *wrong* positional features (a random other tooth's) costs
+**22.9 points of laterality**, far more than removing them. The head over-trusts this input,
+which matters because inference feeds it noisy DETECTOR boxes while training used clean
+ground-truth ones -- see the jitter defect in RESULTS_LOG 2026-08-24a.
 
 Two heads rather than one 32-way softmax because the sub-problems have different difficulty
 and different failure modes, and reporting them separately is what makes the result

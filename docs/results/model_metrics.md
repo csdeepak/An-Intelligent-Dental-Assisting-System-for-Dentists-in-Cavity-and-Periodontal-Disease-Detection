@@ -78,6 +78,21 @@ them for **69.4% / 46.5%** — **+4.3 points of-detected, +2.9 end-to-end** — 
 points of raw quadrant accuracy (94.7% vs 96.8%), because the global constraint sometimes moves
 a tooth across a quadrant boundary. Supersedes the contaminated-set figures.
 
+**Input ablation** (val, 2,729 crops, `scripts/eval/ablate_head_inputs.py`) — quadrant split
+into jaw and side, since *side* is the laterality claim:
+
+| Condition | jaw | side (laterality) | position | FDI exact |
+|---|---|---|---|---|
+| full | 99.9% | **99.5%** | 92.1% | 91.6% |
+| positional features → mean | 99.9% | **96.3%** | 92.1% | 88.8% |
+| positional features shuffled | 99.8% | **76.6%** | 92.2% | 70.8% |
+
+Positional features are worth **+3.2 points of laterality / +2.8 FDI exact** — not the decisive
+signal earlier docs claimed, since the image alone recovers laterality at 96.3%. The image *is*
+decisive for the **position digit**. Feeding *wrong* coordinates costs **22.9 points**, so the
+head over-trusts this input — relevant because inference supplies noisy detector boxes.
+RESULTS_LOG 2026-08-24c.
+
 Training-time val (GT boxes, **selection-biased — a diagnostic, not a result**): quadrant
 99.4%, position 92.1%, FDI exact 91.6%; per-position accuracy 0.886–0.963, essentially flat,
 unlike the detector's collapse from 98.3% (position 1) to 61.0% (position 8).
