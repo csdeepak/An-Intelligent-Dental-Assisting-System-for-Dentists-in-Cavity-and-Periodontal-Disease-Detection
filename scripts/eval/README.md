@@ -9,6 +9,8 @@ Scripts that measure the pipeline rather than build or train it. This is where c
 | `validate_fdi_assignment.py` | Stage 1 → Stage 2: does the pipeline give each tooth the right FDI number? | ✅ run for both methods |
 | `analyze_stage2_ceiling.py` | Why rank-order assignment has a ceiling, and by how much the head clears it | ✅ run on `outputs/stage2_clean` |
 | `ablate_head_inputs.py` | Which input carries which FDI digit — tests the architecture's stated rationale | ✅ run on the 2,729-crop val split |
+| `compare_caries_gates.py` | Before/after for the caries gate, through the pipeline, same boxes and crops | ✅ 84.9% → 19.1% |
+| **`verify_invariants.py`** | **Re-checks the facts the documentation depends on.** Run after changing data, swapping a checkpoint, or before trusting a number in a draft | ✅ 7/7 hold |
 
 ## `validate_fdi_assignment.py`
 
@@ -87,3 +89,26 @@ ones did. RESULTS_LOG 2026-08-24b.)*
 **Re-run this after any Stage-1 or Stage-2 change.** It is the before/after on a held-out set
 that has never been tuned on. Full record: `docs/results/RESULTS_LOG.md` 2026-08-22c, 22f, 22i
 and **22j (the leakage correction)**.
+
+
+## `verify_invariants.py` — why it exists
+
+Every correction in `RESULTS_LOG.md` has the same shape: **an inference that was never tested
+was written down as fact, then propagated into other documents until it read as known.**
+
+| Correction | The untested inference |
+|---|---|
+| 21f | checkpoints "presumably lost" → they were on Kaggle |
+| 21m | filenames overlap → assumed same patient (they were different people) |
+| 22d | the rotated files "look right" → rotation was the other way |
+| 22j | two folders are disjoint → a **third** folder was never tested; 34% leaked |
+| 24a | two numbers both read ~67% → one was recall, not the ceiling |
+| 24e | a shuffle ablation → assumed it models detector noise; it does not |
+| 25a | "healthy teeth NOT derivable" → derivable by MD5, just not by filename |
+
+Every one was catchable by a cheap direct test, and each took minutes once actually attempted.
+The failure was never difficulty — it was that the check felt unnecessary.
+
+This script runs those checks. It proves the specific things the docs assert are still true of
+the files on disk; it does not prove the project correct. It needs no GPU and no model
+inference — `--skip-slow` drops the two MD5 corpus joins and finishes in seconds.
