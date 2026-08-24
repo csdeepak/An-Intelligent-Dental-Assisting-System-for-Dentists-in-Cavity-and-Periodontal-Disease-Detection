@@ -3,9 +3,10 @@ Build the training set for the Stage-2 enumeration head: tooth crops labelled wi
 
 WHY THIS EXISTS
 ---------------
-Positional (rank-order) FDI assignment was measured at **28.0% end-to-end exact accuracy**
-against 1,534 ground-truth teeth, with a hard ceiling of 68.7% even when a quadrant is fully
-detected (RESULTS_LOG 2026-08-22c/f). The ceiling is structural: eight detected teeth are not
+Positional (rank-order) FDI assignment was measured at **22.9% end-to-end exact accuracy** on
+the clean 164-image set (936 teeth), with a ceiling of **66.3%** even when a quadrant is fully
+detected (RESULTS_LOG 2026-08-22j, 2026-08-24a; the earlier 28.0%/68.7% figures came from a
+leaked evaluation set). The ceiling is structural: eight detected teeth are not
 positions 1-8, they are eight teeth that survived extraction, and no amount of sorting or
 detector improvement can recover which is which. The replacement is a per-tooth classifier
 that does not assume a contiguous arch.
@@ -19,10 +20,12 @@ Q1 mean x=0.400 vs Q2 x=0.606 (patient-right on image-left), Q1 above Q3, and me
 rising monotonically 0.015 -> 0.227 across positions 1-8. All 32 classes present,
 341-630 examples each.
 
-**Crucially, these are disjoint patients from `disease/`** — the property that made this subset
-useless for deriving healthy teeth (RESULTS_LOG 2026-08-21m) is exactly what makes it correct
-here: it can train the head while `disease/` stays a clean held-out test set, giving a direct
-before/after against the 28.0% baseline on identical evaluation data.
+**These are NOT disjoint from `disease/`.** An earlier version of this docstring claimed they
+were, generalising a verified fact about the disease *subset* (705 images, RESULTS_LOG
+2026-08-21m) to `disease/`, which is a different folder. **85 of its 250 images are
+byte-identical to images here.** They are listed in `data/dentex/disease_leaked_images.json`
+and excluded by `scripts/eval/validate_fdi_assignment.py`; evaluation runs on the remaining
+164. See RESULTS_LOG 2026-08-22j.
 
 CROP GEOMETRY
 -------------
@@ -149,9 +152,13 @@ def main():
                     "quadrant": a["category_id_1"] + 1, "position": a["category_id_2"] + 1,
                     "jittered": int(bool(tag)),
                     # positional features — the head needs these: teeth 16 and 26 are near
-                    # mirror images, so laterality is not recoverable from pixels alone
-                    "cx": round((x + w / 2) / W, 5), "cy": round((y + h / 2) / H, 5),
-                    "bw": round(w / W, 5), "bh": round(h / H, 5),
+                    # mirror images, so laterality is not recoverable from pixels alone.
+                    # These come from the JITTERED box (vx,vy,vw,vh), not the ground-truth
+                    # one: at inference both the crop and these features are derived from the
+                    # same detector box, so pairing a jittered crop with clean features would
+                    # train the head to trust a precision the pipeline never delivers.
+                    "cx": round((vx + vw / 2) / W, 5), "cy": round((vy + vh / 2) / H, 5),
+                    "bw": round(vw / W, 5), "bh": round(vh / H, 5),
                 })
         if n % 100 == 0:
             print(f"  {n}/{len(by_image)} images…", flush=True)

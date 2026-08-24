@@ -16,7 +16,10 @@ Run order — Stage 3: **split → crops → train**. Stage 2: **enumeration cro
 
 **Result: 22.9% → 46.5% end-to-end FDI accuracy** (69.4% of detected teeth), measured on 164
 leak-free `DENTEX/disease/` images by `scripts/eval/validate_fdi_assignment.py --method head`.
-That clears the 67.0% ceiling positional assignment cannot pass, by +2.4 points.
+On complete (8-detection) quadrants — rank-order's best case — it scores **80.2%** against
+positional's **66.3%** ceiling, a **+13.9 point** margin on an identical population (n=101).
+*(Corrected 24 Aug 2026: previously stated as a 67.0% ceiling and +2.4 points — 67.0% is the
+detector's recall. RESULTS_LOG 2026-08-24a.)*
 
 **Why positional features, and why no horizontal flip.** Teeth 16 and 26 are near mirror
 images, as are 36/46 and every other left/right pair, so laterality is not recoverable from

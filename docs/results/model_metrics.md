@@ -57,10 +57,17 @@ and is withdrawn. Exclusion list: `data/dentex/disease_leaked_images.json`.
 
 **A 2.0× improvement on both measures**, on data the head has never seen.
 
-**It clears the positional ceiling, narrowly.** Rank-order assignment reaches 67.0% even on
-fully-detected quadrants (re-measured on this clean subset); the head reaches 69.4% of detected
-teeth — **+2.4 points**. The qualitative claim holds — an order-independent method exceeds what
-rank-order can reach — but the margin is small and should be quoted as such, not as a rout.
+**It clears the positional ceiling decisively.** On teeth in complete (8-detection)
+quadrants — the population where rank-order assignment is at its best — positional reaches
+**66.3%** and the head **80.2%**, a margin of **+13.9 points** (n=101, same population for both).
+The head wins in **every** completeness bucket. An order-independent method exceeds what
+rank-order can reach, and not marginally.
+
+> Corrected 24 Aug 2026. This was previously quoted as a 67.0% ceiling and a +2.4-point margin.
+> **67.0% is the detector's recall, not the ceiling**, and the +2.4 compared the ceiling
+> (complete quadrants only) against the head's accuracy over all detected teeth — two different
+> populations. See RESULTS_LOG 2026-08-24a; recompute with
+> `scripts/eval/analyze_stage2_ceiling.py`.
 
 **End-to-end is capped by Stage 1.** At 67.0% recall, perfect numbering gives 67.0%; the head
 reaches 69.4% of that maximum. Detector recall is now the binding constraint.

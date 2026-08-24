@@ -7,6 +7,7 @@ Scripts that measure the pipeline rather than build or train it. This is where c
 | Script | Measures | Status |
 |---|---|---|
 | `validate_fdi_assignment.py` | Stage 1 → Stage 2: does the pipeline give each tooth the right FDI number? | ✅ run for both methods |
+| `analyze_stage2_ceiling.py` | Why rank-order assignment has a ceiling, and by how much the head clears it | ✅ run on `outputs/stage2_clean` |
 
 ## `validate_fdi_assignment.py`
 
@@ -30,9 +31,16 @@ python scripts/eval/validate_fdi_assignment.py --method head --save-viz        #
 | FDI exact (of detected) | 34.1% | **69.4%** |
 | **FDI exact, end-to-end** | 22.9% | **46.5%** |
 
-A **2.0× improvement**. Positional assignment tops out at **67.0%** even on fully-detected
-quadrants; the head reaches 69.4% because it does not depend on rank order. **End-to-end is now
-capped by detection**, not numbering — at 67.0% recall that is the maximum available.
+A **2.0× improvement**. On teeth in complete (8-detection) quadrants — rank-order's best case —
+positional tops out at **66.3%** while the head reaches **80.2%**, a **+13.9 point** margin on an
+identical population (n=101); the head wins in every completeness bucket, because it does not
+depend on rank order. **End-to-end is now capped by detection**, not numbering — at 67.0% recall
+that is the maximum available.
+
+> *Corrected 24 Aug 2026:* this previously read "tops out at 67.0% … the head reaches 69.4%".
+> **67.0% is the detector's recall, not the ceiling**, and 69.4% is over *all* detected teeth,
+> not the complete-quadrant subset — two different populations. Recompute with
+> `analyze_stage2_ceiling.py`; see RESULTS_LOG 2026-08-24a.
 
 Writes `stage2_{summary,rows,per_image}_{method}.json`, plus annotated overlays with
 `--save-viz` (blue = GT numbered correctly, red = wrong or missed, orange = flagged).

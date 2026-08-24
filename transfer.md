@@ -20,8 +20,9 @@ unlike `docs/results/RESULTS_LOG.md` (append-only history) and `docs/session-mem
 
 **Stage 2 is fixed.** The learned enumeration head lifts FDI accuracy from 22.9% to
 **46.5% end-to-end** (69.4% of detected teeth), a 2.0x improvement, measured on **164 leak-free
-images** after 86 were found to be training duplicates. It clears the positional ceiling
-(67.0%) by +2.4 points. The bottleneck has moved to detector recall (67.0%). We are on **W2 of the 8-week plan** (`docs/research/MASTER_PLAN_2026H2.md` §5; W2 = Aug 22–28,
+images** after 86 were found to be training duplicates. On complete quadrants it clears the
+positional ceiling (**66.3%**) by **+13.9 points**. The bottleneck has moved to detector
+recall (67.0%). We are on **W2 of the 8-week plan** (`docs/research/MASTER_PLAN_2026H2.md` §5; W2 = Aug 22–28,
 implementation freeze **14 Oct**, ISBI submission **26 Oct**). Four of six pipeline stages are
 trained; **Stages 5–6 do not exist** and are the largest single gap. The Tier-0 credibility
 repairs are *prepared but unrun* — every one of them needs a GPU, and **no GPU instance is
@@ -94,10 +95,12 @@ long pole."
 
 **RESOLVED 22 Aug — kept because the reasoning is the useful part:** *how to fix FDI numbering.*
 Route A (raise posterior detector recall) was **ruled out by measurement** — rank-order
-assignment is capped at 67.0% even on a fully-detected quadrant, because eight detected teeth
-are not positions 1–8, they are eight teeth that survived extraction. Route B (a learned
-per-tooth enumeration head) was built, trained and validated at **46.5% end-to-end**, clearing
-that ceiling by +2.4 points. `RESULTS_LOG.md` 2026-08-22f, 22i, 22j, 22l.
+assignment is capped at **66.3%** even on a fully-detected quadrant, because eight detected
+teeth are not positions 1–8, they are eight teeth that survived extraction. Route B (a learned
+per-tooth enumeration head) was built, trained and validated at **46.5% end-to-end**, reaching
+**80.2%** on that same complete-quadrant population — clearing the ceiling by **+13.9 points**.
+`RESULTS_LOG.md` 2026-08-22f, 22i, 22j, 22l, **2026-08-24a** (audit: the ceiling was previously
+mis-stated as 67.0%, which is the detector's recall).
 
 ---
 
@@ -165,7 +168,7 @@ Every directory containing code has a README, and all were re-verified 22 Aug 20
 | Tufts frozen split | `_repo_archive/datasets_workspace/outputs/eda_tufts/split_v1.csv` | Gitignored — which is why a previous session wrongly declared it lost |
 | Ningxia images | **External drive, disconnected** | Only `manifest.csv` is in-repo |
 | Clinic (SDH) data | Not on this machine | Governance-blocked |
-| torch/cv2 | **Not installed in any repo env** | A scratch venv was used for verification; it is outside the repo |
+| Python env | `/opt/anaconda3` (python 3.12) | Has **torch 2.2.0, scipy, sklearn**. **`cv2` and `ultralytics` are MISSING** — so `test_crop_generator` (12) and `test_orientation` (6) cannot run and **`validate_fdi_assignment.py` cannot be re-executed**. The other **28 tests pass**. Install both before any Stage-2 re-run. Verified 24 Aug. |
 | E2E instance / SSH keys | Account-level | No instance launched. Treat the `.pem` pasted on 20 Aug as compromised. |
 
 ---

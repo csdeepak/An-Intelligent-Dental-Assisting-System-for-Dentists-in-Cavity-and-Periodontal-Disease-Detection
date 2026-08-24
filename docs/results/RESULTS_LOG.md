@@ -1798,3 +1798,87 @@ Copy this block verbatim to the bottom of the file and fill it in.
 - **Remaining inconsistency:** bone-loss weights (Stages 4a/4b) are still the only trained
   models without a version tag.
 - **Source:** `models/08_fdi_enumeration_head/run_summary.txt`.
+
+## 2026-08-24a — FDI audit: implementation correct; the *ceiling* figure was wrong and understated the result
+
+- **What was done:** A full correctness audit of the FDI chain, re-deriving every claim from
+  code and saved artefacts rather than from the log. **The implementation is correct.** Four
+  defects were found around it — one real code bug, two wrong numbers in this log, and stale
+  docstrings — and all are fixed here. Supersedes the ceiling figure in **2026-08-22j** and
+  **2026-08-22f**.
+
+- **VERIFIED CORRECT (each re-derived, not taken on trust):**
+  - `src/utils/fdi_converter.py` — all 32 Universal→FDI entries checked individually against
+    the standard (Universal 1 = upper-right third molar = FDI 18 … 32 = FDI 48). Correct.
+  - **Joint-probability indexing in `src/fdi_head_inference.py`.** `(lq.unsqueeze(2) +
+    lp.unsqueeze(1)).reshape(N, 32)` is row-major `k = q*8 + p`, and `FDI_CODES` is built
+    q-outer/p-inner, so column `k` really is `FDI_CODES[k]`. A transposition here would be
+    silent and would have corrupted every prediction. It is right.
+  - **Rotation transforms**, independently re-derived against `np.rot90` over 1,600 random
+    points at five image sizes including the real 840×1615: **0 mismatches**, forward and
+    inverse, CCW and CW. The CCW contract holds.
+  - **Leakage exclusion is applied, not merely present**: both eval runs report
+    `n_images = 164`, `excluded = 86`.
+  - **Headline metrics reproduce exactly** from the raw per-tooth rows: positional
+    22.86% / head 46.47% end-to-end, 34.13% / 69.38% of detected, recall 66.99%, **0 duplicate
+    FDI codes** in 627 assignments.
+  - Training script is ML-sound: discriminative LR with an assert that the parameter groups
+    cover the model, no horizontal flip (it would invert the quadrant label), seeded
+    generator, explicit `labels=` in every confusion matrix, honest caveats block.
+
+- **DEFECT 1 — the ceiling figure is wrong in four documents. `67.0%` is the detector's
+  recall, not the ceiling.** The two are unrelated quantities that were confused while writing
+  2026-08-22j. Recomputed on the clean 164-image set, bucketing both methods by the *same*
+  geometric detections-per-quadrant so the populations are identical:
+
+  | Detections in quadrant | n | Positional | Head | Δ |
+  |---|---|---|---|---|
+  | 6 | 115 | 26.1% | 72.2% | +46.1 |
+  | 7 | 159 | 36.5% | 74.2% | +37.7 |
+  | **8 (complete)** | **101** | **66.3%** | **80.2%** | **+13.9** |
+
+- **DEFECT 2 — the "+2.4 points" margin compared two different populations,** and therefore
+  understated this project's own result. It set the positional ceiling (restricted to teeth in
+  complete 8-detection quadrants) against the head's accuracy over *all* detected teeth
+  (69.4%). On the same population the head scores **80.2%** and the margin is **+13.9 points**,
+  not +2.4. **The head beats positional assignment in every single bucket.** The corrected
+  numbers strengthen the architectural claim rather than weakening it: this is not a narrow
+  win that needs hedging.
+- **Root cause of both: the figure came from an unsaved ad-hoc snippet.** Now
+  `scripts/eval/analyze_stage2_ceiling.py`, which reads only saved artefacts and writes
+  `outputs/stage2_clean/stage2_ceiling_analysis.json`. **Rule 1's "traceable to a saved
+  output" applies to intermediate analyses too, not just headline metrics.**
+
+- **DEFECT 3 — real code bug: the jitter augmentation was only half-applied.** In
+  `build_enumeration_crops.py` the jittered variants `(vx,vy,vw,vh)` produced the *crop*, but
+  the positional features were written from the un-jittered ground-truth box. Confirmed
+  against the frozen manifest: **all 15,366 jittered rows carry their original's features,
+  0 differ.** The head was therefore trained on shifted images paired with clean coordinates —
+  precisely the box precision the pipeline cannot deliver, since at inference both crop and
+  features come from the same noisy detector box. The stated purpose of the jitter ("emulate
+  the detector box distribution") was thus not achieved for the features. **Fixed** — features
+  now derive from the jittered box.
+  - **This does NOT invalidate v1.0's numbers.** They were measured end-to-end on real
+    detector boxes, so whatever the mismatch costs is already inside 46.5%. The fix is an
+    expected *improvement*, unmeasured until a retrain. `fdi-enumeration-head-resnet18-v1.0`
+    remains the frozen, reproducible-as-built model; the corrected builder yields v1.1.
+
+- **DEFECT 4 — stale docstrings asserted the disproved disjointness.**
+  `train_enumeration_head.py` still told the reader `disease/` was "disjoint patients
+  (verified)" and "249 images" — the exact false claim that caused the leakage — and
+  `build_enumeration_crops.py` said the same. Both now state the 85-image overlap and the
+  164-image clean set, and `baseline_to_beat` in the results JSON now carries 0.229/0.663
+  instead of the leaked 0.280/0.687.
+
+- **Environment regression (not a code defect):** `cv2` and `ultralytics` are absent from the
+  active interpreter (`/opt/anaconda3`, torch 2.2.0). **18 of the 46 tests cannot run**
+  (`test_crop_generator` 12, `test_orientation` 6) and the eval script cannot be re-executed.
+  The 28 tests that do not need cv2 **all pass**. The "46/46" claim was true when written and
+  is not reproducible now until the environment is restored.
+- **Source:** `scripts/eval/analyze_stage2_ceiling.py`,
+  `outputs/stage2_clean/stage2_ceiling_analysis.json`, `outputs/stage2_clean/stage2_rows_*.json`,
+  `models/08_fdi_enumeration_head/enumeration_manifest.csv`.
+- **Follow-ups:** correct the ceiling in `model_metrics.md`, `PAPER_MATERIAL.md`,
+  `transfer.md` and `run_summary.txt` (done in this session); restore `cv2`/`ultralytics`
+  before any Stage-2 re-run; consider a v1.1 retrain with the jitter fix, but only *after* R4,
+  since R4 is blocked on nothing and the head is already good enough to integrate.

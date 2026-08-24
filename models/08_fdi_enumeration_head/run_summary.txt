@@ -81,11 +81,17 @@ This is the reportable number. Both rows use the identical detector, settings an
   A 2.0x improvement on both FDI measures.
 
   THE CEILING ARGUMENT — the substantive claim:
-  positional assignment reaches only 67.0% even on FULLY-DETECTED quadrants, because eight
-  detected teeth are not positions 1-8, they are eight teeth that survived extraction, and
-  rank order cannot distinguish those cases. This model reaches 69.4% of detected teeth,
-  clearing that ceiling by +2.4 points. The margin is narrow and should be quoted as such;
-  what matters is that it is not a better sorter but a method not subject to the constraint.
+  positional assignment reaches only 66.3% even on FULLY-DETECTED (8-detection) quadrants,
+  because eight detected teeth are not positions 1-8, they are eight teeth that survived
+  extraction, and rank order cannot distinguish those cases. On that SAME population this
+  model reaches 80.2% — clearing the ceiling by +13.9 points (n=101). It wins in every
+  completeness bucket. Not a better sorter: a method not subject to the constraint.
+
+  [CORRECTED 24 Aug 2026] This block previously read "67.0% ceiling ... +2.4 points".
+  67.0% is the detector's RECALL, not the ceiling, and the +2.4 compared the ceiling
+  (complete quadrants only) with this model's accuracy over ALL detected teeth. Recompute:
+  scripts/eval/analyze_stage2_ceiling.py -> outputs/stage2_clean/stage2_ceiling_analysis.json
+  See RESULTS_LOG 2026-08-24a.
 
   END-TO-END IS NOW CAPPED BY STAGE 1. At 67.0% detector recall, 67.0% is the maximum
   achievable end-to-end; this model captures 69.4% of it. Detector recall is the binding

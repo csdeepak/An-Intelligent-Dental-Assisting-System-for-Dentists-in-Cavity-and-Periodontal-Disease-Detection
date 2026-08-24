@@ -3,9 +3,10 @@ Stage-2 replacement: a learned per-tooth FDI enumeration head.
 
 WHY A LEARNED HEAD, AND WHY IT IS THE ONLY REMAINING OPTION
 -----------------------------------------------------------
-Rank-order positional assignment scores **28.0% end-to-end exact FDI** on 1,534 ground-truth
-teeth, and has a measured ceiling of **68.7%** even where a quadrant is fully detected
-(RESULTS_LOG 2026-08-22c and 22f). The ceiling exists because eight detected teeth are not
+Rank-order positional assignment scores **22.9% end-to-end exact FDI** on the clean
+164-image set (936 teeth), and has a measured ceiling of **66.3%** even where a quadrant is
+fully detected (RESULTS_LOG 2026-08-22j and 2026-08-24a; earlier 28.0%/68.7% figures were
+measured on an evaluation set that turned out to be 34% leaked). The ceiling exists because eight detected teeth are not
 positions 1-8 — they are eight teeth that survived extraction. Improving detector recall
 cannot cross it. A per-tooth classifier makes no contiguity assumption at all: it judges each
 tooth on its own evidence.
@@ -31,10 +32,11 @@ tooth along the arch.
 EVALUATION DISCIPLINE
 ---------------------
 Train/val come from DENTEX `quadrant_enumeration` (634 images, split BY IMAGE). The **test set
-is `DENTEX/disease/`**, evaluated separately by `scripts/eval/validate_fdi_assignment.py` —
-disjoint patients (verified, RESULTS_LOG 2026-08-21m), and the *same* 249 images the 28.0%
-baseline was measured on, so the before/after is a like-for-like comparison rather than a new
-benchmark chosen after the fact.
+is `DENTEX/disease/`**, evaluated separately by `scripts/eval/validate_fdi_assignment.py`.
+**It is NOT disjoint from the training images**: 85 of its 250 are byte-identical to
+`quadrant_enumeration` images and 1 to the detector's training set, so evaluation excludes all
+86 (`data/dentex/disease_leaked_images.json`) and runs on the remaining **164**. Both methods
+are scored on those same 164, so the before/after stays like-for-like. RESULTS_LOG 2026-08-22j.
 
 Usage:
     python scripts/dentex/train_enumeration_head.py --smoke     # 1 epoch, tiny subset
@@ -322,9 +324,9 @@ def main():
            "device": str(device), "best_epoch": best_ep,
            "config": {k: (str(v) if isinstance(v, Path) else v) for k, v in vars(args).items()},
            "val": final, "epoch_log": log,
-           "baseline_to_beat": {"source": "RESULTS_LOG 2026-08-22c/f",
-                                "positional_fdi_exact_end_to_end": 0.280,
-                                "positional_ceiling_complete_quadrant": 0.687},
+           "baseline_to_beat": {"source": "RESULTS_LOG 2026-08-22j / 2026-08-24a (clean 164)",
+                                "positional_fdi_exact_end_to_end": 0.229,
+                                "positional_ceiling_complete_quadrant": 0.663},
            "caveats": {
                "selection_bias": "The reported val figures come from the checkpoint that was "
                                  "SELECTED on this same val split, so they are optimistically "
@@ -333,9 +335,9 @@ def main():
                "boxes": "val uses GROUND-TRUTH boxes. The pipeline feeds DETECTOR boxes, which "
                         "are noisier and only reach 71.8% recall — that recall caps end-to-end "
                         "accuracy no matter how good the numbering is.",
-               "comparable_number": "The like-for-like figure against the 28.0% baseline comes "
+               "comparable_number": "The like-for-like figure against the 22.9% baseline comes "
                                     "from scripts/eval/validate_fdi_assignment.py on DENTEX "
-                                    "disease/ (249 images, detector boxes, disjoint patients). "
+                                    "disease/ (164 leak-free images, detector boxes). "
                                     "Do not quote the val fdi_exact as an end-to-end result."}}
     (args.out / "results.json").write_text(json.dumps(res, indent=2) + "\n")
     try:
@@ -346,11 +348,11 @@ def main():
     print("\n" + "=" * 66)
     print(f"val (GT boxes): quadrant {final['quadrant_acc']:.1%}  "
           f"position {final['position_acc']:.1%}  FDI exact {final['fdi_exact']:.1%}")
-    print(f"positional-assignment baseline, detector boxes: 28.0% end-to-end")
+    print("positional-assignment baseline, detector boxes: 22.9% end-to-end (clean 164)")
     print("=" * 66)
     print(f"\nwrote {args.out}/enumeration_head_best.pth and results.json")
     print("Next: wire into scripts/eval/validate_fdi_assignment.py and re-run on disease/ —")
-    print("that is the like-for-like number against the 28.0% baseline.")
+    print("that is the like-for-like number against the 22.9% baseline.")
 
 
 if __name__ == "__main__":

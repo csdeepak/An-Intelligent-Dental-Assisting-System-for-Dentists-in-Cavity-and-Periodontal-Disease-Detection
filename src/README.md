@@ -53,11 +53,15 @@ detector, same matching rule:
 | Duplicate FDI codes | 0 (by construction) | **0** (via Hungarian) |
 
 **A 2.0× improvement on both measures.** Positional assignment has a hard ceiling — it reaches
-only **67.0%** even on fully-detected quadrants, because eight detected teeth are not positions
-1–8, they are eight teeth that survived extraction, and rank order cannot tell those apart. The
-head clears that ceiling (69.4%) because it is **order-independent**: it judges each tooth on
-its own appearance and absolute position, so a missing neighbour no longer shifts it. The
-margin is +2.4 points — real, but narrow; quote it that way.
+only **66.3%** even on fully-detected quadrants, because eight detected teeth are not positions
+1–8, they are eight teeth that survived extraction, and rank order cannot tell those apart. On
+that same population the head reaches **80.2%** — a **+13.9 point** margin (n=101) — because it
+is **order-independent**: it judges each tooth on its own appearance and absolute position, so a
+missing neighbour no longer shifts it. It wins in every completeness bucket.
+
+*(Corrected 24 Aug 2026: this previously read "67.0% … margin is +2.4 points". 67.0% is the
+detector's **recall**, not the ceiling, and 69.4% is over all detected teeth rather than the
+complete-quadrant subset. See RESULTS_LOG 2026-08-24a.)*
 
 **86 of the original 250 evaluation images are excluded as training duplicates** (85
 byte-identical to enumeration-head training images, 1 to a detector training image). An earlier

@@ -743,15 +743,22 @@ wrong tooth is worse than an unattributed finding.
 Two routes forward, and the second looks stronger: raise posterior detector recall, or replace
 rank-order assignment with a learned per-tooth enumeration head. The training data for the
 latter already exists — DENTEX's `quadrant_enumeration` subset labels 18,095 teeth with
-quadrant and position across 634 images, on **disjoint patients** from the `disease/` set used
-here, so it can train a numbering head while `disease/` remains a clean held-out test.
+quadrant and position across 634 images. (**The disjointness assumed here was later
+disproved** — 85 of `disease/`'s 250 images are byte-identical to enumeration images; see §8.10
+and RESULTS_LOG 2026-08-22j. Evaluation uses the 164 that remain.)
 
 **RESOLVED 22 August 2026.** The learned enumeration head reaches **46.5% end-to-end** (69.4%
 of detected teeth) against **22.9%** for positional assignment — a **2.0× improvement** — on
-**164 leak-free images**. It clears the positional ceiling (67.0% on fully-detected quadrants)
-by **+2.4 points**, which is the substantive point: not a better sorter, but a method not
-subject to the constraint at all. The bottleneck has moved to Stage 1 — at 67.0% recall, that
-is the end-to-end maximum and the head achieves 69.4% of it.
+**164 leak-free images**. On teeth in complete (8-detection) quadrants — rank-order's best
+case — positional reaches **66.3%** and the head **80.2%**, clearing the ceiling by
+**+13.9 points** (n=101, identical population), and the head wins in every completeness bucket.
+That is the substantive point: not a better sorter, but a method not subject to the constraint
+at all. The bottleneck has moved to Stage 1 — at 67.0% recall that is the end-to-end maximum,
+and the head achieves 69.4% of it.
+
+> *Corrected 24 Aug 2026:* earlier drafts quoted a 67.0% ceiling and a +2.4-point margin.
+> 67.0% is the detector's **recall**; the ceiling is 66.3%, and the +2.4 compared two different
+> populations. RESULTS_LOG 2026-08-24a.
 
 **Prior art and framing (added 22 Aug 2026, after reading both papers directly).**
 DPML (Cao et al., *Expert Systems With Applications* 254:124446, 2024) §3.4 independently
