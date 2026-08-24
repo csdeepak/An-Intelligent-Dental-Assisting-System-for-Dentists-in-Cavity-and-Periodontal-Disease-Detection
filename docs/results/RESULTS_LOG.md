@@ -2077,3 +2077,58 @@ Copy this block verbatim to the bottom of the file and fill it in.
 - **Follow-ups:** none. Four passes have found no defect in the FDI logic itself; the defects
   found across them were in the *documentation of it* (the ceiling figure, the laterality
   rationale, stale disjointness claims) and one half-applied augmentation. **R4 remains next.**
+
+## 2026-08-24e — The "over-trust" concern from 24c is withdrawn; it does not survive measurement
+
+- **What was done:** Tested the claim this log made yesterday in 2026-08-24c — that the head
+  "over-trusts" its positional input and that this constitutes a real train/inference gap. **It
+  does not. The claim is withdrawn.** It was an over-reading of an ablation, by the author of
+  that ablation, and is corrected here in the same spirit as the other corrections in this file.
+- **What 24c actually measured:** shuffling positional features (giving a tooth *another
+  tooth's* coordinates) costs 22.9 points of laterality. True, and reproduced. But a shuffle
+  **teleports** the coordinate — often across the midline — and crossing the midline is exactly
+  what inverts laterality. It is not a model of detector-box error.
+- **What detector-box error actually looks like — graded perturbation, val split, 2,729 crops:**
+  centres displaced by ±ε of box size and box sizes scaled by (1±ε), the same parameterisation
+  as the training jitter:
+
+  | Perturbation | side | position | FDI exact |
+  |---|---|---|---|
+  | none (baseline) | 99.5% | 92.1% | 91.6% |
+  | ±15% of box (= training jitter) | 99.5% | 92.1% | **91.6%** |
+  | ±25% of box | 99.5% | 92.1% | **91.6%** |
+  | ±50% of box | 99.4% | 92.2% | **91.6%** |
+  | ±100% of box | 99.3% | 92.2% | **91.5%** |
+
+  **Displacing every box by its own full width costs 0.1 points of FDI exact.** At the realistic
+  ±15% the numbers do not move at all.
+- **The geometry explains it, so this is not a fluke of one split.** A tooth occupies **4.5% of
+  image width**, so a full-box displacement moves the normalised centre by at most **0.045**,
+  while the median tooth sits **0.091** from the midline. Only **17.3%** of teeth are close
+  enough to the midline for a ±100% shift to cross it, and just **1.8%** at ±15% — and those are
+  central incisors, where the confusion is 11↔21, one code. A shuffle, by contrast, redraws cx
+  from the full [0.205, 0.840] span.
+- **Consequences, stated plainly:**
+  1. **The head is robust to detector-box error.** The 46.5% end-to-end figure is not being
+     depressed by feature noise.
+  2. **The jitter defect (2026-08-24a) is even less consequential than that entry allowed.** It
+     remains a correctness fix worth keeping in the builder, but it should **not** be presented
+     as a performance opportunity.
+  3. **v1.1 has no measured performance justification.** 24c called this "the strongest and only
+     quantified argument" for a retrain; that argument is gone. Retrain if the crops are rebuilt
+     for another reason, not for this.
+  4. **The shuffle result keeps a legitimate use** — it is an *attribution* diagnostic showing
+     the head genuinely reads the coordinate rather than ignoring it. It is not evidence of
+     fragility, and must not be cited as such.
+- **Method note — why the earlier reading was wrong.** The shuffle ablation answers "does the
+  model use this input?" It does **not** answer "is the model robust to realistic error in this
+  input?", because the perturbation it applies is not drawn from the error distribution the
+  pipeline produces. Those are different questions and they need different experiments. Choosing
+  a perturbation because it is easy to implement, then interpreting it as a robustness result,
+  is the error made in 24c.
+- **Corrected in:** `scripts/dentex/train_enumeration_head.py`, `src/README.md`,
+  `docs/results/model_metrics.md`, `docs/results/PAPER_MATERIAL.md` §8.10.
+- **Source:** graded-perturbation run over `data/dentex/enumeration_v1` val split against
+  `models/08_fdi_enumeration_head/enumeration_head_best.pth`.
+- **Follow-ups:** none. **R4 is unblocked and is next.** All five trained checkpoints load
+  cleanly and R4 is inference-only — no GPU rental required.

@@ -790,11 +790,18 @@ exact** — real, cheap, and worth keeping, but a refinement rather than the loa
 element. What the image is load-bearing for is the **position digit**, which collapses without
 it, and that is exactly where rank-order geometry fails.
 
-**A sensitivity worth reporting.** Supplying *wrong* positional features (a random other
-tooth's) costs **22.9 points of laterality** — far more than removing them. The head
-over-trusts this input. That matters because inference feeds it **detector** boxes while
-training used clean ground-truth ones, and the jitter augmentation meant to bridge that gap was
-found to be only half-applied (RESULTS_LOG 2026-08-24a). RESULTS_LOG 2026-08-24c.
+**A sensitivity that turns out not to matter — and the reason it does not.** Supplying
+*shuffled* positional features (another tooth's) costs **22.9 points of laterality**, which
+invites the conclusion that the head is fragile to detector-box error. **It is not, and that
+conclusion is withdrawn.** A shuffle teleports a coordinate to a different tooth, frequently
+across the midline, and crossing the midline is what inverts laterality. Realistic box error is
+a small *local* displacement: perturbing the centre by **±15% of box size** — the training
+jitter magnitude — leaves side, position and FDI exact unchanged to within 0.1 points, and even
+**±100% of box size** costs only 0.2 points of side accuracy. The geometry explains it: a tooth
+occupies ~4.5% of image width, so a full-box displacement shifts the normalised centre by at
+most 0.045, while the median tooth sits 0.091 from the midline. Report the shuffle result as an
+*attribution* diagnostic — it shows the head genuinely uses the coordinate — not as a
+robustness weakness. RESULTS_LOG 2026-08-24c, corrected by 2026-08-24e.
 
 DentFound (Zhu et al., *Nature Biomedical Engineering*, 2026) reports **73.58% accuracy /
 84.78% F1** on aligning tooth positions with disease findings across 56,351 teeth, and states

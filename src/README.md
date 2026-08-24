@@ -82,8 +82,10 @@ labels, independent of the model.
 features with their dataset mean costs **3.2 points of laterality** (99.5% → 96.3%) and nothing
 at all on the position digit. *(This previously called them "load-bearing rather than merely
 helpful"; the image alone recovers laterality at 96.3%, so that was overstated.)* Feeding
-*wrong* features costs **22.9 points** — the head over-trusts them, which interacts with the
-half-applied jitter augmentation. RESULTS_LOG 2026-08-24c.
+*shuffled* features costs 22.9 points, but that is a misleading worst case: a shuffle teleports
+the coordinate to another tooth, often across the midline. **Realistic detector-box error costs
+essentially nothing** — ±15% of box size changes FDI exact by <0.1pp, ±100% by 0.2pp, because a
+tooth is only ~4.5% of image width. RESULTS_LOG 2026-08-24c, corrected by 2026-08-24e.
 Full record: `docs/results/RESULTS_LOG.md` 2026-08-22i, 22j (leakage) and 22k (prior art).
 
 ## Conventions

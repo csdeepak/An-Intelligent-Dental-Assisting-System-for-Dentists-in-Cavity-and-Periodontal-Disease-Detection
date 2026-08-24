@@ -89,8 +89,10 @@ into jaw and side, since *side* is the laterality claim:
 
 Positional features are worth **+3.2 points of laterality / +2.8 FDI exact** — not the decisive
 signal earlier docs claimed, since the image alone recovers laterality at 96.3%. The image *is*
-decisive for the **position digit**. Feeding *wrong* coordinates costs **22.9 points**, so the
-head over-trusts this input — relevant because inference supplies noisy detector boxes.
+decisive for the **position digit**. Feeding *shuffled* coordinates costs 22.9 points, but that
+is a worst case that does not occur: a shuffle teleports the coordinate to another tooth, often
+across the midline. **Realistic box error is a small local jitter and costs ~nothing** — ±15% of
+box size leaves FDI exact unchanged to 0.1pp, ±100% costs 0.2pp (RESULTS_LOG 2026-08-24e).
 RESULTS_LOG 2026-08-24c.
 
 Training-time val (GT boxes, **selection-biased — a diagnostic, not a result**): quadrant

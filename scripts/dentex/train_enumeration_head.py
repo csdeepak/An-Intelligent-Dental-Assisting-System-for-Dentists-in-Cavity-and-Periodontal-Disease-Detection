@@ -32,10 +32,16 @@ do not build an argument on them.
 **What the image is genuinely load-bearing for is the position digit**, which collapses without
 it, and that is exactly where rank-order geometry fails.
 
-**Known sensitivity:** feeding *wrong* positional features (a random other tooth's) costs
-**22.9 points of laterality**, far more than removing them. The head over-trusts this input,
-which matters because inference feeds it noisy DETECTOR boxes while training used clean
-ground-truth ones -- see the jitter defect in RESULTS_LOG 2026-08-24a.
+**Sensitivity, and why it does NOT matter in practice** (RESULTS_LOG 2026-08-24e):
+feeding *shuffled* positional features -- another tooth's -- costs 22.9 points of laterality.
+That looks alarming and is misleading. A shuffle teleports the coordinate to a different tooth,
+often across the midline, which is what flips laterality. **Real detector-box error is a small
+LOCAL jitter and costs essentially nothing**: perturbing the centre by +/-15% of box size (the
+training jitter magnitude) leaves side, position and FDI exact *unchanged* to 0.1pp, and even
++/-100% of box size costs only 0.2pp of side accuracy. A tooth is ~4.5% of image width, so a
+whole-box displacement moves cx by <=0.045 while the median tooth sits 0.091 from the midline.
+**Do not cite the shuffle number as a train/inference gap** -- an earlier version of this
+docstring did.
 
 Two heads rather than one 32-way softmax because the sub-problems have different difficulty
 and different failure modes, and reporting them separately is what makes the result
