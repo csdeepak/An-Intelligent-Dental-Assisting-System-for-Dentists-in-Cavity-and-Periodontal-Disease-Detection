@@ -1,0 +1,144 @@
+STAGE 2 — FDI ENUMERATION HEAD (ResNet18 + positional features)
+Version tag: fdi-enumeration-head-resnet18-v1.0
+Frozen and recorded: 22 August 2026
+
+This replaces positional (rank-order) FDI assignment as the pipeline's Stage 2. It is the
+project's fifth trained model and the first trained end-to-end within the repository's own
+scripts rather than recovered from a notebook.
+
+--------------------------------------------------------------------------------
+FILES
+--------------------------------------------------------------------------------
+  enumeration_head_best.pth                [TRACKED]  43 MB
+    sha256  e6abf1cd959c36824ef0061db84a5fbc8793af314099cb3cc72027662445cc5a
+    keys    {model_state_dict, arch, positional_features}
+    arch    "resnet18+pos4->(quadrant4,position8)"
+    Checkpoint of the BEST epoch by validation FDI-exact (epoch 13 of 15), not the last.
+
+  training_results.json                    Full config, per-epoch log (train loss + val
+                                           metrics), confusion matrices, per-class accuracy.
+  enumeration_manifest.csv                 All 33,461 training crops: source image, split,
+                                           annotation id, FDI, quadrant, position, jitter flag,
+                                           and the four positional features. The complete
+                                           reproducibility record of what the model saw.
+  eval_stage2_head.json                    Held-out evaluation of THIS checkpoint.
+  eval_stage2_positional_baseline.json     The method it replaces, same images and settings.
+  eval_excluded_leaked_images.json         The 86 evaluation images excluded as training
+                                           duplicates. Required to reproduce the numbers below.
+
+--------------------------------------------------------------------------------
+ARCHITECTURE — and the one part that is not obvious
+--------------------------------------------------------------------------------
+  ResNet18 (ImageNet-pretrained) over a 1.5x-expanded 224x224 tooth crop,
+  concatenated with 4 positional features [cx, cy, bw, bh] (normalised by the FULL image,
+  not the crop) through a 4->64->64 MLP, then two linear heads:
+      quadrant  (4-way)   position (8-way)      FDI = quadrant*10 + position
+
+  WHY POSITIONAL FEATURES ARE LOAD-BEARING, NOT A CONVENIENCE:
+  teeth 16 and 26 are near mirror images, as are 36/46, 11/21 and every other left/right
+  pair. Laterality is not recoverable from crop pixels at all — a crop-only classifier
+  would be guessing on half of every label. Normalised x resolves it. Geometry alone already
+  gives 93% quadrant accuracy; what the IMAGE contributes is the position digit, which is
+  exactly where geometry has a hard ceiling. The two signals are complementary and the
+  architecture reflects that.
+
+  TWO HEADS RATHER THAN A 32-WAY SOFTMAX: so a wrong FDI is diagnostic — it says whether the
+  error was the wrong side of the mouth or the wrong tooth along the arch.
+
+  PRIOR ART: DPML (Cao et al., Expert Systems With Applications 254:124446, 2024) section 3.4
+  argues the same design independently. Its 8-class formulation, justified by bilateral
+  symmetry, sidesteps the left/right problem that FDI's 32 classes cannot.
+
+--------------------------------------------------------------------------------
+TRAINING
+--------------------------------------------------------------------------------
+  Data      DENTEX training_data/quadrant_enumeration — 634 images, 18,095 teeth, all 32 FDI
+            classes (341-630 examples each). FDI = (category_id_1+1)*10 + (category_id_2+1),
+            verified spatially before use, not assumed.
+  Split     BY IMAGE, 85/15: 538 train images (15,366 teeth -> 30,732 crops after one
+            jittered copy each) / 96 val images (2,729 teeth). Zero images and zero
+            annotation ids span the split; all jittered copies are train-only.
+  Optimiser AdamW, lr 1e-3, cosine annealing over 15 epochs, batch 64, seed 42
+  Augment   RandomRotation(7) + ColorJitter(0.2, 0.2). NO HORIZONTAL FLIP — it mirrors the
+            arch and would invert the quadrant label. Training crops also carry the +/-15%
+            box jitter the detector produces at inference.
+  Hardware  Apple M4 Pro, MPS, 48 minutes (190.7 s/epoch)
+  Selection Best validation FDI-exact; epoch 13.
+
+--------------------------------------------------------------------------------
+RESULTS
+--------------------------------------------------------------------------------
+HELD-OUT — DENTEX disease/, 164 leak-free images, 936 GT teeth, DETECTOR boxes.
+This is the reportable number. Both rows use the identical detector, settings and matching.
+
+                             positional (replaced)    THIS MODEL
+  detection recall                  67.0%               67.0%
+  quadrant correct (of detected)    92.3%               94.7%
+  FDI exact (of detected)           34.1%               69.4%
+  FDI exact, END-TO-END             22.9%               46.5%
+  duplicate FDI codes                   0                   0
+
+  A 2.0x improvement on both FDI measures.
+
+  THE CEILING ARGUMENT — the substantive claim:
+  positional assignment reaches only 67.0% even on FULLY-DETECTED quadrants, because eight
+  detected teeth are not positions 1-8, they are eight teeth that survived extraction, and
+  rank order cannot distinguish those cases. This model reaches 69.4% of detected teeth,
+  clearing that ceiling by +2.4 points. The margin is narrow and should be quoted as such;
+  what matters is that it is not a better sorter but a method not subject to the constraint.
+
+  END-TO-END IS NOW CAPPED BY STAGE 1. At 67.0% detector recall, 67.0% is the maximum
+  achievable end-to-end; this model captures 69.4% of it. Detector recall is the binding
+  constraint from here, not numbering.
+
+  ONE-TO-ONE ASSIGNMENT (Hungarian over the 32 codes) is part of the method, not an option.
+  Plain argmax emits 1,013 anatomically impossible duplicate codes; the constraint removes
+  all of them and gains ~1.5 points end-to-end, costing ~1.6 points of raw quadrant accuracy.
+
+VALIDATION (GT boxes, enumeration val split) — A DIAGNOSTIC, NOT A RESULT:
+  quadrant 99.4%, position 92.1%, FDI exact 91.6% (macro-F1 0.916).
+  These are SELECTION-BIASED: the checkpoint was chosen on this same split. They also use
+  ground-truth boxes rather than detector boxes. Do not quote them as performance.
+
+  Per-position accuracy is notably FLAT — 0.886 to 0.963 across all eight positions —
+  unlike the detector, whose recall collapses from 98.3% (position 1) to 61.0% (position 8).
+  The head does not inherit Stage 1's posterior weakness.
+
+--------------------------------------------------------------------------------
+EVALUATION DISCIPLINE — read before reproducing or citing
+--------------------------------------------------------------------------------
+  86 of the 250 DENTEX disease/ images are EXCLUDED as training duplicates: 85 are
+  byte-identical (MD5) to quadrant_enumeration images used to train this model, and 1
+  (test_181) to a detector training image. 164 remain.
+
+  A first evaluation reported 52.2% end-to-end before this was found — an inflation of
+  5.7 points. The cause is worth remembering: quadrant_enumeration and the disease SUBSET
+  (705 images) genuinely are disjoint patients, and that was verified — but disease/ is a
+  THIRD folder sharing a third of its images with the enumeration set. A verified fact about
+  one pair was generalised to a pair that had never been measured.
+
+  FOR ANY FUTURE EVALUATION SET, INCLUDING NINGXIA: measure overlap against EACH training
+  corpus separately. Do not infer disjointness from a neighbouring pair.
+
+  Inference preprocessing was verified to reproduce training preprocessing exactly:
+  200/200 predictions agree on the same teeth through both code paths.
+
+--------------------------------------------------------------------------------
+REPRODUCING
+--------------------------------------------------------------------------------
+  python scripts/dentex/build_enumeration_crops.py           # 33,461 crops, seed 42
+  python scripts/dentex/train_enumeration_head.py            # 15 epochs
+  python scripts/eval/validate_fdi_assignment.py --method head
+
+  Inference in the pipeline: src.fdi_head_inference.assign_fdi_head — it mirrors the
+  training preprocessing and applies the one-to-one constraint. Do NOT hand-roll the
+  preprocessing; drift between the two paths degrades accuracy silently.
+
+  Figures for the paper: docs/results/figures/enumeration_head/
+    training_curves.png                    (with both positional baselines drawn in)
+    confusion_{quadrant,position,fdi}.png
+    per_position_accuracy.png
+    qualitative_positional_vs_head.jpg     (same radiograph, both methods)
+
+  Full history: docs/results/RESULTS_LOG.md entries 2026-08-22c (the failure that motivated
+  this), 22f (the ceiling), 22i (training), 22j (the leakage correction), 22k (prior art).

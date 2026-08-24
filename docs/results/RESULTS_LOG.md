@@ -1762,3 +1762,39 @@ Copy this block verbatim to the bottom of the file and fill it in.
 - **Follow-ups:** add both to the Related Work comparison table; cite DPML in §5.2/§6 for the
   spatial-prior design and DentFound in §3 R1 for the instance-mask ablation and in §8.10 for
   the tooth-position failure mode.
+
+## 2026-08-22l — Enumeration head frozen as `fdi-enumeration-head-resnet18-v1.0`
+
+- **What was done:** Froze the Stage-2 enumeration head into `models/08_fdi_enumeration_head/`
+  with a hash and a full `run_summary.txt`, matching how the detector and caries cascade were
+  frozen. Until now it was the current numbering method while living in `outputs/` with no tag,
+  no hash and no record — an inconsistency worth closing before R4 starts consuming it.
+- **Version tag:** `fdi-enumeration-head-resnet18-v1.0`
+  **SHA-256:** `e6abf1cd959c36824ef0061db84a5fbc8793af314099cb3cc72027662445cc5a`
+- **Tracked in git (46 MB total)** — consistent with the existing precedent, where every
+  43 MB ResNet18 (`03_`, `04_`, `07_`) is tracked and only the 49 MB YOLO weights are not.
+- **What the directory holds, and why each piece is there:**
+  - `enumeration_head_best.pth` — best epoch by val FDI-exact (13 of 15), not the last.
+  - `training_results.json` — full config, per-epoch log **including train loss**, confusion
+    matrices for quadrant/position/32-class FDI, per-class accuracy.
+  - `enumeration_manifest.csv` — all 33,461 crops with source image, split, FDI, and the four
+    positional features. The complete record of what the model actually saw; it makes the run
+    reproducible without re-deriving the split.
+  - `eval_stage2_head.json` + `eval_stage2_positional_baseline.json` — the held-out result and
+    the method it replaces, same images and settings, so the comparison travels with the model.
+  - `eval_excluded_leaked_images.json` — the 86 excluded images. **Without this the numbers
+    cannot be reproduced**, and would come out 5.7 points too high.
+- **`run_summary.txt` records** the architecture and why positional features are load-bearing,
+  the training config, both result tables, the ceiling argument, the DPML prior-art citation,
+  the full leakage story with its root cause, the instruction to check overlap per-corpus for
+  future evaluation sets, and the exact commands to reproduce.
+- **Verified after freezing, not assumed:** the validation script's default now points at
+  `models/08_fdi_enumeration_head/`, and re-running end to end from that location reproduces
+  **46.5% exactly**.
+- **Paper figures** now in `docs/results/figures/enumeration_head/`: training curves with both
+  baselines drawn in, three confusion matrices, per-position accuracy, and a new
+  **`qualitative_positional_vs_head.jpg`** — the same radiograph under both methods, with the
+  headline numbers on each panel. That one is figure-ready as-is.
+- **Remaining inconsistency:** bone-loss weights (Stages 4a/4b) are still the only trained
+  models without a version tag.
+- **Source:** `models/08_fdi_enumeration_head/run_summary.txt`.

@@ -73,8 +73,11 @@ Training-time val (GT boxes, **selection-biased — a diagnostic, not a result**
 99.4%, position 92.1%, FDI exact 91.6%; per-position accuracy 0.886–0.963, essentially flat,
 unlike the detector's collapse from 98.3% (position 1) to 61.0% (position 8).
 
-Weights `outputs/enumeration_head/enumeration_head_best.pth` (gitignored, **not yet
-version-tagged**). Figures: `docs/results/figures/enumeration_head/`.
+Weights **frozen and tracked**: `models/08_fdi_enumeration_head/`, tag
+**`fdi-enumeration-head-resnet18-v1.0`**, SHA-256
+`e6abf1cd959c36824ef0061db84a5fbc8793af314099cb3cc72027662445cc5a`. That directory also holds
+the training config and per-epoch log, the full 33,461-row crop manifest, both evaluation
+summaries and the leakage exclusion list. Figures: `docs/results/figures/enumeration_head/`.
 Full record: `RESULTS_LOG.md` 2026-08-22i and **22j (the leakage correction)**.
 
 ---

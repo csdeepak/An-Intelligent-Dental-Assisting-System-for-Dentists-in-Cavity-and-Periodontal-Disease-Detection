@@ -197,7 +197,7 @@ def main():
                     help="positional = rank-order sorting (the 28.0%% baseline); "
                          "head = the learned per-tooth enumeration classifier")
     ap.add_argument("--head-weights", type=Path,
-                    default=REPO_ROOT / "outputs/enumeration_head/enumeration_head_best.pth")
+                    default=REPO_ROOT / "models/08_fdi_enumeration_head/enumeration_head_best.pth")
     ap.add_argument("--no-one-to-one", action="store_true",
                     help="head only: plain argmax instead of Hungarian one-to-one assignment. "
                          "Use it to MEASURE the duplicate-FDI rate rather than assume it.")
