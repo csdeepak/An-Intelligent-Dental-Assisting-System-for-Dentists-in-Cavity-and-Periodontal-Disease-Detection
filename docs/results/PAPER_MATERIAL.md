@@ -717,7 +717,7 @@ polygons where both exist, which is what the seg pipeline effectively does.
 
 ---
 
-### 8.10 FDI numbering is the pipeline's weakest link, and it was never measured until now
+### 8.10 FDI numbering was the pipeline's weakest link — measured, then fixed
 
 Measured 22 August 2026 against the 1,534 FDI-labelled teeth in DENTEX `disease/` — the first
 Stage-2 evaluation this project has ever run. **End-to-end FDI exact accuracy is 28.0%.**
@@ -746,8 +746,18 @@ latter already exists — DENTEX's `quadrant_enumeration` subset labels 18,095 t
 quadrant and position across 634 images, on **disjoint patients** from the `disease/` set used
 here, so it can train a numbering head while `disease/` remains a clean held-out test.
 
-Report the 28.0% honestly. It is the most informative number the project currently has about
-whether the system works end to end, and the answer today is that it does not.
+**RESOLVED 22 August 2026.** The learned enumeration head was built and trained, and on the
+same 249 images with the same detector it reaches **52.2% end-to-end** (72.7% of detected
+teeth), against 28.0% for positional assignment. **72.7% is above the 68.7% ceiling**, which
+is the substantive point: it is not a better sorter, it is a method that is not subject to the
+constraint at all. The bottleneck has moved to Stage 1 — at 71.8% detector recall, 71.8% is the
+end-to-end maximum and the head achieves 72.7% of it.
+
+Report both numbers. The 28.0% → 52.2% progression, with the ceiling argument explaining *why*
+a better sorter could never have got there, is a cleaner methodological narrative than the
+final figure alone — and the ceiling measurement is what licenses the architectural claim.
+`RESULTS_LOG.md` 2026-08-22c, 22f and 22i; figures in
+`docs/results/figures/enumeration_head/`.
 
 ---
 

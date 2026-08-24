@@ -1584,3 +1584,69 @@ Copy this block verbatim to the bottom of the file and fill it in.
   `validate_fdi_assignment.py` and re-run on `disease/` for the like-for-like number; (3) run
   the with/without-positional-features ablation, which would substantiate the design claim that
   laterality is not recoverable from crop pixels — a clean C5 ablation costing one extra run.
+
+## 2026-08-22i — Enumeration head trained: Stage-2 FDI accuracy 28.0% → 52.2% end-to-end
+
+- **What was done:** Trained the Stage-2 enumeration head to completion (15 epochs, 48 min on
+  the local M4 Pro via MPS) and evaluated it on the **same 249 `DENTEX/disease/` images, the
+  same detector, the same matching rule** as the 28.0% positional baseline. Also ran the
+  one-to-one ablation. This replaces rank-order assignment as the pipeline's Stage 2.
+- **Dataset / config:** train on DENTEX `quadrant_enumeration` — 30,732 crops (15,366 teeth +
+  jittered copies) from 538 images; val 2,729 teeth from 96 images, **split by image**.
+  ResNet18 (ImageNet-pretrained) over 1.5×-expanded 224px crops, concatenated with four
+  positional features, two heads (quadrant 4-way, position 8-way). AdamW lr 1e-3, cosine
+  annealing over 15 epochs, batch 64, seed 42. Selection on val FDI-exact; best at epoch 13.
+
+- **THE RESULT — like-for-like on the held-out `disease/` set, detector boxes:**
+
+  | | Positional (baseline) | **Head + one-to-one** | Δ |
+  |---|---|---|---|
+  | Detection recall | 71.8% | 71.8% | — (same detector) |
+  | Quadrant correct | 93.0% | **95.5%** | +2.5 |
+  | FDI exact (of detected) | 39.1% | **72.7%** | **+33.6** |
+  | **FDI exact, end-to-end** | **28.0%** | **52.2%** | **+24.2** |
+  | Duplicate FDI codes | 0 (by construction) | **0** | — |
+
+- **The ceiling is broken, which was the whole point.** Positional assignment was measured at a
+  hard ceiling of **68.7%** even on fully-detected quadrants (2026-08-22f). The head numbers
+  **72.7% of detected teeth** correctly — above that ceiling. It does so by being
+  *order-independent*: it judges each tooth on its own appearance and absolute position rather
+  than its rank among whatever else was detected, so a missing neighbour no longer shifts it.
+- **End-to-end is now capped by Stage 1, not Stage 2.** With recall at 71.8%, perfect numbering
+  would give 71.8% end-to-end. The head reaches 52.2%, i.e. **72.7% of the achievable maximum**.
+  The bottleneck has moved from numbering to detection — which is a much more tractable problem
+  and changes where effort should go next.
+- **Ablation — one-to-one assignment (free, inference-only):**
+
+  | | FDI/detected | End-to-end | Duplicate codes |
+  |---|---|---|---|
+  | Hungarian one-to-one | **72.7%** | **52.2%** | **0** |
+  | Plain argmax | 70.6% | 50.7% | **1,013** |
+
+  Plain argmax emits **1,013 duplicate FDI codes** — anatomically impossible, since a mouth has
+  at most one tooth 16. Constraining to a one-to-one matching removes all of them *and* gains
+  1.5 points end-to-end. It costs 1.6 points of raw quadrant accuracy (97.1% → 95.5%), because
+  the global constraint sometimes moves a tooth across a quadrant boundary to satisfy it —
+  a real trade, and the FDI-exact gain says it is worth making.
+- **Val (GT boxes, for diagnosis only):** quadrant 99.4%, position 92.1%, FDI exact 91.6%
+  (macro-F1 0.916). Per-position accuracy is remarkably flat — 0.886–0.963 across all eight
+  positions — in sharp contrast to the detector, whose recall collapses from 98.3% at position 1
+  to 61.0% at position 8. **The head does not share the detector's posterior weakness.**
+  **These val figures are selection-biased** (the checkpoint was chosen on this split) and use
+  ground-truth boxes; they are a model-selection diagnostic, not a result. The result is the
+  52.2% above.
+- **Train loss fell 0.807 → 0.002 while val FDI plateaued near 0.91** from epoch 8, i.e. the
+  model memorised the training set and the last third of the schedule bought little. A shorter
+  run, or early stopping on val FDI, would give the same model for less compute.
+- **Figures saved for the paper** in `docs/results/figures/enumeration_head/`: training curves
+  (with both positional baselines drawn in), confusion matrices for quadrant / position / the
+  full 32-class FDI, per-position accuracy, and a qualitative overlay on `test_103` where the
+  head gets FDI 18, 15, 46 and 36 right that positional assignment did not.
+- **Source:** `scripts/dentex/train_enumeration_head.py`, `src/fdi_head_inference.py`,
+  `scripts/eval/validate_fdi_assignment.py --method head`;
+  `outputs/enumeration_head/`, `outputs/stage2_validation/` (gitignored).
+- **Follow-ups:** (1) Stage 2 is no longer the binding constraint — **detector recall is**;
+  R1's seg retrain may help and is already prepared. (2) The positional module stays as the
+  documented baseline, not as the pipeline default. (3) A with/without-positional-features
+  ablation would substantiate the design claim that laterality is unrecoverable from pixels;
+  one extra 48-minute run.

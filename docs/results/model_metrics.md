@@ -3,7 +3,7 @@
 Current best numbers only. One table per model, nothing else. For how a number was
 obtained see `PAPER_MATERIAL.md`; for when and why it changed see `RESULTS_LOG.md`.
 
-**Last updated:** 2026-08-22
+**Last updated:** 2026-08-22 (Stage 2 replaced)
 
 ---
 
@@ -36,35 +36,38 @@ all 66, so its instance counts will legitimately differ. Analysis:
 
 ---
 
-## Stage 2 — FDI numbering · positional assignment · evaluated on DENTEX `disease/`
+## Stage 2 — FDI numbering · learned enumeration head · ResNet18 + positional features
 
-First measured 22 Aug 2026. Frozen detector (`tooth-detector-a100-1024-v1.0`, imgsz 1024,
-conf 0.25, NMS IoU 0.50) + `src/fdi_assignment.py`, against 1,534 FDI-labelled teeth across
-249 images. `test_181.png` excluded (byte-identical to a training image). **Detector input is
-rotated 90° COUNTER-clockwise** — verified against all 1,000 Tufts pairs (1000/1000 CCW,
-0/1000 CW). Corrected 22 Aug after a first run used clockwise; see `RESULTS_LOG.md`
-2026-08-22d.
+**Current method as of 22 Aug 2026.** Evaluated on 1,534 FDI-labelled teeth across 249
+`DENTEX/disease/` images with **detector** boxes (`tooth-detector-a100-1024-v1.0`, imgsz 1024,
+conf 0.25, NMS IoU 0.50, rotated 90° CCW), Hungarian one-to-one assignment over the 32 codes.
+`test_181.png` excluded (byte-identical to a training image).
 
-| Metric | Value |
-|--------|-------|
-| Detection recall | 71.8% (1,101 / 1,534) |
-| Quadrant correct (of detected) | 93.0% |
-| **FDI exact (of detected)** | **39.1%** |
-| **FDI exact, end-to-end** | **28.0%** |
-| Within ±1 position (correct quadrant) | 74.0% |
+| Metric | Positional (superseded) | **Learned head** |
+|--------|------------------------|------------------|
+| Detection recall | 71.8% | 71.8% |
+| Quadrant correct (of detected) | 93.0% | **95.5%** |
+| FDI exact (of detected) | 39.1% | **72.7%** |
+| **FDI exact, end-to-end** | 28.0% | **52.2%** |
+| Duplicate FDI codes | 0 | **0** |
 
-**This is a negative result and should be reported as one.** Quadrant assignment works; the
-position digit does not. Errors are asymmetric — 40.2% too low vs 20.6% too high — because
-detector recall decays toward the back of the arch, and each missed tooth shifts every tooth
-distal to it one place inward. At 28.0% end-to-end, ~7 of 10 teeth in a per-tooth report would
-carry the wrong number.
+**72.7% of detected teeth is above the 68.7% ceiling** that rank-order assignment provably
+cannot cross, because the head is order-independent: it judges each tooth on its own
+appearance and absolute position, not its rank among whatever else was detected.
 
-Assignment confidence is calibrated in the right direction — unflagged assignments are 43.9%
-exact against 29.1% for flagged ones — so Stage-5 filtering can act on it.
+**End-to-end is now capped by Stage 1.** At 71.8% recall, perfect numbering would give 71.8%;
+the head reaches 72.7% of that maximum. The bottleneck has moved from numbering to detection.
 
-Evaluates **GT → detection** only; detector precision is not reported because DENTEX
-`disease/` annotates only teeth carrying a finding (~6 of ~30 per image). Full analysis:
-`RESULTS_LOG.md` 2026-08-22c.
+One-to-one ablation: plain argmax gives 70.6% / 50.7% and emits **1,013 anatomically impossible
+duplicate codes**. The constraint removes all of them and gains 1.5 points end-to-end.
+
+Training (val, GT boxes, **selection-biased — a diagnostic, not a result**): quadrant 99.4%,
+position 92.1%, FDI exact 91.6%. Per-position accuracy 0.886–0.963, essentially flat, unlike
+the detector's collapse from 98.3% (position 1) to 61.0% (position 8).
+
+Weights `outputs/enumeration_head/enumeration_head_best.pth` (gitignored, **not yet
+version-tagged**). Figures: `docs/results/figures/enumeration_head/`.
+Full record: `RESULTS_LOG.md` 2026-08-22i.
 
 ---
 
