@@ -92,10 +92,6 @@ class ToothSet:
         return self.tf(img), feats, int(r["quadrant"]) - 1, int(r["position"]) - 1
 
 
-class EnumerationHead:
-    pass
-
-
 def build_model(device):
     import torch.nn as nn
     from torchvision.models import ResNet18_Weights, resnet18
@@ -118,7 +114,7 @@ def build_model(device):
     return Net().to(device)
 
 
-def evaluate(model, loader, device):
+def evaluate(model, loader, device, full=False):
     import torch
     model.eval()
     qs, ps, qt, pt = [], [], [], []
@@ -129,8 +125,11 @@ def evaluate(model, loader, device):
             qt += q.tolist(); pt += p.tolist()
     qs, ps, qt, pt = map(np.array, (qs, ps, qt, pt))
     fdi_ok = (qs == qt) & (ps == pt)
-    from sklearn.metrics import f1_score
-    return {
+    from sklearn.metrics import confusion_matrix, f1_score
+    fdi_true = (qt + 1) * 10 + (pt + 1)
+    fdi_pred = (qs + 1) * 10 + (ps + 1)
+    codes = sorted({(q + 1) * 10 + (p + 1) for q in range(4) for p in range(8)})
+    out = {
         "n": int(len(qt)),
         "quadrant_acc": float((qs == qt).mean()),
         "position_acc": float((ps == pt).mean()),
@@ -138,7 +137,94 @@ def evaluate(model, loader, device):
         "position_within_1": float((np.abs(ps - pt) <= 1)[qs == qt].mean()) if (qs == qt).any() else 0.0,
         "quadrant_macro_f1": float(f1_score(qt, qs, average="macro", zero_division=0)),
         "position_macro_f1": float(f1_score(pt, ps, average="macro", zero_division=0)),
+        "fdi_macro_f1": float(f1_score(fdi_true, fdi_pred, average="macro",
+                                       labels=codes, zero_division=0)),
     }
+    if full:
+        out["confusion_quadrant"] = confusion_matrix(qt, qs, labels=list(range(4))).tolist()
+        out["confusion_position"] = confusion_matrix(pt, ps, labels=list(range(8))).tolist()
+        out["confusion_fdi"] = confusion_matrix(fdi_true, fdi_pred, labels=codes).tolist()
+        out["fdi_labels"] = codes
+        # per-position accuracy: is the head, like the detector, weaker toward the molars?
+        out["per_position_acc"] = {
+            str(k + 1): float((ps[pt == k] == k).mean()) if (pt == k).any() else None
+            for k in range(8)}
+        out["per_quadrant_acc"] = {
+            str(k + 1): float((qs[qt == k] == k).mean()) if (qt == k).any() else None
+            for k in range(4)}
+    return out
+
+
+def save_figures(res, out):
+    """Figures intended for the paper, not just for eyeballing a run."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    log, val = res["epoch_log"], res["val"]
+    base = res["baseline_to_beat"]
+
+    # 1) training curves, with the two baselines the head has to beat drawn in
+    fig, ax = plt.subplots(figsize=(7.2, 4.4))
+    ep = [r["epoch"] for r in log]
+    ax.plot(ep, [r["fdi_exact"] for r in log], "o-", lw=2, label="FDI exact", color="#0E7C86")
+    ax.plot(ep, [r["quadrant_acc"] for r in log], "s--", lw=1.4, label="Quadrant", color="#2F7D5B")
+    ax.plot(ep, [r["position_acc"] for r in log], "^--", lw=1.4, label="Position", color="#A8690B")
+    ax.axhline(base["positional_ceiling_complete_quadrant"], color="#A8443A", ls=":", lw=1.6,
+               label=f"positional ceiling {base['positional_ceiling_complete_quadrant']:.1%}")
+    ax.axhline(base["positional_fdi_exact_end_to_end"], color="#A8443A", ls="-.", lw=1.4,
+               label=f"positional end-to-end {base['positional_fdi_exact_end_to_end']:.1%}")
+    ax2 = ax.twinx()
+    ax2.plot(ep, [r.get("train_loss") for r in log], color="#5A6A76", lw=1.2, alpha=.65,
+             label="train loss")
+    ax2.set_ylabel("train loss", color="#5A6A76")
+    ax2.tick_params(axis="y", labelcolor="#5A6A76")
+    ax.set_xlabel("epoch"); ax.set_ylabel("validation accuracy")
+    ax.set_title("Enumeration head — validation accuracy by epoch (GT boxes)")
+    ax.set_ylim(0, 1.02); ax.grid(alpha=.25); ax.legend(fontsize=8, loc="lower right")
+    fig.tight_layout(); fig.savefig(out / "training_curves.png", dpi=170); plt.close(fig)
+
+    def cm_fig(mat, labels, title, fname, annot):
+        import numpy as np
+        m = np.array(mat, dtype=float)
+        rows = m.sum(axis=1, keepdims=True)
+        norm = np.divide(m, rows, out=np.zeros_like(m), where=rows > 0)
+        sz = max(4.2, len(labels) * 0.30)
+        fig, ax = plt.subplots(figsize=(sz, sz * 0.86))
+        im = ax.imshow(norm, cmap="BuPu", vmin=0, vmax=1)
+        ax.set_xticks(range(len(labels))); ax.set_yticks(range(len(labels)))
+        ax.set_xticklabels(labels, rotation=90, fontsize=7)
+        ax.set_yticklabels(labels, fontsize=7)
+        ax.set_xlabel("predicted"); ax.set_ylabel("true"); ax.set_title(title, fontsize=10)
+        if annot:
+            for i in range(len(labels)):
+                for j in range(len(labels)):
+                    if norm[i, j] > 0.005:
+                        ax.text(j, i, f"{norm[i,j]:.2f}", ha="center", va="center",
+                                fontsize=7, color="white" if norm[i, j] > .55 else "#222")
+        fig.colorbar(im, ax=ax, fraction=.046, label="row-normalised")
+        fig.tight_layout(); fig.savefig(out / fname, dpi=170); plt.close(fig)
+
+    cm_fig(val["confusion_quadrant"], [f"Q{i+1}" for i in range(4)],
+           "Quadrant confusion (row-normalised)", "confusion_quadrant.png", True)
+    cm_fig(val["confusion_position"], [str(i + 1) for i in range(8)],
+           "Position confusion (row-normalised)", "confusion_position.png", True)
+    cm_fig(val["confusion_fdi"], [str(c) for c in val["fdi_labels"]],
+           "FDI confusion, 32 classes (row-normalised)", "confusion_fdi.png", False)
+
+    # 2) per-position accuracy — the diagnostic that mattered for the detector
+    fig, ax = plt.subplots(figsize=(6.4, 3.6))
+    ks = [str(i + 1) for i in range(8)]
+    vs = [val["per_position_acc"][k] or 0 for k in ks]
+    ax.bar(ks, vs, color="#0E7C86")
+    for i, v in enumerate(vs):
+        ax.text(i, v + .015, f"{v:.2f}", ha="center", fontsize=8)
+    ax.set_xlabel("FDI position digit  (1 = central incisor … 8 = third molar)")
+    ax.set_ylabel("accuracy"); ax.set_ylim(0, 1.08); ax.grid(axis="y", alpha=.25)
+    ax.set_title("Position accuracy by tooth, enumeration head")
+    fig.tight_layout(); fig.savefig(out / "per_position_accuracy.png", dpi=170); plt.close(fig)
+    print(f"  figures -> {out}/: training_curves, confusion_{{quadrant,position,fdi}}, "
+          "per_position_accuracy")
 
 
 def main():
@@ -147,7 +233,9 @@ def main():
     ap.add_argument("--out", type=Path, default=DEF_OUT)
     ap.add_argument("--epochs", type=int, default=15)
     ap.add_argument("--batch-size", type=int, default=64)
-    ap.add_argument("--lr", type=float, default=1e-3)
+    ap.add_argument("--lr", type=float, default=1e-3,
+                    help="LR for the new heads; the pretrained backbone uses lr*backbone-lr-mult")
+    ap.add_argument("--backbone-lr-mult", type=float, default=0.1)
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--smoke", action="store_true")
@@ -172,30 +260,52 @@ def main():
         tr, va = tr[:512], va[:256]
     print(f"train {len(tr):,}  val {len(va):,}  classes {len({r['fdi'] for r in rows})}")
 
+    g = torch.Generator(); g.manual_seed(args.seed)   # reproducible shuffling
     dl_tr = DataLoader(ToothSet(tr, args.data, True), batch_size=args.batch_size,
-                       shuffle=True, num_workers=args.workers)
+                       shuffle=True, num_workers=args.workers, generator=g)
     dl_va = DataLoader(ToothSet(va, args.data, False), batch_size=args.batch_size,
                        shuffle=False, num_workers=args.workers)
 
     model = build_model(device)
-    opt = torch.optim.AdamW(model.parameters(), lr=args.lr)
+    # Discriminative learning rates. The backbone is ImageNet-pretrained and only needs
+    # adapting; the positional MLP and both heads are randomly initialised and need to learn
+    # from scratch. Driving all of them at the same 1e-3 lets the fresh heads' large early
+    # gradients wash through the pretrained features — the standard fine-tuning failure. The
+    # backbone therefore runs at lr/10.
+    backbone_params = list(model.backbone.parameters())
+    head_params = (list(model.pos.parameters()) + list(model.quadrant.parameters())
+                   + list(model.position.parameters()))
+    assert len(backbone_params) + len(head_params) == len(list(model.parameters())), \
+        "parameter groups do not cover the model — some tensors would never be optimised"
+    opt = torch.optim.AdamW(
+        [{"params": backbone_params, "lr": args.lr * args.backbone_lr_mult},
+         {"params": head_params, "lr": args.lr}], weight_decay=1e-4)
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=max(1, args.epochs))
     crit = nn.CrossEntropyLoss()
 
     best, best_state, best_ep, log = -1.0, None, -1, []
     for ep in range(args.epochs):
         model.train()
+        run_loss, run_q, run_p, nb = 0.0, 0.0, 0.0, 0
         for img, feats, q, p in dl_tr:
             img, feats = img.to(device), feats.to(device)
             q, p = q.to(device), p.to(device)
             opt.zero_grad()
             oq, op = model(img, feats)
-            (crit(oq, q) + crit(op, p)).backward()
+            lq, lp = crit(oq, q), crit(op, p)
+            (lq + lp).backward()
             opt.step()
+            # tracked so the log shows train-vs-val divergence directly, rather than
+            # leaving overfitting to be inferred from val alone
+            run_q += lq.item(); run_p += lp.item(); run_loss += (lq + lp).item(); nb += 1
         sched.step()
         m = evaluate(model, dl_va, device)
-        log.append({"epoch": ep + 1, "lr": sched.get_last_lr()[0], **m})
-        print(f"  ep {ep+1}/{args.epochs}  quadrant {m['quadrant_acc']:.3f}  "
+        log.append({"epoch": ep + 1, "lr": sched.get_last_lr()[0],
+                    "train_loss": run_loss / max(nb, 1),
+                    "train_loss_quadrant": run_q / max(nb, 1),
+                    "train_loss_position": run_p / max(nb, 1), **m})
+        print(f"  ep {ep+1}/{args.epochs}  train_loss {run_loss/max(nb,1):.4f}  "
+              f"quadrant {m['quadrant_acc']:.3f}  "
               f"position {m['position_acc']:.3f}  FDI exact {m['fdi_exact']:.3f}")
         if m["fdi_exact"] > best:                       # select on the metric that matters
             best, best_ep = m["fdi_exact"], ep + 1
@@ -203,7 +313,7 @@ def main():
             print("     ^ best")
 
     model.load_state_dict(best_state)
-    final = evaluate(model, dl_va, device)
+    final = evaluate(model, dl_va, device, full=True)
     torch.save({"model_state_dict": best_state,
                 "arch": "resnet18+pos4->(quadrant4,position8)",
                 "positional_features": ["cx", "cy", "bw", "bh"]},
@@ -215,10 +325,23 @@ def main():
            "baseline_to_beat": {"source": "RESULTS_LOG 2026-08-22c/f",
                                 "positional_fdi_exact_end_to_end": 0.280,
                                 "positional_ceiling_complete_quadrant": 0.687},
-           "note": "val here is GT-boxed enumeration data. The comparable number is produced "
-                   "by scripts/eval/validate_fdi_assignment.py on DENTEX disease/, which uses "
-                   "DETECTOR boxes on the same 249 images as the 28.0% baseline."}
+           "caveats": {
+               "selection_bias": "The reported val figures come from the checkpoint that was "
+                                 "SELECTED on this same val split, so they are optimistically "
+                                 "biased and are not an unbiased estimate of generalisation. "
+                                 "They are a model-selection diagnostic, not a result.",
+               "boxes": "val uses GROUND-TRUTH boxes. The pipeline feeds DETECTOR boxes, which "
+                        "are noisier and only reach 71.8% recall — that recall caps end-to-end "
+                        "accuracy no matter how good the numbering is.",
+               "comparable_number": "The like-for-like figure against the 28.0% baseline comes "
+                                    "from scripts/eval/validate_fdi_assignment.py on DENTEX "
+                                    "disease/ (249 images, detector boxes, disjoint patients). "
+                                    "Do not quote the val fdi_exact as an end-to-end result."}}
     (args.out / "results.json").write_text(json.dumps(res, indent=2) + "\n")
+    try:
+        save_figures(res, args.out)
+    except Exception as e:                      # never lose a finished run to a plotting bug
+        print(f"  WARNING: figures failed ({type(e).__name__}: {e}) — results.json is intact")
 
     print("\n" + "=" * 66)
     print(f"val (GT boxes): quadrant {final['quadrant_acc']:.1%}  "

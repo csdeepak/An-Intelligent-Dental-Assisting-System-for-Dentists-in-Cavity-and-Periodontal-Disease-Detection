@@ -57,6 +57,7 @@ import numpy as np
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 from src.fdi_assignment import arch_summary, assign_fdi  # noqa: E402
+from src.fdi_head_inference import assign_fdi_head, load_head  # noqa: E402
 from src.orientation import detect_upright  # noqa: E402
 
 DEF_DISEASE_DIR = Path.home() / "Downloads/Capstone/DENTEX/disease"
@@ -173,12 +174,28 @@ def main():
     ap.add_argument("--imgsz", type=int, default=1024)
     ap.add_argument("--min-iou", type=float, default=0.30)
     ap.add_argument("--limit", type=int, default=0, help="only the first N images")
+    ap.add_argument("--method", choices=["positional", "head"], default="positional",
+                    help="positional = rank-order sorting (the 28.0%% baseline); "
+                         "head = the learned per-tooth enumeration classifier")
+    ap.add_argument("--head-weights", type=Path,
+                    default=REPO_ROOT / "outputs/enumeration_head/enumeration_head_best.pth")
+    ap.add_argument("--no-one-to-one", action="store_true",
+                    help="head only: plain argmax instead of Hungarian one-to-one assignment. "
+                         "Use it to MEASURE the duplicate-FDI rate rather than assume it.")
     ap.add_argument("--save-viz", action="store_true")
     ap.add_argument("--viz-n", type=int, default=12)
     args = ap.parse_args()
 
+    import torch
     from ultralytics import YOLO
     model = YOLO(str(args.weights))
+    head = None
+    if args.method == "head":
+        dev = torch.device("cuda" if torch.cuda.is_available()
+                           else "mps" if torch.backends.mps.is_available() else "cpu")
+        head = load_head(args.head_weights, dev)
+        print(f"enumeration head: {args.head_weights}  device={dev}  "
+              f"one-to-one={'off' if args.no_one_to_one else 'on'}")
     args.out.mkdir(parents=True, exist_ok=True)
     viz_dir = args.out / "viz"
     if args.save_viz:
@@ -207,7 +224,11 @@ def main():
         boxes, confs = detect_upright(model, img, imgsz=args.imgsz, conf=args.conf,
                                       iou=args.det_iou, verbose=False)
         dets = [{"bbox": b, "conf": c} for b, c in zip(boxes, confs)]
-        assigns = assign_fdi(boxes, img.shape[1], img.shape[0])
+        if args.method == "head":
+            assigns = assign_fdi_head(head, img, boxes, dev,
+                                      one_to_one=not args.no_one_to_one)
+        else:
+            assigns = assign_fdi(boxes, img.shape[1], img.shape[0])
         matches = match_gt_to_detections(gt, dets, args.min_iou)
 
         for gi, g in enumerate(gt):
@@ -221,8 +242,16 @@ def main():
                 "flags": a["flags"] if a else [],
                 "confidence": a["confidence"] if a else 0.0,
             })
+        codes = [a["fdi"] for a in assigns if a.get("fdi")]
+        summary = (arch_summary(assigns) if args.method == "positional"
+                   else {"n_teeth": len(assigns),
+                         "per_quadrant": {q: sum(1 for c in codes if c // 10 == q)
+                                          for q in (1, 2, 3, 4)},
+                         "n_flagged": sum(1 for a in assigns if a["flags"]),
+                         "mean_confidence": round(
+                             sum(a["confidence"] for a in assigns) / max(len(assigns), 1), 3)})
         per_image.append({"image": stem, "n_gt": len(gt), "n_det": len(dets),
-                          **arch_summary(assigns)})
+                          "n_duplicate_fdi": len(codes) - len(set(codes)), **summary})
 
         if args.save_viz and n_viz < args.viz_n:
             draw_viz(img, gt, dets, assigns, matches, viz_dir, stem)
@@ -239,7 +268,7 @@ def main():
                   and abs(r["pred_fdi"] % 10 - r["gt_fdi"] % 10) == 1]
 
     print("\n" + "=" * 74)
-    print("STAGE-2 VALIDATION — detector + positional FDI assignment vs DENTEX GT")
+    print(f"STAGE-2 VALIDATION — detector + {args.method.upper()} FDI assignment vs DENTEX GT")
     print("=" * 74)
     print(f"  GT teeth evaluated            : {n}  across {len(per_image)} images")
     print(f"  detected (recall)             : {len(det)}  ({len(det)/n:.1%})")
@@ -262,22 +291,27 @@ def main():
         if fc:
             print(f"  flag frequency                : {dict(fc)}")
 
+    dup = sum(p.get("n_duplicate_fdi", 0) for p in per_image)
+    print(f"\n  duplicate FDI codes emitted   : {dup}   "
+          f"({'impossible by construction' if args.method == 'positional' else 'a real risk for a per-tooth classifier'})")
     mean_det = np.mean([p["n_det"] for p in per_image]) if per_image else 0
     print(f"\n  mean detections per image     : {mean_det:.1f}  (a full dentition is 28-32)")
     print(f"  mean GT teeth per image       : {np.mean([p['n_gt'] for p in per_image]):.1f}")
 
-    (args.out / "stage2_rows.json").write_text(json.dumps(rows, indent=1) + "\n")
-    (args.out / "stage2_per_image.json").write_text(json.dumps(per_image, indent=1) + "\n")
+    (args.out / f"stage2_rows_{args.method}.json").write_text(json.dumps(rows, indent=1) + "\n")
+    (args.out / f"stage2_per_image_{args.method}.json").write_text(json.dumps(per_image, indent=1) + "\n")
     summary = {"n_gt_teeth": n, "n_images": len(per_image), "recall": len(det)/n if n else 0,
                "fdi_exact_of_detected": len(exact)/len(det) if det else 0,
                "fdi_exact_of_all": len(exact)/n if n else 0,
                "quadrant_correct_of_detected": len(quad)/len(det) if det else 0,
                "mean_detections_per_image": float(mean_det),
+               "method": args.method, "one_to_one": not args.no_one_to_one,
+               "duplicate_fdi_codes": dup,
                "conf": args.conf, "imgsz": args.imgsz, "min_iou": args.min_iou,
                "det_nms_iou": args.det_iou,
                "excluded": sorted(LEAKED)}
-    (args.out / "stage2_summary.json").write_text(json.dumps(summary, indent=2) + "\n")
-    print(f"\n  wrote {args.out}/stage2_{{summary,rows,per_image}}.json")
+    (args.out / f"stage2_summary_{args.method}.json").write_text(json.dumps(summary, indent=2) + "\n")
+    print(f"\n  wrote {args.out}/stage2_*_{args.method}.json")
     if args.save_viz:
         print(f"  wrote {n_viz} overlays to {viz_dir}/")
 
