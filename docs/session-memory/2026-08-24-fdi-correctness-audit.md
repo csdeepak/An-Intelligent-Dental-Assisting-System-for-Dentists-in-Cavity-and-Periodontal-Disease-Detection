@@ -195,3 +195,52 @@ Corrected in all five places.
 
 Unchanged. **R4 first.** The implementation is correct and verified three ways; v1.1 now has a
 measured justification but is still not the priority.
+
+---
+
+# Addendum 3 — fourth FDI pass: frames, geometry, test quality, BatchNorm
+
+## What was checked
+
+Again deliberately new ground. **No defect found in the FDI logic.**
+
+- **GT coordinate frame** — assumed upright everywhere, never tested. 250 images, 1,600 shapes,
+  **0 points out of bounds**; all images wide. A rotated-frame GT would have blown this up.
+- **`unrot_box` at pixel level** — not just algebra: paint a patch, rotate the real image,
+  recover its bbox, un-rotate. Exact match both directions. Plus 2,400 synthetic boxes, 0 error.
+- **Test quality** — because "46/46" is worthless if the tests are vacuous. They are not:
+  `test_fdi_converter` writes its expected table *independently of the module*, and its docstring
+  explains why (the old version asserted the buggy value). `test_orientation` checks against real
+  `cv2.rotate` pixels. `test_fdi_assignment` deletes a mid-arch tooth and requires a **flag**
+  rather than silent renumbering.
+- **BatchNorm state** — the one with real teeth. ResNet18 has BN; in train mode every tooth's
+  prediction would depend on which other teeth shared its batch. `load_head` returns `.eval()`,
+  and batch-invariance measures **~7e-6** across (12) vs (1,5,2,4) vs one-at-a-time. Train mode
+  shifts by **1.518**, so the check discriminates and the code passes.
+- **Architecture parity** — `load_head` rebuilds the net independently of `build_model`. 128
+  tensors, keys and shapes identical, strict load succeeds.
+
+## Decisions made
+
+- **Documented the `0.30` threshold instead of tuning it.** It was a bare magic number, while the
+  IoU thresholds two files over explicitly say they were chosen a priori "NOT by sweeping against
+  this evaluation set". Since the flagged/unflagged split is *reported*, leaving it undocumented
+  invites the tuning question. I measured its discrimination at the fixed value (50.5% vs 72.7%,
+  +22.2 points) and wrote that down as an **observation, not a justification** — deliberately did
+  not sweep for a better value, because that would be tuning on the test set.
+- **Recorded the pixel-convention question rather than "fixing" it.** `unrot_point` uses a closed
+  pixel-index convention; YOLO emits continuous edges. Worst case 1px ≈ 4e-4 in a normalised
+  feature. Changing it would churn the frozen model's inputs for no measurable gain.
+- **Verified the refactor byte-for-byte.** Extracting a constant *should* be inert; I re-ran the
+  eval and diffed rather than assuming.
+
+## The pattern across four passes
+
+The FDI **logic** has survived every check. Every defect found has been in the **documentation
+of** that logic — the ceiling figure, the laterality rationale, stale disjointness claims — plus
+one half-applied augmentation. That is worth knowing: the risk here is not broken code, it is
+confident prose about code that nobody re-derived.
+
+## Next steps
+
+**R4.** Four passes is enough.

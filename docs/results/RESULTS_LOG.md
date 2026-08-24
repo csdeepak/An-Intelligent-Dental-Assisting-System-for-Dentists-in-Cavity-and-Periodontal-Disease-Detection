@@ -2007,3 +2007,73 @@ Copy this block verbatim to the bottom of the file and fill it in.
 - **Follow-ups:** none blocking — the implementation is correct and Stage 2 stands. The v1.1
   retrain now has a measured justification rather than a theoretical one, but **R4 still comes
   first**.
+
+## 2026-08-24d — Fourth FDI pass: coordinate frames, box geometry, test quality, BatchNorm
+
+- **What was done:** A fourth pass over ground the previous three did not touch — the ground-truth
+  coordinate frame, box rotation geometry at pixel level, whether the test suite is substantive,
+  and inference-time model state. **No defect found in the FDI logic.** One undocumented
+  threshold was documented, and one sub-pixel convention question was resolved as negligible.
+
+- **The `disease/` ground truth really is in the upright frame** the evaluation assumes — an
+  assumption made everywhere and never tested. Across 250 images and **1,600 shapes, 0 points
+  fall outside the image bounds** in either dimension; every image is wide (W>H), i.e. an
+  upright panoramic; x/W spans [0.103, 0.874] and y/H [0.134, 0.887]. 138 distinct image sizes,
+  all handled by normalisation. A rotated-frame ground truth would have produced mass
+  out-of-bounds here; it does not.
+- **`unrot_box` is correct at pixel level, not just algebraically.** 2,400 synthetic boxes across
+  four image sizes round-tripped with **max corner error 0**. A pixel-level test — paint a patch,
+  rotate the actual image, recover the patch's bounding box, un-rotate it — reproduces the
+  original box **exactly, in both directions**. `detect_upright` takes `h, w` from the *upright*
+  image before rotating, which is the one place a post-rotation dimension would silently corrupt
+  every box.
+- **A convention question, resolved as negligible.** `unrot_point` uses `(W-1-y)`, a closed
+  pixel-index convention, while YOLO emits continuous `xyxy` where `x2` is the right edge. Worst
+  case that is a **1-pixel** shift: ~1% of IoU on a 100px tooth box against a 0.30 matching
+  threshold, and ~4e-4 in a normalised positional feature. Orders of magnitude below any
+  decision threshold. Recorded rather than silently ignored.
+- **The `_QUADRANT` table in `fdi_assignment.py` is correct** — (upper, image-left)→1,
+  (upper, image-right)→2, (lower, image-right)→3, (lower, image-left)→4 — and matches the DENTEX
+  spatial signature measured independently in 2026-08-24c.
+
+- **The test suite is substantive, not decorative** — checked because "46/46 pass" is worthless
+  if the tests are vacuous:
+  - `test_fdi_converter.py` writes its 32-entry expected table **independently of the module
+    under test**, and says why in its docstring: the previous version asserted
+    `universal_to_fdi("32") == 34`, which was what the *buggy table* returned. *"A test written
+    against the implementation cannot detect a wrong implementation."*
+  - `test_orientation.py` validates against **real `cv2.rotate` output on 400 random pixels** per
+    direction — it would have caught the CW/CCW bug.
+  - `test_fdi_assignment.py` tests behaviour, not plumbing: a mid-arch tooth is deleted and the
+    module must **flag** the gap rather than silently renumber — the exact failure mode Stage 2
+    exists to address.
+
+- **Inference-time model state is correct, and this one matters.** ResNet18 contains BatchNorm,
+  so a model left in train mode would compute statistics **from the inference batch**, making
+  every tooth's prediction depend on which other teeth happened to be in the image.
+  - `load_head` returns `.eval()`; verified.
+  - **Batch-invariance measured**: the same 12 samples fed as one batch, as chunks of (1,5,2,4),
+    and one at a time agree to **~7e-6** — float32 accumulation noise, not batch-statistic
+    leakage.
+  - Counter-demonstration: the same model in train mode shifts outputs by **1.518**. The check
+    discriminates, and the code passes it.
+  - Train and inference architectures are **identical**: 128 tensors, all keys and shapes match,
+    `load_state_dict(strict=True)` succeeds, output shapes (N,4) and (N,8), forward deterministic.
+
+- **Fixed: `0.30` was a bare magic number.** The `low_confidence` threshold had no stated
+  rationale, while the neighbouring IoU thresholds in `validate_fdi_assignment.py` explicitly
+  document being chosen a priori "**NOT** by sweeping this threshold against this evaluation
+  set". Since the flagged/unflagged breakdown **is reported in the results**, an undocumented
+  threshold there invites exactly the question the IoU thresholds pre-empt. Now
+  `LOW_CONFIDENCE = 0.30`, documented as a fixed heuristic under the same discipline.
+  - Discrimination **at the fixed value** (a post-hoc measurement, explicitly *not* a
+    justification for the number): flags 15.2% of assignments, which are **50.5% exact against
+    72.7%** for the rest — a **22.2 point** separation. Confidence is otherwise highly skewed,
+    median 0.991.
+  - The refactor was verified behaviour-preserving: re-running the evaluation produced artefacts
+    **byte-identical** to the pre-refactor run.
+- **Source:** `outputs/stage2_postrefactor/` (byte-identical to `outputs/stage2_reverify/`),
+  `src/orientation.py`, `src/fdi_head_inference.py`, `tests/`, `DENTEX/disease/label/*.json`.
+- **Follow-ups:** none. Four passes have found no defect in the FDI logic itself; the defects
+  found across them were in the *documentation of it* (the ceiling figure, the laterality
+  rationale, stale disjointness claims) and one half-applied augmentation. **R4 remains next.**

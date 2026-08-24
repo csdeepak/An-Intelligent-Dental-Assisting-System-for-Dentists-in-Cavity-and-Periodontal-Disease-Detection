@@ -37,6 +37,19 @@ from src.crop_generator import compute_expanded_bbox  # noqa: E402
 
 CROP = 224
 EXPAND = 1.5
+
+# Threshold for the `low_confidence` flag, on the joint quadrant x position probability.
+#
+# A FIXED HEURISTIC, NOT A TUNED PARAMETER. It must never be swept against the evaluation set:
+# the flagged/unflagged breakdown is *reported* in the Stage-2 results, so choosing this value
+# to make that breakdown look good would be tuning on the test set -- the same discipline the
+# `--det-iou` / `--min-iou` thresholds are documented under in validate_fdi_assignment.py.
+#
+# Observed behaviour at this fixed value on the clean 164-image set (a post-hoc measurement,
+# not a justification for the number): it flags 15.2% of assignments, which are 50.5% exact
+# against 72.7% for the rest -- a 22.2 point separation, so the flag does carry signal.
+# RESULTS_LOG 2026-08-24d.
+LOW_CONFIDENCE = 0.30
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
 FDI_CODES = [(q + 1) * 10 + (p + 1) for q in range(4) for p in range(8)]
@@ -130,7 +143,7 @@ def assign_fdi_head(model, img_bgr, boxes, device, one_to_one=True):
         fdi = FDI_CODES[k]
         conf = float(np.exp(joint[i, k]))
         flags = []
-        if conf < 0.30:
+        if conf < LOW_CONFIDENCE:
             flags.append("low_confidence")
         if one_to_one and int(joint[i].argmax()) != k:
             # the one-to-one constraint overrode this tooth's own best guess
