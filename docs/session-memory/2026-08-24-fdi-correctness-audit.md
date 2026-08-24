@@ -310,3 +310,45 @@ own curated crops — which is precisely the C3 argument, now demonstrated rathe
 1. Decide the caries negative class — now blocking, not optional.
 2. R5 (severity reporting) is unblocked.
 3. R1 seg retrain still the lever on detector recall; still the only job needing a rented GPU.
+
+---
+
+# Addendum 5 — correction to Addendum 2: the "over-trust" claim is withdrawn
+
+**Addendum 2 above is wrong on one point, and it is left standing rather than edited so the
+record shows what was believed when.** It says the head "over-trusts" its positional input and
+treats that as a real train/inference gap and the strongest argument for a v1.1 retrain. That
+does not survive measurement. RESULTS_LOG 2026-08-24e.
+
+**What was wrong:** the 22.9-point figure came from *shuffling* positional features — giving a
+tooth another tooth's coordinates. A shuffle teleports the coordinate, often across the midline,
+and crossing the midline is exactly what inverts laterality. It is not a model of detector-box
+error.
+
+**What realistic error actually costs**, on the same val split:
+
+| Perturbation | side | position | FDI exact |
+|---|---|---|---|
+| none | 99.5% | 92.1% | 91.6% |
+| ±15% of box *(the training jitter)* | 99.5% | 92.1% | **91.6%** |
+| ±100% of box | 99.3% | 92.2% | **91.5%** |
+
+Displacing every box by its own full width costs 0.1 points. The geometry explains it: a tooth
+is ~4.5% of image width, so a full-box shift moves normalised cx by ≤0.045 while the median
+tooth sits 0.091 from the midline.
+
+**Consequences for anyone picking this up:**
+- the head **is** robust to detector-box error; 46.5% is not depressed by feature noise
+- the jitter fix in `build_enumeration_crops.py` is a correctness fix worth keeping, but **not**
+  a performance opportunity — do not cite it as one
+- **v1.1 has no measured performance justification.** Addendum 2's "strongest and only
+  quantified argument" is gone
+- the shuffle result keeps one legitimate use: it is an **attribution** diagnostic showing the
+  head genuinely reads the coordinate. Not evidence of fragility
+
+**The methodological lesson, which is the durable part:** a shuffle answers *"does the model use
+this input?"* It does not answer *"is the model robust to realistic error in this input?"*,
+because the perturbation is not drawn from the error distribution the pipeline produces. Those
+are different questions needing different experiments. Picking the easy perturbation and reading
+it as a robustness result is the error — and I made it about my own ablation, in the same
+session where I was correcting the same class of over-claim elsewhere.

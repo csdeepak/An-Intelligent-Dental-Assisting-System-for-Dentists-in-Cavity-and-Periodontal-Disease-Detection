@@ -52,6 +52,18 @@ sys.path.insert(0, str(REPO_ROOT))
 
 SCHEMA_VERSION = "opg-report/1.0"
 
+# Measured Stage-1/Stage-2 performance, stamped into every report's "limitations" block so a
+# report always carries the accuracy of the pipeline that produced it.
+#
+# ** UPDATE THESE IF STAGE 1 OR STAGE 2 IS RETRAINED. ** They are constants, not live
+# measurements, so nothing here will notice if they go stale -- every report would then
+# understate or overstate its own reliability, silently. Current source of truth:
+#   scripts/eval/validate_fdi_assignment.py --method head
+#   -> outputs/stage2_reverify/stage2_summary_head.json   (recall, fdi_exact_of_all)
+#   RESULTS_LOG 2026-08-22j (measurement), 2026-08-24b (byte-identical re-verification).
+STAGE1_DETECTOR_RECALL = 0.670        # = 0.6699, 164 leak-free DENTEX images, 936 GT teeth
+STAGE2_FDI_EXACT_END_TO_END = 0.465   # = 0.4647, same run
+
 DEF_DETECTOR = REPO_ROOT / "models/06_yolo_detection_a100_run/best.pt"
 DEF_FDI_HEAD = REPO_ROOT / "models/08_fdi_enumeration_head/enumeration_head_best.pth"
 DEF_CARIES_GATE = REPO_ROOT / "models/07_caries_cascade/final_model.pth"
@@ -124,8 +136,8 @@ def build_report(image_path, img_bgr, boxes, confs, fdi_assign, caries, bone, me
         "teeth": teeth,
         "models": meta,
         "limitations": {
-            "stage1_detector_recall": 0.670,
-            "stage2_fdi_exact_end_to_end": 0.465,
+            "stage1_detector_recall": STAGE1_DETECTOR_RECALL,
+            "stage2_fdi_exact_end_to_end": STAGE2_FDI_EXACT_END_TO_END,
             "interpretation": (
                 "Detection recall and FDI accuracy are measured on DENTEX disease/ "
                 "(164 leak-free images, RESULTS_LOG 2026-08-22j). A missed tooth is absent "
