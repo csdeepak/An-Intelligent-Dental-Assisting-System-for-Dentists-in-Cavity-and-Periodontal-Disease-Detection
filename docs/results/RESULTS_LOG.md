@@ -1704,3 +1704,61 @@ Copy this block verbatim to the bottom of the file and fill it in.
   subset) is now the binding constraint. But **re-check the leakage question for every future
   evaluation set**, including Ningxia: overlap must be measured against *each* training corpus
   separately, never inferred from a neighbouring pair.
+
+## 2026-08-22k — Two papers read; both independently support decisions already taken
+
+- **What was done:** Read DPML (Cao et al., *Expert Systems With Applications* 254:124446,
+  2024) and DentFound (Zhu et al., *Nature Biomedical Engineering*, 2026) and checked them
+  against what this project has built, rather than for general background.
+
+- **DPML §3.4 is direct prior art for the enumeration head's central design choice.** It states
+  the rationale almost exactly as this project arrived at it independently:
+  *"dentists typically identify tooth categories by considering the relative position of the
+  target tooth. However, this mechanism is rare in general machine learning models… We have
+  developed a mechanism to provide the model with positional information."* Their conclusion:
+  *"the position-based image classification strategy utilizes the spatial information of teeth
+  to improve model performance in scenarios of limited data availability."*
+  **Cite it as the precedent for feeding spatial priors to a tooth classifier.** Implementation
+  differs — DPML draws a positional marker onto the image and feeds the whole labelled image;
+  ours concatenates four normalised box features into the classifier head. Same principle, and
+  ours is the cheaper of the two.
+
+- **DPML also, unintentionally, corroborates the laterality argument.** It classifies teeth into
+  **eight** classes, justified explicitly by bilateral symmetry: *"the left and right sides of
+  the mouth mirror each other."* By collapsing mirrored pairs it **avoids** the problem this
+  project had to solve — FDI requires 32 classes and therefore requires distinguishing 16 from
+  26, which are near-mirror images. DPML's own symmetry argument is the reason appearance alone
+  cannot settle laterality, and hence why positional features are load-bearing here rather than
+  merely helpful. It also explains why DPML can safely use horizontal flipping in augmentation
+  while this project must not: flipping is label-preserving for their 8 classes and
+  label-inverting for our 32.
+  **Framing worth using:** our position head (8-way) is DPML's tooth-type task; our quadrant
+  head (4-way) supplies the laterality DPML deliberately sets aside.
+
+- **DentFound's instance-mask ablation is real, and R1's justification checks out.**
+  `MASTER_PLAN_2026H2.md` §3 R1 asserts that DentFound's ablation shows instance masks are
+  load-bearing. Verified against the paper: with tooth instance segmentation masks it reports
+  relative improvements of **20.35% precision, 23.01% recall, 23.11% F1** on diseased-tooth
+  identification, and attributes this to *"instance-level supervision enhances the model's
+  sensitivity to precise tooth positional information as well as the overall structural
+  characteristics of the dentition."* R1 stands as justified; the numbers can now be cited
+  rather than asserted.
+
+- **The most useful finding: DentFound names our Stage-2 problem as its own failure mode.**
+  On 56,351 teeth it reports **73.58% accuracy / 73.87% recall / 84.78% F1** for aligning tooth
+  positions with disease findings, and states that where its reports were judged *inferior* to
+  human ones this was *"primarily owing to misalignment between tooth position and disease
+  annotation."* So a 101,000-patient frontier VLM has the same weak link, and says so.
+  **This reframes our Stage-2 work**: it is not a local bug we happened to have, it is a
+  documented open problem at frontier scale, and our 22.9% → 46.5% progression with an explicit
+  ceiling argument is a contribution to it rather than an embarrassment. **Do not claim a
+  numeric comparison** — their 73.58% is disease-finding-with-position on a different corpus,
+  ours is pure FDI numbering on 164 images; the tasks and denominators differ.
+
+- **No method change is warranted by either paper.** DPML's polar-coordinate contour extraction
+  targets segmentation, not numbering, and is a candidate for R1/R2 rather than Stage 2. Its
+  positional mechanism is a heavier variant of what we already do.
+- **Source:** `2026Zhu.pdf` (DentFound), `DPML…pdf`, both under `~/Downloads/Capstone/`.
+- **Follow-ups:** add both to the Related Work comparison table; cite DPML in §5.2/§6 for the
+  spatial-prior design and DentFound in §3 R1 for the instance-mask ablation and in §8.10 for
+  the tooth-position failure mode.

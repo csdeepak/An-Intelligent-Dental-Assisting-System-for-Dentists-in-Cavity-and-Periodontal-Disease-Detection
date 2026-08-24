@@ -753,6 +753,24 @@ by **+2.4 points**, which is the substantive point: not a better sorter, but a m
 subject to the constraint at all. The bottleneck has moved to Stage 1 — at 67.0% recall, that
 is the end-to-end maximum and the head achieves 69.4% of it.
 
+**Prior art and framing (added 22 Aug 2026, after reading both papers directly).**
+DPML (Cao et al., *Expert Systems With Applications* 254:124446, 2024) §3.4 independently
+argues for exactly this design — *"dentists typically identify tooth categories by considering
+the relative position of the target tooth… we have developed a mechanism to provide the model
+with positional information"* — and is the citation for spatial priors in tooth classification.
+DPML classifies into **8** classes, justified by bilateral symmetry, which sidesteps the
+left/right problem; FDI's 32 classes cannot, and that is precisely why positional features are
+load-bearing here rather than merely helpful. (It also explains why DPML can flip images in
+augmentation and we must not: flipping preserves their labels and inverts ours.)
+
+DentFound (Zhu et al., *Nature Biomedical Engineering*, 2026) reports **73.58% accuracy /
+84.78% F1** on aligning tooth positions with disease findings across 56,351 teeth, and states
+that where its reports were judged inferior to human ones this was *"primarily owing to
+misalignment between tooth position and disease annotation."* **A 101,000-patient frontier VLM
+names our Stage-2 problem as its own weak link.** That makes this section a contribution to a
+documented open problem rather than a confession. Do not draw a numeric comparison — different
+task, corpus and denominator.
+
 **Report the leakage episode in the methods section.** A first run scored 52.2% before it was
 found that **86 of the 250 evaluation images were byte-identical to training images** (85 from
 the enumeration corpus, 1 from the detector's). The inflation was 5.7 points. It arose from
