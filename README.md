@@ -146,7 +146,7 @@ bounding box.
 | Stage | Component | Input | Output | Status |
 |-------|-----------|-------|--------|--------|
 | 1 | Tooth Detection (YOLOv11l) | Full OPG | Tooth bboxes | ✅ **Complete** — test mAP@0.5 **0.782**; canonical run **frozen** as `tooth-detector-a100-1024-v1.0` (T0.6, 20 Aug 2026) |
-| 2 | Sorting + FDI assignment | Tooth bboxes | FDI-keyed tooth list | ⚠️ **Implemented, measured, INADEQUATE** — quadrant 93.0% but FDI exact **28.0% end-to-end** ([validated](scripts/eval/README.md) on 1,534 teeth). Universal→FDI table is correct (`f8b31f8`); *positional* numbering needs replacing. |
+| 2 | Sorting + FDI assignment | Tooth bboxes | FDI-keyed tooth list | ✅ **Complete — learned enumeration head** ([validated](scripts/eval/README.md) on 164 leak-free images): quadrant 94.7%, FDI exact **46.5% end-to-end**, up from 22.9% for the positional method it replaced. Universal→FDI table correct (`f8b31f8`). |
 | 3 | Caries cascade (ResNet18 ×2) | Tight 1.0× crop | caries / deep_caries | ✅ **Complete** — val acc 81%, macro F1 0.77; weights retrieved and tagged `caries-cascade-resnet18-v1.0` (21 Aug 2026). **Re-run pending** — see the note below the table. |
 | 4a | Bone Loss binary (ResNet18) | Expanded 1.5×W/2.0×H crop | Present / Absent | ✅ **Complete** — macro F1 **0.9233** |
 | 4b | Bone Loss severity (ResNet18) | Expanded crop | Mild / Moderate / Severe | ✅ **Complete** — macro F1 0.7208 (only 52 val crops) |

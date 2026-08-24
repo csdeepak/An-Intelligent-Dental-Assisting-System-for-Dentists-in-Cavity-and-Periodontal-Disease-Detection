@@ -1,11 +1,37 @@
-# `scripts/dentex/` — Stage 3 caries data + training toolchain
+# `scripts/dentex/` — Stage 2 enumeration head + Stage 3 caries toolchain
 
 **Written 22 August 2026.** These four scripts replace a set of Google Drive notebooks that
 were the only way the DENTEX caries data had ever been built — they existed nowhere in this
 repo despite being the provenance of every reported caries number. Those notebooks are now
 preserved at `notebooks/caries/dataset_construction/`.
 
-Run order: **split → crops → train**.
+Run order — Stage 3: **split → crops → train**. Stage 2: **enumeration crops → train head → validate**.
+
+### Stage 2 — the FDI enumeration head (the current numbering method)
+
+| Script | Status | What it does |
+|---|---|---|
+| `build_enumeration_crops.py` | ✅ run — 33,461 crops | Tooth crops labelled with FDI, from DENTEX `quadrant_enumeration` (634 images, 18,095 teeth, all 32 classes). Split **by image**; 1.5× expansion; ±15% jitter on train only. Output `data/dentex/enumeration_v1/` (gitignored). |
+| `train_enumeration_head.py` | ✅ trained — 15 epochs, 48 min on local MPS | ResNet18 over the crop **concatenated with four positional features**, two heads (quadrant 4-way, position 8-way). Weights + figures to `outputs/enumeration_head/`. |
+
+**Result: 22.9% → 46.5% end-to-end FDI accuracy** (69.4% of detected teeth), measured on 164
+leak-free `DENTEX/disease/` images by `scripts/eval/validate_fdi_assignment.py --method head`.
+That clears the 67.0% ceiling positional assignment cannot pass, by +2.4 points.
+
+**Why positional features, and why no horizontal flip.** Teeth 16 and 26 are near mirror
+images, as are 36/46 and every other left/right pair, so laterality is not recoverable from
+crop pixels — a crop-only classifier would guess half of every label. Normalised x resolves it.
+The same fact means horizontal flip **inverts** the quadrant label and must be excluded from
+augmentation. DPML (Cao et al., *ESWA* 254:124446, 2024) §3.4 argues the same design
+independently, and sidesteps the problem entirely by collapsing mirrored pairs into 8 classes —
+which FDI's 32 cannot do.
+
+**The evaluation set overlaps this training set.** 85 of the 250 `DENTEX/disease/` images are
+byte-identical to enumeration training images. They are excluded via
+`data/dentex/disease_leaked_images.json`. Anything trained here must be scored with that
+exclusion applied, or the number is inflated (it was, by 5.7 points, before this was caught).
+
+### Stage 3 — caries data + training
 
 | Script | Status | What it does |
 |---|---|---|

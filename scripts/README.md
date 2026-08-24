@@ -5,7 +5,7 @@ Three families. The library they call is `src/`; see `src/README.md`.
 | Path | Stage | See |
 |---|---|---|
 | `yolo/` | 1 — tooth detection (bbox + the R1 seg upgrade) | `yolo/README.md` |
-| `dentex/` | 3 — caries data + training | `dentex/README.md` |
+| `dentex/` | 2 and 3 — the enumeration head, plus caries data + training | `dentex/README.md` |
 | `eval/` | evaluation and error propagation (C3) | `eval/README.md` |
 | *(top level)* | Stage 4 bone-loss dataset/training, and the full-pipeline entry point | below |
 
@@ -18,10 +18,9 @@ Three families. The library they call is `src/`; see `src/README.md`.
 | `run_inference.py` | **The full-pipeline entry point: OPG in → per-tooth report out** | ❌ **38-line placeholder** |
 
 `run_inference.py` is Stages 5–6 — the project's largest gap and its central paper claim (C3).
-All four trained models are on local disk, so it is buildable now; what is not yet trustworthy
-is Stage 2's numbering (28.0% exact — `eval/README.md`). Build against
-`src.fdi_assignment`'s interface, which already returns per-tooth confidence and flags, and
-swap the implementation when the enumeration head lands.
+All four trained models are on local disk and **Stage 2 is now fixed** (46.5% end-to-end, up
+from 22.9% — `eval/README.md`), so this is buildable and its output is meaningful. Use
+`src.fdi_head_inference.assign_fdi_head`, not the superseded positional module.
 
 ## If you are running anything on a non-Tufts image
 

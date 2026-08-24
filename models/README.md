@@ -1,6 +1,6 @@
 # `models/` — trained checkpoints
 
-**Last verified: 22 August 2026.** Every claim below was checked against the working tree,
+**Last verified: 22 August 2026 (a fifth model now exists).** Every claim below was checked against the working tree,
 not carried over from a previous version of this file.
 
 ## What is actually here
@@ -14,6 +14,7 @@ One numbered directory per trained stage, each with a `*summary*.txt` beside the
 | `03_bone_loss_model_training_notebook_models/` | Stage 4a — bone-loss binary | `bone_loss_resnet18_{best,final}.pth` | **Yes** |
 | `04_bone_loss_severity_notebook_models/` | Stage 4b — bone-loss severity | `bone_loss_severity_resnet18_best.pth` | **Yes** |
 | `05_cej_estimation_v2_models/` | Exploratory CEJ (negative result, not in the pipeline) | summary only | n/a |
+| *(none yet)* | **Stage 2 — FDI enumeration head, ResNet18 + positional features** | `outputs/enumeration_head/enumeration_head_best.pth` (43 MB) | **No** — and it is **not under `models/` at all**, which is an inconsistency to fix |
 
 > The previous version of this file claimed "**Model files (.pth, .pt) are git-ignored** due
 > to file size" and showed a flat `models/*.pth` layout. Both were wrong: the ResNet18 `.pth`
@@ -26,7 +27,11 @@ One numbered directory per trained stage, each with a `*summary*.txt` beside the
 | `tooth-detector-a100-1024-v1.0` | Stage 1 detector | 20 Aug 2026 — `docs/research/T0.6_detector_reconciliation.md` §1 |
 | `caries-cascade-resnet18-v1.0` | Stage 3 cascade | 21 Aug 2026 — `07_caries_cascade/run_summary.txt` |
 
-Bone-loss weights (Stages 4a/4b) are **not yet version-tagged** — the one gap in this table.
+**Two gaps in this table.** Bone-loss weights (Stages 4a/4b) are not version-tagged. And the
+**Stage-2 enumeration head** — trained 22 Aug, and the current numbering method at 46.5%
+end-to-end — still sits in `outputs/` rather than a numbered `models/` directory, with no tag
+and no `run_summary.txt`. It should be moved and frozen the way the detector and caries cascade
+were, before anything downstream depends on it.
 
 ## `07_caries_cascade/` — which file is which
 

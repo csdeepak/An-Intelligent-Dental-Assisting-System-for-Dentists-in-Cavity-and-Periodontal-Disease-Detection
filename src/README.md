@@ -1,6 +1,6 @@
 # `src/` — the pipeline library
 
-**Last verified: 22 August 2026.** Importable modules that implement pipeline stages. The
+**Last verified: 22 August 2026 (Stage 2 replaced by a learned head).** Importable modules that implement pipeline stages. The
 runnable entry points live in `scripts/`; these are the pieces they call. Everything here is
 covered by `tests/` (46 tests, all passing).
 
@@ -10,7 +10,8 @@ covered by `tests/` (46 tests, all passing).
 |---|---|---|---|
 | `orientation.py` | 1 (input) | **The detector's input-orientation contract.** Rotate 90° CCW for the detector, un-rotate immediately. | ✅ tested |
 | `utils/fdi_converter.py` | 2 | Universal ↔ FDI lookup *table* (32 permanent teeth). Not positional logic. | ✅ tested, bug fixed `f8b31f8` |
-| `fdi_assignment.py` | 2 | **Positional FDI assignment** — given N unlabelled boxes, which tooth is each? | ⚠️ **works but is not accurate enough — see below** |
+| `fdi_assignment.py` | 2 | Positional (rank-order) FDI assignment | ⚠️ **SUPERSEDED** — kept as the measured baseline, not the pipeline default |
+| `fdi_head_inference.py` | 2 | **The current method** — runs the learned enumeration head over detector boxes, with Hungarian one-to-one assignment | ✅ **use this** |
 | `crop_generator.py` | 3/4 | Expanded-bbox geometry, ±15% jitter, mask-aware cropping (R2). | ✅ tested; mask-aware path **unwired** (needs R1 masks) |
 | `label_assigner.py` | 4 (training) | Pixel-overlap-ratio labelling for bone-loss crops. **Not** inference numbering. | ✅ tested |
 | `data_loader.py` | — | Tufts expert/bbox/mask JSON parsing and joining. | ✅ tested |
@@ -39,33 +40,46 @@ flipped dental arch still looks like a dental arch.
 operation, so the pair cannot be separated by accident — which is exactly the failure that
 produced a 5.9% quadrant score (worse than guessing) when rotated boxes reached Stage 2.
 
-### 2. `fdi_assignment.py` is measured, and it is not good enough
+### 2. Stage 2 uses the learned head, not the positional module
 
-Validated against 1,534 FDI-labelled teeth in `DENTEX/disease/`
-(`scripts/eval/validate_fdi_assignment.py`):
+Both are measured on the **same 164 leak-free `DENTEX/disease/` images** (936 teeth), same
+detector, same matching rule:
 
-| Metric | Value |
-|---|---|
-| Quadrant correct | **93.0%** ✅ |
-| **FDI exact, end-to-end** | **28.0%** ❌ |
+| | `fdi_assignment.py` (positional) | **`fdi_head_inference.py` (head)** |
+|---|---|---|
+| Quadrant correct | 92.3% | **94.7%** |
+| FDI exact (of detected) | 34.1% | **69.4%** |
+| **FDI exact, end-to-end** | 22.9% | **46.5%** |
+| Duplicate FDI codes | 0 (by construction) | **0** (via Hungarian) |
 
-Quadrant assignment works — the jaw split and the image-left/patient-right convention are
-sound, the latter derived from the 1,600 GT annotations rather than assumed. **The position
-digit is what fails**, and it has a measured ceiling: even with a *complete* 8-tooth quadrant
-it reaches only 68.7%, because eight detected teeth are not positions 1–8 — they are eight
-teeth that survived extraction. Rank-order numbering cannot tell an absent tooth from a
-compressed arch.
+**A 2.0× improvement on both measures.** Positional assignment has a hard ceiling — it reaches
+only **67.0%** even on fully-detected quadrants, because eight detected teeth are not positions
+1–8, they are eight teeth that survived extraction, and rank order cannot tell those apart. The
+head clears that ceiling (69.4%) because it is **order-independent**: it judges each tooth on
+its own appearance and absolute position, so a missing neighbour no longer shifts it. The
+margin is +2.4 points — real, but narrow; quote it that way.
 
-So this module is a **working interface with an inadequate implementation**. It returns
-`fdi`, `quadrant`, `position`, `confidence` and `flags` per tooth, and flags every failure
-mode rather than assigning silently through it (`suspected_gap_before`, `position_overflow`,
-`off_arch`, `sparse_quadrant`; duplicate codes impossible by construction). Downstream code
-can be written against that contract now and the implementation swapped for a learned
-enumeration head later. Full analysis: `docs/results/RESULTS_LOG.md` 2026-08-22c/d/f.
+**86 of the original 250 evaluation images are excluded as training duplicates** (85
+byte-identical to enumeration-head training images, 1 to a detector training image). An earlier
+run reported 52.2% before this was found — inflated by 5.7 points. Exclusion list:
+`data/dentex/disease_leaked_images.json`, loaded automatically by the validation script.
+
+**End-to-end is now capped by Stage 1, not Stage 2.** At 67.0% detector recall, 67.0% is the
+maximum; the head captures 69.4% of it. Detector recall is the binding constraint.
+
+Prior art: DPML (Cao et al., *ESWA* 254:124446, 2024) §3.4 argues the same design independently
+— dentists identify teeth by relative position, and ML models rarely get that signal. Its
+8-class formulation, justified by bilateral symmetry, sidesteps the left/right problem that FDI
+cannot; that is why positional features here are load-bearing rather than merely helpful, and
+why horizontal flip must be excluded from augmentation (it inverts a quadrant label).
+Full record: `docs/results/RESULTS_LOG.md` 2026-08-22i, 22j (leakage) and 22k (prior art).
 
 ## Conventions
 
 - Coordinates are **upright-frame pixels** everywhere except inside `orientation.py`.
+- The head's inference preprocessing is **verified identical** to its training preprocessing —
+  200/200 predictions agree on the same teeth via both paths. If you change crop geometry,
+  colour handling or the positional features in one place, change both.
 - FDI quadrants: 1 upper-right, 2 upper-left, 3 lower-left, 4 lower-right — **patient** sides,
   so quadrants 1 and 4 appear on the **image left**.
 - Crop geometry differs by branch on purpose: caries uses the raw bbox with **no expansion**,
