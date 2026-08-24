@@ -1882,3 +1882,56 @@ Copy this block verbatim to the bottom of the file and fill it in.
   `transfer.md` and `run_summary.txt` (done in this session); restore `cv2`/`ultralytics`
   before any Stage-2 re-run; consider a v1.1 retrain with the jitter fix, but only *after* R4,
   since R4 is blocked on nothing and the head is already good enough to integrate.
+
+## 2026-08-24b — Environment restored; Stage 2 reproduces byte-for-byte; one-to-one ablation re-measured clean
+
+- **What was done:** With `cv2` and `ultralytics` installed, everything 2026-08-24a could not
+  execute was executed. **Stage 2 reproduces exactly.** The one-to-one ablation, previously
+  only available on the contaminated set, was re-measured on clean data.
+
+- **Environment — the install broke three working packages before it fixed two.** Installing
+  opencv/ultralytics pulled in **numpy 2.5.2**, and `torch 2.2.0` / `scipy 1.12.0` /
+  `scikit-learn 1.4.0` are all compiled against numpy 1.x. Measured breakage: `torch.numpy()`
+  and `torch.tensor(ndarray)` both raised, `scipy.optimize.linear_sum_assignment` failed to
+  import (**this is the Hungarian assignment — Stage 2 cannot run without it**), and sklearn
+  failed entirely. **Fix: pin `numpy==1.26.4`.** cv2 5.0.0 declares `numpy>=2` but is
+  runtime-compatible with 1.x (numpy-2-built binaries are, by design), verified by exercising
+  `resize`/`rotate`/`cvtColor`/`imencode`. All seven probed capabilities now pass, MPS included.
+  **`pip install --upgrade pip` upgrades pip only** — it was the transitive numpy bump that did
+  the damage.
+- **Full test suite runs for the first time since the regression: 46/46 pass.**
+
+- **Reproduction is exact, not approximate.** Re-running both methods from the frozen weights
+  (sha256 `e6abf1cd…` re-verified against `run_summary.txt`) reproduced every headline number —
+  recall 67.0%, head 69.4% / 46.5%, positional 34.1% / 22.9%, quadrant 94.7% / 92.3%, 0
+  duplicates — and the artefacts are **byte-identical** to `outputs/stage2_clean/`:
+  `stage2_rows_{head,positional}.json` and `stage2_per_image_{head,positional}.json` all match
+  under `diff`. All 936 per-tooth rows agree. The pipeline is deterministic end to end, through
+  YOLO detection, rotation/un-rotation, crop generation, head inference and Hungarian assignment.
+- **The corrected ceiling holds on the fresh run:** positional **66.3%** vs head **80.2%** on
+  complete (8-detection) quadrants, **+13.9 points**, n=101 — identical to 2026-08-24a.
+
+- **One-to-one ablation, re-measured on the clean 164-image set** (both rows identical settings):
+
+  | | FDI/detected | End-to-end | Quadrant | Duplicate codes |
+  |---|---|---|---|---|
+  | Hungarian one-to-one | **69.4%** | **46.5%** | 94.7% | **0** |
+  | Plain argmax | 65.1% | 43.6% | **96.8%** | **679** |
+
+- **The clean ablation is a *stronger* result than the contaminated one.** The gain is
+  **+4.3 points of-detected / +2.9 end-to-end**, against +2.1 / +1.5 previously reported on the
+  leaked set. Supersedes the 72.7 / 52.2 vs 70.6 / 50.7 / 1,013 figures in 2026-08-22i.
+- **The trade-off is real and should be reported, not hidden:** one-to-one *costs* **2.1 points
+  of raw quadrant accuracy** (94.7% vs 96.8%), because satisfying the global constraint
+  sometimes moves a tooth across a quadrant boundary. It is still the right default — a
+  duplicate FDI code is not a slightly-wrong answer but an anatomically impossible one that a
+  per-tooth report cannot render at all.
+- **Key insight:** the constraint's value scales with how confusable the input is. On clean
+  data the classifier is *less* certain, so more teeth compete for the same code (679 duplicates
+  across 627 detections), and arbitrating those collisions is worth more. Measuring an ablation
+  on contaminated data understated the component being ablated.
+- **Source:** `outputs/stage2_reverify/` (both methods + ceiling analysis),
+  `outputs/stage2_reverify_argmax/`, `scripts/eval/analyze_stage2_ceiling.py`.
+- **Follow-ups:** none blocking. Stage 2 is verified reproducible; **R4 integration is next and
+  has no blocker.** Record `numpy==1.26.4` as a hard constraint for this repo — a future
+  `pip install` that bumps numpy will silently break the Hungarian assignment again.

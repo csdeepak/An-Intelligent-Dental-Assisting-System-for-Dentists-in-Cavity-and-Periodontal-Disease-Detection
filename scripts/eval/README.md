@@ -65,15 +65,23 @@ Writes `stage2_{summary,rows,per_image}_{method}.json`, plus annotated overlays 
 
 ## Ablation: one-to-one assignment
 
-| | FDI/detected | End-to-end | Duplicate codes |
-|---|---|---|---|
-| Hungarian one-to-one | **72.7%** | **52.2%** | **0** |
-| Plain argmax | 70.6% | 50.7% | **1,013** |
+Measured on the clean 164-image set, 24 Aug 2026 (both rows, identical settings):
 
-*(Measured on the pre-leak-fix 249-image set, so the absolute values are inflated; the
-comparison between the two is unaffected and directionally valid.)* Plain argmax emits 1,013
-anatomically impossible duplicate codes — a mouth has at most one tooth 16. The constraint
-removes all of them and gains ~1.5 points, costing ~1.6 points of raw quadrant accuracy.
+| | FDI/detected | End-to-end | Quadrant | Duplicate codes |
+|---|---|---|---|---|
+| Hungarian one-to-one | **69.4%** | **46.5%** | 94.7% | **0** |
+| Plain argmax | 65.1% | 43.6% | **96.8%** | **679** |
+
+Plain argmax emits **679 anatomically impossible duplicate codes** — a mouth has at most one
+tooth 16. The constraint removes **all** of them and gains **+4.3 points** of-detected /
+**+2.9 end-to-end**, while *costing* **2.1 points of raw quadrant accuracy**: satisfying the
+global one-to-one constraint sometimes moves a tooth across a quadrant boundary. That trade is
+worth taking — a duplicate code is not a slightly-wrong answer, it is an impossible one that a
+downstream report cannot render.
+
+*(Supersedes the earlier 72.7 / 52.2 vs 70.6 / 50.7 / 1,013 figures, which were measured on the
+pre-leak-fix 249-image set. The clean numbers show a **larger** benefit than the contaminated
+ones did. RESULTS_LOG 2026-08-24b.)*
 
 **Re-run this after any Stage-1 or Stage-2 change.** It is the before/after on a held-out set
 that has never been tuned on. Full record: `docs/results/RESULTS_LOG.md` 2026-08-22c, 22f, 22i

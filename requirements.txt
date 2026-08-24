@@ -5,9 +5,15 @@
 # Core
 torch>=2.0.0
 torchvision>=0.15.0
-numpy>=1.24.0
+# numpy MUST stay below 2. torch 2.2.0, scipy 1.12 and scikit-learn 1.4 are compiled against
+# numpy 1.x; installing numpy 2.x breaks torch<->numpy conversion, scipy.optimize (which is
+# the Stage-2 Hungarian assignment) and sklearn entirely -- silently, at import time.
+# Verified 24 Aug 2026, RESULTS_LOG 2026-08-24b.
+numpy>=1.24.0,<2
 pandas>=2.0.0
 scikit-learn>=1.3.0
+# scipy.optimize.linear_sum_assignment -- one-to-one FDI code assignment, src/fdi_head_inference.py
+scipy>=1.10.0
 
 # Image processing
 opencv-python>=4.8.0
@@ -17,8 +23,8 @@ Pillow>=10.0.0
 matplotlib>=3.7.0
 seaborn>=0.12.0
 
-# YOLO (for tooth detection — Phase 3)
-# ultralytics>=8.0.0
+# YOLO — tooth detection (Stage 1) and the Stage-2 evaluation harness
+ultralytics>=8.0.0
 
 # Configuration
 PyYAML>=6.0

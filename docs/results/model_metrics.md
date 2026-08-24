@@ -72,9 +72,11 @@ rank-order can reach, and not marginally.
 **End-to-end is capped by Stage 1.** At 67.0% recall, perfect numbering gives 67.0%; the head
 reaches 69.4% of that maximum. Detector recall is now the binding constraint.
 
-One-to-one ablation (on the contaminated set, directionally valid): plain argmax emits **1,013
-anatomically impossible duplicate codes**; the constraint removes all of them and gains ~1.5
-points end-to-end.
+One-to-one ablation (clean 164-image set, 24 Aug 2026): plain argmax emits **679 anatomically
+impossible duplicate codes** and scores 65.1% / 43.6%; Hungarian one-to-one removes **all** of
+them for **69.4% / 46.5%** — **+4.3 points of-detected, +2.9 end-to-end** — at a cost of 2.1
+points of raw quadrant accuracy (94.7% vs 96.8%), because the global constraint sometimes moves
+a tooth across a quadrant boundary. Supersedes the contaminated-set figures.
 
 Training-time val (GT boxes, **selection-biased — a diagnostic, not a result**): quadrant
 99.4%, position 92.1%, FDI exact 91.6%; per-position accuracy 0.886–0.963, essentially flat,

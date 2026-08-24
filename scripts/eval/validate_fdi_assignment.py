@@ -194,7 +194,7 @@ def main():
     ap.add_argument("--min-iou", type=float, default=0.30)
     ap.add_argument("--limit", type=int, default=0, help="only the first N images")
     ap.add_argument("--method", choices=["positional", "head"], default="positional",
-                    help="positional = rank-order sorting (the 28.0%% baseline); "
+                    help="positional = rank-order sorting (the 22.9%% baseline on the clean set); "
                          "head = the learned per-tooth enumeration classifier")
     ap.add_argument("--head-weights", type=Path,
                     default=REPO_ROOT / "models/08_fdi_enumeration_head/enumeration_head_best.pth")

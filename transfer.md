@@ -50,7 +50,7 @@ long pole."
 | **Caries re-run script** written, smoke-verified on CPU | `scripts/dentex/train_caries_cascade.py` |
 | **Stage 2 FDI assignment** built + tested (R4, part 1) | `src/fdi_assignment.py` |
 | **Orientation contract** — rotate for detector, un-rotate immediately | `src/orientation.py` |
-| **Stage 2 validated** (28.0%) then **FIXED** (52.2%) | `scripts/eval/validate_fdi_assignment.py --method head` |
+| **Stage 2 validated** (22.9%) then **FIXED** (46.5%), **reproduces byte-for-byte** | `scripts/eval/validate_fdi_assignment.py --method head`; re-run 24 Aug produced artefacts `diff`-identical to `outputs/stage2_clean/`. *(Previously listed here as 28.0%→52.2% — both leaked-set figures. RESULTS_LOG 22j.)* |
 | **Enumeration head trained** — ResNet18 + positional features | `scripts/dentex/train_enumeration_head.py` |
 | **Papers read** — DPML + DentFound, both corroborate decisions taken | `RESULTS_LOG.md` 2026-08-22k |
 | Test suite | **46/46 pass** |
@@ -112,7 +112,7 @@ the rented time is spent training, not debugging.
 
 | # | Job | Command | Est. |
 |---|---|---|---|
-| ~~1~~ | ~~Enumeration head~~ | **DONE locally, 48 min** — 52.2% end-to-end | ✅ |
+| ~~1~~ | ~~Enumeration head~~ | **DONE locally, 48 min** — **46.5%** end-to-end (52.2% was the leaked-set figure) | ✅ |
 | ~~2~~ | ~~Re-validate Stage 2~~ | **DONE** — `--method head` | ✅ |
 | 3 | Caries Arm A | `python scripts/dentex/train_caries_cascade.py --arm a` | ~5 min (or ~2 min locally) |
 | 4 | Caries Arm B | `python scripts/dentex/train_caries_cascade.py --arm b` | ~5 min (or ~2 min locally) |
@@ -168,7 +168,7 @@ Every directory containing code has a README, and all were re-verified 22 Aug 20
 | Tufts frozen split | `_repo_archive/datasets_workspace/outputs/eda_tufts/split_v1.csv` | Gitignored — which is why a previous session wrongly declared it lost |
 | Ningxia images | **External drive, disconnected** | Only `manifest.csv` is in-repo |
 | Clinic (SDH) data | Not on this machine | Governance-blocked |
-| Python env | `/opt/anaconda3` (python 3.12) | Has **torch 2.2.0, scipy, sklearn**. **`cv2` and `ultralytics` are MISSING** — so `test_crop_generator` (12) and `test_orientation` (6) cannot run and **`validate_fdi_assignment.py` cannot be re-executed**. The other **28 tests pass**. Install both before any Stage-2 re-run. Verified 24 Aug. |
+| Python env | `/opt/anaconda3` (python 3.12) | **Working — 46/46 tests pass, Stage 2 re-runs and reproduces byte-for-byte** (24 Aug). torch 2.2.0 + MPS, cv2 5.0.0, ultralytics 8.4.127, scipy, sklearn. ⚠️ **`numpy` must stay `<2`** (pinned 1.26.4): numpy 2.x breaks torch↔numpy, `scipy.optimize` — which **is** the Stage-2 Hungarian assignment — and sklearn, silently at import. `requirements.txt` now pins it. |
 | E2E instance / SSH keys | Account-level | No instance launched. Treat the `.pem` pasted on 20 Aug as compromised. |
 
 ---

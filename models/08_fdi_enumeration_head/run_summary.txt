@@ -98,8 +98,15 @@ This is the reportable number. Both rows use the identical detector, settings an
   constraint from here, not numbering.
 
   ONE-TO-ONE ASSIGNMENT (Hungarian over the 32 codes) is part of the method, not an option.
-  Plain argmax emits 1,013 anatomically impossible duplicate codes; the constraint removes
-  all of them and gains ~1.5 points end-to-end, costing ~1.6 points of raw quadrant accuracy.
+  Measured on the clean 164-image set (24 Aug 2026):
+                              of-detected   end-to-end   quadrant   duplicate codes
+    Hungarian one-to-one         69.4%        46.5%        94.7%           0
+    plain argmax                 65.1%        43.6%        96.8%         679
+  The constraint removes ALL 679 impossible codes and gains +4.3 / +2.9 points, costing 2.1
+  points of raw quadrant accuracy - the global constraint sometimes moves a tooth across a
+  quadrant boundary. Worth taking: a duplicate code is not a slightly-wrong answer, it is an
+  impossible one a downstream report cannot render.
+  (Supersedes the contaminated-set figures 72.7/52.2 vs 70.6/50.7/1,013. RESULTS_LOG 24a/24b.)
 
 VALIDATION (GT boxes, enumeration val split) — A DIAGNOSTIC, NOT A RESULT:
   quadrant 99.4%, position 92.1%, FDI exact 91.6% (macro-F1 0.916).

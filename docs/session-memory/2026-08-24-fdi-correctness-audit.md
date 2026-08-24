@@ -79,3 +79,57 @@ Files: `docs/results/RESULTS_LOG.md` (new entry 2026-08-24a), `model_metrics.md`
    constraint; DentFound's ablation justifies it numerically.
 4. Version-tag the bone-loss weights — the last untagged trained models.
 5. Optionally, v1.1 of the enumeration head with the jitter fix — *after* R4.
+
+---
+
+# Addendum — same day, after the environment was restored
+
+## What changed
+
+`cv2` and `ultralytics` got installed, which made everything the audit above *could not
+execute* executable. Two things came out of it.
+
+**1. The install broke more than it fixed, briefly.** Pulling in opencv/ultralytics upgraded
+numpy to 2.5.2, and torch 2.2.0 / scipy 1.12 / sklearn 1.4 are all compiled against numpy 1.x.
+Measured, not guessed: `torch.numpy()` raised, `torch.tensor(ndarray)` raised,
+`scipy.optimize.linear_sum_assignment` failed to import — **that is the Stage-2 Hungarian
+assignment** — and sklearn failed entirely. Pinning `numpy==1.26.4` fixed all three while
+keeping cv2 working (opencv 5.0 *declares* `numpy>=2` but is runtime-compatible with 1.x, which
+I verified by exercising resize/rotate/cvtColor/imencode rather than trusting the metadata).
+
+`requirements.txt` had `numpy>=1.24.0` — the constraint that allowed this — and was *also*
+missing `scipy` entirely while `ultralytics` sat commented out. All three fixed.
+
+**2. Stage 2 reproduces byte-for-byte.** Re-ran both methods from the frozen weights
+(sha256 re-verified). Every headline number came back identical, and the artefacts are
+`diff`-identical to `outputs/stage2_clean/` — all 936 per-tooth rows. The corrected ceiling
+(66.3% vs 80.2%, +13.9) reproduced on the fresh run too. **46/46 tests pass** for the first
+time this session.
+
+**3. The one-to-one ablation, re-measured clean** (it had only ever been run on the
+contaminated set): Hungarian 69.4% / 46.5% / **0 duplicates** vs argmax 65.1% / 43.6% /
+**679 duplicates**. The gain is **+4.3 / +2.9**, against +2.1 / +1.5 on the leaked set — the
+clean measurement makes the component look *better*, not worse.
+
+## Decisions made
+
+- **Pin numpy rather than upgrade torch/scipy.** Upgrading torch on a machine whose only GPU
+  path is MPS, mid-project, with frozen weights that must keep loading, risks far more than it
+  gains. The pin is one line and reversible.
+- **Report the one-to-one quadrant trade-off rather than bury it.** One-to-one *costs* 2.1
+  points of raw quadrant accuracy (94.7% vs 96.8%) because the global constraint sometimes moves
+  a tooth across a quadrant boundary. It is still right by default — a duplicate FDI code is not
+  a slightly-wrong answer, it is an impossible one a per-tooth report cannot render — but the
+  cost is real and a reviewer will find it.
+
+## Open questions
+
+- **Why does the constraint help *more* on clean data?** Working theory: on unseen images the
+  classifier is less certain, so more teeth compete for the same code (679 duplicates across 627
+  detections), and arbitrating collisions is worth more. Plausible, not verified.
+- Still unknown what the jitter fix buys — unchanged from above, needs a v1.1 retrain.
+
+## Next steps
+
+Unchanged and now unblocked: **R4 integration first.** The environment works, Stage 2 is
+verified reproducible, and nothing is waiting on compute.

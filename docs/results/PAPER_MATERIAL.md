@@ -722,6 +722,13 @@ polygons where both exist, which is what the seg pipeline effectively does.
 Measured 22 August 2026 against the 1,534 FDI-labelled teeth in DENTEX `disease/` — the first
 Stage-2 evaluation this project has ever run. **End-to-end FDI exact accuracy is 28.0%.**
 
+> **Both figures in that sentence are superseded.** 34% of those 250 images turned out to be
+> training duplicates (§8.10 continues below; RESULTS_LOG 2026-08-22j). On the clean 164-image
+> subset the same positional method scores **22.9% on 936 teeth**. The 1,534-teeth denominator
+> and the 28.0% belong to the contaminated set and are kept here only because the *diagnosis*
+> in this paragraph — that the position digit is what breaks — was derived from them and still
+> holds. **Quote 22.9%, not 28.0%.**
+
 The failure is specific, not diffuse. Quadrant assignment is reliable (93.0% of detected
 teeth): the jaw split works and the image-left/patient-right convention holds. The **position
 digit** is what breaks, and asymmetrically — 40.2% of position errors are too low against
