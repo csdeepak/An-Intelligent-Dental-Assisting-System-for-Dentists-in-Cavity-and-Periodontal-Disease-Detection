@@ -64,7 +64,26 @@ DEF_DISEASE_DIR = Path.home() / "Downloads/Capstone/DENTEX/disease"
 DEF_WEIGHTS = REPO_ROOT / "models/06_yolo_detection_a100_run/best.pt"
 DEF_OUT = REPO_ROOT / "outputs/stage2_validation"
 
-LEAKED = {"test_181"}          # byte-identical to train_332.png in the detector's training set
+def _load_leaked():
+    """
+    Images excluded from evaluation because they are byte-identical (MD5) to an image the
+    pipeline was TRAINED on. There are two independent sources, and missing either inflates
+    the result:
+      * test_181 -> train_332.png, in the DETECTOR's training set (found 22 Aug).
+      * 85 images -> DENTEX quadrant_enumeration, the ENUMERATION HEAD's training set
+        (found 22 Aug, after a first run reported 52.2% on the contaminated set).
+    The second was easy to miss: quadrant_enumeration and the disease *subset* (705) cover
+    disjoint patients, which is true and was verified — but `disease/` is a different folder
+    again, and 34% of it is shared with the enumeration images.
+    """
+    import json
+    f = REPO_ROOT / "data/dentex/disease_leaked_images.json"
+    if f.exists():
+        return set(json.loads(f.read_text())["all_excluded"])
+    return {"test_181"}
+
+
+LEAKED = _load_leaked()
 LABEL_RE = re.compile(r"^(\d+)-(.+)-(\d+)$")
 
 
@@ -205,7 +224,8 @@ def main():
     labels = [p for p in labels if p.stem not in LEAKED]
     if args.limit:
         labels = labels[:args.limit]
-    print(f"images: {len(labels)}  (excluded {sorted(LEAKED)} — leaks into detector training)")
+    print(f"images: {len(labels)}  ({len(LEAKED)} excluded as training duplicates — "
+          f"see data/dentex/disease_leaked_images.json)")
 
     rows, per_image, n_viz = [], [], 0
     for i, lp in enumerate(labels, 1):

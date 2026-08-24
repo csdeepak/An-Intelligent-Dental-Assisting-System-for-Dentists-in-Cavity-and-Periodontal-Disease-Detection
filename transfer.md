@@ -5,7 +5,7 @@ what is next" for a session that is starting cold. It is **rewritten, not append
 unlike `docs/results/RESULTS_LOG.md` (append-only history) and `docs/session-memory/`
 (one file per session, never edited). Those two are the record; this is the snapshot.
 
-**Last updated: 22 August 2026 (seventh update — enumeration head TRAINED, Stage 2 fixed).** Rewritten from a one-off machine-handoff document — the
+**Last updated: 22 August 2026 (eighth update — leakage found and corrected).** Rewritten from a one-off machine-handoff document — the
 20–21 Aug handoff it described is complete, and its content is preserved in git history
 (`git show ad71ee4:transfer.md`) and in §6 below.
 
@@ -18,9 +18,10 @@ unlike `docs/results/RESULTS_LOG.md` (append-only history) and `docs/session-mem
 
 ## 1. Where we are, in five lines
 
-**Stage 2 is fixed.** The learned enumeration head lifts FDI accuracy from 28.0% to
-**52.2% end-to-end** (72.7% of detected teeth, above the 68.7% ceiling positional assignment
-could never cross). The bottleneck has moved to detector recall. We are on **W2 of the 8-week plan** (`docs/research/MASTER_PLAN_2026H2.md` §5; W2 = Aug 22–28,
+**Stage 2 is fixed.** The learned enumeration head lifts FDI accuracy from 22.9% to
+**46.5% end-to-end** (69.4% of detected teeth), a 2.0x improvement, measured on **164 leak-free
+images** after 86 were found to be training duplicates. It clears the positional ceiling
+(67.0%) by +2.4 points. The bottleneck has moved to detector recall (67.0%). We are on **W2 of the 8-week plan** (`docs/research/MASTER_PLAN_2026H2.md` §5; W2 = Aug 22–28,
 implementation freeze **14 Oct**, ISBI submission **26 Oct**). Four of six pipeline stages are
 trained; **Stages 5–6 do not exist** and are the largest single gap. The Tier-0 credibility
 repairs are *prepared but unrun* — every one of them needs a GPU, and **no GPU instance is
@@ -71,10 +72,11 @@ long pole."
      (93.0%); the position digit fails because detector recall decays from 98.3% at position 1
      to 61.0% at position 8, and each missed tooth shifts everything distal to it inward.
      `RESULTS_LOG.md` 2026-08-22c, `model_metrics.md` Stage 2, `PAPER_MATERIAL.md` §8.10.
-   - ✅ **Enumeration head TRAINED and validated** — **28.0% → 52.2% end-to-end**, 72.7% of
-     detected teeth (above the 68.7% ceiling). Trained locally in 48 min on MPS. One-to-one
-     Hungarian assignment emits 0 duplicate codes vs 1,013 for plain argmax. Figures in
-     `docs/results/figures/enumeration_head/`. `RESULTS_LOG.md` 2026-08-22i.
+   - ✅ **Enumeration head TRAINED and validated** — **22.9% → 46.5% end-to-end** (2.0x),
+     69.4% of detected, clearing the 67.0% positional ceiling by +2.4 pts. Trained locally in
+     48 min on MPS. Hungarian one-to-one emits 0 duplicate codes vs 1,013 for argmax.
+     **Measured on 164 leak-free images — 86 of the original 250 were training duplicates**
+     (`data/dentex/disease_leaked_images.json`). `RESULTS_LOG.md` 2026-08-22i and 22j.
    - ⬜ **Stage 1 is now the bottleneck** — at 71.8% recall, 71.8% is the end-to-end maximum.
      R1's seg retrain is the prepared lever.
    - ⬜ `scripts/run_inference.py` — still a 38-line placeholder. Stages 5–6 proper.

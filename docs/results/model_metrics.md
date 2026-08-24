@@ -38,36 +38,44 @@ all 66, so its instance counts will legitimately differ. Analysis:
 
 ## Stage 2 — FDI numbering · learned enumeration head · ResNet18 + positional features
 
-**Current method as of 22 Aug 2026.** Evaluated on 1,534 FDI-labelled teeth across 249
-`DENTEX/disease/` images with **detector** boxes (`tooth-detector-a100-1024-v1.0`, imgsz 1024,
+**Current method as of 22 Aug 2026.** Evaluated on **164 leak-free `DENTEX/disease/` images**
+(936 FDI-labelled teeth) with detector boxes (`tooth-detector-a100-1024-v1.0`, imgsz 1024,
 conf 0.25, NMS IoU 0.50, rotated 90° CCW), Hungarian one-to-one assignment over the 32 codes.
-`test_181.png` excluded (byte-identical to a training image).
+
+**86 of the original 250 images are excluded as training duplicates** — 85 byte-identical to
+enumeration-head training images, 1 to a detector training image. An earlier version of this
+table reported 52.2% on the contaminated 249-image set; that figure was inflated by 5.7 points
+and is withdrawn. Exclusion list: `data/dentex/disease_leaked_images.json`.
 
 | Metric | Positional (superseded) | **Learned head** |
 |--------|------------------------|------------------|
-| Detection recall | 71.8% | 71.8% |
-| Quadrant correct (of detected) | 93.0% | **95.5%** |
-| FDI exact (of detected) | 39.1% | **72.7%** |
-| **FDI exact, end-to-end** | 28.0% | **52.2%** |
+| Detection recall | 67.0% | 67.0% |
+| Quadrant correct (of detected) | 92.3% | **94.7%** |
+| FDI exact (of detected) | 34.1% | **69.4%** |
+| **FDI exact, end-to-end** | 22.9% | **46.5%** |
 | Duplicate FDI codes | 0 | **0** |
 
-**72.7% of detected teeth is above the 68.7% ceiling** that rank-order assignment provably
-cannot cross, because the head is order-independent: it judges each tooth on its own
-appearance and absolute position, not its rank among whatever else was detected.
+**A 2.0× improvement on both measures**, on data the head has never seen.
 
-**End-to-end is now capped by Stage 1.** At 71.8% recall, perfect numbering would give 71.8%;
-the head reaches 72.7% of that maximum. The bottleneck has moved from numbering to detection.
+**It clears the positional ceiling, narrowly.** Rank-order assignment reaches 67.0% even on
+fully-detected quadrants (re-measured on this clean subset); the head reaches 69.4% of detected
+teeth — **+2.4 points**. The qualitative claim holds — an order-independent method exceeds what
+rank-order can reach — but the margin is small and should be quoted as such, not as a rout.
 
-One-to-one ablation: plain argmax gives 70.6% / 50.7% and emits **1,013 anatomically impossible
-duplicate codes**. The constraint removes all of them and gains 1.5 points end-to-end.
+**End-to-end is capped by Stage 1.** At 67.0% recall, perfect numbering gives 67.0%; the head
+reaches 69.4% of that maximum. Detector recall is now the binding constraint.
 
-Training (val, GT boxes, **selection-biased — a diagnostic, not a result**): quadrant 99.4%,
-position 92.1%, FDI exact 91.6%. Per-position accuracy 0.886–0.963, essentially flat, unlike
-the detector's collapse from 98.3% (position 1) to 61.0% (position 8).
+One-to-one ablation (on the contaminated set, directionally valid): plain argmax emits **1,013
+anatomically impossible duplicate codes**; the constraint removes all of them and gains ~1.5
+points end-to-end.
+
+Training-time val (GT boxes, **selection-biased — a diagnostic, not a result**): quadrant
+99.4%, position 92.1%, FDI exact 91.6%; per-position accuracy 0.886–0.963, essentially flat,
+unlike the detector's collapse from 98.3% (position 1) to 61.0% (position 8).
 
 Weights `outputs/enumeration_head/enumeration_head_best.pth` (gitignored, **not yet
 version-tagged**). Figures: `docs/results/figures/enumeration_head/`.
-Full record: `RESULTS_LOG.md` 2026-08-22i.
+Full record: `RESULTS_LOG.md` 2026-08-22i and **22j (the leakage correction)**.
 
 ---
 

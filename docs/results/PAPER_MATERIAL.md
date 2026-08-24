@@ -746,14 +746,21 @@ latter already exists — DENTEX's `quadrant_enumeration` subset labels 18,095 t
 quadrant and position across 634 images, on **disjoint patients** from the `disease/` set used
 here, so it can train a numbering head while `disease/` remains a clean held-out test.
 
-**RESOLVED 22 August 2026.** The learned enumeration head was built and trained, and on the
-same 249 images with the same detector it reaches **52.2% end-to-end** (72.7% of detected
-teeth), against 28.0% for positional assignment. **72.7% is above the 68.7% ceiling**, which
-is the substantive point: it is not a better sorter, it is a method that is not subject to the
-constraint at all. The bottleneck has moved to Stage 1 — at 71.8% detector recall, 71.8% is the
-end-to-end maximum and the head achieves 72.7% of it.
+**RESOLVED 22 August 2026.** The learned enumeration head reaches **46.5% end-to-end** (69.4%
+of detected teeth) against **22.9%** for positional assignment — a **2.0× improvement** — on
+**164 leak-free images**. It clears the positional ceiling (67.0% on fully-detected quadrants)
+by **+2.4 points**, which is the substantive point: not a better sorter, but a method not
+subject to the constraint at all. The bottleneck has moved to Stage 1 — at 67.0% recall, that
+is the end-to-end maximum and the head achieves 69.4% of it.
 
-Report both numbers. The 28.0% → 52.2% progression, with the ceiling argument explaining *why*
+**Report the leakage episode in the methods section.** A first run scored 52.2% before it was
+found that **86 of the 250 evaluation images were byte-identical to training images** (85 from
+the enumeration corpus, 1 from the detector's). The inflation was 5.7 points. It arose from
+generalising a verified disjointness between two folders to a third that had never been
+tested. Stating this is worth more than hiding it: it demonstrates the evaluation discipline
+the rest of the paper claims.
+
+Report both numbers. The 22.9% → 46.5% progression, with the ceiling argument explaining *why*
 a better sorter could never have got there, is a cleaner methodological narrative than the
 final figure alone — and the ceiling measurement is what licenses the architectural claim.
 `RESULTS_LOG.md` 2026-08-22c, 22f and 22i; figures in

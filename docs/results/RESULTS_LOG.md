@@ -1650,3 +1650,57 @@ Copy this block verbatim to the bottom of the file and fill it in.
   documented baseline, not as the pipeline default. (3) A with/without-positional-features
   ablation would substantiate the design claim that laterality is unrecoverable from pixels;
   one extra 48-minute run.
+
+## 2026-08-22j — CORRECTION to 22i: 34% of the Stage-2 test set was in the head's training data
+
+- **What was done:** Asked to re-verify the FDI fix before relying on it, ran the one leakage
+  check that had not been done: **`quadrant_enumeration` (the head's training images) against
+  `disease/input` (the evaluation images)**. They overlap. All numbers in 2026-08-22i are
+  contaminated and are superseded below.
+- **The leak:** **85 of the 250 `disease/` images are byte-identical (MD5) to enumeration
+  training images** — 34% of the test set. A separate, previously-known leak accounts for one
+  more (`test_181` ↔ `train_332`, into the *detector's* training set). Total excluded: **86**.
+  **164 clean images remain.**
+- **Why it was missed, precisely:** I verified that `quadrant_enumeration` and the
+  **disease *subset* (705 images)** cover disjoint patients — which is true, and is what
+  RESULTS_LOG 2026-08-21m records. I then treated that as covering `disease/` too. It does not:
+  `disease/` is a *third* folder, and a third of it is shared with the enumeration images. Two
+  folders being disjoint says nothing about a third. **A verified fact about one pair was
+  generalised to a pair it was never measured on** — the same shape of error as the
+  filename-overlap bug it was supposed to guard against.
+- **CORRECTED metrics — 164 clean images, 936 GT teeth, identical settings for both methods:**
+
+  | | Positional | **Head** | Δ |
+  |---|---|---|---|
+  | Detection recall | 67.0% | 67.0% | — |
+  | Quadrant correct | 92.3% | **94.7%** | +2.4 |
+  | FDI exact (of detected) | 34.1% | **69.4%** | **+35.3** |
+  | **FDI exact, end-to-end** | **22.9%** | **46.5%** | **+23.6** |
+  | Duplicate FDI codes | 0 | **0** | — |
+
+- **What the leak was worth:** the head measured **52.2%** end-to-end on the contaminated set
+  versus **46.5%** clean — an inflation of **+5.7 points**, and +3.3 points on FDI-of-detected.
+- **The ceiling claim, re-measured on clean data:** the positional ceiling on fully-detected
+  quadrants is **67.0%** here (not the 68.7% measured on the contaminated set), and the head
+  reaches **69.4%** of detected teeth. **It still clears the ceiling, but by +2.4 points, not
+  the +4.0 previously reported.** The qualitative conclusion survives — an order-independent
+  method exceeds what rank-order assignment can reach — but the margin is narrower and should
+  be quoted as such.
+- **The headline improvement is unaffected in kind:** end-to-end **22.9% → 46.5%** and
+  of-detected **34.1% → 69.4%** are both a **2.0× improvement**, measured on data the head has
+  never seen. That is the result; it did not depend on the leak.
+- **Evaluating on the clean subset is sufficient — no retraining is needed.** The head trained
+  on 85 images that also appear in `disease/`, but it is now scored only on the 164 it never
+  saw, which is a valid held-out estimate. Retraining without them would change the model
+  without changing the validity of this measurement.
+- **Guard added so this cannot recur:** the exclusion list is generated to
+  `data/dentex/disease_leaked_images.json` (tracked) and loaded by
+  `scripts/eval/validate_fdi_assignment.py`, which now names both leakage sources in code
+  rather than in a comment.
+- **Source:** `outputs/stage2_clean/` (both methods, clean subset);
+  `data/dentex/disease_leaked_images.json`; supersedes all `disease/`-set metrics in
+  2026-08-22i and the ceiling figure in 2026-08-22f.
+- **Follow-ups:** unchanged in substance — Stage 2 is fixed and detector recall (67.0% on this
+  subset) is now the binding constraint. But **re-check the leakage question for every future
+  evaluation set**, including Ningxia: overlap must be measured against *each* training corpus
+  separately, never inferred from a neighbouring pair.
