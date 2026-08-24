@@ -19,8 +19,10 @@ unlike `docs/results/RESULTS_LOG.md` (append-only history) and `docs/session-mem
 ## 1. Where we are, in five lines
 
 **Stage 6 now exists — the pipeline runs end to end** (`scripts/run_inference.py`, 24 Aug):
-image → per-tooth JSON. It exposed two OOD failures in opposite directions — caries over-calls
-~7×, bone loss is near-inert off-Tufts — both quantified in `RESULTS_LOG` 2026-08-24f.
+image → per-tooth JSON. It exposed two OOD failures in opposite directions. **The caries one is
+fixed** (25 Aug): a rebuilt negative class with 5,366 real healthy teeth took the pipeline's
+caries rate from **84.9% → 19.1%**, though precision is only 0.40. **Bone loss remains
+near-inert off-Tufts (0.7%)** and is now the open one. `RESULTS_LOG` 2026-08-24f, 2026-08-25a.
 
 **Stage 2 is fixed.** The learned enumeration head lifts FDI accuracy from 22.9% to
 **46.5% end-to-end** (69.4% of detected teeth), a 2.0x improvement, measured on **164 leak-free
@@ -53,6 +55,7 @@ long pole."
 | **R2 mask-aware cropping** implemented + unit-tested (**unwired** — needs R1's masks) | `src/crop_generator.py`, `tests/test_crop_generator.py` |
 | **Caries re-run script** written, smoke-verified on CPU | `scripts/dentex/train_caries_cascade.py` |
 | **R4 Stages 1–6 integrated** — image → per-tooth JSON + overlay | `scripts/run_inference.py`, `src/classifiers.py`, `outputs/r4_demo/`; 60/60 tests |
+| **Caries gate rebuilt** with 5,366 real healthy teeth — 84.9% → 19.1% in-pipeline | `models/09_caries_gate_v3/run_summary.txt`, `outputs/caries_v3/gate_comparison.json` |
 | **Stage 2 FDI assignment** built + tested (R4, part 1) | `src/fdi_assignment.py` |
 | **Orientation contract** — rotate for detector, un-rotate immediately | `src/orientation.py` |
 | **Stage 2 validated** (22.9%) then **FIXED** (46.5%), **reproduces byte-for-byte** | `scripts/eval/validate_fdi_assignment.py --method head`; re-run 24 Aug produced artefacts `diff`-identical to `outputs/stage2_clean/`. *(Previously listed here as 28.0%→52.2% — both leaked-set figures. RESULTS_LOG 22j.)* |
@@ -81,9 +84,13 @@ long pole."
    Both are quantified inside every report under `["limitations"]`. **0 duplicate FDI codes
    across 299 teeth.**
 
-2. **The caries gate's negative class is now the blocking decision, not an optional one.**
-   No pipeline caries number means anything until it has real healthy teeth to learn from.
-   See §4 — the detector-derived healthy-tooth option.
+2. ~~**The caries gate's negative class.**~~ **FIXED 25 Aug** (RESULTS_LOG 2026-08-25a).
+   The enumeration and disease subsets share **260 byte-identical images under different
+   filenames** — 21m's "not derivable from DENTEX" was half right (the *filename* join is
+   invalid; an **MD5** join is not). Verified by falsifiable test: **98.28% FDI agreement**.
+   Gave **5,366 real healthy teeth**; retrained gate frozen as `caries-gate-resnet18-v3.0`
+   and now the pipeline default. In-pipeline caries **84.9% → 19.1%** against an 11.7%
+   annotated floor. **Improved, not solved** — held-out precision is **0.40**.
 
 3. **Detector recall is now the binding constraint (67.0%).** At that recall 67.0% is the
    end-to-end maximum and the head already captures 69.4% of it. **R1's seg retrain is the

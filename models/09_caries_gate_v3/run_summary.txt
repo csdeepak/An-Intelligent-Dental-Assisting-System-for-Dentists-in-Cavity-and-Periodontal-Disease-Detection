@@ -1,0 +1,112 @@
+CARIES PHASE-1 GATE — v3, REBUILT NEGATIVE CLASS
+Version tag: caries-gate-resnet18-v3.0
+Frozen: 25 August 2026
+
+WHAT THIS REPLACES, AND WHY
+--------------------------------------------------------------------------------
+The gate in models/07_caries_cascade/ (final_model.pth) was trained on `phase1_legacy`,
+whose rule is `category_id_3 in [1,3] -> caries, else -> no_caries`, applied to a file in
+which EVERY annotation is a diseased tooth. Its `no_caries` class was therefore exactly
+Impacted + Periapical Lesion and contained NO HEALTHY TEETH -- while the assembled
+pipeline feeds it every tooth the detector finds, overwhelmingly healthy.
+
+Measured in situ (RESULTS_LOG 2026-08-24f): it called 84.9% of 299 detected teeth carious
+against 35 annotated. An 84.9% caries rate is not clinically plausible.
+
+THE DATA FIX -- and why the previous attempt at it failed
+--------------------------------------------------------------------------------
+A `phase1_corrected` tree was built once by joining quadrant_enumeration to the disease
+subset ON FILE_NAME. Invalid: the subsets number files independently, so train_0.png in
+one is a different patient from train_0.png in the other. All 15,531 crops were discarded
+(RESULTS_LOG 2026-08-21m). That entry concluded healthy teeth are "NOT derivable from
+DENTEX".
+
+That conclusion was too strong. The subsets share 260 BYTE-IDENTICAL images under
+DIFFERENT filenames. Joining on MD5 of the image bytes recovers them exactly, and for
+those 260 both annotation sets describe the same pixels in the same coordinate frame.
+
+VERIFIED BY A FALSIFIABLE TEST, not by assertion: for a shared image, a disease annotation
+and an enumeration annotation covering the same tooth must carry the same (quadrant,
+position).
+    agree 1255   disagree 22   ->  98.28% FDI agreement
+    image dimensions match on 260/260
+If these were different patients, agreement would sit near chance (~3% over 32 classes).
+The builder re-runs this check every time and aborts below 90%.
+
+DATASET  data/dentex/crops_v3_phase1/   (6,616 crops, 260 images)
+--------------------------------------------------------------------------------
+                 total    caries              no_caries
+    train        4,750      723 (15.2%)       4,027 (84.8%)
+    val          1,003      199 (19.8%)         804 (80.2%)
+    test           863      127 (14.7%)         736 (85.3%)
+
+  negative-class make-up:  healthy 5,366   impacted 179   periapical 22
+  ^ the legacy gate had 762 negatives, ZERO of them healthy.
+
+  labelling: tooth boxes from quadrant_enumeration (complete dentition); disease status
+  from the disease subset by IoU.
+      IoU >= 0.50  -> disease label (Caries|Deep Caries -> caries; else no_caries)
+      0.10 < IoU < 0.50 -> AMBIGUOUS, EXCLUDED (856 teeth, 11.5%). Never called healthy.
+      IoU <= 0.10  -> healthy
+  crop: 1.0x TIGHT, floor near / ceil far, 224x224 -- the caries contract.
+  splits INHERITED from data/dentex/splits_v2.json, so this test set is a subset of
+  phase1_legacy's test set. 0 images span two splits. 0 leakage vs the 250-image eval set.
+
+TRAINING
+--------------------------------------------------------------------------------
+  scripts/dentex/train_caries_cascade.py --crops data/dentex \
+      --variant crops_v3_phase1 --arm b --phase1-only
+  ResNet18 (ImageNet), fc->2, arm B (augmented), 15 epochs, class weights [3.2849, 0.5898]
+  (inverse frequency on 723/4027), MPS, seed 42. Best epoch 15 by val macro-F1.
+  class_to_idx {'caries': 0, 'no_caries': 1}
+  sha256  8f4a99ba412c5562e0bc444fef9b856af091d3d1c8b5ba74876735e616357a76
+
+RESULTS -- held-out test split (863 teeth, untouched during training)
+--------------------------------------------------------------------------------
+                 precision   recall   f1     support
+    caries          0.40      0.74   0.52      127
+    no_caries       0.95      0.81   0.87      736
+    accuracy                         0.80      863     macro-F1 0.69
+
+  DO NOT compare these to the legacy gate's reported 0.81 / 0.77. That was a DIFFERENT
+  TASK -- caries vs impacted/periapical, with no healthy teeth in play. Different
+  denominator, not comparable.
+
+IN-PIPELINE EFFECT -- the number that motivated this work
+--------------------------------------------------------------------------------
+Same 12 leak-free images, same detector, same boxes, same crops; only the gate differs
+(scripts/eval/compare_caries_gates.py):
+
+                            caries+    rate    over-call vs annotated
+    OLD (phase1_legacy)        254    84.9%          7.3x
+    NEW (this model)            57    19.1%          1.6x
+    annotated (floor)           35    11.7%
+
+WHAT THIS DOES NOT FIX -- report these with any result
+--------------------------------------------------------------------------------
+1. PRECISION IS 0.40. Six of every ten positives are still wrong. This gate went from
+   unusable to plausible, NOT to reliable.
+2. The annotated count is a FLOOR, not a complete label -- DENTEX annotates only diseased
+   teeth. So 1.6x is an upper bound on how good the new gate looks, and the comparison
+   cannot separate true false-positives from unannotated real caries.
+3. PRESUMED-NEGATIVE ASSUMPTION. A tooth with no disease annotation is treated as healthy.
+   That is absence of evidence: any lesion the annotators missed enters the negative class
+   as a false negative, in training AND in the 0.40 precision above. Unmeasurable inside
+   DENTEX.
+4. TOOTH-TYPE CONFOUND. Caries concentrates in molars (44.3% at position 6 vs 1.5% at
+   position 1), so some of what the model learns is tooth type, not pathology. Tested for
+   a shortcut: aspect ratio ALONE scores 84.1%, exactly the majority baseline (-0.1% over
+   it), so it is not trivially exploitable -- but per-position evaluation is the honest way
+   to report this model.
+5. 260 images is a small corpus, from one dataset, one scanner population.
+
+REPRODUCE
+--------------------------------------------------------------------------------
+  python scripts/dentex/build_caries_phase1_v3.py            # 6,616 crops, MD5 join
+  python scripts/dentex/train_caries_cascade.py --crops data/dentex \
+      --variant crops_v3_phase1 --arm b --phase1-only
+  python scripts/eval/compare_caries_gates.py --n 12
+
+RESULTS_LOG 2026-08-25a. Supersedes the Phase-1 gate in models/07_caries_cascade/ for
+PIPELINE use; that model is retained -- it is still the one behind the published
+phase1_legacy numbers.

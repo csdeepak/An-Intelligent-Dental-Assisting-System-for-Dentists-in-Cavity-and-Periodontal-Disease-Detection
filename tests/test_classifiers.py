@@ -121,10 +121,11 @@ def test_caries_severity_only_runs_on_gate_positives():
     assert out[0]["severity_confidence"] is not None
 
 
-def test_every_caries_result_is_flagged_out_of_distribution():
-    """The gate never saw a healthy tooth. A negative is as out-of-domain as a positive."""
+def test_every_caries_result_is_flagged_uncalibrated():
+    """Held-out caries precision is 0.40 and the healthy class is presumed-negative, so a
+    negative is no more trustworthy than a positive. Both must carry the flag."""
     out = run_caries(_Fixed(2, 1), _Fixed(2, 0), _img(4), [BOX, BOX], DEV)
-    assert all("gate_out_of_distribution" in r["flags"] for r in out)
+    assert all("caries_uncalibrated" in r["flags"] for r in out)
 
 
 def test_bone_loss_severity_only_runs_on_positives():

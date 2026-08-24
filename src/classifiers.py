@@ -46,17 +46,22 @@ Both match to three decimals, so index 0 is the majority class (normal) and inde
 minority (diseased). Arithmetic, not a guess -- but it is an inference, and it is flagged as
 such in the report metadata.
 
-THE CARIES GATE IS OUT OF DISTRIBUTION IN THIS PIPELINE, AND SAYS SO
---------------------------------------------------------------------
-`no_caries` in the gate's training data is Impacted + Periapical Lesion. It contains **no
-healthy teeth at all**, because every annotation in the source file is a diseased tooth. The
-assembled pipeline feeds the gate *every tooth the detector finds*, which is overwhelmingly
-healthy -- a population the gate has never seen. Its output here is therefore
-"caries vs other-pathology", not "caries vs healthy", and it will over-call.
+THE CARIES GATE: FIXED ONCE, STILL NOT RELIABLE
+-----------------------------------------------
+The original gate's `no_caries` class was Impacted + Periapical Lesion and contained **no
+healthy teeth at all**, because every annotation in its source file is a diseased tooth. Fed
+every tooth the detector finds, it called **84.9%** of them carious (RESULTS_LOG 2026-08-24f).
 
-This is not fixable inside DENTEX's labelled data (RESULTS_LOG 2026-08-21j). It is not hidden:
-every caries prediction this module emits carries `gate_out_of_distribution`, and the report
-metadata repeats it. Do not quote pipeline caries rates as clinical performance.
+That is fixed. `caries-gate-resnet18-v3.0` is trained on a rebuilt negative class of **5,366
+real healthy teeth**, recovered by MD5-joining the enumeration and disease subsets, and calls
+**19.1%** against an 11.7% annotated floor -- 1.6x rather than 7.3x (RESULTS_LOG 2026-08-25a).
+
+**It is improved, not solved, and this module does not pretend otherwise.** Held-out precision
+on caries is **0.40**: roughly six of every ten positives are wrong. Its healthy class rests on
+treating any tooth without a disease annotation as healthy, which is absence of evidence rather
+than evidence of absence. So every caries prediction -- positive AND negative -- still carries
+`caries_uncalibrated`, and the report metadata states both limits. Do not read a caries field
+as a diagnosis, and do not quote pipeline caries rates as clinical performance.
 """
 
 import numpy as np
@@ -179,9 +184,10 @@ def run_caries(gate, severity, img_bgr, boxes, device):
             "gate_confidence": round(float(pg[i].max()), 4),
             "severity": None,
             "severity_confidence": None,
-            # Stated on EVERY tooth, positive or not: the gate never saw a healthy tooth in
-            # training, so a negative here is also out of domain. See the module docstring.
-            "flags": ["gate_out_of_distribution"],
+            # Stated on EVERY tooth, positive or not. Precision is 0.40, and the negative
+            # class rests on the presumed-negative assumption, so a negative here is no more
+            # trustworthy than a positive. See the module docstring.
+            "flags": ["caries_uncalibrated"],
         }
         if i in sev_of:
             p = sev_of[i]

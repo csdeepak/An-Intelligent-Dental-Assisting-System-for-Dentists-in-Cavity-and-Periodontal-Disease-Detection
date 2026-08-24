@@ -2202,3 +2202,85 @@ Copy this block verbatim to the bottom of the file and fill it in.
   blocking decision, not an optional one; (b) bone loss needs external validation before it can
   be claimed to work off-Tufts — this is what Ningxia is for; (c) Grad-CAM overlays for Stage 6
   are not built. **None of these block R5.**
+
+## 2026-08-25a — Caries gate rebuilt with a real negative class: 84.9% → 19.1% in-pipeline
+
+- **What was done:** Fixed the defect R4 exposed. The Phase-1 gate's `no_caries` class was
+  Impacted + Periapical Lesion and contained **no healthy teeth**, so fed every detected tooth
+  it called **84.9%** of them carious (2026-08-24f). Rebuilt the negative class from **5,366
+  real healthy teeth**, retrained, and measured the difference through the assembled pipeline.
+
+- **The data was recoverable after all — 2026-08-21m's conclusion was half right.** That entry
+  correctly showed the enumeration↔disease filename join is invalid (different patients), then
+  concluded healthy teeth are "NOT derivable from DENTEX". **The subsets share 260
+  byte-identical images under DIFFERENT filenames** (`train_437.png` ≡ `train_1.png`). Joining
+  on **MD5 of the image bytes** recovers them exactly; for those 260, both annotation sets
+  describe the same pixels in the same coordinate frame.
+- **The join is verified by a falsifiable test, not asserted.** For a shared image, a disease
+  annotation and an enumeration annotation covering the same tooth must carry the same
+  (quadrant, position): **1,255 agree / 22 disagree = 98.28%**, dimensions match **260/260**.
+  Different patients would sit near chance (~3% over 32 classes) — this is exactly the check
+  the filename join would have failed. `build_caries_phase1_v3.py` re-runs it every build and
+  **aborts below 90%**.
+- **Dataset `data/dentex/crops_v3_phase1/` — 6,616 crops, 260 images:**
+
+  | | total | caries | no_caries |
+  |---|---|---|---|
+  | train | 4,750 | 723 (15.2%) | 4,027 |
+  | val | 1,003 | 199 (19.8%) | 804 |
+  | test | 863 | 127 (14.7%) | 736 |
+
+  Negative class: **healthy 5,366**, impacted 179, periapical 22. The legacy gate had 762
+  negatives, **zero healthy**. Labels by IoU: ≥0.50 takes the disease label, ≤0.10 is healthy,
+  and the **856 teeth in between (11.5%) are EXCLUDED, not guessed** — a partially-overlapped
+  tooth is precisely where "healthy" would be a guess. Splits inherited from `splits_v2.json`,
+  so this test set is a subset of `phase1_legacy`'s. 0 images span splits; **0 leakage** against
+  the 250-image eval set (checked per the standing rule).
+
+- **RESULT — same 12 leak-free images, same detector, same boxes, same crops, only the gate
+  differs** (`scripts/eval/compare_caries_gates.py`):
+
+  | | caries+ | rate | over-call vs annotated |
+  |---|---|---|---|
+  | OLD (`phase1_legacy`) | 254 | **84.9%** | **7.3×** |
+  | **NEW (v3)** | 57 | **19.1%** | **1.6×** |
+  | annotated (floor) | 35 | 11.7% | — |
+
+  The full pipeline with v3 as default reproduces this exactly: 57/299 = 19.1%.
+- **Held-out test split (863 teeth, untouched during training):** caries P **0.40** / R 0.74 /
+  F1 0.52; no_caries P 0.95 / R 0.81 / F1 0.87; accuracy 0.80, macro-F1 0.69.
+  **Do not compare to the legacy gate's 0.81 / 0.77** — that was a different task (caries vs
+  impacted/periapical, no healthy teeth in play), a different denominator.
+
+- **IMPROVED, NOT SOLVED — report all four with any result:**
+  1. **Precision is 0.40.** Six of ten positives are still wrong. Unusable → plausible, not
+     reliable.
+  2. **The annotated count is a FLOOR**, not a complete label. So 1.6× is an *upper bound* on
+     how good v3 looks, and the comparison cannot separate true false-positives from
+     unannotated real caries.
+  3. **Presumed-negative assumption.** A tooth with no annotation is treated as healthy —
+     absence of evidence. Any missed lesion is a false negative in training *and* in that 0.40.
+     Unmeasurable inside DENTEX.
+  4. **Tooth-type confound.** Caries concentrates in molars (44.3% at position 6 vs 1.5% at
+     position 1). Tested for a shortcut: **aspect ratio alone scores 84.1%, exactly the
+     majority baseline (−0.1% over it)** — not trivially exploitable, but per-position
+     evaluation is the honest way to report this model.
+- **Frozen** as `models/09_caries_gate_v3/`, tag `caries-gate-resnet18-v3.0`, sha256
+  `8f4a99ba…`, with dataset meta, both reports and the comparison JSON. It is now the pipeline
+  default; the legacy gate is retained (it is still the model behind the published
+  `phase1_legacy` numbers) and reachable via `--caries-gate`.
+- **Two incidental fixes:** `train_caries_cascade.py` selected **CUDA-or-CPU only** — the one
+  script in the repo that never checked MPS, so on Apple silicon it silently trained several
+  times slower than necessary. Fixed. It also hardcoded the Phase-2 tree relative to `--crops`;
+  added `--phase2-crops` / `--phase2-variant` / `--phase1-only`, defaults unchanged, legacy path
+  verified byte-for-byte identical.
+- **The `gate_out_of_distribution` flag is renamed `caries_uncalibrated`** — the v3 gate *has*
+  seen healthy teeth, so the old flag was no longer true. The new one states what is: precision
+  0.40 and a presumed-negative training class.
+- **Source:** `models/09_caries_gate_v3/run_summary.txt`,
+  `outputs/caries_v3/gate_comparison.json`, `outputs/r4_batch_v3/`,
+  `data/dentex/crops_v3_phase1/meta.json`. 60/60 tests pass.
+- **Follow-ups:** (a) per-position evaluation of the gate, to size the tooth-type confound;
+  (b) 260 images is one dataset and one scanner population — external validation is what
+  Ningxia is for; (c) the Phase-2 severity head still trains on `phase1_legacy`-era crops and
+  was not touched here.

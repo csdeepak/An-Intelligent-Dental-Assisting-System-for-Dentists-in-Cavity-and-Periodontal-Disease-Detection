@@ -1,0 +1,25 @@
+{
+  "built": "caries phase-1 v3 \u2014 real negative class",
+  "join": "MD5 of image bytes between quadrant_enumeration and quadrant-enumeration-disease; filenames are NOT comparable",
+  "join_verified_fdi_agreement": 0.9828,
+  "shared_images": 260,
+  "iou_match": 0.5,
+  "iou_ambiguous_floor": 0.1,
+  "crop": "1.0x tight, floor near / ceil far, 224x224 (the caries contract)",
+  "splits_inherited_from": "/Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/data/dentex/splits_v2.json",
+  "assumption": "a tooth with no disease annotation is PRESUMED not-diseased. DENTEX annotates only diseased teeth, so this is absence of evidence: any lesion the annotators missed enters the negative class as a false negative. Unmeasurable inside DENTEX; report it with any result.",
+  "counts": {
+    "test/no_caries": 736,
+    "subtype/healthy": 5366,
+    "test/caries": 127,
+    "subtype/caries": 870,
+    "excluded_ambiguous": 856,
+    "subtype/deep_caries": 179,
+    "train/no_caries": 4027,
+    "train/caries": 723,
+    "subtype/periapical": 22,
+    "subtype/impacted": 179,
+    "val/no_caries": 804,
+    "val/caries": 199
+  }
+}

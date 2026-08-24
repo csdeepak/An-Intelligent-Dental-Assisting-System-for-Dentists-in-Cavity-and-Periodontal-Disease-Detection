@@ -11,6 +11,7 @@ One numbered directory per trained stage, each with a `*summary*.txt` beside the
 |---|---|---|---|
 | `06_yolo_detection_a100_run/` | Stage 1 — tooth detection, YOLOv11l | `best.pt`, `last.pt` (49 MB each) | **No** — `.gitignore` `models/**/*.pt`. Location + SHA-256 in `run_summary.txt`. |
 | `07_caries_cascade/` | Stage 3 — caries cascade, ResNet18 ×2 | 5 `.pth` (43 MB each) | **Partly** — the two bundles are tracked; the three lineage checkpoints are not. See below. |
+| `09_caries_gate_v3/` | Stage 3 — **the gate the pipeline actually uses**, retrained with a real negative class (5,366 healthy teeth) | 1 `.pth` (43 MB) | Weights gitignored; summary + reports tracked |
 | `03_bone_loss_model_training_notebook_models/` | Stage 4a — bone-loss binary | `bone_loss_resnet18_{best,final}.pth` | **Yes** |
 | `04_bone_loss_severity_notebook_models/` | Stage 4b — bone-loss severity | `bone_loss_severity_resnet18_best.pth` | **Yes** |
 | `05_cej_estimation_v2_models/` | Exploratory CEJ (negative result, not in the pipeline) | summary only | n/a |
@@ -26,6 +27,7 @@ One numbered directory per trained stage, each with a `*summary*.txt` beside the
 |---|---|---|
 | `tooth-detector-a100-1024-v1.0` | Stage 1 detector | 20 Aug 2026 — `docs/research/T0.6_detector_reconciliation.md` §1 |
 | `caries-cascade-resnet18-v1.0` | Stage 3 cascade | 21 Aug 2026 — `07_caries_cascade/run_summary.txt` |
+| `caries-gate-resnet18-v3.0` | Stage 3 gate (**pipeline default**) | 25 Aug 2026 — `09_caries_gate_v3/run_summary.txt` |
 | `fdi-enumeration-head-resnet18-v1.0` | Stage 2 numbering | 22 Aug 2026 — `08_fdi_enumeration_head/run_summary.txt` |
 
 **One gap remains:** bone-loss weights (Stages 4a/4b) are still not version-tagged.
@@ -70,3 +72,20 @@ expansion**, the bone-loss track uses asymmetric expansion (`PAPER_MATERIAL.md` 
   `class_to_idx`, 512→2 head, lineage confirmed by tensor-payload digests) but not
   functionally. Reproduce cell 119's macro-F1 0.77 before trusting inference.
 - Current numbers for all stages: `docs/results/model_metrics.md`.
+
+
+## Which caries gate to use
+
+**`09_caries_gate_v3/caries_gate_v3.pth` — it is the pipeline default.**
+
+The Phase-1 gate in `07_caries_cascade/final_model.pth` has a negative class of Impacted +
+Periapical Lesion and **no healthy teeth**. Fed every tooth a detector finds, it calls **84.9%**
+of them carious. It is not broken *for the task it was trained on* — caries vs other-pathology —
+but that is not the task the pipeline asks of it.
+
+v3 rebuilds the negative class from 5,366 real healthy teeth (MD5 join of the enumeration and
+disease subsets, verified at 98.28% FDI agreement) and calls **19.1%** against an 11.7%
+annotated floor. Held-out precision is **0.40** — improved, not solved.
+
+`07_caries_cascade/` is retained: it is still the model behind the published `phase1_legacy`
+numbers, and its Phase-2 severity head is unchanged and still in use. RESULTS_LOG 2026-08-25a.

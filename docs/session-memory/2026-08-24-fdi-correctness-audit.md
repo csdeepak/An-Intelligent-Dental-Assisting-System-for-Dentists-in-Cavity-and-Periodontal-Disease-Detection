@@ -352,3 +352,67 @@ because the perturbation is not drawn from the error distribution the pipeline p
 are different questions needing different experiments. Picking the easy perturbation and reading
 it as a robustness result is the error — and I made it about my own ablation, in the same
 session where I was correcting the same class of over-claim elsewhere.
+
+---
+
+# Addendum 6 — the caries gate's negative class, fixed (25 Aug)
+
+## What was done
+
+R4 exposed the gate calling 84.9% of detected teeth carious. Root cause: its `no_caries` class
+was Impacted + Periapical Lesion — **no healthy teeth at all**. Rebuilt it and retrained.
+RESULTS_LOG 2026-08-25a.
+
+**The key finding: 2026-08-21m's conclusion was half right.** It correctly showed the
+enumeration↔disease **filename** join is invalid (different patients), then concluded healthy
+teeth are "NOT derivable from DENTEX". But the subsets share **260 byte-identical images under
+different filenames** (`train_437.png` ≡ `train_1.png`). An **MD5** join recovers them exactly.
+
+I did not take that on trust. The falsifiable test: for a shared image, a disease annotation and
+an enumeration annotation covering the same tooth must carry the same FDI. **1,255 agree, 22
+disagree = 98.28%**; different patients would sit near 3%. The builder re-runs this every build
+and aborts below 90%.
+
+Result: **5,366 real healthy teeth**. In-pipeline caries **84.9% → 19.1%** against an 11.7%
+annotated floor; over-call 7.3× → 1.6×.
+
+## Decisions made
+
+- **Excluded the ambiguous IoU band (0.10–0.50, 856 teeth) rather than resolving it.** A
+  partially-overlapped tooth is exactly where "healthy" would be a guess, and a diseased tooth
+  mislabelled healthy is the error the whole exercise exists to remove. Cost 11.5% of the data;
+  worth it.
+- **Inherited splits from `splits_v2`** rather than making a fresh split, so the v3 test set is a
+  subset of `phase1_legacy`'s and the two stay comparable.
+- **Made v3 the pipeline default but kept the legacy gate.** The legacy model is not broken for
+  the task it was trained on; it is wrong for the task the pipeline asks. It is still the model
+  behind the published `phase1_legacy` numbers, so it stays, reachable via `--caries-gate`.
+- **Renamed the flag `gate_out_of_distribution` → `caries_uncalibrated`.** The old name became
+  false the moment the gate saw healthy teeth. The new one states what is still true: precision
+  0.40 and a presumed-negative training class.
+- **Reported four limitations rather than one headline.** Precision 0.40; the annotated count is
+  a floor so 1.6× is an upper bound on how good this looks; presumed-negative assumption;
+  tooth-type confound.
+
+## What the visual check caught that the numbers did not
+
+The healthy crops looked blank in a contact sheet. Cause: healthy is dominated by narrow
+anterior teeth, stretched by the non-aspect-preserving resize, while caries concentrates in wide
+molars. I then tested whether that is an exploitable shortcut — **aspect ratio alone scores
+84.1%, exactly the majority baseline (−0.1% over it)**. Not exploitable, but real enough that
+per-position evaluation is the honest way to report this model. I would have missed the question
+entirely without looking at the images.
+
+## Open questions
+
+- **Per-position evaluation of the gate** has not been run; that is how to size the confound.
+- **Precision 0.40 is the live problem now.** Whether that is genuine false positives or
+  unannotated real caries cannot be separated inside DENTEX.
+- **260 images, one dataset, one scanner population.** External validation is what Ningxia is for.
+- **Phase-2 severity still trains on `phase1_legacy`-era crops** and was not touched.
+
+## Next steps
+
+1. **Bone loss is now the open OOD failure** — near-inert (0.7%) off-Tufts.
+2. Per-position gate evaluation.
+3. R1 seg retrain — still the only job needing a rented GPU.

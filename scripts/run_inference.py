@@ -32,10 +32,12 @@ written into every report rather than left to a footnote:
     (RESULTS_LOG 2026-08-22j). A tooth that is missed is absent from the report entirely, and
     a tooth numbered wrongly attaches correct findings to the wrong tooth. Roughly half the
     FDI codes in any report are expected to be wrong. `stage2_fdi_exact_end_to_end` says so.
-  * THE CARIES GATE IS OUT OF DISTRIBUTION HERE. Its `no_caries` class contains no healthy
-    teeth (it is Impacted + Periapical Lesion), while this pipeline feeds it every tooth the
-    detector finds. It will over-call. Every caries prediction carries
-    `gate_out_of_distribution`.
+  * THE CARIES GATE IS IMPROVED BUT NOT RELIABLE. The legacy gate's `no_caries` class held
+    no healthy teeth at all and called 84.9% of detected teeth carious. The default is now
+    caries-gate-resnet18-v3.0, trained on a rebuilt negative class of 5,366 real healthy
+    teeth, which calls 19.1% against an 11.7% annotated floor. But its held-out precision is
+    0.40 -- most positives are still wrong -- and its healthy class rests on treating
+    unannotated teeth as healthy. Every caries prediction still carries a flag.
 
 Neither is fixable at this layer. They are surfaced so the report cannot be quoted as more
 than it is.
@@ -66,7 +68,11 @@ STAGE2_FDI_EXACT_END_TO_END = 0.465   # = 0.4647, same run
 
 DEF_DETECTOR = REPO_ROOT / "models/06_yolo_detection_a100_run/best.pt"
 DEF_FDI_HEAD = REPO_ROOT / "models/08_fdi_enumeration_head/enumeration_head_best.pth"
-DEF_CARIES_GATE = REPO_ROOT / "models/07_caries_cascade/final_model.pth"
+# The v3 gate, whose negative class contains 5,366 real healthy teeth. The legacy gate
+# (models/07_caries_cascade/final_model.pth) had NO healthy teeth in its negative class and
+# called 84.9% of detected teeth carious in this pipeline; v3 calls 19.1% against an 11.7%
+# annotated floor. Pass --caries-gate to use the legacy one. RESULTS_LOG 2026-08-25a.
+DEF_CARIES_GATE = REPO_ROOT / "models/09_caries_gate_v3/caries_gate_v3.pth"
 DEF_CARIES_SEVERITY = REPO_ROOT / "models/07_caries_cascade/phase2_final_bundle.pth"
 DEF_BONE_LOSS = REPO_ROOT / "models/03_bone_loss_model_training_notebook_models/bone_loss_resnet18_best.pth"
 DEF_BONE_SEVERITY = REPO_ROOT / "models/04_bone_loss_severity_notebook_models/bone_loss_severity_resnet18_best.pth"
@@ -143,13 +149,18 @@ def build_report(image_path, img_bgr, boxes, confs, fdi_assign, caries, bone, me
                 "(164 leak-free images, RESULTS_LOG 2026-08-22j). A missed tooth is absent "
                 "from this report; a misnumbered tooth carries correct findings under the "
                 "wrong FDI code. Expect roughly half the codes in this report to be wrong."),
-            "caries_gate_out_of_distribution": (
-                "The caries gate's negative class is Impacted + Periapical Lesion and contains "
-                "no healthy teeth, while this pipeline feeds it every detected tooth. MEASURED "
-                "over 12 leak-free DENTEX images (299 detected teeth, RESULTS_LOG 2026-08-24f): "
-                "it calls 84.9% of teeth carious against 35 annotated carious teeth -- roughly a "
-                "7x over-call. An 85% caries rate is not clinically plausible. Treat every "
-                "caries field in this report as uncalibrated."),
+            "caries_gate_precision": (
+                "The gate is caries-gate-resnet18-v3.0, retrained with a real negative class "
+                "(5,366 healthy teeth). In-pipeline it calls 19.1% of detected teeth carious "
+                "against an 11.7% annotated floor -- 1.6x, down from 7.3x for the legacy gate "
+                "(RESULTS_LOG 2026-08-25a). It is IMPROVED, NOT SOLVED: precision on the "
+                "held-out test split is 0.40, so roughly six of every ten positives are wrong. "
+                "Do not read a caries field here as a diagnosis."),
+            "caries_presumed_negative_assumption": (
+                "The gate's healthy class comes from teeth carrying no disease annotation in "
+                "DENTEX, which annotates only diseased teeth. That is absence of evidence: any "
+                "lesion the annotators missed is a false negative in training and in the "
+                "reported precision. Unmeasurable inside DENTEX."),
             "bone_loss_domain_shift": (
                 "The bone-loss models were trained on TUFTS radiographs and are applied here to "
                 "whatever image is supplied; on DENTEX they fire on 0.7% of teeth (2/299) with "

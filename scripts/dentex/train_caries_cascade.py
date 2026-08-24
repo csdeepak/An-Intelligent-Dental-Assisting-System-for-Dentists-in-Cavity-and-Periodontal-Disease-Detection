@@ -224,7 +224,18 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--crops", type=Path, default=DEF_CROPS)
     ap.add_argument("--variant", default="phase1_legacy",
-                    help="Phase-1 crop tree. Only phase1_legacy exists and is valid today.")
+                    help="Phase-1 crop tree. phase1_legacy = the historical rule, whose "
+                         "no_caries class is Impacted+Periapical and contains NO healthy "
+                         "teeth. crops_v3_phase1 = the repaired gate set with 5,366 real "
+                         "healthy teeth (RESULTS_LOG 2026-08-25a).")
+    # Phase 1 and Phase 2 no longer necessarily live under the same root: the repaired Phase-1
+    # tree is built from the enumeration<->disease MD5 join, while Phase 2 still comes from the
+    # disease subset alone. Defaults preserve the original single-root behaviour exactly.
+    ap.add_argument("--phase2-crops", type=Path, default=None,
+                    help="root for the Phase-2 tree (default: --crops)")
+    ap.add_argument("--phase2-variant", default="phase2")
+    ap.add_argument("--phase1-only", action="store_true",
+                    help="train and evaluate the gate alone; skip the severity head")
     ap.add_argument("--arm", choices=["a", "b"], required=True,
                     help="a = no augmentation (historical recipe); b = augmented (T0.1)")
     ap.add_argument("--out", type=Path, default=DEF_OUT)
@@ -246,7 +257,11 @@ def main():
         args.p1_epochs = args.p2_head_epochs = args.p2_full_epochs = 1
 
     set_seed(args.seed)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # MPS included, matching train_enumeration_head.py / run_inference.py /
+    # validate_fdi_assignment.py. This script was the only one that fell straight to CPU,
+    # so on Apple silicon it silently trained several times slower than necessary.
+    device = torch.device("cuda" if torch.cuda.is_available()
+                          else "mps" if torch.backends.mps.is_available() else "cpu")
     run = f"arm_{args.arm}" + ("_smoke" if args.smoke else "")
     outdir = args.out / run
     outdir.mkdir(parents=True, exist_ok=True)
@@ -293,8 +308,13 @@ def main():
                   for k in ("test", "extern50") if k in results["phase1"]))
 
     # ---------------- Phase 2 ----------------
+    if args.phase1_only:
+        (outdir / "results.json").write_text(json.dumps(results, indent=2) + "\n")
+        print(f"\n--phase1-only: wrote {outdir}/results.json and phase1_gate_report.txt")
+        return
     print("\n=== PHASE 2: caries vs deep_caries (severity) ===")
-    l2, c2i2 = load_splits(args.crops, "phase2", train_tf, eval_tf, args.batch_size, args.smoke)
+    l2, c2i2 = load_splits(args.phase2_crops or args.crops, args.phase2_variant,
+                           train_tf, eval_tf, args.batch_size, args.smoke)
     names2 = [k for k, _ in sorted(c2i2.items(), key=lambda kv: kv[1])]
     w2, counts2 = class_weights_from_loader(l2["train"], len(names2))
     print(f"  classes {c2i2}  train counts {counts2}  weights {[round(x,4) for x in w2.tolist()]}")
