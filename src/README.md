@@ -12,6 +12,7 @@ covered by `tests/` (46 tests, all passing).
 | `utils/fdi_converter.py` | 2 | Universal ↔ FDI lookup *table* (32 permanent teeth). Not positional logic. | ✅ tested, bug fixed `f8b31f8` |
 | `fdi_assignment.py` | 2 | Positional (rank-order) FDI assignment | ⚠️ **SUPERSEDED** — kept as the measured baseline, not the pipeline default |
 | `fdi_head_inference.py` | 2 | **The current method** — runs the learned enumeration head over detector boxes, with Hungarian one-to-one assignment | ✅ **use this** |
+| `classifiers.py` | 3/4 | **Caries + bone-loss cascades.** Owns the per-branch crop contract — caries **1.0× tight**, bone loss **1.5×W/2.0×H** — and the class orders. | ✅ tested (14) |
 | `crop_generator.py` | 3/4 | Expanded-bbox geometry, ±15% jitter, mask-aware cropping (R2). | ✅ tested; mask-aware path **unwired** (needs R1 masks) |
 | `label_assigner.py` | 4 (training) | Pixel-overlap-ratio labelling for bone-loss crops. **Not** inference numbering. | ✅ tested |
 | `data_loader.py` | — | Tufts expert/bbox/mask JSON parsing and joining. | ✅ tested |
@@ -98,3 +99,21 @@ Full record: `docs/results/RESULTS_LOG.md` 2026-08-22i, 22j (leakage) and 22k (p
   so quadrants 1 and 4 appear on the **image left**.
 - Crop geometry differs by branch on purpose: caries uses the raw bbox with **no expansion**,
   bone loss uses 1.5×W / 2.0×H (`PAPER_MATERIAL.md` §6.1).
+
+
+## The three crop conventions — the pipeline's sharpest edge
+
+Three stages, three different expansions, all trained by different people in different
+notebooks. Feeding a model the wrong one gives the same tensor shape, plausible values, and
+confident wrong output, with **nothing raised anywhere**:
+
+| Stage | Module | Expansion |
+|---|---|---|
+| 2 — FDI enumeration | `fdi_head_inference.py` | 1.5×W, **1.5×H** |
+| 3 — caries | `classifiers.py` | **1.0× tight** (crown-surface finding; bone is distractor) |
+| 4 — bone loss | `classifiers.py` | 1.5×W, **2.0×H** (read at the alveolar crest; teeth are ~3× taller than wide) |
+
+`tests/test_classifiers.py` asserts the tight crop reproduces the raw detector box, that the
+bone-loss crop is exactly 1.5×/2.0×, and that **the two branches never produce the same crop**.
+Sources: `scripts/dentex/build_dentex_crops.py`, `PAPER_MATERIAL.md` §6.1,
+`configs/dataset_config.yaml`. RESULTS_LOG 2026-08-24f.

@@ -2132,3 +2132,73 @@ Copy this block verbatim to the bottom of the file and fill it in.
   `models/08_fdi_enumeration_head/enumeration_head_best.pth`.
 - **Follow-ups:** none. **R4 is unblocked and is next.** All five trained checkpoints load
   cleanly and R4 is inference-only — no GPU rental required.
+
+## 2026-08-24f — R4 built: the pipeline composes end to end, and immediately exposes two OOD failures
+
+- **What was done:** Built the integration layer the project has never had — `src/classifiers.py`
+  (Stages 3–4) and a rewritten `scripts/run_inference.py` (Stages 1–6), replacing a 38-line
+  placeholder. **One OPG in, one per-tooth JSON report out.** This is paper claim **C3**, and
+  composing the four stages produced a result on the first run that isolated testing never could.
+
+- **The crop contract was the main correctness risk, and it is now explicit.** The four
+  classifiers were trained in three different notebooks and **do not share a crop convention**.
+  Crossing them yields the same tensor shape, plausible values, confident wrong output, and no
+  error anywhere. Each was read out of the artefact that defines it, never inferred:
+  | Branch | Expansion | Why |
+  |---|---|---|
+  | caries gate + severity | **1.0× tight** | caries is a crown-surface finding; bone is distractor |
+  | bone-loss binary + severity | **1.5×W, 2.0×H** | read at the alveolar crest; teeth are ~3× taller than wide |
+  | enumeration head (Stage 2) | 1.5×W, 1.5×H | a *third* convention, untouched here |
+  Verified numerically: the tight crop reproduces the detector box exactly (100×300), the
+  bone-loss crop is exactly 150×600, and **the two branches provably do not produce the same
+  crop** — a regression test now asserts that.
+- **Class order likewise read, not assumed.** The two caries checkpoints carry their own
+  `class_to_idx` and the pipeline **asserts** it at load; a swapped checkpoint aborts rather than
+  inverting every prediction. `{caries:0, no_caries:1}` and `{caries:0, deep_caries:1}`.
+  Bone-loss severity is `['Mild','Moderate','Severe']` from the label-*generating* code in
+  `notebooks/bone_loss/04_*.ipynb` cell 6. The bone-loss binary checkpoint has no `class_to_idx`;
+  its order is **recovered arithmetically** from the recorded FocalLoss α=[0.642, 2.258] against
+  counts 2500/711 — N/(K·nᵢ) gives 0.642 and 2.258 to three decimals, so 0=normal, 1=diseased.
+  That is an inference, and the report metadata says so.
+
+- **FIRST END-TO-END RESULT — 12 leak-free DENTEX images, 299 detected teeth:**
+
+  | | Pipeline | Reference |
+  |---|---|---|
+  | caries-positive | **254 (84.9%)** | 35 annotated carious teeth |
+  | bone-loss-positive | **2 (0.7%)** | — |
+  | duplicate FDI codes | **0** | across all 299 |
+
+- **The two disease branches fail in OPPOSITE directions, and both are out-of-distribution.**
+  This is the substantive finding:
+  1. **The caries gate over-calls ~7×.** Its negative class is Impacted + Periapical Lesion and
+     contains **no healthy teeth**, while the pipeline feeds it every tooth the detector finds.
+     An **84.9% caries rate is not clinically plausible**, which is the point: the defect was
+     known in principle (2026-08-21j) and is now *measured in situ*.
+  2. **The bone-loss branch is close to inert**, firing on 0.7% of teeth with 0.93–0.999
+     confidence in `normal`. It was trained on **Tufts** and is applied here to **DENTEX** —
+     cross-dataset domain shift. A `normal` bone-loss field in a report on non-Tufts data is
+     therefore weak evidence, **not a negative finding**.
+  **Neither is visible when a stage is evaluated on its own curated crops.** That is the argument
+  for C3: composition is where these appear.
+- **What worked:** Stage 1→2 behaved exactly as measured in isolation. **0 duplicate FDI codes
+  across 299 teeth** — the Hungarian constraint holds at scale. On `test_0`, 3 of 5 annotated
+  teeth were matched at mean IoU 0.540 and **2 of 3 FDI codes were correct** (36 ✓, 48 ✓, 45→44 ✗),
+  consistent with the 67.0% recall / 69.4% of-detected figures from 2026-08-22j.
+- **Both limitations are written into every report**, quantified, under `report["limitations"]`,
+  alongside `stage1_detector_recall` and `stage2_fdi_exact_end_to_end`. Every caries prediction —
+  positive *and* negative — carries `gate_out_of_distribution`. A report cannot be quoted as more
+  than it is.
+- **Assessability gating:** a tooth is reported assessable only if Stage 2 is confident *which*
+  tooth it is, reusing `LOW_CONFIDENCE = 0.30` rather than introducing a second threshold —
+  findings attached to a misnumbered tooth are worse than no findings.
+- **Guards:** stage outputs are fused positionally, so the report builder **asserts** all four
+  per-stage lists match the box count (a filtered list would otherwise attach one tooth's
+  findings to another). Zero detections produce a valid empty report. 14 new tests, **60/60 pass**.
+- **Source:** `scripts/run_inference.py`, `src/classifiers.py`, `tests/test_classifiers.py`,
+  `outputs/r4_demo/` (report + overlay), `outputs/r4_batch/` (12-image run).
+- **Follow-ups:** (a) the caries gate needs a real negative class before any pipeline caries
+  number is meaningful — the detector-derived healthy-tooth idea in `transfer.md` §4 is now the
+  blocking decision, not an optional one; (b) bone loss needs external validation before it can
+  be claimed to work off-Tufts — this is what Ningxia is for; (c) Grad-CAM overlays for Stage 6
+  are not built. **None of these block R5.**

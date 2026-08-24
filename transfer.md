@@ -18,6 +18,10 @@ unlike `docs/results/RESULTS_LOG.md` (append-only history) and `docs/session-mem
 
 ## 1. Where we are, in five lines
 
+**Stage 6 now exists — the pipeline runs end to end** (`scripts/run_inference.py`, 24 Aug):
+image → per-tooth JSON. It exposed two OOD failures in opposite directions — caries over-calls
+~7×, bone loss is near-inert off-Tufts — both quantified in `RESULTS_LOG` 2026-08-24f.
+
 **Stage 2 is fixed.** The learned enumeration head lifts FDI accuracy from 22.9% to
 **46.5% end-to-end** (69.4% of detected teeth), a 2.0x improvement, measured on **164 leak-free
 images** after 86 were found to be training duplicates. On complete quadrants it clears the
@@ -48,6 +52,7 @@ long pole."
 | **R1 seg dataset** built on the frozen split | `data/tufts/dataset_seg/` — 26,005 instances, 700/150/150 |
 | **R2 mask-aware cropping** implemented + unit-tested (**unwired** — needs R1's masks) | `src/crop_generator.py`, `tests/test_crop_generator.py` |
 | **Caries re-run script** written, smoke-verified on CPU | `scripts/dentex/train_caries_cascade.py` |
+| **R4 Stages 1–6 integrated** — image → per-tooth JSON + overlay | `scripts/run_inference.py`, `src/classifiers.py`, `outputs/r4_demo/`; 60/60 tests |
 | **Stage 2 FDI assignment** built + tested (R4, part 1) | `src/fdi_assignment.py` |
 | **Orientation contract** — rotate for detector, un-rotate immediately | `src/orientation.py` |
 | **Stage 2 validated** (22.9%) then **FIXED** (46.5%), **reproduces byte-for-byte** | `scripts/eval/validate_fdi_assignment.py --method head`; re-run 24 Aug produced artefacts `diff`-identical to `outputs/stage2_clean/`. *(Previously listed here as 28.0%→52.2% — both leaked-set figures. RESULTS_LOG 22j.)* |
@@ -65,24 +70,34 @@ long pole."
 
 ## 3. What is NEXT — ordered, with the real blocker named
 
-1. **R4 — Stages 5&ndash;6 integration.** *No blocker, and now worth doing.* Stage 2 is fixed
-   and frozen, so a per-tooth report is finally meaningful. `scripts/run_inference.py` is a
-   38-line placeholder; all five models are on local disk. Use
-   `src.fdi_head_inference.assign_fdi_head`, **not** the superseded positional module.
-   This is C3 and the plan's long pole.
-2. **Detector recall is now the binding constraint (67.0%).** At that recall 67.0% is the
+1. ~~**R4 — Stages 5–6 integration.**~~ **DONE 24 Aug** (RESULTS_LOG 2026-08-24f).
+   `scripts/run_inference.py` now runs image → per-tooth JSON + overlay through all six stages;
+   Stages 3–4 live in `src/classifiers.py`; 14 new tests, 60/60 pass.
+   **It immediately exposed two out-of-distribution failures that isolated evaluation could
+   not** — which is the C3 argument:
+   - **caries over-calls ~7×** (84.9% of 299 teeth vs 35 annotated) because the gate's negative
+     class holds no healthy teeth;
+   - **bone loss is near-inert** (0.7%), trained on Tufts and run on DENTEX.
+   Both are quantified inside every report under `["limitations"]`. **0 duplicate FDI codes
+   across 299 teeth.**
+
+2. **The caries gate's negative class is now the blocking decision, not an optional one.**
+   No pipeline caries number means anything until it has real healthy teeth to learn from.
+   See §4 — the detector-derived healthy-tooth option.
+
+3. **Detector recall is now the binding constraint (67.0%).** At that recall 67.0% is the
    end-to-end maximum and the head already captures 69.4% of it. **R1's seg retrain is the
    lever**, and DentFound's ablation now justifies it with numbers (+20.35% precision,
    +23.01% recall, +23.11% F1 from tooth instance masks) rather than assertion.
-3. **Caries arms A and B** — `train_caries_cascade.py --arm a` / `--arm b`. ~10 min locally on
+4. **Caries arms A and B** — `train_caries_cascade.py --arm a` / `--arm b`. ~10 min locally on
    MPS, or bundle into the GPU session. Closes T0.1&ndash;T0.4.
-4. **T0.5 — the Mild n=6 decision.** No blocker, no compute. Still untouched.
-5. **Version-tag the bone-loss weights** — Stages 4a/4b are now the only untagged models.
-6. **Reconnect the Ningxia drive** for W4's external run. It is external test data: never
+5. **T0.5 — the Mild n=6 decision.** No blocker, no compute. Still untouched.
+6. **Version-tag the bone-loss weights** — Stages 4a/4b are now the only untagged models.
+7. **Reconnect the Ningxia drive** for W4's external run. It is external test data: never
    train or tune on it. **Check its overlap against Tufts, DENTEX *and* the enumeration
    corpus separately** — inferring disjointness from a neighbouring pair is exactly the
    mistake that cost 5.7 points on Stage 2.
-7. **Start IRB paperwork.** Zero-cost, longest lead, flagged since 15 Aug, still not begun.
+8. **Start IRB paperwork.** Zero-cost, longest lead, flagged since 15 Aug, still not begun.
 
 ## 4. Decisions PENDING — do not default into these silently
 

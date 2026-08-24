@@ -244,3 +244,69 @@ confident prose about code that nobody re-derived.
 ## Next steps
 
 **R4.** Four passes is enough.
+
+---
+
+# Addendum 4 — R4 built: the pipeline composes end to end
+
+## What was done
+
+Replaced the 38-line `run_inference.py` placeholder with a real six-stage pipeline, and added
+`src/classifiers.py` for Stages 3–4. Image in → per-tooth JSON + optional overlay out. 14 new
+tests, 60/60 pass. RESULTS_LOG 2026-08-24f.
+
+## The thing that could have gone silently wrong
+
+**Three stages use three different crop conventions** — 1.5×/1.5× (FDI head), 1.0× tight
+(caries), 1.5×/2.0× (bone loss) — because they were trained by different people in different
+notebooks. Cross them and you get the same tensor shape, plausible values, confident wrong
+output, and **no error anywhere**. Same for class order: an inverted index reports every healthy
+tooth as diseased and still looks like a working pipeline.
+
+So I read every convention out of the artefact that defines it rather than inferring any of it,
+and the bone-loss binary order — whose checkpoint has no `class_to_idx` — I recovered
+arithmetically from the recorded FocalLoss α against the recorded class counts. The pipeline now
+*asserts* the caries `class_to_idx` at load and aborts on a mismatch.
+
+## What composing the stages revealed
+
+Running 12 leak-free images, 299 detected teeth:
+
+- **caries-positive 84.9%** (254) against 35 annotated carious teeth — a ~7× over-call
+- **bone-loss-positive 0.7%** (2) at 0.93–0.999 confidence in `normal`
+- **duplicate FDI codes: 0**
+
+Two out-of-distribution failures **in opposite directions**. The caries gate over-calls because
+its negative class holds no healthy teeth; the bone-loss branch is near-inert because it was
+trained on Tufts and is being run on DENTEX. Neither is visible when a stage is evaluated on its
+own curated crops — which is precisely the C3 argument, now demonstrated rather than asserted.
+
+## Decisions made
+
+- **Report the broken branches rather than disable them.** Both limitations are quantified
+  inside every report under `["limitations"]`, and every caries prediction — positive *and*
+  negative — carries `gate_out_of_distribution`. Suppressing the output would hide the finding;
+  emitting it unlabelled would invite it being quoted as a caries rate.
+- **Reused `LOW_CONFIDENCE = 0.30` for assessability** instead of adding a second threshold. A
+  tooth the numbering head calls low-confidence is exactly a tooth whose findings cannot be
+  attributed. One number to justify, not two.
+- **Asserted positional alignment in the fusion step.** Four per-stage lists are zipped by
+  index; if any stage ever returns a filtered list, findings would attach to the wrong tooth
+  silently. Cheap to check, invisible if wrong.
+- **Did not add Grad-CAM.** Stage 6 in the plan mentions it; it is not needed for the JSON
+  report and would have expanded scope past what was asked.
+
+## Open questions
+
+- **The caries gate now blocks any meaningful caries number.** The detector-derived
+  healthy-tooth idea in `transfer.md` §4 has moved from optional to blocking. Not yet decided.
+- **Is bone loss inert only on DENTEX, or generally off-Tufts?** One dataset is not enough to
+  say. This is what Ningxia is for.
+- I checked alignment on `test_0` only (3/5 GT matched, 2/3 FDI correct). A systematic
+  pipeline-vs-GT evaluation across the clean set has not been run.
+
+## Next steps
+
+1. Decide the caries negative class — now blocking, not optional.
+2. R5 (severity reporting) is unblocked.
+3. R1 seg retrain still the lever on detector recall; still the only job needing a rented GPU.
