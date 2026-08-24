@@ -5,7 +5,7 @@ what is next" for a session that is starting cold. It is **rewritten, not append
 unlike `docs/results/RESULTS_LOG.md` (append-only history) and `docs/session-memory/`
 (one file per session, never edited). Those two are the record; this is the snapshot.
 
-**Last updated: 22 August 2026 (sixth update — enumeration head built, GPU session scoped).** Rewritten from a one-off machine-handoff document — the
+**Last updated: 22 August 2026 (seventh update — enumeration head TRAINED, Stage 2 fixed).** Rewritten from a one-off machine-handoff document — the
 20–21 Aug handoff it described is complete, and its content is preserved in git history
 (`git show ad71ee4:transfer.md`) and in §6 below.
 
@@ -18,7 +18,9 @@ unlike `docs/results/RESULTS_LOG.md` (append-only history) and `docs/session-mem
 
 ## 1. Where we are, in five lines
 
-We are on **W2 of the 8-week plan** (`docs/research/MASTER_PLAN_2026H2.md` §5; W2 = Aug 22–28,
+**Stage 2 is fixed.** The learned enumeration head lifts FDI accuracy from 28.0% to
+**52.2% end-to-end** (72.7% of detected teeth, above the 68.7% ceiling positional assignment
+could never cross). The bottleneck has moved to detector recall. We are on **W2 of the 8-week plan** (`docs/research/MASTER_PLAN_2026H2.md` §5; W2 = Aug 22–28,
 implementation freeze **14 Oct**, ISBI submission **26 Oct**). Four of six pipeline stages are
 trained; **Stages 5–6 do not exist** and are the largest single gap. The Tier-0 credibility
 repairs are *prepared but unrun* — every one of them needs a GPU, and **no GPU instance is
@@ -46,7 +48,8 @@ long pole."
 | **Caries re-run script** written, smoke-verified on CPU | `scripts/dentex/train_caries_cascade.py` |
 | **Stage 2 FDI assignment** built + tested (R4, part 1) | `src/fdi_assignment.py` |
 | **Orientation contract** — rotate for detector, un-rotate immediately | `src/orientation.py` |
-| **Stage 2 validated** — first ever, and it fails (28.0%) | `scripts/eval/validate_fdi_assignment.py` |
+| **Stage 2 validated** (28.0%) then **FIXED** (52.2%) | `scripts/eval/validate_fdi_assignment.py --method head` |
+| **Enumeration head trained** — ResNet18 + positional features | `scripts/dentex/train_enumeration_head.py` |
 | Test suite | **45/45 pass** |
 
 **Findings that changed the science** (all in `RESULTS_LOG.md`):
@@ -68,9 +71,12 @@ long pole."
      (93.0%); the position digit fails because detector recall decays from 98.3% at position 1
      to 61.0% at position 8, and each missed tooth shifts everything distal to it inward.
      `RESULTS_LOG.md` 2026-08-22c, `model_metrics.md` Stage 2, `PAPER_MATERIAL.md` §8.10.
-   - ✅ **Enumeration head built and smoke-verified** — `build_enumeration_crops.py` (33,461
-     crops generated) + `train_enumeration_head.py`. ResNet18 + 4 positional features, two
-     heads. Needs GPU only. Baseline to beat: 28.0%, positional ceiling 68.7%.
+   - ✅ **Enumeration head TRAINED and validated** — **28.0% → 52.2% end-to-end**, 72.7% of
+     detected teeth (above the 68.7% ceiling). Trained locally in 48 min on MPS. One-to-one
+     Hungarian assignment emits 0 duplicate codes vs 1,013 for plain argmax. Figures in
+     `docs/results/figures/enumeration_head/`. `RESULTS_LOG.md` 2026-08-22i.
+   - ⬜ **Stage 1 is now the bottleneck** — at 71.8% recall, 71.8% is the end-to-end maximum.
+     R1's seg retrain is the prepared lever.
    - ⬜ `scripts/run_inference.py` — still a 38-line placeholder. Stages 5–6 proper.
 
 > ### ⚠️ ORIENTATION — read before running the pipeline on ANY non-Tufts image
@@ -101,7 +107,7 @@ long pole."
 
 | Decision | Why it needs a human |
 |---|---|
-| **How to fix FDI numbering — Route A is ruled out, so this is really "go or no-go on Route B".** At 28.0% exact a per-tooth report mislabels ~7 of 10 teeth. ~~Route A: raise posterior detector recall~~ — **measured ceiling 68.7%** even with a complete 8-tooth quadrant, because eight detected teeth are not positions 1–8, they are eight teeth that survived extraction; no detector work breaches that. **Route B: train a per-tooth enumeration head** — DENTEX `quadrant_enumeration` labels 18,095 teeth with quadrant+position across 634 images, on patients disjoint from the `disease/` eval set, so it trains without leaking. ResNet18-scale, minutes of GPU. `RESULTS_LOG.md` 2026-08-22f. | Changes the architecture |
+| ~~**How to fix FDI numbering.**~~ **RESOLVED 22 Aug — Route B built, trained and validated: 52.2% end-to-end.** Original framing kept for the record: | At 28.0% exact a per-tooth report mislabels ~7 of 10 teeth. ~~Route A: raise posterior detector recall~~ — **measured ceiling 68.7%** even with a complete 8-tooth quadrant, because eight detected teeth are not positions 1–8, they are eight teeth that survived extraction; no detector work breaches that. **Route B: train a per-tooth enumeration head** — DENTEX `quadrant_enumeration` labels 18,095 teeth with quadrant+position across 634 images, on patients disjoint from the `disease/` eval set, so it trains without leaking. ResNet18-scale, minutes of GPU. `RESULTS_LOG.md` 2026-08-22f. | Changes the architecture |
 | **Detector-derived not-diseased class?** Running the frozen detector over the 705 disease images and treating unmatched detections as not-diseased is the one sound fix for the gate's negative-class defect — but it puts detector error into training labels. | Trade-off, not a fact |
 | **What to use `DENTEX/disease/` (250 imgs, FDI-keyed) for** — honest per-tooth test set / small healthy class / C3 error-propagation substrate. Needs a LabelMe→FDI parser that does not exist. Exclude `test_181.png`. | Scoping call |
 | **Clinic data governance.** `index.csv` sits beside `images/` on a shared Drive, which voids the de-identification. Five actions in `clinical_dataset_provenance.md` §4a, all needing the Drive owner. | Not this repo's account |
@@ -117,11 +123,11 @@ the rented time is spent training, not debugging.
 
 | # | Job | Command | Est. |
 |---|---|---|---|
-| 1 | **Enumeration head** — the Stage-2 fix | `python scripts/dentex/train_enumeration_head.py` | ~15 min |
-| 2 | **Re-validate Stage 2** — the number that matters | `python scripts/eval/validate_fdi_assignment.py` | ~10 min |
+| ~~1~~ | ~~Enumeration head~~ | **DONE locally, 48 min** — 52.2% end-to-end | ✅ |
+| ~~2~~ | ~~Re-validate Stage 2~~ | **DONE** — `--method head` | ✅ |
 | 3 | Caries Arm A | `python scripts/dentex/train_caries_cascade.py --arm a` | ~5 min |
 | 4 | Caries Arm B | `python scripts/dentex/train_caries_cascade.py --arm b` | ~5 min |
-| 5 | **R1 seg retrain** — the only long job | `python scripts/yolo/train_yolo_seg.py` | ~40 min on A100 |
+| 5 | **R1 seg retrain** — now the only job that needs renting | `python scripts/yolo/train_yolo_seg.py` | ~40 min on A100 |
 
 **What to upload** (none of it is in git): `data/dentex/enumeration_v1/` 1.7 GB ·
 `data/dentex/crops_v2/` 1.2 GB · `data/tufts/dataset_seg/` 474 MB · `models/06_yolo_detection_a100_run/best.pt` ·
