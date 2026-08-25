@@ -1,0 +1,149 @@
+"""
+Deployment demo: upload an OPG, see the per-tooth report and overlay in a browser.
+
+WHAT THIS IS AND IS NOT
+------------------------
+This is a THIN WRAPPER around `scripts/run_inference.py` -- it calls `load_models` and
+`run_pipeline` directly, the exact functions the CLI uses (verified byte-identical output
+after the refactor that created them, RESULTS_LOG). There is no second implementation of the
+pipeline here, so a fix or a limitation update in `run_inference.py` reaches this app for
+free, and the app cannot silently drift from what the CLI proves out.
+
+It is a single-user, unauthenticated, local demo for showing the pipeline working end to end
+-- not a clinical tool, not multi-tenant, not hosted. It exists to satisfy the Phase III
+"deployment" checklist item with something a reviewer can actually drive, not to be a product.
+
+WHY THE LIMITATIONS ARE RENDERED, NOT LINKED
+---------------------------------------------
+`report["limitations"]` already carries the honest caveats (detector recall 67.0%, Stage-2
+46.5% end-to-end, caries gate uncalibrated at 0.40 precision, bone-loss domain shift). This
+page puts that block directly under the results, same size as everything else, so it cannot
+be screenshotted away from the numbers it qualifies.
+"""
+
+import sys
+from pathlib import Path
+
+import streamlit as st
+
+REPO_ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(REPO_ROOT))
+
+st.set_page_config(page_title="OPG Pipeline — Demo", page_icon="🦷", layout="wide")
+
+
+@st.cache_resource(show_spinner="Loading models (first run only) …")
+def get_models():
+    """
+    Cached across the whole app session -- loading is the slow part (~seconds) and must
+    happen once, not per upload. Missing-weights is a real, expected failure on a fresh
+    clone (two checkpoints live on Google Drive, not git -- docs/EXTERNAL_DRIVE.md), so it
+    is caught here and shown as a readable message, not a stack trace.
+    """
+    from scripts.run_inference import load_models
+    try:
+        return load_models()
+    except SystemExit as e:
+        return e
+
+
+def main():
+    st.title("🦷 OPG Pipeline — Deployment Demo")
+    st.caption(
+        "Upload a panoramic dental X-ray. Runs the exact six-stage pipeline behind "
+        "`scripts/run_inference.py` locally — no cloud call, no GPU required."
+    )
+
+    models = get_models()
+    if isinstance(models, SystemExit):
+        st.error(
+            f"**Cannot start: {models}**\n\n"
+            "Two checkpoints are not tracked in git and must be fetched separately — "
+            "see `docs/EXTERNAL_DRIVE.md` for the Drive links and exact restore paths."
+        )
+        st.stop()
+    models, device, paths = models
+
+    uploaded = st.file_uploader("Upload an OPG", type=["png", "jpg", "jpeg"])
+    if uploaded is None:
+        st.info("Waiting for an image. Try any panoramic radiograph — DENTEX or Tufts both work.")
+        st.stop()
+
+    import cv2
+    import numpy as np
+
+    from scripts.run_inference import draw_overlay, run_pipeline
+
+    file_bytes = np.frombuffer(uploaded.getvalue(), dtype=np.uint8)
+    img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+    if img is None:
+        st.error("Could not decode this file as an image.")
+        st.stop()
+
+    with st.spinner("Running all six stages …"):
+        report = run_pipeline(img, models, device, paths, image_label=uploaded.name,
+                              verbose=False)
+
+    s = report["summary"]
+    c1, c2, c3, c4, c5 = st.columns(5)
+    c1.metric("Teeth detected", s["teeth_detected"])
+    c2.metric("Assessable", s["teeth_assessable"])
+    c3.metric("Distinct FDI codes", s["distinct_fdi_codes"])
+    c4.metric("Caries-positive", s["caries_positive"])
+    c5.metric("Bone-loss-positive", s["bone_loss_positive"])
+    if s["duplicate_fdi_codes"]:
+        st.warning(f"{s['duplicate_fdi_codes']} duplicate FDI codes emitted — should be 0.")
+
+    left, right = st.columns([3, 2])
+    with left:
+        st.subheader("Annotated overlay")
+        # A unique filename per upload+config, not a fixed name: a fixed path would let one
+        # browser tab serve another's stale image (Streamlit reruns don't guarantee ordering
+        # across sessions) and would race under concurrent use.
+        import hashlib
+        digest = hashlib.md5(uploaded.getvalue()).hexdigest()[:12]
+        overlay_path = REPO_ROOT / "outputs" / "_app_overlays" / f"{digest}.jpg"
+        overlay_path.parent.mkdir(parents=True, exist_ok=True)
+        draw_overlay(img, report, overlay_path)
+        # channels="BGR" is for raw arrays; draw_overlay already wrote correct colours via
+        # cv2.imwrite, and st.image reads a path as file bytes without decoding it, so no
+        # channel argument applies here.
+        st.image(str(overlay_path), use_column_width=True,
+                caption="Blue = assessable · Orange = flagged / finding · Red = not assessable")
+
+    with right:
+        st.subheader("Per-tooth findings")
+        rows = []
+        for t in report["teeth"]:
+            rows.append({
+                "FDI": t["fdi"] if t["fdi"] is not None else "—",
+                "Det. conf": round(t["detection_confidence"], 3),
+                "FDI conf": round(t["fdi_confidence"], 3) if t["fdi_confidence"] is not None else "—",
+                "Caries": t["caries"]["finding"],
+                "Bone loss": t["bone_loss"]["finding"],
+                "Assessable": "✅" if t["assessable"] else "❌",
+            })
+        st.dataframe(rows, use_container_width=True, height=420, hide_index=True)
+
+    st.subheader("⚠️ Limitations — read before trusting a number above")
+    lim = report["limitations"]
+    st.markdown(f"""
+- **Detector recall {lim['stage1_detector_recall']:.1%}** and **Stage-2 numbering
+  {lim['stage2_fdi_exact_end_to_end']:.1%} end-to-end** — {lim['interpretation']}
+- **Caries**: {lim['caries_gate_precision']}
+- **Caries labelling**: {lim['caries_presumed_negative_assumption']}
+""")
+    st.warning(
+        "This pipeline is **not clinically validated**. It composes four independently "
+        "trained models; the numbers above are research measurements, not a diagnosis."
+    )
+
+    st.download_button("Download full JSON report", data=__import__("json").dumps(report, indent=2),
+                       file_name=f"{Path(uploaded.name).stem}_report.json", mime="application/json")
+
+    with st.expander("Model versions used"):
+        st.json(report["models"])
+
+
+if __name__ == "__main__":
+    main()

@@ -196,6 +196,108 @@ def draw_overlay(img_bgr, report, out_path):
     cv2.imwrite(str(out_path), viz)
 
 
+def pick_device():
+    import torch
+    return torch.device("cuda" if torch.cuda.is_available()
+                        else "mps" if torch.backends.mps.is_available() else "cpu")
+
+
+def load_models(detector=DEF_DETECTOR, fdi_head=DEF_FDI_HEAD, caries_gate=DEF_CARIES_GATE,
+                caries_severity=DEF_CARIES_SEVERITY, bone_loss=DEF_BONE_LOSS,
+                bone_severity=DEF_BONE_SEVERITY, device=None):
+    """
+    Load all six checkpoints once. Both the CLI and any other caller (the Streamlit app) use
+    this SAME function -- loading is the slow, one-time part (~seconds), and a second
+    independently-written loader would be a second place for the class_to_idx safety check
+    below to be forgotten.
+
+    Returns (models_dict, device, weight_paths_dict) -- weight_paths is kept separately so
+    build_report's `meta` can cite exactly what was loaded, unchanged from before this
+    refactor.
+    """
+    import torch  # noqa: F401  (imported here so callers need not import torch themselves)
+    from ultralytics import YOLO
+
+    from src.classifiers import load_classifier
+    from src.fdi_head_inference import load_head
+
+    paths = {"detector": Path(detector), "fdi_head": Path(fdi_head),
+             "caries_gate": Path(caries_gate), "caries_severity": Path(caries_severity),
+             "bone_loss": Path(bone_loss), "bone_severity": Path(bone_severity)}
+    for name, p in paths.items():
+        if not p.exists():
+            raise SystemExit(f"missing model weights: {p}")
+
+    device = device or pick_device()
+    m = {
+        "detector": YOLO(str(paths["detector"])),
+        "head": load_head(paths["fdi_head"], device),
+    }
+    m["gate"], gate_cls = load_classifier(paths["caries_gate"], 2, device)
+    m["csev"], csev_cls = load_classifier(paths["caries_severity"], 2, device)
+    m["bbin"], _ = load_classifier(paths["bone_loss"], 2, device)
+    m["bsev"], _ = load_classifier(paths["bone_severity"], 3, device)
+
+    # The two caries checkpoints carry their own class_to_idx. Assert it matches the order
+    # src/classifiers.py assumes, rather than trusting that it does -- an inverted index here
+    # would report every healthy tooth as carious and still look like a working pipeline.
+    if gate_cls and gate_cls != {"caries": 0, "no_caries": 1}:
+        raise SystemExit(f"caries gate class_to_idx changed: {gate_cls}")
+    if csev_cls and csev_cls != {"caries": 0, "deep_caries": 1}:
+        raise SystemExit(f"caries severity class_to_idx changed: {csev_cls}")
+
+    return m, device, paths
+
+
+def run_pipeline(img_bgr, models, device, paths, image_label="image", imgsz=1024, conf=0.25,
+                 det_iou=0.50, one_to_one=True, verbose=True):
+    """
+    Stages 1-6 on an already-loaded image, using already-loaded models. This is the function
+    both `main()` and the Streamlit app call -- one code path, so a fix or a limitation update
+    reaches both automatically. Returns the report dict; writes nothing to disk.
+    """
+    from src.classifiers import BONE_LOSS_SEVERITY_CLASSES, run_bone_loss, run_caries
+    from src.fdi_head_inference import assign_fdi_head
+    from src.orientation import detect_upright
+
+    def log(msg):
+        if verbose:
+            print(msg)
+
+    log("stage 1 — detection …")
+    boxes, confs = detect_upright(models["detector"], img_bgr, imgsz=imgsz, conf=conf,
+                                  iou=det_iou, verbose=False)
+    log(f"  {len(boxes)} teeth detected")
+    if not boxes:
+        log("  no teeth detected — writing an empty report")
+
+    log("stage 2 — FDI enumeration …")
+    fdi_assign = assign_fdi_head(models["head"], img_bgr, boxes, device, one_to_one=one_to_one)
+    log("stage 3 — caries cascade (tight crops) …")
+    caries = run_caries(models["gate"], models["csev"], img_bgr, boxes, device)
+    log("stage 4 — bone-loss cascade (1.5x/2.0x crops) …")
+    bone = run_bone_loss(models["bbin"], models["bsev"], img_bgr, boxes, device)
+
+    meta = {
+        "detector": {"weights": str(paths["detector"]), "tag": "tooth-detector-a100-1024-v1.0",
+                     "imgsz": imgsz, "conf": conf, "nms_iou": det_iou,
+                     "input_rotation": "90 deg counter-clockwise (src/orientation.py)"},
+        "fdi_head": {"weights": str(paths["fdi_head"]), "tag": "fdi-enumeration-head-resnet18-v1.0",
+                     "one_to_one": one_to_one, "crop_expand": [1.5, 1.5]},
+        "caries": {"gate": str(paths["caries_gate"]), "severity": str(paths["caries_severity"]),
+                   "tag": "caries-cascade-resnet18-v1.0", "crop_expand": [1.0, 1.0]},
+        "bone_loss": {"binary": str(paths["bone_loss"]), "severity": str(paths["bone_severity"]),
+                      "crop_expand": [1.5, 2.0], "severity_classes": BONE_LOSS_SEVERITY_CLASSES,
+                      "class_order_note": (
+                          "binary class order derived from the FocalLoss alpha [0.642, 2.258] "
+                          "against counts (2500 normal / 711 diseased); the checkpoint carries "
+                          "no class_to_idx. Inferred, not read.")},
+    }
+
+    log("stage 5–6 — fusion and report …")
+    return build_report(image_label, img_bgr, boxes, confs, fdi_assign, caries, bone, meta)
+
+
 def main():
     ap = argparse.ArgumentParser(description="Run the full OPG pipeline on one radiograph")
     ap.add_argument("--image", type=Path, required=True)
@@ -215,74 +317,20 @@ def main():
     args = ap.parse_args()
 
     import cv2
-    import torch
-    from ultralytics import YOLO
-
-    from src.classifiers import (BONE_LOSS_SEVERITY_CLASSES, load_classifier, run_bone_loss,
-                                 run_caries)
-    from src.fdi_head_inference import assign_fdi_head, load_head
-    from src.orientation import detect_upright
 
     img = cv2.imread(str(args.image))
     if img is None:
         raise SystemExit(f"cannot read image: {args.image}")
-    for p in (args.detector, args.fdi_head, args.caries_gate, args.caries_severity,
-              args.bone_loss, args.bone_severity):
-        if not Path(p).exists():
-            raise SystemExit(f"missing model weights: {p}")
 
-    device = torch.device("cuda" if torch.cuda.is_available()
-                          else "mps" if torch.backends.mps.is_available() else "cpu")
+    models, device, paths = load_models(
+        args.detector, args.fdi_head, args.caries_gate, args.caries_severity,
+        args.bone_loss, args.bone_severity)
     print(f"device={device}   image={args.image.name}  {img.shape[1]}x{img.shape[0]}")
 
-    detector = YOLO(str(args.detector))
-    head = load_head(args.fdi_head, device)
-    gate, gate_cls = load_classifier(args.caries_gate, 2, device)
-    csev, csev_cls = load_classifier(args.caries_severity, 2, device)
-    bbin, _ = load_classifier(args.bone_loss, 2, device)
-    bsev, _ = load_classifier(args.bone_severity, 3, device)
+    report = run_pipeline(img, models, device, paths, image_label=str(args.image),
+                          imgsz=args.imgsz, conf=args.conf, det_iou=args.det_iou,
+                          one_to_one=not args.no_one_to_one)
 
-    # The two caries checkpoints carry their own class_to_idx. Assert it matches the order
-    # src/classifiers.py assumes, rather than trusting that it does -- an inverted index here
-    # would report every healthy tooth as carious and still look like a working pipeline.
-    if gate_cls and gate_cls != {"caries": 0, "no_caries": 1}:
-        raise SystemExit(f"caries gate class_to_idx changed: {gate_cls}")
-    if csev_cls and csev_cls != {"caries": 0, "deep_caries": 1}:
-        raise SystemExit(f"caries severity class_to_idx changed: {csev_cls}")
-
-    print("stage 1 — detection …")
-    boxes, confs = detect_upright(detector, img, imgsz=args.imgsz, conf=args.conf,
-                                  iou=args.det_iou, verbose=False)
-    print(f"  {len(boxes)} teeth detected")
-    if not boxes:
-        print("  no teeth detected — writing an empty report")
-
-    print("stage 2 — FDI enumeration …")
-    fdi_assign = assign_fdi_head(head, img, boxes, device,
-                                 one_to_one=not args.no_one_to_one)
-    print("stage 3 — caries cascade (tight crops) …")
-    caries = run_caries(gate, csev, img, boxes, device)
-    print("stage 4 — bone-loss cascade (1.5x/2.0x crops) …")
-    bone = run_bone_loss(bbin, bsev, img, boxes, device)
-
-    meta = {
-        "detector": {"weights": str(args.detector), "tag": "tooth-detector-a100-1024-v1.0",
-                     "imgsz": args.imgsz, "conf": args.conf, "nms_iou": args.det_iou,
-                     "input_rotation": "90 deg counter-clockwise (src/orientation.py)"},
-        "fdi_head": {"weights": str(args.fdi_head), "tag": "fdi-enumeration-head-resnet18-v1.0",
-                     "one_to_one": not args.no_one_to_one, "crop_expand": [1.5, 1.5]},
-        "caries": {"gate": str(args.caries_gate), "severity": str(args.caries_severity),
-                   "tag": "caries-cascade-resnet18-v1.0", "crop_expand": [1.0, 1.0]},
-        "bone_loss": {"binary": str(args.bone_loss), "severity": str(args.bone_severity),
-                      "crop_expand": [1.5, 2.0], "severity_classes": BONE_LOSS_SEVERITY_CLASSES,
-                      "class_order_note": (
-                          "binary class order derived from the FocalLoss alpha [0.642, 2.258] "
-                          "against counts (2500 normal / 711 diseased); the checkpoint carries "
-                          "no class_to_idx. Inferred, not read.")},
-    }
-
-    print("stage 5–6 — fusion and report …")
-    report = build_report(args.image, img, boxes, confs, fdi_assign, caries, bone, meta)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2) + "\n")
 

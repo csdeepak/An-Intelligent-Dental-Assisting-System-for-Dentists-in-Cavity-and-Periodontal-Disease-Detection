@@ -1,0 +1,24 @@
+# Without this, `docker build` sends the ENTIRE directory to the daemon before the Dockerfile's
+# selective COPY lines ever run -- multi-GB _repo_archive/ and data/ trees included, even though
+# nothing in them is ever copied into the image. Slow builds and, on a small /var/lib/docker
+# partition, a build that fails on disk space for reasons that have nothing to do with the app.
+
+.git/
+_repo_archive/
+data/
+notebooks/
+docs/
+outputs/
+tests/
+_repo_archive/
+*.ipynb
+.pytest_cache/
+__pycache__/
+*.pyc
+.DS_Store
+worklist.html
+ningxia_local/
+
+# Model weights NOT needed in the image build context beyond what Dockerfile explicitly COPYs
+# (which is models/ as a whole, since it's small -- ~260MB tracked + the two Drive files that
+# are gitignored and mounted at runtime, not baked in). Nothing extra to exclude here.

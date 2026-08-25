@@ -26,6 +26,9 @@ seaborn>=0.12.0
 # YOLO — tooth detection (Stage 1) and the Stage-2 evaluation harness
 ultralytics>=8.0.0
 
+# Deployment demo (app.py)
+streamlit>=1.30.0
+
 # Configuration
 PyYAML>=6.0
 

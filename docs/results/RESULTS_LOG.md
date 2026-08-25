@@ -2544,3 +2544,58 @@ Copy this block verbatim to the bottom of the file and fill it in.
   `outputs/enumeration_head/input_ablation.json`.
 - **Follow-ups:** Grad-CAM overlays remain unbuilt (design-only since the architecture doc).
   **Deployment is the one Phase III item with nothing at all behind it.**
+
+## 2026-08-25f — Deployment: Streamlit app + Dockerfile, wrapping run_inference.py unchanged
+
+- **What was done:** Closed Phase III's one checklist item with nothing behind it. Refactored
+  `scripts/run_inference.py`'s `main()` into `load_models()` + `run_pipeline()` — reusable
+  functions, not a second implementation — then built `app.py` (Streamlit: upload an OPG, see
+  the report + overlay in a browser) and a `Dockerfile` on top of them.
+- **Refactor verified behaviour-preserving, not assumed.** `verify.json` (an earlier saved
+  report) turned out to be stale — from before the caries-gate rebuild — so comparing against
+  it would have been invalid. Instead: stashed the refactor, ran the **last-committed** CLI
+  fresh on the same image, unstashed, ran the refactored CLI on the same image, and diffed both
+  reports byte-for-byte (ignoring only the `generated` timestamp). **Identical**, including the
+  `image.path` string representation.
+- **Every API call verified against the installed library, not memory.** Two real
+  inconsistencies found by introspecting `streamlit==1.37.1`'s actual signatures before running
+  anything: `st.image` takes `use_column_width`, **not** `use_container_width` (which is what
+  `st.dataframe` uses — the two widgets disagree). Using the wrong one would have raised a
+  `TypeError` at first render. Fixed before the app ever ran.
+- **The whole upload-to-render code path exercised with real data**, not just "it compiles":
+  built the exact bytes `st.file_uploader.getvalue()` would hand the app from a real DENTEX
+  image, ran it through `np.frombuffer` → `cv2.imdecode` → `run_pipeline` → the table-building
+  loop → `pd.DataFrame` → `draw_overlay` → the limitations-block string formatting → the JSON
+  download payload. Every step succeeded; the overlay (977 KB) was rendered and visually
+  confirmed correct — orange boxes on the two true caries findings, matching the same image's
+  known CLI output exactly.
+- **`streamlit` was missing from `requirements.txt`** — a fresh `pip install -r requirements.txt`
+  would not have provided it, and the Dockerfile would have failed at container start, not at
+  build time. Added.
+- **A path bug in `.dockerignore`, caught before it shipped.** First draft blanket-excluded
+  `data/`, but the Dockerfile had a `COPY data/dentex/disease_leaked_images.json ...` line —
+  which would have failed the build (source not in context). Traced why that `COPY` line
+  existed at all: grepped `app.py`, `run_inference.py` and all of `src/` for any `data/` read at
+  inference time. **None exists** — that file is read only by the eval scripts. Removed the
+  unneeded `COPY` line instead of patching around the `.dockerignore` conflict.
+- **A documentation inaccuracy in the Dockerfile's own comment, caught by checking local state.**
+  The two Drive-only checkpoints are gitignored, but **are already present on this machine's
+  disk** (frozen here earlier this session). `COPY` is not git-aware, so a build run *here*
+  would bake them in despite a comment claiming otherwise. Corrected to state both cases: baked
+  in in this repo's exact working state, omitted on a true fresh clone, with the documented
+  `docker run -v` mount harmless in the former case and required in the latter.
+- **The exact `CMD` flag syntax verified by actually starting the process** (`--server.headless=true
+  --server.address=0.0.0.0 --server.port=…`), not assumed valid — confirmed the server starts
+  clean with no CLI parse error before trusting it inside the image.
+- **Docker build itself NOT executed.** The daemon was not running; `open -a Docker` plus a
+  120s wait did not bring it up (first-run setup this session cannot click through). Stated
+  honestly rather than claiming a build that didn't happen. Compensating verification: every
+  `COPY` source confirmed to exist on disk, every package the app imports confirmed present in
+  `requirements.txt`, and the process command verified to start outside the container.
+- **Not multi-tenant, not authenticated, not clinical** — a single-user local demo whose purpose
+  is satisfying the Phase III deployment checklist item with something a reviewer can drive
+  themselves, stated as such in `app.py`'s own docstring.
+- **Source:** `app.py`, `Dockerfile`, `.dockerignore`, `scripts/run_inference.py` (refactored),
+  `requirements.txt`.
+- **Follow-ups:** run an actual `docker build` once the daemon is available, before relying on
+  it for the review itself.

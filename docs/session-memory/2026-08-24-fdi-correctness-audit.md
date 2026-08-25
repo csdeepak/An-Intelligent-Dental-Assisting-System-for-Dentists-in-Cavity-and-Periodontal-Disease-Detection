@@ -620,3 +620,66 @@ that produces an obviously broken one.
 
 C2 has numbers. **C1 (VLM baseline) is now the only headline contribution still at zero** —
 W5 in the plan. Also open: T0.5 Mild decision, bone-loss version tag.
+
+---
+
+# Addendum 10 — deployment closed: Streamlit app + Dockerfile (25 Aug)
+
+## What was done
+
+Phase III's one checklist item with nothing behind it. Refactored `run_inference.py`'s `main()`
+into `load_models()` + `run_pipeline()` so the CLI and the new `app.py` share one code path,
+then built the Streamlit app and a Dockerfile on top of them.
+
+## Every claim checked, not assumed — five separate catches
+
+1. **Refactor correctness**: the obvious baseline (`verify.json`) turned out to be stale —
+   predated the caries-gate rebuild — so diffing against it would have been invalid. Generated
+   a real baseline instead: stashed the refactor, ran the last-committed CLI fresh, unstashed,
+   ran the refactored CLI, diffed both reports byte-for-byte. Identical.
+2. **Streamlit API surface**: introspected the *installed* `streamlit==1.37.1`'s actual function
+   signatures rather than writing from memory. Found `st.image` uses `use_column_width` while
+   `st.dataframe` uses `use_container_width` — the two widgets disagree within the same library
+   version. Using the wrong one on `st.image` would have raised `TypeError` at first render.
+3. **The full upload path**, not just "it compiles": built the exact bytes
+   `st.file_uploader.getvalue()` would hand the app, ran every line of `app.py`'s logic against
+   them for real, and visually confirmed the rendered overlay was correct.
+4. **`.dockerignore` vs `Dockerfile` conflict**: first draft blanket-excluded `data/`, but the
+   Dockerfile had a `COPY data/dentex/...` line that would have failed the build. Traced *why*
+   that line existed by grepping the actual runtime code for any `data/` read — found none — and
+   removed the line instead of patching around the conflict.
+5. **A comment claiming something false about this exact machine**: said the two Drive-only
+   checkpoints are "not baked into the image," but they're already on this machine's local disk
+   (frozen here earlier in the session), and `COPY` isn't git-aware. Corrected to state both the
+   fresh-clone case and this-machine case, rather than only the one that sounds cleaner.
+
+## What was NOT verified, stated honestly
+
+`docker build` itself was never run — the daemon wasn't up, and `open -a Docker` plus a 120s
+wait didn't bring it up (first-run setup this session can't click through). Compensated with
+static verification: every `COPY` source confirmed on disk, every imported package confirmed in
+`requirements.txt`, and the exact `CMD` flag syntax confirmed by actually starting the process
+outside the container. Logged as an open follow-up rather than claimed as done.
+
+## Decisions made
+
+- **Refactor, don't duplicate.** A second hand-written copy of the six-stage call sequence in
+  `app.py` would be a second place for a future fix to be forgotten. Extracted the shared
+  functions instead, at the cost of touching a file this session has otherwise left alone.
+- **Streamlit over a REST API.** A reviewer can drive it themselves; an endpoint proves
+  deployment but shows nothing. Documented as the reasoning in `app.py`'s own docstring.
+- **Render the limitations block on the page, not just in the JSON.** The whole point of
+  wrapping `run_inference.py` unchanged is that the app inherits every caveat automatically —
+  defeated if the caveats stay buried in a downloadable file nobody opens.
+- **`streamlit` was missing from `requirements.txt`.** Added rather than assumed already there.
+
+## Open questions
+
+- `docker build` unverified — first thing to do once the daemon is available, before Review 1.
+- Multi-user/concurrent-upload behavior untested (the overlay-file naming uses an MD5 of the
+  upload to avoid the obvious collision, but true concurrent load was never exercised).
+
+## Next steps
+
+Days 3–4: assemble the paper draft from `PAPER_MATERIAL.md`, which is already structured for
+it. Deployment and figures — the two build-day items — are both now closed.

@@ -379,6 +379,17 @@ and rebuild.
 python scripts/run_inference.py --image path/to/opg.jpg --output report.json
 ```
 
+**Or the interactive demo** — upload an OPG, see the report and overlay in a browser:
+
+```bash
+pip install -r requirements.txt   # includes streamlit
+streamlit run app.py
+```
+
+`Dockerfile` builds the same app as a container (CPU-only, no GPU needed). Both are a thin
+wrapper around `run_inference.py` — no second implementation, so they inherit every limitation
+and fix automatically.
+
 This runs all six stages and writes a per-tooth JSON report (add `--overlay viz.jpg` for an
 annotated image). Two checkpoints are not in git — see
 [`docs/EXTERNAL_DRIVE.md`](docs/EXTERNAL_DRIVE.md) for where to get them.

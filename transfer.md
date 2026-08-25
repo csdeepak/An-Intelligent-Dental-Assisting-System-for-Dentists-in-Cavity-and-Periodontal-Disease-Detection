@@ -115,7 +115,12 @@ long pole."
    Caries lesion agreement **22.6–43.3%** across four hospitals (DENTEX internal was 42.6%);
    periodontitis affected-tooth sensitivity **0.8–5.4%**. Ningxia is now **touched** — locked,
    no further tuning against it, ever.
-9. **Start IRB paperwork.** Zero-cost, longest lead, flagged since 15 Aug, still not begun.
+9. ~~**Deployment.**~~ **DONE 25 Aug** (RESULTS_LOG 2026-08-25f). `app.py` (Streamlit) +
+   `Dockerfile`, wrapping `load_models()`/`run_pipeline()` refactored out of
+   `run_inference.py` — verified byte-identical to the pre-refactor CLI. Full upload-to-render
+   path exercised with real data. `docker build` itself not run (daemon unavailable this
+   session) — do that once available, before relying on it for Review 1.
+10. **Start IRB paperwork.** Zero-cost, longest lead, flagged since 15 Aug, still not begun.
 
 ## 4. Decisions PENDING — do not default into these silently
 
