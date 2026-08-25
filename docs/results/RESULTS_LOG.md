@@ -2421,3 +2421,95 @@ Copy this block verbatim to the bottom of the file and fill it in.
   `outputs/lesion_localization/n1_check/` (the single-image verification run).
 - **Follow-ups:** Ningxia needs its own `load_lesion_gt` sibling for raster masks once the
   drive is connected and a real mask file can be inspected — deliberately not guessed here.
+
+## 2026-08-25d — C2: first external validation. Ningxia, 4 hospitals, zero leakage
+
+- **What was done:** The Ningxia drive was connected. Copied, leakage-checked, and evaluated —
+  the first time this pipeline has been measured on institutions it has never seen. This is
+  **contribution C2**, and per `MASTER_PLAN_2026H2.md` §4.2 Ningxia is now **touched**: locked
+  external test data, evaluated once, no tuning of any kind against it.
+
+- **Copy discipline.** Copied **test splits only** (2.4 GB) to `~/Downloads/Capstone/ningxia_local/`,
+  deliberately leaving the 11.2 GB train split on the pen drive. We may never legitimately train
+  on Ningxia, so not having it locally makes that *physically impossible* rather than merely
+  forbidden. Original untouched (read-only rsync). Verified: all 12 split counts match source
+  exactly, 30/30 random files byte-identical, manifest + README byte-identical, train absent.
+
+- **LEAKAGE: ZERO**, checked against each corpus **separately** per the standing rule from
+  2026-08-22j:
+
+  | Corpus | n | Overlap with 2,912 unique Ningxia test hashes |
+  |---|---|---|
+  | Tufts radiographs (detector train) | 1,000 | **0** |
+  | DENTEX `disease/` (Stage-2 eval) | 250 | **0** |
+  | DENTEX `quadrant_enumeration` (FDI head train) | 634 | **0** |
+  | DENTEX `quadrant-enumeration-disease` | 705 | **0** |
+  | DENTEX `quadrant` | 693 | **0** |
+
+  Also: **no image spans two centre splits** (so stratification is safe); 549 images appear
+  under more than one *disease category* — multi-condition patients with a separate mask each,
+  which is why results are never pooled across categories; and one genuine intra-dataset
+  duplicate (`impacted_teeth/test2/45.png` ≡ `178.png`), harmless as we have no impaction branch.
+
+- **RESULT — caries, focal-lesion centroid containment, stratified:**
+
+  | Split | Centre | Lesions | Covered | Strict (1:1) |
+  |---|---|---|---|---|
+  | test1 | cross-centre | 316 | **26.6%** | 23.7% |
+  | test2 | same-centre-as-Ningxia-train | 349 | **43.3%** | 36.4% |
+  | test3 | cross-centre | 162 | **37.0%** | 29.0% |
+  | test4 | cross-centre | 186 | **22.6%** | 18.8% |
+  | *(pooled, for scale only)* | | 1,013 | 33.3% | 28.0% |
+
+  Against DENTEX's 42.6% (2026-08-25c), Ningxia sits **at or below** the internal number across
+  four independent hospitals — which is what honest external validation looks like.
+  **Interpretive caution:** "same-centre-as-train" refers to **Ningxia's own** train split. We
+  never trained on any Ningxia data, so all four splits are equally external *to us*; the
+  spread reflects real inter-centre scanner/population variation, not proximity to our training
+  set. Do not describe test2 as "in-domain."
+
+- **RESULT — periodontitis, affected-tooth sensitivity** (of teeth inside the expert-marked
+  region, how many were flagged): test1 **3.7%** (121/3,274), test2 **0.8%** (17/2,072),
+  test3 **1.5%** (5/339), test4 **5.4%** (29/537); pooled 2.8% (172/6,222).
+  With Tufts in-domain at 0.92 macro-F1, DENTEX at 0.7% firing, and Ningxia at 0.8–5.4%, the
+  bone-loss branch's **domain-shift failure is now measured on two independent external
+  datasets**, not inferred from one.
+
+- **A WITHDRAWN NUMBER, AND THE REASON IT MATTERS.** The first run applied centroid containment
+  to *both* categories and reported periodontitis at 0.7–4.0%. **Those figures were a
+  measurement artefact and are withdrawn.** Measured on real masks: caries = 2.5 blobs/image,
+  median 731 px (focal spots); periodontitis = 1.0 blob/image, median **365,680 px** — a single
+  continuous band spanning the whole alveolar ridge, ~8% of the radiograph, visually confirmed
+  (`outputs/ningxia_check/periodontitis_mask.jpg`). **The centroid of such a band lands in the
+  gap between teeth, inside no tooth box — so that metric scores ~0% by construction regardless
+  of model quality.** Reporting it as "the bone-loss branch fails externally" would have been a
+  true-sounding conclusion drawn from a broken instrument. Replaced with affected-tooth
+  sensitivity (≥50% of a tooth box inside the region ⇒ affected). The corrected conclusion is
+  *similar in magnitude but now actually measures something.*
+
+- **A SECOND ASSUMPTION THAT DIDN'T TRANSFER, caught before it ran.** `lesion_localization.py`'s
+  docstring claimed only its GT loader would need a Ningxia sibling and "nothing else in this
+  file assumes the DENTEX format." **Wrong** — the *matching criterion* doesn't transfer either.
+  Ningxia caries lesions are 89–3,090 px against ~25,000 px tooth boxes, so a lesion sitting
+  entirely inside the correct tooth scores IoU 0.015–0.124 — **every one below the 0.30
+  threshold**. Reusing the DENTEX matcher unchanged would have reported ~0% caries agreement
+  too. That claim is corrected in `ningxia_external.py`'s docstring.
+
+- **Verified, not assumed, before any measurement**: Ningxia is **upright — no rotation applied**
+  (all sampled images landscape; visually confirmed across all four centres). Tufts needs 90°
+  CCW; DENTEX and Ningxia do not. That is per-dataset and was checked, because getting it wrong
+  for Tufts already cost this project a correction (2026-08-22d). Per-centre heterogeneity is
+  real and visible: test1 2893×1480 single-channel with **burned-in annotation arrows/stars**,
+  test2 2440×1292 3-channel, test3 2440×1280, test4 2424×1328 with a burned-in letter marker.
+- **Arithmetic checked exhaustively**: per-image sums matched every aggregate (4/4 fields);
+  covered ≥ strict and covered ≤ lesions everywhere; affected ≤ detected and flagged ≤ affected
+  everywhere; affected-teeth/image 6.8–10.2 against 19.7–25.2 detected/image — anatomically
+  plausible for a band covering roughly one arch.
+- **Not computed, and cannot be:** specificity/AUC. Ningxia has no healthy controls
+  (§4.3, corrected 18 Aug). Those come from Tufts. Negatives were **not** synthesised from the
+  other disease categories, per the same section's explicit prohibition.
+- **Source:** `scripts/eval/ningxia_external.py`,
+  `outputs/ningxia_external/full/ningxia_external.json`, `outputs/ningxia_check/`.
+- **Follow-ups:** image-level sensitivity for caries is ~96% and effectively saturated (the gate
+  over-calls, and with ~22 teeth/image it almost always flags one) — report it as the weak
+  metric §4.3.4 already predicted it would be, not as a strength.

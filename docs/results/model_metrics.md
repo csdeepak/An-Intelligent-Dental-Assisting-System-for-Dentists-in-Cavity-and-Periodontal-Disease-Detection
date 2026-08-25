@@ -222,3 +222,33 @@ generalises to Ningxia's masks later without new code under deadline pressure �
 `PAPER_MATERIAL.md` §8.11 for the full scoping and caveats.
 
 Both are pure inference; neither needed a GPU rental.
+
+---
+
+## External validation (C2) — Ningxia, 4 hospitals · 25 Aug 2026
+
+**Zero leakage** against Tufts, DENTEX `disease/`, `quadrant_enumeration`,
+`quadrant-enumeration-disease` and `quadrant` — each checked separately (0 / 2,912 unique
+Ningxia test hashes). LOCKED data: evaluated once, no tuning of any kind against it.
+
+**Caries — focal-lesion centroid containment, stratified (never pooled):**
+
+| Split | Centre | Lesions | Covered | Strict (1:1) |
+|---|---|---|---|---|
+| test1 | cross-centre | 316 | **26.6%** | 23.7% |
+| test2 | same-centre-as-*Ningxia*-train | 349 | **43.3%** | 36.4% |
+| test3 | cross-centre | 162 | **37.0%** | 29.0% |
+| test4 | cross-centre | 186 | **22.6%** | 18.8% |
+
+DENTEX internal was 42.6%; Ningxia sits at or below it across four independent hospitals.
+*All four splits are equally external to us* — we never trained on Ningxia, so "same-centre-as-train"
+describes Ningxia's own split design, not proximity to our training data.
+
+**Periodontitis — affected-tooth sensitivity** (of teeth ≥50% inside the expert-marked region,
+how many were flagged): test1 3.7%, test2 0.8%, test3 1.5%, test4 5.4% (pooled 172/6,222 = 2.8%).
+Combined with Tufts in-domain (0.92 macro-F1) and DENTEX (0.7% firing), the bone-loss branch's
+domain-shift failure is now measured on **two** independent external datasets.
+
+**Specificity/AUC are not computable on Ningxia** — it has no healthy controls. They come from
+Tufts. See `PAPER_MATERIAL.md` §8.12 for the withdrawn first-pass periodontitis figures and why
+the metric had to differ by category.

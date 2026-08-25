@@ -12,6 +12,7 @@ Scripts that measure the pipeline rather than build or train it. This is where c
 | `compare_caries_gates.py` | Before/after for the caries gate, through the pipeline, same boxes and crops | ✅ 84.9% → 19.1% |
 | **`verify_invariants.py`** | **Re-checks the facts the documentation depends on.** Run after changing data, swapping a checkpoint, or before trusting a number in a draft | ✅ 7/7 hold |
 | **`lesion_localization.py`** | Do predicted-diseased teeth spatially overlap a real expert lesion? §4.3.4's primary EXTERNAL number for C2 (Ningxia-ready — no negatives needed) and the T1.5 XAI metric | ✅ 42.6% on DENTEX |
+| **`ningxia_external.py`** | **C2 external validation** — the three §4.3.4 measurements on Ningxia, stratified by centre. Metric differs by category (focal vs diffuse) | ✅ caries 22.6–43.3%, periodontitis 0.8–5.4% |
 
 ## `validate_fdi_assignment.py`
 

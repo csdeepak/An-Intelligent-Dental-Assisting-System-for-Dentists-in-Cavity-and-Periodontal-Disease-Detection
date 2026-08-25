@@ -901,6 +901,68 @@ RESULTS_LOG 2026-08-25c.
 
 ---
 
+### 8.12 C2 external validation — Ningxia, and a metric that had to differ by disease
+
+**The headline C2 result.** 25 Aug 2026, four hospitals, `scripts/eval/ningxia_external.py`.
+Ningxia is LOCKED external test data (§4.2): evaluated once, no tuning of any kind against it.
+**Zero leakage** against Tufts, DENTEX `disease/`, `quadrant_enumeration`,
+`quadrant-enumeration-disease` and `quadrant`, each checked separately (0 / 2,912 unique test
+hashes).
+
+| Split | Centre | Caries lesions | Covered | Strict (1:1) |
+|---|---|---|---|---|
+| test1 | cross-centre | 316 | **26.6%** | 23.7% |
+| test2 | same-centre-as-*Ningxia*-train | 349 | **43.3%** | 36.4% |
+| test3 | cross-centre | 162 | **37.0%** | 29.0% |
+| test4 | cross-centre | 186 | **22.6%** | 18.8% |
+
+DENTEX internal was 42.6% (§8.11); Ningxia sits at or below it across four independent
+institutions. **Write this carefully in the paper:** "same-centre-as-train" describes
+*Ningxia's own* split design. We never trained on any Ningxia data, so all four splits are
+equally external to us, and the spread reflects genuine inter-centre scanner and population
+variation rather than distance from our training set. Describing test2 as "in-domain" would be
+wrong.
+
+**Periodontitis — affected-tooth sensitivity**: test1 3.7%, test2 0.8%, test3 1.5%, test4 5.4%
+(172/6,222 pooled). With Tufts in-domain at 0.92 macro-F1 and DENTEX firing on 0.7% of teeth,
+the bone-loss branch's collapse outside its training domain is now measured on **two
+independent external datasets**. That is a genuine, reportable negative result — and a stronger
+one than a single dataset could support.
+
+**A withdrawn number, and the methodological point worth putting in the paper.** The first pass
+applied the caries metric (lesion-centroid containment) to periodontitis too, and reported
+0.7–4.0%. **Those figures are withdrawn as a measurement artefact.** Measured on real masks:
+
+| | blobs/image | median blob area |
+|---|---|---|
+| caries | 2.5 | 731 px (focal spots on crowns) |
+| periodontitis | 1.0 | **365,680 px** (~500× larger) |
+
+Periodontitis masks are not lesions but a *single continuous band* spanning the alveolar ridge,
+~8% of the radiograph. The centroid of such a band falls in the gap between teeth, inside no
+tooth box — so that metric returns ~0% **by construction, independent of model quality**.
+Reporting it would have produced a true-sounding conclusion from a broken instrument.
+Periodontitis is therefore scored by **affected-tooth sensitivity**: a tooth counts as affected
+if ≥50% of its box lies inside the marked region, and sensitivity is the fraction of those the
+pipeline flagged.
+
+The same class of error was caught once more before it ran: Ningxia caries lesions (89–3,090 px)
+against ~25,000 px tooth boxes score **IoU 0.015–0.124** — every true match below the 0.30
+threshold DENTEX uses. Reusing the DENTEX matcher unchanged would have reported ~0% caries
+agreement too. **The general lesson, worth one sentence in the methods: a spatial-agreement
+metric is only meaningful when the ground-truth annotation granularity matches the prediction
+granularity.** Focal-lesion masks, whole-region masks and tooth-level predictions are three
+different granularities, and a metric that silently spans them measures nothing.
+
+Not computed and not computable here: specificity and AUC — Ningxia has no healthy controls
+(§4.3). Those come from Tufts. Negatives were **not** synthesised from the other disease
+categories, per §4.3's explicit prohibition. Image-level caries sensitivity is ~96% and
+effectively saturated (the gate over-calls, and with ~22 teeth/image it nearly always flags
+one) — report it as the weak metric §4.3.4 predicted, not as a strength.
+RESULTS_LOG 2026-08-25d.
+
+---
+
 ## 9. What's not yet written — checklist
 
 For whoever drafts the actual paper. Tick items off here as they land.

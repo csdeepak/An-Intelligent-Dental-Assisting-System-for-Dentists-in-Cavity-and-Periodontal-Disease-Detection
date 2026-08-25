@@ -549,3 +549,74 @@ and I said so rather than picking whichever number sounded more interesting.
 
 Unchanged: lesion-localization evaluator (no code yet, needed before Ningxia), connect the
 Ningxia drive, T0.5 Mild decision, bone-loss version tag.
+
+---
+
+# Addendum 9 — C2: Ningxia connected, copied, leak-checked, evaluated (25 Aug)
+
+## What was done
+
+User connected the pen drive. Found `nangxia_dataset` (14 GB) — spelling matches what
+`MASTER_PLAN_2026H2.md` §4.4 recorded (`D:\nangxia_dataset`).
+
+**Copied test splits only (2.4 GB), leaving the 11.2 GB train split on the drive.** Deviated
+from a literal "copy the dataset" on purpose and said so: we may never legitimately train on
+Ningxia, so not having it locally makes that physically impossible rather than merely
+forbidden. Verified: 12/12 split counts match source, 30/30 random files byte-identical,
+manifest + README byte-identical, train confirmed absent.
+
+**Zero leakage** against Tufts, DENTEX `disease/`, `quadrant_enumeration`,
+`quadrant-enumeration-disease`, `quadrant` — each checked separately per the standing rule.
+
+Results: caries lesion agreement **22.6–43.3%** across four hospitals (DENTEX internal 42.6%);
+periodontitis affected-tooth sensitivity **0.8–5.4%**.
+
+## The two catches — same root cause, caught at different stages
+
+**1. Caught before running.** I had written in `lesion_localization.py` that only its GT loader
+would need a Ningxia sibling and "nothing else assumes the DENTEX format." Wrong. Ningxia caries
+lesions are 89–3,090 px against ~25,000 px tooth boxes → IoU 0.015–0.124, every true match below
+the 0.30 threshold. Reusing the DENTEX matcher would have reported ~0% and looked like total
+external failure.
+
+**2. Caught after running, before reporting.** The first run applied centroid containment to
+periodontitis too and gave 0.7–4.0%. I nearly wrote that up as "the bone-loss branch fails
+externally." Checked the mask geometry first: periodontitis masks are **1 blob/image at median
+365,680 px** — a single band across the alveolar ridge, ~8% of the image — versus caries at 2.5
+blobs of 731 px. Rendered one: the centroid lands *between* teeth, in no tooth box. That metric
+scores ~0% by construction regardless of model quality. Withdrawn and replaced with
+affected-tooth sensitivity.
+
+**Both are the same error**: assuming one dataset's annotation granularity transfers to another.
+The corrected periodontitis conclusion is similar in magnitude to the artefact — which is
+exactly why it was dangerous. A wrong method that produces a plausible number is worse than one
+that produces an obviously broken one.
+
+## Decisions made
+
+- **Metric differs by category, deliberately.** Focal (caries) → centroid containment; diffuse
+  (periodontitis) → affected-tooth sensitivity. Documented in the script so nobody "unifies"
+  them later.
+- **Reported two bounds for caries** (covered / strict 1:1) rather than picking one. A tooth can
+  genuinely carry two carious lesions; one-to-one under-counts that, many-to-one is the faithful
+  read of §4.3.4's per-lesion question. Picking one silently would be a choice disguised as a
+  fact.
+- **Flagged the "same_centre_as_train" trap.** That label describes *Ningxia's own* split
+  design. We never trained on Ningxia, so all four splits are equally external to us — calling
+  test2 "in-domain" in the paper would be wrong.
+- **Did not synthesise negatives** from the other disease categories, per §4.3's explicit
+  prohibition. Specificity/AUC stay uncomputable on Ningxia; they come from Tufts.
+
+## Open questions
+
+- Image-level caries sensitivity is ~96% and effectively saturated — the gate over-calls, and at
+  ~22 teeth/image it nearly always flags one. Report as the weak metric §4.3.4 predicted.
+- `impacted_teeth` (2,567 images) is entirely unevaluated — no branch predicts it. Could be
+  future work or an explicit scope statement.
+- One genuine intra-dataset duplicate found (`impacted_teeth/test2/45.png` ≡ `178.png`).
+  Harmless here; would matter if impaction were ever added.
+
+## Next steps
+
+C2 has numbers. **C1 (VLM baseline) is now the only headline contribution still at zero** —
+W5 in the plan. Also open: T0.5 Mild decision, bone-loss version tag.

@@ -108,12 +108,13 @@ long pole."
    agreement on 164 clean images. Pure inference — no GPU needed, ran on MPS.
 6. **T0.5 — the Mild n=6 decision.** No blocker, no compute. Still untouched.
 7. **Version-tag the bone-loss weights** — Stages 4a/4b are now the only untagged models.
-8. **Reconnect the Ningxia drive** for W4's external run. It is external test data: never
-   train or tune on it. **Check its overlap against Tufts, DENTEX *and* the enumeration
-   corpus separately** — inferring disjointness from a neighbouring pair is exactly the
-   mistake that cost 5.7 points on Stage 2. The lesion evaluator built today runs against it
-   as-is for DENTEX; Ningxia's raster masks need a new `load_lesion_gt` sibling, not guessed
-   in advance.
+8. ~~**Reconnect the Ningxia drive.**~~ **DONE 25 Aug — C2 HAS ITS FIRST NUMBERS**
+   (RESULTS_LOG 2026-08-25d). Test splits copied to `~/Downloads/Capstone/ningxia_local/`
+   (train deliberately left on the drive — we may never train on it, so not having it locally
+   makes that impossible). **Zero leakage** against all five corpora, each checked separately.
+   Caries lesion agreement **22.6–43.3%** across four hospitals (DENTEX internal was 42.6%);
+   periodontitis affected-tooth sensitivity **0.8–5.4%**. Ningxia is now **touched** — locked,
+   no further tuning against it, ever.
 9. **Start IRB paperwork.** Zero-cost, longest lead, flagged since 15 Aug, still not begun.
 
 ## 4. Decisions PENDING — do not default into these silently
