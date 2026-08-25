@@ -2338,3 +2338,86 @@ Copy this block verbatim to the bottom of the file and fill it in.
 - **Follow-ups:** none blocking. T0.1 is closed — both arms exist, reported honestly, and the
   frozen model is unchanged. If a confident augmentation verdict is ever wanted, it needs
   multiple seeds, not a rerun of this same ablation.
+
+## 2026-08-25c — Lesion-localisation evaluator built and run: 42.6% agreement on DENTEX, no GPU needed
+
+- **What was done:** Built `scripts/eval/lesion_localization.py` — no code for this existed
+  anywhere before today. `MASTER_PLAN_2026H2.md` §4.3.4 promotes it to the **primary external
+  number** for C2, precisely because it needs no negative class at all (immune to Ningxia's
+  missing-healthy-controls problem, §4.4) and doubles as the T1.5 XAI metric. Built and
+  validated against DENTEX first, deliberately, so Ningxia later is "point the script at a
+  different folder," not new code under deadline pressure. Pure inference + geometry — no
+  training, no GPU rental, runs on this machine's MPS.
+
+- **Ground-truth scoping — re-verified directly from source, not from memory**, since getting
+  this wrong would have silently corrupted the whole metric. `disease/label/*.json` carries 8
+  Turkish finding types; re-extracted all 8 with counts (matches the parse
+  `compare_caries_gates.py` already relies on): çürük 747, küretaj 265, gömülü 221, kanal 161,
+  saglam 91, lezyon 75, çekim 29, kırık 11. Only **çürük** (caries) maps to what the caries
+  branch predicts — küretaj/kanal are procedure markers (a treated tooth, not active disease);
+  gömülü/lezyon/kırık are different clinical entities (position anomaly, periapical infection,
+  fracture) no branch of this pipeline targets. Using only çürük means every unmatched lesion
+  is unambiguously something the caries branch should have caught.
+
+- **Matching reused, not reimplemented.** `iou()` and `match_gt_to_detections()` (greedy IoU
+  with centroid-containment fallback — proven on exactly this problem, a small lesion polygon
+  inside a much larger tooth box) imported directly from `validate_fdi_assignment.py`, along
+  with `LABEL_RE` for GT parsing. `min_iou=0.30` inherited unchanged, not re-tuned.
+
+- **Two real bugs found and fixed during review, before any run:**
+  1. A first cut hand-split labels on `"-"` rather than reusing the already-validated
+     `LABEL_RE`. No observed failure on current data (the 8 Turkish names contain no hyphens),
+     but a second, independently-written parser is exactly the kind of thing that quietly
+     drifts from the original — switched to the shared regex.
+  2. A per-image diagnostic field (`unmatched_positive_findings`) was tautological by
+     construction — it would only ever contain "caries"/"deep_caries", the exact values used
+     to build the list being filtered in the first place. Replaced with unmatched positives'
+     `gate_confidence` values, which actually discriminate (a cluster of high-confidence
+     unmatched positives reads differently than low-confidence ones).
+
+- **Verified against a hand-derived expectation before trusting any aggregate.** Read
+  `test_0.json` directly: 5 shapes, only 3 are çürük (`26`, `48`, `45`). `load_lesion_gt`
+  returned exactly those 3, correct FDI codes. Ran the full pipeline on that one image:
+  `flag_counts: {'caries_uncalibrated': 18}` — independently confirms 18 teeth were detected,
+  matching this exact image's detection count from earlier in this session (unrelated code
+  path, unprompted corroboration). 1/3 lesions matched, consistent with a separate
+  earlier finding that this image's detector run misses GT teeth 38 and 26 entirely (so lesion
+  `26` could not possibly be matched — no detection exists there to match it to).
+
+- **Full run — 164 leak-free images, pipeline default (`caries-gate-resnet18-v3.0`):**
+
+  | | |
+  |---|---|
+  | Images with ≥1 çürük lesion | 148 / 164 |
+  | Lesions (çürük polygons) | 479 |
+  | **Lesion-localisation agreement** | **204/479 = 42.6%** |
+  | Predicted-positive teeth | 772 |
+  | — matched to a lesion (diagnostic, not precision) | 204 (26.4%) |
+
+- **Arithmetic self-consistency checked exhaustively, not spot-checked**: summed all 148
+  per-image entries against every top-level aggregate — 4/4 exact matches. 0 images with an
+  impossible value (matched count exceeding lesion count, or unmatched-positive count
+  exceeding positive count).
+
+- **Sanity-checked against the two known stage recalls**, order-of-magnitude only: detector
+  recall 0.670 (2026-08-22j) × caries test recall 0.74 (arm B, 2026-08-25b) = naive compound
+  0.496, against the measured 42.6%. Different population and method — this is not a formal
+  derivation — but the right order of magnitude for two compounding ~65–75% stages, which is
+  reassuring rather than surprising.
+
+- **What this number does NOT mean.** An unmatched predicted-positive tooth is not a confirmed
+  false positive: `disease/` annotates only teeth carrying some finding (~6 of ~30 per image),
+  so most teeth in any image are simply unannotated, not verified healthy. The
+  predicted-positive match rate is reported explicitly as a diagnostic for this reason.
+
+- **Also fixed in passing**: `PAPER_MATERIAL.md` §8.4 was titled "The pipeline has never been
+  run end to end" and stated "any claim of an integrated system would be unsupported by this
+  repo" — both false since R4 (2026-08-24f). Corrected with a dated note, original text kept
+  intact per this project's never-rewrite-a-past-claim convention (same pattern as every prior
+  correction this session).
+
+- **Source:** `scripts/eval/lesion_localization.py`,
+  `outputs/lesion_localization/full/lesion_localization.json`,
+  `outputs/lesion_localization/n1_check/` (the single-image verification run).
+- **Follow-ups:** Ningxia needs its own `load_lesion_gt` sibling for raster masks once the
+  drive is connected and a real mask file can be inspected — deliberately not guessed here.

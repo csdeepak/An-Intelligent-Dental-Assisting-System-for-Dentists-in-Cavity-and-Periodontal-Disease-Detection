@@ -638,6 +638,16 @@ been run.
 
 ### 8.4 The pipeline has never been run end to end
 
+**RESOLVED 24 August 2026.** `scripts/run_inference.py` now runs all six stages
+(RESULTS_LOG 2026-08-24f) — this is R4 / paper claim C3. The specific claims below describe
+the state as of 22 August and are kept for the audit trail; **the heading and first sentence
+are no longer true.** What replaced each point: an end-to-end metric exists (299-tooth batch
+run, 0 duplicate FDI codes; 25 Aug's lesion-localization run below); error propagation is now
+partially measured (the caries gate's 84.9%→19.1% in-pipeline correction, RESULTS_LOG
+2026-08-25a, is itself an error-propagation number); Grad-CAM remains design-only, unlike the
+JSON report which now exists. Text below unedited except this note, per the project's
+never-rewrite-a-past-claim convention.
+
 Stages 5 and 6 do not exist as code. Consequently:
 
 - No end-to-end metric exists — only four independently-evaluated stages.
@@ -825,6 +835,69 @@ final figure alone — and the ceiling measurement is what licenses the architec
 `docs/results/figures/enumeration_head/`.
 
 ---
+
+### 8.11 Lesion-localisation agreement — a first number, built to survive contact with Ningxia
+
+`MASTER_PLAN_2026H2.md` §4.3.4 promotes this to the **primary external number** for C2: it
+needs no negative class at all — it only asks, of every real lesion, was a diseased tooth
+flagged near it — so it cannot be corrupted by Ningxia's missing-healthy-controls problem
+(§4.4). No code for it existed before 25 August 2026 (`scripts/eval/lesion_localization.py`).
+Built and validated against DENTEX first, deliberately, so connecting Ningxia later is
+"point the script at a different folder" rather than new code under deadline pressure.
+
+**What it measures.** The detector emits whole-tooth boxes; the caries branch classifies each
+crop. There is no finer localisation inside this pipeline than "which tooth" — so this is a
+**tooth-level spatial correspondence check**, not a pixel-level segmentation-quality metric:
+is the caries-positive verdict on the tooth that actually has a lesion. That is exactly what
+§4.3.4 asks, stated here so the number is never read as claiming more than that.
+
+**Ground truth, scoped deliberately narrow.** DENTEX `disease/label/*.json` carries 8 Turkish
+finding types. Only **çürük** (caries) is used as ground truth — küretaj (curettage) and kanal
+(root canal) are procedure/treatment markers, not active lesions; gömülü (impacted), lezyon
+(periapical — a different clinical entity from periodontal bone loss) and kırık (fracture) are
+outside what any branch of this pipeline predicts. Using only çürük means every unmatched GT
+lesion is unambiguously something the caries branch should have caught, not a category it was
+never trained to recognise.
+
+**Matching is reused, not reimplemented**: `iou()` and `match_gt_to_detections()` (greedy IoU
+with a centroid-containment fallback for a lesion polygon much smaller than its tooth box) are
+imported directly from `validate_fdi_assignment.py`, `min_iou=0.30` inherited unchanged — one
+proven implementation rather than a second one that could quietly disagree.
+
+**Result — 164 leak-free images, clean pipeline default (`caries-gate-resnet18-v3.0`):**
+
+| | |
+|---|---|
+| Images with ≥1 çürük lesion | 148 / 164 |
+| Lesions (çürük polygons) | 479 |
+| **Lesion-localisation agreement** | **204/479 = 42.6%** |
+| Predicted-positive teeth | 772 |
+| — of which land on an annotated lesion | 204 (26.4%, diagnostic only, see caveat) |
+
+Sanity-checked against the two known stage recalls rather than trusted on its own: detector
+recall 0.670 × caries test recall 0.74 (arm B, RESULTS_LOG 2026-08-25b) gives a naive compound
+estimate of 0.496 — different population and method, but the right order of magnitude next to
+the measured 42.6%, which is what compounding two ~65–75% stages should look like.
+
+**The one thing this number cannot tell you**: an unmatched predicted-positive tooth is not a
+confirmed false positive. `disease/` annotates only teeth carrying *some* finding — roughly 6
+of ~30 per image — so most teeth in any image are simply unannotated, not verified healthy.
+`predicted_positive_match_rate` is reported as an explicit diagnostic for this reason, never as
+a precision figure (that number, honestly caveated the same way, already exists in
+`compare_caries_gates.py`).
+
+**Verified, not assumed, before trusting the aggregate**: `load_lesion_gt` hand-checked against
+`test_0`'s raw label file (3 çürük shapes expected, 3 returned, exact FDI match); every
+per-image count summed against the top-level aggregate (4/4 exact); 0 images with an
+impossible value (matched > lesions, or unmatched-positive > positive).
+
+**Not yet built**: a Ningxia loader. Ningxia ships raster segmentation masks, a different
+ground-truth format this project has not inspected (the drive was disconnected when this was
+written) — guessing that encoding in advance would be exactly the kind of imagined-not-verified
+code this project's corrections this session have all been about. `load_lesion_gt` is the one
+function designed to be swapped for a mask-reading sibling; nothing else here assumes DENTEX's
+polygon format. Source: `outputs/lesion_localization/full/lesion_localization.json`,
+RESULTS_LOG 2026-08-25c.
 
 ---
 

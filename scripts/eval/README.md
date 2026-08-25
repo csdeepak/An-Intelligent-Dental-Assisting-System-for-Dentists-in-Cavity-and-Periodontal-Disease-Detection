@@ -11,6 +11,7 @@ Scripts that measure the pipeline rather than build or train it. This is where c
 | `ablate_head_inputs.py` | Which input carries which FDI digit — tests the architecture's stated rationale | ✅ run on the 2,729-crop val split |
 | `compare_caries_gates.py` | Before/after for the caries gate, through the pipeline, same boxes and crops | ✅ 84.9% → 19.1% |
 | **`verify_invariants.py`** | **Re-checks the facts the documentation depends on.** Run after changing data, swapping a checkpoint, or before trusting a number in a draft | ✅ 7/7 hold |
+| **`lesion_localization.py`** | Do predicted-diseased teeth spatially overlap a real expert lesion? §4.3.4's primary EXTERNAL number for C2 (Ningxia-ready — no negatives needed) and the T1.5 XAI metric | ✅ 42.6% on DENTEX |
 
 ## `validate_fdi_assignment.py`
 

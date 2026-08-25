@@ -100,13 +100,21 @@ long pole."
    from the superseded `phase1_legacy`). Gap between arms (0.01-0.03) is smaller than each
    arm's own epoch-to-epoch noise (~0.27) — reported as inconclusive, not a win either way.
    Frozen gate (arm B) unchanged. Closes T0.1&ndash;T0.4. RESULTS_LOG 2026-08-25b.
-5. **T0.5 — the Mild n=6 decision.** No blocker, no compute. Still untouched.
-6. **Version-tag the bone-loss weights** — Stages 4a/4b are now the only untagged models.
-7. **Reconnect the Ningxia drive** for W4's external run. It is external test data: never
+5. ~~**Lesion-localisation evaluator.**~~ **BUILT + RUN 25 Aug** (RESULTS_LOG 2026-08-25c) —
+   no code for this existed before today. `scripts/eval/lesion_localization.py`. This is
+   §4.3.4's primary EXTERNAL number for C2 (immune to Ningxia's missing-negatives problem) and
+   the T1.5 XAI metric, built and validated against DENTEX first so Ningxia later is "point at
+   a different folder," not new code under deadline pressure. **204/479 = 42.6%** lesion
+   agreement on 164 clean images. Pure inference — no GPU needed, ran on MPS.
+6. **T0.5 — the Mild n=6 decision.** No blocker, no compute. Still untouched.
+7. **Version-tag the bone-loss weights** — Stages 4a/4b are now the only untagged models.
+8. **Reconnect the Ningxia drive** for W4's external run. It is external test data: never
    train or tune on it. **Check its overlap against Tufts, DENTEX *and* the enumeration
    corpus separately** — inferring disjointness from a neighbouring pair is exactly the
-   mistake that cost 5.7 points on Stage 2.
-8. **Start IRB paperwork.** Zero-cost, longest lead, flagged since 15 Aug, still not begun.
+   mistake that cost 5.7 points on Stage 2. The lesion evaluator built today runs against it
+   as-is for DENTEX; Ningxia's raster masks need a new `load_lesion_gt` sibling, not guessed
+   in advance.
+9. **Start IRB paperwork.** Zero-cost, longest lead, flagged since 15 Aug, still not begun.
 
 ## 4. Decisions PENDING — do not default into these silently
 

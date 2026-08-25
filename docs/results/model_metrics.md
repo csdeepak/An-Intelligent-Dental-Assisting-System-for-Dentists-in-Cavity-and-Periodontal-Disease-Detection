@@ -202,4 +202,23 @@ Not integrated. Reported as a negative result.
 
 ## Stages 5–6 — Pipeline integration + report
 
-**Not implemented.** No end-to-end metric exists.
+**Implemented 24 Aug 2026** (`scripts/run_inference.py`, RESULTS_LOG 2026-08-24f — R4, paper
+claim C3). Image in, per-tooth JSON + overlay out, through all six stages.
+
+**In-pipeline batch result, 12 leak-free DENTEX images, 299 detected teeth:**
+
+| | |
+|---|---|
+| Caries-positive (pipeline default, v3 gate) | 57 (19.1%), was 254 (84.9%) pre-fix |
+| Bone-loss-positive | 2 (0.7%) — near-inert off-Tufts, domain shift |
+| Duplicate FDI codes | 0 / 299 |
+
+**Lesion-localisation agreement — 25 Aug 2026** (`scripts/eval/lesion_localization.py`,
+RESULTS_LOG 2026-08-25c), 164 leak-free images: of 479 real çürük (caries) lesions,
+**204 have a predicted-diseased tooth spatially overlapping them — 42.6%**. This is a
+tooth-level correspondence check (the pipeline has no finer localisation than "which tooth"),
+not a pixel-level segmentation-quality metric. Built against DENTEX first specifically so it
+generalises to Ningxia's masks later without new code under deadline pressure — see
+`PAPER_MATERIAL.md` §8.11 for the full scoping and caveats.
+
+Both are pure inference; neither needed a GPU rental.
