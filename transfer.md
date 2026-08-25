@@ -96,8 +96,10 @@ long pole."
    end-to-end maximum and the head already captures 69.4% of it. **R1's seg retrain is the
    lever**, and DentFound's ablation now justifies it with numbers (+20.35% precision,
    +23.01% recall, +23.11% F1 from tooth instance masks) rather than assertion.
-4. **Caries arms A and B** — `train_caries_cascade.py --arm a` / `--arm b`. ~10 min locally on
-   MPS, or bundle into the GPU session. Closes T0.1&ndash;T0.4.
+4. ~~**Caries arms A and B.**~~ **DONE 25 Aug** — both ran on `crops_v3_phase1` (re-scoped
+   from the superseded `phase1_legacy`). Gap between arms (0.01-0.03) is smaller than each
+   arm's own epoch-to-epoch noise (~0.27) — reported as inconclusive, not a win either way.
+   Frozen gate (arm B) unchanged. Closes T0.1&ndash;T0.4. RESULTS_LOG 2026-08-25b.
 5. **T0.5 — the Mild n=6 decision.** No blocker, no compute. Still untouched.
 6. **Version-tag the bone-loss weights** — Stages 4a/4b are now the only untagged models.
 7. **Reconnect the Ningxia drive** for W4's external run. It is external test data: never

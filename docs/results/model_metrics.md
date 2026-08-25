@@ -110,10 +110,32 @@ Full record: `RESULTS_LOG.md` 2026-08-22i and **22j (the leakage correction)**.
 
 ## Stage 3 — Caries cascade · ResNet18 · DENTEX
 
-**Phase 1 gate (caries vs no_caries):** metrics not recorded — the classification report
-was never saved in the notebook. Outstanding.
+**Phase 1 gate (caries vs no_caries) — `caries-gate-resnet18-v3.0`, pipeline default.**
+Retrained 25 Aug 2026 with a rebuilt negative class (5,366 real healthy teeth, MD5-joined
+from DENTEX's enumeration and disease subsets — RESULTS_LOG 2026-08-25a). Both T0.1 arms now
+exist; arm B is frozen as the shipped model (val macro-F1 selected it, narrowly):
 
-**Phase 2 severity (caries vs deep_caries), validation, 133 crops:**
+| | val macro-F1 | test macro-F1 | test caries P/R/F1 | test no_caries P/R/F1 |
+|---|---|---|---|---|
+| Arm A (no augmentation) | 0.7210 | 0.7212 | 0.47 / 0.62 / 0.54 | 0.93 / 0.88 / 0.91 |
+| **Arm B (augmented, frozen)** | **0.7350** | 0.6948 | 0.40 / 0.74 / 0.52 | 0.95 / 0.81 / 0.87 |
+
+**The A/B gap is not a finding.** Both arms swing ~0.27 in val macro-F1 across their own 15
+epochs; the between-arm gap is 0.014–0.026 — 10–20&times; smaller than that noise floor.
+Do not read this as "augmentation helps/hurts" (RESULTS_LOG 2026-08-25b).
+
+**In-pipeline effect, same 12 images/detector/boxes, only the gate swapped**
+(`scripts/eval/compare_caries_gates.py`): caries rate **84.9% &rarr; 19.1%** against an 11.7%
+annotated floor (7.3&times; &rarr; 1.6&times; over-call). **Improved, not solved** — precision
+0.40 means roughly six of ten positives are still wrong, and the healthy class rests on
+presumed-negative labelling (RESULTS_LOG 2026-08-25a).
+
+Weights: `models/09_caries_gate_v3/caries_gate_v3.pth` (gitignored, 43 MB — see
+`docs/EXTERNAL_DRIVE.md`), sha256 `8f4a99ba412c…`, verified loadable and reproduced live
+through `scripts/run_inference.py` (not just structurally checked).
+
+**Phase 2 severity (caries vs deep_caries), validation, 133 crops — unchanged, still
+`phase1_legacy`-era:**
 
 | Class | Precision | Recall | F1 | Support |
 |-------|-----------|--------|----|---------|
@@ -123,23 +145,12 @@ was never saved in the notebook. Outstanding.
 | **Macro F1** | | | **0.77** | |
 | Weighted F1 | | | 0.82 | |
 
-**Weights: `models/07_caries_cascade/`, version tag `caries-cascade-resnet18-v1.0`**
-(retrieved from Kaggle and recorded 21 Aug 2026 — until then this was the only trained stage
-with no local weight, no tag and no hash). The numbers above come from
-**`phase2_final_bundle.pth`**, identified by matching this table against the saved
-`classification_report` in cell 119 of `notebooks/caries/phase-1.ipynb`. SHA-256s, the
-verified checkpoint lineage, and the retrieval history are in that directory's
-`run_summary.txt`. The weights were verified **structurally only** — no torch exists on the
-machine that recorded them, so they have not been loaded and cell 119's result has not been
-reproduced; do that on the GPU box before trusting inference. These weights have never been
-evaluated against the independent image-level test split that now exists,
-`data/dentex/splits_v2.json`.
-
-Validation-only — no held-out test split exists for caries. These numbers are also from
-accuracy-selected checkpoints; as of 19 Aug 2026 the notebook selects on macro-F1 instead
-(T0.3) and a held-out split script exists (T0.2), but neither fix has been re-run yet — see
-`docs/results/RESULTS_LOG.md` 2026-08-19 entries. This table stays as-is until the re-run
-produces new numbers to replace it with.
+**Weights: `models/07_caries_cascade/phase2_final_bundle.pth`, version tag
+`caries-cascade-resnet18-v1.0`.** Loaded and reproduced live via `run_inference.py`
+(`DEF_CARIES_SEVERITY`) — the "structurally only, no torch available" caveat that used to sit
+here no longer applies; this machine's environment was fixed 24 Aug 2026. Still trained on
+`phase1_legacy`-era crops and not re-run this session — **only the gate was rebuilt**, not the
+severity head. Validation-only; no held-out test split for Phase 2 exists yet.
 
 ---
 

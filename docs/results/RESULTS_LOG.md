@@ -2284,3 +2284,57 @@ Copy this block verbatim to the bottom of the file and fill it in.
   (b) 260 images is one dataset and one scanner population — external validation is what
   Ningxia is for; (c) the Phase-2 severity head still trains on `phase1_legacy`-era crops and
   was not touched here.
+
+## 2026-08-25b — T0.1 closed: the augmentation ablation ran, and the honest answer is "no signal at this seed"
+
+- **What was done:** T0.1's augmentation A/B was written into a notebook on 15 Aug and never
+  executed — confirmed again before running it (no `best_phase2_augmented*.pth` anywhere, no
+  execution count on the relevant cells). **Re-scoped from its original target first**: T0.1
+  was defined against `phase1_legacy`, the caries gate's now-superseded negative class. Running
+  an augmentation ablation on a model nobody uses would answer the wrong question, so both arms
+  ran on `crops_v3_phase1` — the tree that actually ships. Verified before launch, not assumed:
+  script unchanged since arm B's 25 Aug run (`git diff --stat` clean), dataset counts identical
+  (723/4027 train, matching arm B exactly), and a live check during arm A's run confirmed
+  identical printed class weights `[3.2849, 0.5898]` — proof both arms trained on the same data,
+  differing only in the one ablated variable.
+
+- **Results, both arms, same data/weights/epochs/schedule, only the transform differs:**
+
+  | | val macro-F1 | test macro-F1 | test caries P/R/F1 | test no_caries P/R/F1 |
+  |---|---|---|---|---|
+  | Arm A (no augmentation) | 0.7210 | **0.7212** | 0.47 / 0.62 / 0.54 | 0.93 / 0.88 / 0.91 |
+  | Arm B (augmented) | **0.7350** | 0.6948 | 0.40 / 0.74 / 0.52 | 0.95 / 0.81 / 0.87 |
+
+  Arm B wins on val (the selection metric, T0.3); arm A scores higher on test. A/B gap:
+  0.014 (val), 0.026 (test).
+
+- **That gap is not a finding — it is smaller than the noise floor, checked explicitly rather
+  than eyeballed.** Extracted every epoch's val macro-F1 from both training logs (properly
+  anchored regex, not conflated with the adjacent accuracy number — an earlier extraction
+  attempt accidentally matched both): **arm A swings 0.4486–0.7210 across its own 15 epochs
+  (range 0.272); arm B swings 0.4618–0.7350 (range 0.273).** Both arms individually vary by
+  ~0.27 run over run within themselves. The between-arm gap (0.014–0.026) is roughly **10–20×
+  smaller** than that. A single-seed A/B comparison this size cannot support a claim that
+  augmentation helps or hurts here — it would need multiple seeds per arm to separate signal
+  from the training process's own noise, which is out of scope for a Tier-0 close-out.
+- **T0.1's honest answer, therefore: measured, not modelled as a clean win.** Report both rows
+  in the table above. Do not claim augmentation improves or degrades the gate from this result.
+- **The frozen pipeline default (`caries-gate-resnet18-v3.0`) is unchanged**, and deliberately
+  not re-selected now that both arms exist. It was frozen from arm B before arm A was run; val
+  macro-F1 — the pre-registered selection metric — still favours B, narrowly. Swapping to arm A
+  *because it scored higher on test* would be exactly the test-set-tuning this project's
+  discipline exists to prevent (same class of violation as the `LOW_CONFIDENCE` threshold rule,
+  2026-08-24d, and the Ningxia lock in `MASTER_PLAN_2026H2.md` §4.3).
+- **A real, minor documentation gap found in passing**: `results.json` never receives
+  `epoch_log` when `--phase1-only` is set — `train_caries_cascade.py` returns at line ~312,
+  before the line that attaches it. The per-epoch curve for both phase1-only arms exists only
+  in the plain-text stdout logs (`outputs/caries_v3/train.log`, `train_arm_a.log`), not in the
+  JSON artefact T0.4 promises. Not fixed here — logging both stdout files as the source of
+  record is sufficient for this entry; worth a one-line fix if `--phase1-only` runs become
+  routine.
+- **Source:** `outputs/caries_v3/run/arm_a/` (`results.json`, `phase1_gate_report.txt`),
+  `outputs/caries_v3/run/arm_b/` (same, from 25 Aug), `outputs/caries_v3/train_arm_a.log`,
+  `outputs/caries_v3/train.log`.
+- **Follow-ups:** none blocking. T0.1 is closed — both arms exist, reported honestly, and the
+  frozen model is unchanged. If a confident augmentation verdict is ever wanted, it needs
+  multiple seeds, not a rerun of this same ablation.

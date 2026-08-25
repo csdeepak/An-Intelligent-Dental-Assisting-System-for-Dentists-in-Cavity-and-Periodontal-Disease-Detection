@@ -494,3 +494,58 @@ stale test count I found in passing (still said 46/46; R4's `test_classifiers.py
    (`docs/EXTERNAL_DRIVE.md` has exact instructions).
 2. Everything else from the prior addenda stands: C1/C2 external validation is the real next
    technical work, R4 and the caries gate fix are done.
+
+---
+
+# Addendum 8 — T0.1 closed: caries arm A run, and it's inconclusive by design (25 Aug)
+
+## What was done
+
+Three review passes on `train_caries_cascade.py` before running anything, at the user's
+explicit request: traced arm A's transform path (`build_transforms(augment=False)` returns
+`(eval_tf, eval_tf)`, zero randomness), hand-verified the `class_weights_from_loader`
+one-liner against both the smoke and non-smoke code paths, confirmed no output-path collision
+with arm B, and confirmed via `git diff --stat` that the script hadn't changed since arm B ran.
+Then a live check during training: arm A printed the identical class weights arm B did
+(`[3.2849, 0.5898]`) — proof both arms trained on the same data, isolating augmentation as the
+only variable.
+
+**Result:** val macro-F1 A=0.7210 / B=0.7350; test A=0.7212 / B=0.6948. Arm B wins on val (the
+selection metric), arm A scores higher on test — a disagreement, not a clean story either way.
+
+## The thing that mattered: sizing the noise before reading the gap as a finding
+
+Extracted every epoch's val macro-F1 from both logs (had to fix a first attempt that
+accidentally regex-matched the adjacent accuracy number too). Each arm swings **~0.27** across
+its own 15 epochs. The between-arm gap is **0.014–0.026** — 10–20× smaller. That comparison is
+the actual finding: a single-seed A/B this size cannot support any claim about augmentation,
+and I said so rather than picking whichever number sounded more interesting.
+
+## Decisions made
+
+- **Re-scoped T0.1 before running it.** It was written against `phase1_legacy`, the caries
+  gate's now-superseded negative class. Ablating a model nobody uses would have been wasted
+  compute on the wrong question. Ran both arms on `crops_v3_phase1` instead.
+- **Did not swap the frozen pipeline default.** `caries-gate-resnet18-v3.0` was frozen from
+  arm B before arm A existed. Now that both do, val macro-F1 — the pre-registered selection
+  metric — still narrowly favours B. Switching to A because it scored higher on *test* would
+  be exactly the test-set-tuning this project's discipline exists to prevent (same shape as the
+  `LOW_CONFIDENCE` threshold rule from 24d, and the Ningxia lock).
+- **Reported the epoch_log gap rather than fixing it.** `results.json` never receives
+  `epoch_log` when `--phase1-only` short-circuits before the line that attaches it. Real, minor,
+  not worth a code change for a documentation completeness gap when the plain-text logs already
+  carry the same numbers as the source of record.
+- **Rewrote model_metrics.md's Stage 3 section rather than appending to it.** Found it was more
+  stale than expected while updating — it still said "Phase 1 gate: metrics not recorded" and
+  had never been touched with any of this session's caries-gate-v3 work. Fixed the whole
+  section, not just added T0.1's number on top of a stale base.
+
+## Open questions
+
+- A confident augmentation verdict needs multiple seeds per arm — out of scope for a Tier-0
+  close-out, worth flagging if it ever becomes a paper claim rather than a closed checklist item.
+
+## Next steps
+
+Unchanged: lesion-localization evaluator (no code yet, needed before Ningxia), connect the
+Ningxia drive, T0.5 Mild decision, bone-loss version tag.
