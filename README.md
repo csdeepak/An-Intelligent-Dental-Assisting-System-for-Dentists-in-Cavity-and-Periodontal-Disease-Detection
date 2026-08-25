@@ -5,7 +5,9 @@
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-red.svg)](https://pytorch.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-4%2F6%20Stages%20Trained-yellow.svg)]()
+[![Status](https://img.shields.io/badge/Status-6%2F6%20Stages%20Running-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/tests-60%20passing-brightgreen.svg)]()
+[![External](https://img.shields.io/badge/external%20validation-4%20hospitals-blue.svg)]()
 
 ---
 
@@ -127,12 +129,12 @@ bounding box.
            └──────────────┬───────────────────────┘
                           ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│      Stage 5: Filter & Report Assembly   ⬜ NOT BUILT           │
-│      Keep only: caries=YES OR bone_loss=PRESENT                 │
+│      Stage 5: Fusion, flags, assessability   ✅ BUILT           │
+│      Per-tooth fusion + confidence gating                       │
 └─────────────────────────┬───────────────────────────────────────┘
                           ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│      Stage 6: JSON + PDF report (Grad-CAM)  ⬜ NOT BUILT        │
+│      Stage 6: Per-tooth JSON + overlay   ✅ BUILT (no Grad-CAM) │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -147,20 +149,21 @@ bounding box.
 |-------|-----------|-------|--------|--------|
 | 1 | Tooth Detection (YOLOv11l) | Full OPG | Tooth bboxes | ✅ **Complete** — test mAP@0.5 **0.782**; canonical run **frozen** as `tooth-detector-a100-1024-v1.0` (T0.6, 20 Aug 2026) |
 | 2 | Sorting + FDI assignment | Tooth bboxes | FDI-keyed tooth list | ✅ **Complete — learned enumeration head** ([validated](scripts/eval/README.md) on 164 leak-free images): quadrant 94.7%, FDI exact **46.5% end-to-end**, up from 22.9% for the positional method it replaced. Universal→FDI table correct (`f8b31f8`). |
-| 3 | Caries cascade (ResNet18 ×2) | Tight 1.0× crop | caries / deep_caries | ✅ **Complete** — val acc 81%, macro F1 0.77; weights retrieved and tagged `caries-cascade-resnet18-v1.0` (21 Aug 2026). **Re-run pending** — see the note below the table. |
+| 3 | Caries cascade (ResNet18 ×2) | Tight 1.0× crop | caries / deep_caries | ✅ **Complete, gate rebuilt 25 Aug** — `caries-gate-resnet18-v3.0` is the pipeline default, trained on a repaired negative class (5,366 real healthy teeth). In-pipeline caries rate **84.9% → 19.1%**. Held-out precision **0.40** — improved, not solved. |
 | 4a | Bone Loss binary (ResNet18) | Expanded 1.5×W/2.0×H crop | Present / Absent | ✅ **Complete** — macro F1 **0.9233** |
 | 4b | Bone Loss severity (ResNet18) | Expanded crop | Mild / Moderate / Severe | ✅ **Complete** — macro F1 0.7208 (only 52 val crops) |
 
-> **"Complete" means trained, not validated to publication standard.** As of 22 Aug 2026 the
-> Tier-0 re-run block is prepared but unrun: the caries numbers above are validation-only,
-> from accuracy-selected checkpoints, on a split that has since been replaced by an
-> independent one (`data/dentex/splits_v2.json`). `scripts/dentex/train_caries_cascade.py`
-> is the re-run that fixes T0.1–T0.4 in one GPU session. Stages 5–6 (integration) do not
-> exist yet — `scripts/run_inference.py` is a 38-line placeholder. Current state:
-> `docs/research/PUBLICATION_TODO.md` status block.
 | — | CEJ bone-level estimation | Expanded crop | bone loss % | 🔬 Exploratory — 15.1% agreement, **not in the pipeline** |
-| 5 | Filter + report assembly | All tooth outputs | Filtered findings | ⬜ **Not built — next milestone** |
-| 6 | JSON / PDF report + Grad-CAM | Filtered findings | Clinical report | ⬜ **Not built** |
+| 5 | Fusion, flags, assessability | All tooth outputs | Fused per-tooth record | ✅ **Built 24 Aug** — `src/classifiers.py` + `run_inference.py`; positional-alignment guard, confidence gating |
+| 6 | Per-tooth JSON + overlay | Fused findings | Report + annotated image | ✅ **Built 24 Aug** — Grad-CAM remains design-only |
+
+> **"Complete" means trained and running end to end — not validated to clinical standard.**
+> Tier-0 (T0.1–T0.4) closed 25 Aug. What is still honestly weak, and is written into every
+> generated report under `["limitations"]`: caries precision is **0.40**; the bone-loss branch
+> **collapses outside Tufts** (fires on 0.7% of DENTEX teeth, 0.8–5.4% affected-tooth
+> sensitivity on Ningxia); detector recall **67.0%** caps Stage-2 end-to-end at 46.5%.
+> Current state: [`transfer.md`](transfer.md), then
+> `docs/research/PUBLICATION_TODO.md` status block.
 
 ---
 
@@ -376,7 +379,9 @@ and rebuild.
 python scripts/run_inference.py --image path/to/opg.jpg --output report.json
 ```
 
-Stages 5–6 are not implemented; this entry point is a stub.
+This runs all six stages and writes a per-tooth JSON report (add `--overlay viz.jpg` for an
+annotated image). Two checkpoints are not in git — see
+[`docs/EXTERNAL_DRIVE.md`](docs/EXTERNAL_DRIVE.md) for where to get them.
 
 ---
 

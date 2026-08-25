@@ -2,7 +2,7 @@
 
 **Last verified: 22 August 2026 (Stage 2 replaced by a learned head).** Importable modules that implement pipeline stages. The
 runnable entry points live in `scripts/`; these are the pieces they call. Everything here is
-covered by `tests/` (46 tests, all passing).
+covered by `tests/` (60 tests, all passing).
 
 ## Modules, by pipeline stage
 

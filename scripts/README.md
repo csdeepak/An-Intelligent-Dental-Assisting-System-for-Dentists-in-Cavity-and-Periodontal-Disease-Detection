@@ -15,7 +15,7 @@ Three families. The library they call is `src/`; see `src/README.md`.
 |---|---|---|
 | `build_dataset.py` | Builds the bone-loss training crops from Tufts | ✅ used |
 | `train_model.py` | Trains the bone-loss ResNet18 | ✅ used |
-| `run_inference.py` | **The full-pipeline entry point: OPG in → per-tooth report out** | ❌ **38-line placeholder** |
+| `run_inference.py` | **The full-pipeline entry point: OPG in → per-tooth JSON + overlay out** | ✅ **Built 24 Aug** — all six stages; see `src/classifiers.py` for Stages 3–4 |
 
 `run_inference.py` is Stages 5–6 — the project's largest gap and its central paper claim (C3).
 All four trained models are on local disk and **Stage 2 is now fixed** (46.5% end-to-end, up
