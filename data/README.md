@@ -36,7 +36,7 @@ data/
 | **Tufts** raw radiographs | `_repo_archive/datasets_workspace/Radiographs{,_rotated}/` | 1,000 each; `_rotated` is portrait 840×1615, which every script expects |
 | **Tufts** frozen split | `_repo_archive/datasets_workspace/outputs/eda_tufts/split_v1.csv` | The split behind every reported detector number. Gitignored, which is why a previous search declared it lost. |
 | **DENTEX** full release | `~/Downloads/Capstone/DENTEX/` | Outside the repo. See below. |
-| **Ningxia** images | External drive — **not currently connected** | 6,580 images, 3 hospitals. `MASTER_PLAN_2026H2.md` §4.4 records the original download at `D:\nangxia_dataset` on the Windows machine. |
+| **Ningxia** images | `~/Downloads/Capstone/ningxia_local/` (test splits only, 2.4 GB) | **Connected and evaluated 25 Aug.** Train split (11.2 GB) deliberately left on the pen drive — Ningxia is locked external test data, never trained on. Zero leakage verified against all 5 other corpora, each checked separately. `docs/EXTERNAL_DRIVE.md` has the drive links; `RESULTS_LOG.md` 2026-08-25d has the numbers. |
 | **Clinic (SDH)** | Not on this machine | Governance-blocked — `docs/research/clinical_dataset_provenance.md` §4a. |
 
 ## The DENTEX release, mapped

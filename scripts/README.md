@@ -17,9 +17,11 @@ Three families. The library they call is `src/`; see `src/README.md`.
 | `train_model.py` | Trains the bone-loss ResNet18 | ✅ used |
 | `run_inference.py` | **The full-pipeline entry point: OPG in → per-tooth JSON + overlay out** | ✅ **Built 24 Aug** — all six stages; see `src/classifiers.py` for Stages 3–4 |
 
-`run_inference.py` is Stages 5–6 — the project's largest gap and its central paper claim (C3).
-All four trained models are on local disk and **Stage 2 is now fixed** (46.5% end-to-end, up
-from 22.9% — `eval/README.md`), so this is buildable and its output is meaningful. Use
+`run_inference.py`'s `main()` now delegates to `load_models()` + `run_pipeline()` (refactored
+25 Aug, verified byte-identical) so the CLI and `../app.py` (the Streamlit deployment demo,
+root of the repo) share one code path — no second implementation to drift. `../Dockerfile`
+builds the same app as a CPU-only container. Neither is under `scripts/`; both are listed here
+because they exist entirely to expose what this directory builds. Use
 `src.fdi_head_inference.assign_fdi_head`, not the superseded positional module.
 
 ## If you are running anything on a non-Tufts image

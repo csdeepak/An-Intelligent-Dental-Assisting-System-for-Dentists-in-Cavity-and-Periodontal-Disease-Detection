@@ -5,39 +5,39 @@ what is next" for a session that is starting cold. It is **rewritten, not append
 unlike `docs/results/RESULTS_LOG.md` (append-only history) and `docs/session-memory/`
 (one file per session, never edited). Those two are the record; this is the snapshot.
 
-**Last updated: 22 August 2026 (ninth update — Stage-2 head frozen as v1.0; papers read).** Rewritten from a one-off machine-handoff document — the
-20–21 Aug handoff it described is complete, and its content is preserved in git history
-(`git show ad71ee4:transfer.md`) and in §6 below.
+**Last updated: 25 August 2026 (full rewrite — all six stages running, deployed, and
+externally validated on four hospitals).**
 
 > **Maintenance rule (CLAUDE.md rule 5):** whenever a session finishes something, decides
-> something, or changes what should happen next, update §1–§4 here **before the session ends**.
-> A stale snapshot is worse than none — it is the exact failure mode `CLAUDE.md` rule 4 exists
-> to prevent, and this file has already caused one wasted search (§6).
+> something, or changes what should happen next, update this file **before the session ends**.
+> A stale snapshot is worse than none — it has already cost this project a wasted search
+> (§7), and, this session, several stale README claims that read as done-when-they-weren't or
+> vice versa. Verify against the working tree before writing anything here.
 
 ---
 
 ## 1. Where we are, in five lines
 
-**Stage 6 now exists — the pipeline runs end to end** (`scripts/run_inference.py`, 24 Aug):
-image → per-tooth JSON. It exposed two OOD failures in opposite directions. **The caries one is
-fixed** (25 Aug): a rebuilt negative class with 5,366 real healthy teeth took the pipeline's
-caries rate from **84.9% → 19.1%**, though precision is only 0.40. **Bone loss remains
-near-inert off-Tufts (0.7%)** and is now the open one. `RESULTS_LOG` 2026-08-24f, 2026-08-25a.
+**The pipeline runs end to end, is deployed, and has been measured on four hospitals it
+never trained on.** `run_inference.py` → all six stages; `app.py` + `Dockerfile` wrap it
+unchanged for a browser demo. Caries went from unusable (84.9% false-positive-dominated) to
+plausible (19.1%, precision 0.40) by rebuilding its negative class with 5,366 real healthy
+teeth. **Bone loss is the one open technical failure** — 0.92 macro-F1 on Tufts collapses to
+0.7% firing on DENTEX and 0.8–5.4% affected-tooth sensitivity on Ningxia — measured on two
+independent external datasets now, not asserted from one.
 
-**Stage 2 is fixed.** The learned enumeration head lifts FDI accuracy from 22.9% to
-**46.5% end-to-end** (69.4% of detected teeth), a 2.0x improvement, measured on **164 leak-free
-images** after 86 were found to be training duplicates. On complete quadrants it clears the
-positional ceiling (**66.3%**) by **+13.9 points**. The bottleneck has moved to detector
-recall (67.0%). We are on **W2 of the 8-week plan** (`docs/research/MASTER_PLAN_2026H2.md` §5; W2 = Aug 22–28,
-implementation freeze **14 Oct**, ISBI submission **26 Oct**). Four of six pipeline stages are
-trained; **Stages 5–6 do not exist** and are the largest single gap. The Tier-0 credibility
-repairs are *prepared but unrun* — every one of them needs a GPU, and **no GPU instance is
-provisioned**. The paper's two headline contributions (C1 VLM comparison, C2 external
-validation) are at **0%**. Overall ≈35% complete: strong foundation, paper barely started.
+**C2 (external validation) has real numbers**: zero leakage against all five internal corpora,
+caries lesion agreement 22.6–43.3% across four Ningxia hospitals (DENTEX internal was 42.6%).
+**C1 (VLM baseline) is the only headline paper contribution still at 0%** — deliberately
+deferred to W5 by the plan, not forgotten. Phase III's checklist (system testing, V&V,
+deployment, results, tables/graphs) is met on every item except one: `docker build` itself has
+never actually run (daemon unavailable this session) — do that before relying on it. **60/60
+tests pass, `verify_invariants.py` is 7/7.** We are on **W2 of the 8-week plan**
+(`docs/research/MASTER_PLAN_2026H2.md` §5), implementation freeze **14 Oct**, ISBI **26 Oct**.
 
-**The single highest-leverage action right now: start R4 (Stages 5–6 integration).** It needs
-no GPU, all four models are local, and `MASTER_PLAN` §8 flags it High/High as "the historical
-long pole."
+**The user's stated intent for the next stretch of work: implementation, not the paper draft**
+— the draft happens last. **R1 (YOLOv11l-seg retrain) is the headline implementation item
+left**, and the user has explicitly cleared renting a cloud GPU for it on JarvisLabs.
 
 ---
 
@@ -45,134 +45,113 @@ long pole."
 
 | Item | Evidence |
 |---|---|
-| **T0.6** detector reconciled, frozen, tagged `tooth-detector-a100-1024-v1.0` | `docs/research/T0.6_detector_reconciliation.md` §1 |
-| **T0.7** CEJ labelled as a documented negative result | `PAPER_MATERIAL.md` §5.6/§7.5 |
-| **T0.2 (split half)** independent image-level 70/15/15 built **from raw**, not carved from val | `data/dentex/splits_v2.json` (tracked), train 495 / val 103 / test 107 |
-| **Universal→FDI bug** fixed, regression-tested; 5 stale docs corrected | `f8b31f8`, `tests/test_fdi_converter.py` |
-| **Caries weights** retrieved from Kaggle, hashed, tagged `caries-cascade-resnet18-v1.0` | `models/07_caries_cascade/run_summary.txt` |
-| **DENTEX crops** regenerated on the new split | `data/dentex/crops_v2/` — phase1_legacy 2,510/515/504 (+182 extern50); phase2 1,964/408/395 (+133) |
-| **R1 seg dataset** built on the frozen split | `data/tufts/dataset_seg/` — 26,005 instances, 700/150/150 |
+| **Detector** frozen, tagged `tooth-detector-a100-1024-v1.0` | `docs/research/T0.6_detector_reconciliation.md` §1 |
+| **FDI enumeration head** — 22.9% → 46.5% end-to-end, frozen `fdi-enumeration-head-resnet18-v1.0` | `models/08_fdi_enumeration_head/run_summary.txt`; verified 4 independent audit passes this session, reproduces byte-for-byte |
+| **Caries gate rebuilt** — 5,366 real healthy teeth (MD5-joined, 98.28% FDI agreement), frozen `caries-gate-resnet18-v3.0` | `models/09_caries_gate_v3/run_summary.txt`; 84.9% → 19.1% in-pipeline, precision 0.40 |
+| **T0.1–T0.4 caries re-run closed** — both arms run, gap is noise (0.01–0.03 vs 0.27 epoch-to-epoch swing) | `RESULTS_LOG.md` 2026-08-25b |
+| **Stages 5–6 built** — `run_inference.py` runs all six stages, image → per-tooth JSON + overlay | `RESULTS_LOG.md` 2026-08-24f (R4, paper claim C3); refactored 25 Aug into `load_models()`/`run_pipeline()`, verified byte-identical |
+| **Lesion-localisation evaluator** — 42.6% agreement on DENTEX, no GPU | `scripts/eval/lesion_localization.py`, `RESULTS_LOG.md` 2026-08-25c |
+| **C2 external validation on Ningxia** — 4 hospitals, zero leakage, first external numbers | `scripts/eval/ningxia_external.py`, `RESULTS_LOG.md` 2026-08-25d |
+| **Deployment** — Streamlit app + Dockerfile, wrapping the pipeline unchanged | `app.py`, `Dockerfile`, `RESULTS_LOG.md` 2026-08-25f |
+| **6 paper/review figures**, generated from saved artefacts only | `scripts/figures/make_paper_figures.py`, `docs/results/figures/paper/`, `RESULTS_LOG.md` 2026-08-25e |
+| **Bone-loss binary + severity** trained (Tufts) | `models/03_.../run_summary.txt`, `models/04_.../severity_summary.txt` — **still untagged**, see §4 |
+| **R1 seg dataset** built on the frozen split, ready to train | `data/tufts/dataset_seg/` — 26,005 instances, 700/150/150 |
 | **R2 mask-aware cropping** implemented + unit-tested (**unwired** — needs R1's masks) | `src/crop_generator.py`, `tests/test_crop_generator.py` |
-| **Caries re-run script** written, smoke-verified on CPU | `scripts/dentex/train_caries_cascade.py` |
-| **R4 Stages 1–6 integrated** — image → per-tooth JSON + overlay | `scripts/run_inference.py`, `src/classifiers.py`, `outputs/r4_demo/`; 60/60 tests |
-| **Caries gate rebuilt** with 5,366 real healthy teeth — 84.9% → 19.1% in-pipeline | `models/09_caries_gate_v3/run_summary.txt`, `outputs/caries_v3/gate_comparison.json` |
-| **Stage 2 FDI assignment** built + tested (R4, part 1) | `src/fdi_assignment.py` |
-| **Orientation contract** — rotate for detector, un-rotate immediately | `src/orientation.py` |
-| **Stage 2 validated** (22.9%) then **FIXED** (46.5%), **reproduces byte-for-byte** | `scripts/eval/validate_fdi_assignment.py --method head`; re-run 24 Aug produced artefacts `diff`-identical to `outputs/stage2_clean/`. *(Previously listed here as 28.0%→52.2% — both leaked-set figures. RESULTS_LOG 22j.)* |
-| **Enumeration head trained** — ResNet18 + positional features | `scripts/dentex/train_enumeration_head.py` |
-| **Papers read** — DPML + DentFound, both corroborate decisions taken | `RESULTS_LOG.md` 2026-08-22k |
-| Test suite | **46/46 pass** |
+| **Environment fixed and pinned** — numpy<2, or `scipy.optimize` (the Hungarian assignment) silently breaks | `requirements.txt`, `RESULTS_LOG.md` 2026-08-24b |
+| **All READMEs + this file** swept for staleness twice this session | `RESULTS_LOG.md` 2026-08-25e/f, this rewrite |
+| Test suite | **60/60 pass**; `scripts/eval/verify_invariants.py` **7/7** |
 
-**Findings that changed the science** (all in `RESULTS_LOG.md`):
-- The bbox detector's ground truth is **missing 66 real teeth** (corrupt `bounding box` fields); test GT holds 3,924 of 3,930. Left unfixed on purpose to preserve the frozen detector.
-- The **caries gate's negative class contains no healthy teeth** — `no_caries` is Impacted + Periapical Lesion. Real defect, no fix inside DENTEX's labelled data.
-- **DENTEX's subsets cover disjoint patients despite sharing filenames.** Cost one bug (15,531 crops of the wrong patients) before it was caught.
-- `DENTEX/disease/` holds **250 images, 1,600 FDI-keyed polygons, 8 classes, 91 explicitly healthy teeth** — leakage-checked, exactly 1 duplicate (`test_181.png` = `train_332.png`). Internal held-out set, **not** external validation.
+**The pattern worth remembering, stated once rather than per-entry below:** every defect found
+this session was in *documentation* or *methodology* — a stale claim, a metric applied outside
+its valid range, an untested assumption — never in the core FDI/detection logic itself, which
+has now survived four independent audit passes and reproduces exactly from frozen weights. The
+discipline that found them: **verify every number against a saved artefact before writing it
+down**, and when a check is cheap, run it even when the answer feels obvious. Two catches this
+session existed *because* of that habit — the periodontitis mask-geometry check
+(`RESULTS_LOG` 2026-08-25d) and the Ningxia IoU-threshold check — and both would have shipped
+a false "the model fails externally" conclusion otherwise.
 
 ---
 
-## 3. What is NEXT — ordered, with the real blocker named
+## 3. What is NEXT — implementation first, paper draft last
 
-1. ~~**R4 — Stages 5–6 integration.**~~ **DONE 24 Aug** (RESULTS_LOG 2026-08-24f).
-   `scripts/run_inference.py` now runs image → per-tooth JSON + overlay through all six stages;
-   Stages 3–4 live in `src/classifiers.py`; 14 new tests, 60/60 pass.
-   **It immediately exposed two out-of-distribution failures that isolated evaluation could
-   not** — which is the C3 argument:
-   - **caries over-calls ~7×** (84.9% of 299 teeth vs 35 annotated) because the gate's negative
-     class holds no healthy teeth;
-   - **bone loss is near-inert** (0.7%), trained on Tufts and run on DENTEX.
-   Both are quantified inside every report under `["limitations"]`. **0 duplicate FDI codes
-   across 299 teeth.**
+**User's explicit framing this session: continue implementation now; the paper draft is the
+final step, not the next one.** Ordered by what actually blocks something else:
 
-2. ~~**The caries gate's negative class.**~~ **FIXED 25 Aug** (RESULTS_LOG 2026-08-25a).
-   The enumeration and disease subsets share **260 byte-identical images under different
-   filenames** — 21m's "not derivable from DENTEX" was half right (the *filename* join is
-   invalid; an **MD5** join is not). Verified by falsifiable test: **98.28% FDI agreement**.
-   Gave **5,366 real healthy teeth**; retrained gate frozen as `caries-gate-resnet18-v3.0`
-   and now the pipeline default. In-pipeline caries **84.9% → 19.1%** against an 11.7%
-   annotated floor. **Improved, not solved** — held-out precision is **0.40**.
+1. **R1 — YOLOv11l-seg retrain.** The one item needing a rented GPU, and the user has cleared
+   renting on **JarvisLabs**. Detector recall (67.0%) is the binding constraint on everything
+   downstream of it — Stage-2 end-to-end is capped at 67.0% no matter how good the numbering
+   is, and DentFound's ablation (+20.35% precision, +23.01% recall, +23.11% F1 from instance
+   masks) is now a citable justification, not an assertion. Config is **pre-registered**
+   (`T0.6_detector_reconciliation.md` §2): imgsz 1024, batch 32, only model+data change — do
+   not shrink the batch to fit a smaller card, that breaks the comparison. ~40 min on an A100.
+   Runbook: §5 below.
+2. **Bone loss is the standing open research problem, not just an admin item.** In-domain
+   0.92 macro-F1 on Tufts; 0.7% firing on DENTEX; 0.8–5.4% affected-tooth sensitivity on
+   Ningxia. Two independent external datasets now agree it collapses outside its training
+   domain. No fix has been attempted yet — this is real implementation work, not a decision.
+   Worth scoping explicitly before or alongside R1, since R1 is Tufts-side and might help both
+   (detector and bone-loss are the two Tufts-trained stages, and the two that misbehave
+   elsewhere — likely one root cause, not two).
+3. **T0.5 — the Mild severity class (n=6) decision.** Zero compute, zero blocker, untouched
+   since 15 Aug. The cheapest open item in the project; there is no reason this stays open.
+4. **Version-tag the bone-loss weights.** Stages 4a/4b are the only trained models without a
+   tag now that the enumeration head and caries gate v3 are both frozen. Trivial, just undone.
+5. **Verify `docker build` actually completes.** Not run this session (daemon unavailable).
+   Every static check passed (file paths, package list, CLI flag syntax verified by actually
+   starting the process) but a real build has never happened. Do this before trusting the
+   deployment demo for Review 1.
+6. **C1 — VLM baseline.** Deliberately still at 0%; correctly deferred to W5 by the plan's own
+   design. Do not pull it forward to fill idle time — starting it now risks doing it rushed
+   alongside everything else rather than doing it properly in its own window.
+7. **Start IRB paperwork** for the clinic dataset. Zero-cost, longest lead time of anything
+   open, flagged since 15 Aug, still not begun.
 
-3. **Detector recall is now the binding constraint (67.0%).** At that recall 67.0% is the
-   end-to-end maximum and the head already captures 69.4% of it. **R1's seg retrain is the
-   lever**, and DentFound's ablation now justifies it with numbers (+20.35% precision,
-   +23.01% recall, +23.11% F1 from tooth instance masks) rather than assertion.
-4. ~~**Caries arms A and B.**~~ **DONE 25 Aug** — both ran on `crops_v3_phase1` (re-scoped
-   from the superseded `phase1_legacy`). Gap between arms (0.01-0.03) is smaller than each
-   arm's own epoch-to-epoch noise (~0.27) — reported as inconclusive, not a win either way.
-   Frozen gate (arm B) unchanged. Closes T0.1&ndash;T0.4. RESULTS_LOG 2026-08-25b.
-5. ~~**Lesion-localisation evaluator.**~~ **BUILT + RUN 25 Aug** (RESULTS_LOG 2026-08-25c) —
-   no code for this existed before today. `scripts/eval/lesion_localization.py`. This is
-   §4.3.4's primary EXTERNAL number for C2 (immune to Ningxia's missing-negatives problem) and
-   the T1.5 XAI metric, built and validated against DENTEX first so Ningxia later is "point at
-   a different folder," not new code under deadline pressure. **204/479 = 42.6%** lesion
-   agreement on 164 clean images. Pure inference — no GPU needed, ran on MPS.
-6. **T0.5 — the Mild n=6 decision.** No blocker, no compute. Still untouched.
-7. **Version-tag the bone-loss weights** — Stages 4a/4b are now the only untagged models.
-8. ~~**Reconnect the Ningxia drive.**~~ **DONE 25 Aug — C2 HAS ITS FIRST NUMBERS**
-   (RESULTS_LOG 2026-08-25d). Test splits copied to `~/Downloads/Capstone/ningxia_local/`
-   (train deliberately left on the drive — we may never train on it, so not having it locally
-   makes that impossible). **Zero leakage** against all five corpora, each checked separately.
-   Caries lesion agreement **22.6–43.3%** across four hospitals (DENTEX internal was 42.6%);
-   periodontitis affected-tooth sensitivity **0.8–5.4%**. Ningxia is now **touched** — locked,
-   no further tuning against it, ever.
-9. ~~**Deployment.**~~ **DONE 25 Aug** (RESULTS_LOG 2026-08-25f). `app.py` (Streamlit) +
-   `Dockerfile`, wrapping `load_models()`/`run_pipeline()` refactored out of
-   `run_inference.py` — verified byte-identical to the pre-refactor CLI. Full upload-to-render
-   path exercised with real data. `docker build` itself not run (daemon unavailable this
-   session) — do that once available, before relying on it for Review 1.
-10. **Start IRB paperwork.** Zero-cost, longest lead, flagged since 15 Aug, still not begun.
+**The paper draft is explicitly LAST**, per this session's instruction — not next, not in
+parallel. `PAPER_MATERIAL.md` is already structured for it (§5–6 methods, §7 results, §8
+limitations through §8.12, §9 the gap checklist) and the 6 figures are ready to drop in when
+that phase starts.
+
+---
 
 ## 4. Decisions PENDING — do not default into these silently
 
 | Decision | Why it needs a human |
 |---|---|
-| **Detector-derived not-diseased class?** The caries gate's negative class contains *no healthy teeth* — it is Impacted + Periapical Lesion only. Running the frozen detector over the 705 disease images and treating unmatched detections as not-diseased is the one sound fix, but it puts detector error into training labels. | Trade-off, not a fact |
-| **What else to use `DENTEX/disease/` for.** It is now the Stage-2 evaluation set (164 leak-free of 250). The other candidate uses — a small real healthy class (91 `saglam` teeth) and the C3 error-propagation substrate — are still open. | Scoping call |
-| **Clinic data governance.** `index.csv` sits beside `images/` on a shared Drive, which voids the de-identification. Five actions in `clinical_dataset_provenance.md` §4a, all needing the Drive owner. | Not this repo's account |
-| **Bone-loss weights have no version tag** — now the only trained models lacking one, after the Stage-2 head was frozen as `fdi-enumeration-head-resnet18-v1.0`. | Trivial, just undone |
+| **Bone-loss domain-shift fix — what approach?** Now backed by two independent external measurements, not a hunch. Options span R1 (shared Tufts-side fix), Ningxia-informed fine-tuning (would need care — Ningxia is locked, no tuning against it directly), or scoping it as a documented limitation rather than a fix. | Research direction, not a fact to look up |
+| **What else to use `DENTEX/disease/` for**, beyond the Stage-2 eval set (164 leak-free of 250) and now the lesion-localisation source. The 91 `saglam` (healthy) teeth as a small real healthy class is still an open candidate use. | Scoping call |
+| **Clinic data governance.** `index.csv` sits beside `images/` on a shared Drive, voiding the de-identification. Five actions in `clinical_dataset_provenance.md` §4a, all needing the Drive owner. | Not this repo's account |
+| **Bone-loss weights have no version tag** — trivial to fix, listed here only so it doesn't get silently skipped again. | Just needs doing |
 
-**RESOLVED 22 Aug — kept because the reasoning is the useful part:** *how to fix FDI numbering.*
-Route A (raise posterior detector recall) was **ruled out by measurement** — rank-order
-assignment is capped at **66.3%** even on a fully-detected quadrant, because eight detected
-teeth are not positions 1–8, they are eight teeth that survived extraction. Route B (a learned
-per-tooth enumeration head) was built, trained and validated at **46.5% end-to-end**, reaching
-**80.2%** on that same complete-quadrant population — clearing the ceiling by **+13.9 points**.
-`RESULTS_LOG.md` 2026-08-22f, 22i, 22j, 22l, **2026-08-24a** (audit: the ceiling was previously
-mis-stated as 67.0%, which is the detector's recall).
+**RESOLVED and kept for the reasoning, not because still open:**
+- **How to fix FDI numbering** (22 Aug) — rank-order capped at 66.3%, learned head reaches
+  80.2% on the same population. `RESULTS_LOG.md` 2026-08-22f through 24a.
+- **The caries gate's negative class** (25 Aug) — MD5-joining the enumeration and disease
+  subsets recovers 5,366 real healthy teeth; the earlier "not derivable from DENTEX" verdict
+  was half right (filename join invalid, MD5 join is not). `RESULTS_LOG.md` 2026-08-25a.
+- **Ningxia leakage policy** (25 Aug) — checked against all five corpora separately, zero
+  overlap; the standing rule (never infer disjointness from a neighbouring pair) held.
+  `RESULTS_LOG.md` 2026-08-25d.
 
 ---
 
-## 5. The GPU session — run order, everything in one sitting
+## 5. The R1 GPU session — run order, JarvisLabs
 
-All GPU work is rented (user preference, and `MASTER_PLAN` §6 agrees: *"compute is not the
-bottleneck… always buy GPU"*). Every script below has been run end to end locally first, so
-the rented time is spent training, not debugging.
+The only job that needs renting. Everything else runs locally on the M4 Pro (ResNet18 work at
+~287 img/s on MPS — minutes per job).
 
-| # | Job | Command | Est. |
-|---|---|---|---|
-| ~~1~~ | ~~Enumeration head~~ | **DONE locally, 48 min** — **46.5%** end-to-end (52.2% was the leaked-set figure) | ✅ |
-| ~~2~~ | ~~Re-validate Stage 2~~ | **DONE** — `--method head` | ✅ |
-| 3 | Caries Arm A | `python scripts/dentex/train_caries_cascade.py --arm a` | ~5 min (or ~2 min locally) |
-| 4 | Caries Arm B | `python scripts/dentex/train_caries_cascade.py --arm b` | ~5 min (or ~2 min locally) |
-| 5 | **R1 seg retrain** — **the only job that genuinely needs renting** | `python scripts/yolo/train_yolo_seg.py` | ~40 min on A100 |
+| Step | Action |
+|---|---|
+| 1 | Provision a JarvisLabs instance with an A100 (or equivalent holding **batch 32 @ 1024px**, ~17.9 GB — do not size down and shrink the batch, that breaks the pre-registered comparison). |
+| 2 | Upload `data/tufts/dataset_seg/` (474 MB) and `models/06_yolo_detection_a100_run/best.pt` (for reference/warm-start if the plan calls for it — confirm against `T0.6_detector_reconciliation.md` §2 before assuming). |
+| 3 | Fix `data.yaml`'s absolute `path:` for the rented machine before launching. |
+| 4 | Run `python scripts/yolo/train_yolo_seg.py` — config is pre-registered, do not modify hyperparameters. |
+| 5 | Bring back `weights/` and `results.csv`. Freeze and tag on return, same convention as every other model (`run_summary.txt`, SHA-256, version tag). |
+| 6 | Re-run `scripts/eval/verify_invariants.py` and the Stage-2 eval after freezing — detector recall changing should shift the Stage-2 end-to-end ceiling, and that shift needs to be measured, not assumed. |
 
-Measured locally on the M4 Pro: ResNet18 work runs at ~287 img/s on MPS, so every caries job
-is minutes. R1 is 7 h locally and needs 17.9 GB at the pre-registered batch 32 @ 1024px, which
-is too close to the 24 GB ceiling to risk — **and shrinking the batch would break the
-pre-registered comparison**, which is the real reason to rent rather than speed.
-
-**What to upload** (none of it is in git): `data/dentex/enumeration_v1/` 1.7 GB ·
-`data/dentex/crops_v2/` 1.2 GB · `data/tufts/dataset_seg/` 474 MB · `models/06_yolo_detection_a100_run/best.pt` ·
-plus `DENTEX/disease/{input,label}/` (~1 GB) for step 2. Roughly **4.5 GB**.
-
-**What to bring back:** `outputs/enumeration_head/`, `outputs/stage2_validation/`,
-`outputs/caries_rerun/`, and the seg run's `weights/` + `results.csv`.
-
-**Two things not to get wrong:**
-- **R1's config is pre-registered** (T0.6 §2): imgsz 1024, batch 32, only model and data
-  changed. Do not reduce the batch size to fit — that breaks the comparison the
-  pre-registration exists to protect. Rent a card that holds batch 32 at 1024px.
-- **Fix `data.yaml`'s absolute `path:`** for the rented machine before step 5.
+**What NOT to do:** don't rent for T0.5, the version tag, or IRB paperwork — none of those are
+compute. Don't pull C1 forward to use the rented instance "while it's up" — it needs its own
+properly-scoped session (W5), not a rushed add-on.
 
 ---
 
@@ -188,12 +167,15 @@ plus `DENTEX/disease/{input,label}/` (~1 GB) for step 2. Roughly **4.5 GB**.
 | What to work on next | `docs/research/PUBLICATION_TODO.md` status block, sequenced by `MASTER_PLAN_2026H2.md` |
 | Narrative of each session | `docs/session-memory/` (newest file) |
 | Documentation layout | `docs/README.md` |
-| **Pipeline code, and the two contracts easy to get wrong** | **`src/README.md`** |
-| Entry points / how to run things | `scripts/README.md`, and `scripts/{yolo,dentex,eval}/README.md` |
+| **Pipeline code, and the three crop contracts easy to get wrong** | **`src/README.md`** |
+| Entry points / how to run things, incl. the deployment app | `scripts/README.md`, and `scripts/{yolo,dentex,eval}/README.md` |
 | Datasets: what is where, what is usable | `data/README.md` |
 | Weights, version tags, what is tracked | `models/README.md` |
+| **Google Drive links + what's in each** (checkpoints not in git) | `docs/EXTERNAL_DRIVE.md` |
+| Paper/review figures | `docs/results/figures/paper/` |
 
-Every directory containing code has a README, and all were re-verified 22 Aug 2026.
+Every directory containing code has a README; all were swept for staleness 25 Aug 2026 (twice
+— a first pass, then a second pass that caught three more drifted claims the first missed).
 
 ---
 
@@ -204,10 +186,11 @@ Every directory containing code has a README, and all were re-verified 22 Aug 20
 | DENTEX full release (~14 GB) | `~/Downloads/Capstone/DENTEX/` | Complete and verified. Subset map in `data/README.md`. |
 | Tufts raw + rotated radiographs | `_repo_archive/datasets_workspace/` | 1,000 each; `Radiographs_rotated/` is what scripts expect |
 | Tufts frozen split | `_repo_archive/datasets_workspace/outputs/eda_tufts/split_v1.csv` | Gitignored — which is why a previous session wrongly declared it lost |
-| Ningxia images | **External drive, disconnected** | Only `manifest.csv` is in-repo |
+| **Ningxia** | `~/Downloads/Capstone/ningxia_local/` (test splits, 2.4 GB) | **Connected, copied, evaluated 25 Aug.** Train (11.2 GB) deliberately left on the pen drive — locked external data. Zero leakage vs all 5 other corpora. |
 | Clinic (SDH) data | Not on this machine | Governance-blocked |
-| Python env | `/opt/anaconda3` (python 3.12) | **Working — 60/60 tests pass** (25 Aug, up from 46 after R4's `test_classifiers.py`), Stage 2 re-runs and reproduces byte-for-byte. torch 2.2.0 + MPS, cv2 5.0.0, ultralytics 8.4.127, scipy, sklearn. ⚠️ **`numpy` must stay `<2`** (pinned 1.26.4): numpy 2.x breaks torch↔numpy, `scipy.optimize` — which **is** the Stage-2 Hungarian assignment — and sklearn, silently at import. `requirements.txt` now pins it. |
-| **Two gitignored checkpoints, on Google Drive** | `docs/EXTERNAL_DRIVE.md` | `06_yolo_detection_a100_run/best.pt` (Tufts drive) + `09_caries_gate_v3/caries_gate_v3.pth` (DENTEX drive), both in a new `capstone_checkpoints/` folder. **Upload itself is still manual** — browser automation hit a 10 MB per-call cap on the upload tool, well under either file's size. |
+| Python env | `/opt/anaconda3` (python 3.12) | **60/60 tests, 7/7 invariants.** torch 2.2.0 + MPS, cv2 5.0.0, ultralytics 8.4.127, scipy, sklearn, **streamlit 1.37.1** (added 25 Aug for `app.py`). ⚠️ **`numpy` must stay `<2`** — pinned 1.26.4 in `requirements.txt`; numpy 2.x silently breaks `scipy.optimize` (the Hungarian FDI assignment) at import. |
+| Two gitignored checkpoints, on Google Drive | `docs/EXTERNAL_DRIVE.md` | `06_yolo_detection_a100_run/best.pt` + `09_caries_gate_v3/caries_gate_v3.pth`. **Present locally on this machine right now** (frozen here) — a Docker build run on this machine will bake them in; a fresh clone needs the manual Drive fetch described in that file. |
+| Docker daemon | **Not running this session** | `open -a Docker` + 120s wait did not bring it up. `docker build` has never actually executed — see §3 item 5. |
 | E2E instance / SSH keys | Account-level | No instance launched. Treat the `.pem` pasted on 20 Aug as compromised. |
 
 ---
