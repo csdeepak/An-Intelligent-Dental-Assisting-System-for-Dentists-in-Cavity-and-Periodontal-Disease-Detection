@@ -683,3 +683,42 @@ outside the container. Logged as an open follow-up rather than claimed as done.
 
 Days 3–4: assemble the paper draft from `PAPER_MATERIAL.md`, which is already structured for
 it. Deployment and figures — the two build-day items — are both now closed.
+
+---
+
+## Addendum 11 — FDI training-data provenance question: Ningxia ruled out, Tufts found unused
+
+**Trigger:** user ran the Streamlit app themselves, then asked a compound question after seeing
+a real output: bbox didn't cover all teeth, pipeline isn't clinically validated, which dataset
+trained FDI mapping, can Ningxia be used for it, and what about Tufts.
+
+**What was done:**
+- Reconfirmed (no change) the FDI enumeration head trains on DENTEX `quadrant_enumeration`
+  only — 634 images, 18,095 teeth.
+- Checked Ningxia directly for tooth-identity data, three ways: `manifest.csv` column list (no
+  identity field), a filesystem search for any per-tooth label file (none), and reading one real
+  mask file's pixel values with `cv2.imread` (binary `{0, 255}`, disease-only). Conclusion:
+  Ningxia cannot train FDI numbering — not a gap, it's a segmentation-only dataset by design.
+- Opened `_repo_archive/datasets_workspace/Segmentation/teeth_bbox.json` directly (not from
+  memory or an old README claim) and found it carries per-tooth `title` labels — Universal
+  numbers '1'–'32' and deciduous letters 'A'–'T' — for all 1,000 Tufts images, mean 26
+  teeth/image. This is new information; nothing in the repo's existing docs recorded it.
+
+**Decisions made:**
+- Recorded this as a **finding, not a decision** — `src/utils/fdi_converter.py` already has a
+  tested Universal→FDI table, so no new mapping logic is needed, but the deciduous teeth
+  (present in some images) need an explicit exclude-or-map choice, and the conversion needs the
+  same spatial verification DENTEX's mapping got before any crop generation happens. Logged as
+  `RESULTS_LOG.md` 2026-08-25g and a new pending-decision row in `transfer.md` §4, deliberately
+  not started as implementation work this session.
+
+**Open questions:**
+- Is Tufts' Universal→FDI conversion spatially correct on real image coordinates, the way
+  DENTEX's was checked in Addendum-era work on 2026-08-24? Not yet done.
+- Exclude deciduous-lettered teeth from a future Tufts-based FDI training set, or map them too
+  (FDI has a deciduous numbering scheme, unused anywhere in this pipeline so far)?
+
+**Next steps:** if this gets picked up, it becomes a `scripts/tufts/build_enumeration_crops.py`
+mirroring `scripts/dentex/build_enumeration_crops.py`'s verify-before-use discipline — not
+scheduled ahead of R1 in `transfer.md` §3, but available as a between-GPU-runs task since it's
+zero-GPU-cost investigation work.

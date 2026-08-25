@@ -2599,3 +2599,50 @@ Copy this block verbatim to the bottom of the file and fill it in.
   `requirements.txt`.
 - **Follow-ups:** run an actual `docker build` once the daemon is available, before relying on
   it for the review itself.
+
+## 2026-08-25g — Verified: Tufts has unused per-tooth numbering; Ningxia structurally cannot train FDI
+
+- **What was done:** User asked which dataset trained FDI mapping, and whether Ningxia or Tufts
+  could be used for it. Checked both directly against real files rather than answering from
+  memory — this project's whole discipline this session has been "verify, don't recall."
+
+- **FDI enumeration head training source, reconfirmed:** DENTEX `quadrant_enumeration` only —
+  634 images, 18,095 teeth (`scripts/dentex/build_enumeration_crops.py`). Unchanged, no new
+  finding here, stated for completeness of the answer.
+
+- **Ningxia CANNOT train FDI numbering — verified three ways, not inferred from the README:**
+  1. `data/ningxia/manifest.csv` columns: `task, category, split, center_group, filename,
+     img_path, mask_path` — no tooth-identity field of any kind.
+  2. Searched `~/Downloads/Capstone/ningxia_local/` for any JSON or label file carrying
+     per-tooth data — none exists.
+  3. Opened a real segmentation mask directly: `cv2.imread(...).flatten()` unique values are
+     `{0, 255}` — a binary disease/no-disease mask with no tooth identity encoded in it at all.
+  Ningxia tells you *there is a lesion here*, never *this is tooth 26*. This is not a data-
+  quality gap; it's what the dataset is for (disease segmentation, not tooth identification).
+
+- **NEW FINDING — Tufts has usable per-tooth numbering, verified, never used for FDI training.**
+  Opened `_repo_archive/datasets_workspace/Segmentation/teeth_bbox.json` directly:
+  - **1,000 images**, every one carrying a `title` field per tooth object.
+  - Titles are **Universal System numbers `'1'`–`'32'`**, plus **deciduous letters `A`–`T`** —
+    confirmed the letter set matches `is_deciduous()` in `src/utils/fdi_converter.py` exactly.
+  - **Mean 26.0 teeth/image** (min 0, max 48 — the max exceeding 32 confirms some images mix
+    permanent and deciduous dentition, needing explicit handling, not exclusion by assumption).
+  - Universal→FDI is already a tested, correct lookup table in this exact repo
+    (`src/utils/fdi_converter.py`, `f8b31f8`, `tests/test_fdi_converter.py`) — no new mapping
+    logic would be needed, only applying the existing one to this new source.
+  - This is structurally the same shape of data that trained the DENTEX head (full-dentition,
+    per-tooth positional labels), at **~1.6× the image count** DENTEX provided (1,000 vs 634).
+
+- **This is a real opportunity, not a decision made.** Before touching it: needs the same
+  rigor DENTEX's mapping got before use — spatial verification of the Universal→FDI conversion
+  against real Tufts image coordinates (mirroring how DENTEX's quadrant/position mapping was
+  spatially confirmed in 2026-08-24c), explicit handling of the deciduous-letter teeth (exclude
+  or map separately — undecided), and a hand-verified dry run before any crop generation or
+  training. None of that has been done. Flagged in `transfer.md` §4 as a pending decision, not
+  started as work.
+
+- **Source:** direct inspection of `_repo_archive/datasets_workspace/Segmentation/teeth_bbox.json`,
+  `data/ningxia/manifest.csv`, and one real Ningxia mask file.
+- **Follow-ups:** if pursued, this becomes a new `scripts/dentex/`-style builder
+  (`scripts/tufts/build_enumeration_crops.py` or similar) mirroring
+  `build_enumeration_crops.py`'s verify-before-use discipline exactly.

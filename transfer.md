@@ -122,6 +122,8 @@ that phase starts.
 | **What else to use `DENTEX/disease/` for**, beyond the Stage-2 eval set (164 leak-free of 250) and now the lesion-localisation source. The 91 `saglam` (healthy) teeth as a small real healthy class is still an open candidate use. | Scoping call |
 | **Clinic data governance.** `index.csv` sits beside `images/` on a shared Drive, voiding the de-identification. Five actions in `clinical_dataset_provenance.md` §4a, all needing the Drive owner. | Not this repo's account |
 | **Bone-loss weights have no version tag** — trivial to fix, listed here only so it doesn't get silently skipped again. | Just needs doing |
+| **Tufts as a second FDI-training source.** Verified 25 Aug: `teeth_bbox.json` carries per-tooth Universal ('1'–'32') and deciduous ('A'–'T') labels for all 1,000 images, mean 26 teeth/image — same shape of data as the DENTEX enumeration set, ~1.6× the image count. Not yet spatially verified the way DENTEX's mapping was, and deciduous-tooth handling (exclude vs. map) is undecided. `RESULTS_LOG.md` 2026-08-25g. | Whether it's worth the spatial-verification + builder-script effort before R1, or after |
+| **Ningxia confirmed unusable for FDI training** (25 Aug) — no tooth-identity field in the manifest, no per-tooth label file anywhere, masks are binary {0,255} disease masks only. Not a pending decision, listed here so it isn't re-asked. `RESULTS_LOG.md` 2026-08-25g. | — (closed, informational) |
 
 **RESOLVED and kept for the reasoning, not because still open:**
 - **How to fix FDI numbering** (22 Aug) — rank-order capped at 66.3%, learned head reaches
