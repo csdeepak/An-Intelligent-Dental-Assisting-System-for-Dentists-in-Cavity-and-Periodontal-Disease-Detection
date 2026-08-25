@@ -2513,3 +2513,34 @@ Copy this block verbatim to the bottom of the file and fill it in.
 - **Follow-ups:** image-level sensitivity for caries is ~96% and effectively saturated (the gate
   over-calls, and with ~22 teeth/image it almost always flags one) — report it as the weak
   metric §4.3.4 already predicted it would be, not as a strength.
+
+## 2026-08-25e — Paper/review figure suite: 6 figures, all generated from saved artefacts
+
+- **What was done:** Built `scripts/figures/make_paper_figures.py` for Phase III's "performance
+  analysis using tables and graphs." Tables existed in abundance; **graphs covered only Stages
+  1–2** (Ultralytics' own detector output and the enumeration head's training curves). Nothing
+  depicted the results that actually carry the paper.
+- **Design rule: the script runs no models and re-measures nothing.** Every value is read from a
+  committed JSON artefact, so a figure cannot drift from the logged result — if a figure and
+  `RESULTS_LOG` ever disagree, the figure is stale and regenerating fixes it. Each run prints
+  the numbers it drew so they can be diffed against this log.
+- **Figures produced** (`docs/results/figures/paper/`):
+  1. **Error propagation (C3)** — 936 GT teeth → 627 detected (67.0%) → 435 correctly numbered
+     (46.5%), with the −309 / −192 losses annotated. The flagship system-paper figure.
+  2. **External validation (C2)** — DENTEX 42.6% against Ningxia's four hospitals
+     (26.6 / 43.3 / 37.0 / 22.6%), with the "all four are equally external to us" caveat printed
+     on the figure itself so it cannot be separated from the number.
+  3. **Caries gate repair** — 84.9% → 19.1% against the 11.7% annotated floor.
+  4. **Stage-2 ceiling** — positional vs head by quadrant completeness.
+  5. **Bone-loss domain shift** — Tufts 0.923 macro-F1 → DENTEX 0.7% → Ningxia 0.8–5.4%. The
+     honest negative result, on one chart.
+  6. **Input ablation** — jaw / side / position across the three in-distribution conditions.
+- **Caught during review:** the first render clipped every caption off the canvas edge. Added a
+  wrapping helper that also computes the bottom margin to reserve, so a longer caption widens
+  the margin instead of silently disappearing.
+- **Source:** `scripts/figures/make_paper_figures.py`; inputs are
+  `outputs/stage2_reverify/`, `outputs/ningxia_external/full/`,
+  `outputs/lesion_localization/full/`, `outputs/caries_v3/gate_comparison.json`,
+  `outputs/enumeration_head/input_ablation.json`.
+- **Follow-ups:** Grad-CAM overlays remain unbuilt (design-only since the architecture doc).
+  **Deployment is the one Phase III item with nothing at all behind it.**
