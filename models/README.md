@@ -3,6 +3,11 @@
 **Last verified: 22 August 2026 (a fifth model now exists).** Every claim below was checked against the working tree,
 not carried over from a previous version of this file.
 
+**Cloned this repo and `run_inference.py` says a weight is missing?** Two checkpoints
+(`06_yolo_detection_a100_run/best.pt`, `09_caries_gate_v3/caries_gate_v3.pth`) are not in git
+and live on Google Drive instead — see `../docs/EXTERNAL_DRIVE.md` for the links and exact
+restore steps.
+
 ## What is actually here
 
 One numbered directory per trained stage, each with a `*summary*.txt` beside the weights.

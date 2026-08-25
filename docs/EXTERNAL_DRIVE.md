@@ -1,0 +1,94 @@
+# External storage — Google Drive
+
+This repo's `.gitignore` deliberately excludes large binaries: trained model weights and
+generated dataset crops (see `models/README.md` and each dataset builder's docstring for why
+each specific file is excluded). This file is the map of where those live outside git, so
+nobody has to re-share the two links below again.
+
+**Read this before assuming a file is "lost" because it isn't in git** — check here first.
+
+---
+
+## The two drives
+
+| Drive | Link | What it is |
+|---|---|---|
+| **DENTEX** | https://drive.google.com/drive/folders/1DtdE_TYuYTeyvuaveQEvuhSpwL6U8Ovp | Mirror of the DENTEX challenge release: `disease/`, `training_data/`, `validation_data/` — the same layout as `~/Downloads/Capstone/DENTEX/` referenced throughout `docs/results/*.md` and `scripts/dentex/*.py`. |
+| **Tufts** | https://drive.google.com/drive/folders/1_pPXCzNGlRuLaQhpqScX7sszSXSLQI-U | Tufts Dental Database materials: `ZIP/` (raw release), `processed_dataset_tufts/`, `resampled_dataset/`, `severity_dataset/`, `models/`. |
+
+Both were browsed read-only (not signed in) on 25 Aug 2026 to confirm the structure above —
+verified, not assumed. Neither drive's contents are duplicated here in detail; treat Drive as
+the source of truth for what's inside each folder and update this table if the top-level
+layout changes.
+
+---
+
+## Model checkpoints — what a fresh clone is missing, and where to get it
+
+`git clone` alone is **not** enough to run `scripts/run_inference.py`. Cross-checked against
+every `DEF_*` default in that script (25 Aug 2026) against `git ls-files`:
+
+**Already in git — nothing to do:**
+
+| File | Loaded as |
+|---|---|
+| `models/07_caries_cascade/final_model.pth` | (superseded by v3 below, kept for reproducibility) |
+| `models/07_caries_cascade/phase2_final_bundle.pth` | `DEF_CARIES_SEVERITY` |
+| `models/08_fdi_enumeration_head/enumeration_head_best.pth` | `DEF_FDI_HEAD` |
+| `models/03_bone_loss_model_training_notebook_models/bone_loss_resnet18_best.pth` | `DEF_BONE_LOSS` |
+| `models/04_bone_loss_severity_notebook_models/bone_loss_severity_resnet18_best.pth` | `DEF_BONE_SEVERITY` |
+
+**Missing after a fresh clone — these two, and only these two, actually block inference:**
+
+| File | Size | Trained on | Loaded as |
+|---|---|---|---|
+| `models/06_yolo_detection_a100_run/best.pt` | 49 MB | Tufts | `DEF_DETECTOR` |
+| `models/09_caries_gate_v3/caries_gate_v3.pth` | 43 MB | DENTEX | `DEF_CARIES_GATE` |
+
+Everything else on local disk under `models/` (`last.pt`, `best_model.pth`,
+`best_phase2_final.pth`, `best_phase2_fixed.pth`) is training lineage, not load-bearing —
+confirmed by grepping every script for a load path and finding none. They are **not** backed
+up here; see `models/07_caries_cascade/run_summary.txt` for their SHA-256 if reproduction is
+ever needed.
+
+### Where they live
+
+- `models/06_yolo_detection_a100_run/best.pt` → **Tufts drive**, `capstone_checkpoints/`
+  (it was trained on Tufts).
+- `models/09_caries_gate_v3/caries_gate_v3.pth` → **DENTEX drive**, `capstone_checkpoints/`
+  (it was trained on DENTEX).
+
+`capstone_checkpoints/` is a new folder in each drive, added 25 Aug 2026, distinct from any
+pre-existing folder (e.g. Tufts already has a `models/` folder with unrelated Colab-era
+content — this repo's checkpoints are kept separate to avoid ambiguity about what's what).
+
+**Status as of 25 Aug 2026: folders not yet created.** Browser automation could not complete
+this — `claude-in-chrome`'s file-upload tool caps at 10 MB per call, and both files exceed
+that alone; the extension was also not connected in this session. This is a manual step:
+
+1. Open the drive link above.
+2. New → Folder → name it `capstone_checkpoints`.
+3. Drag the file in from Finder.
+
+### To restore on a fresh clone (a friend's laptop, or after re-cloning)
+
+```bash
+# after git clone, from the repo root:
+mkdir -p models/06_yolo_detection_a100_run models/09_caries_gate_v3
+# download best.pt from the Tufts drive -> models/06_yolo_detection_a100_run/best.pt
+# download caries_gate_v3.pth from the DENTEX drive -> models/09_caries_gate_v3/caries_gate_v3.pth
+python scripts/run_inference.py --image <any_opg.png> --output report.json   # should now run
+```
+
+If `run_inference.py` raises `missing model weights`, it names the exact missing path — cross-
+check it against the table above.
+
+---
+
+## Keeping this file current
+
+If a new gitignored checkpoint becomes load-bearing (a new `DEF_*` default in
+`run_inference.py`, or a retrained R1/R3 model), add it to the "missing" table above and upload
+it to the matching drive's `capstone_checkpoints/` folder. If the top-level structure of either
+drive changes, update the table in "The two drives" section — verify by opening the link, don't
+assume it still matches what's written here.

@@ -190,7 +190,8 @@ Every directory containing code has a README, and all were re-verified 22 Aug 20
 | Tufts frozen split | `_repo_archive/datasets_workspace/outputs/eda_tufts/split_v1.csv` | Gitignored — which is why a previous session wrongly declared it lost |
 | Ningxia images | **External drive, disconnected** | Only `manifest.csv` is in-repo |
 | Clinic (SDH) data | Not on this machine | Governance-blocked |
-| Python env | `/opt/anaconda3` (python 3.12) | **Working — 46/46 tests pass, Stage 2 re-runs and reproduces byte-for-byte** (24 Aug). torch 2.2.0 + MPS, cv2 5.0.0, ultralytics 8.4.127, scipy, sklearn. ⚠️ **`numpy` must stay `<2`** (pinned 1.26.4): numpy 2.x breaks torch↔numpy, `scipy.optimize` — which **is** the Stage-2 Hungarian assignment — and sklearn, silently at import. `requirements.txt` now pins it. |
+| Python env | `/opt/anaconda3` (python 3.12) | **Working — 60/60 tests pass** (25 Aug, up from 46 after R4's `test_classifiers.py`), Stage 2 re-runs and reproduces byte-for-byte. torch 2.2.0 + MPS, cv2 5.0.0, ultralytics 8.4.127, scipy, sklearn. ⚠️ **`numpy` must stay `<2`** (pinned 1.26.4): numpy 2.x breaks torch↔numpy, `scipy.optimize` — which **is** the Stage-2 Hungarian assignment — and sklearn, silently at import. `requirements.txt` now pins it. |
+| **Two gitignored checkpoints, on Google Drive** | `docs/EXTERNAL_DRIVE.md` | `06_yolo_detection_a100_run/best.pt` (Tufts drive) + `09_caries_gate_v3/caries_gate_v3.pth` (DENTEX drive), both in a new `capstone_checkpoints/` folder. **Upload itself is still manual** — browser automation hit a 10 MB per-call cap on the upload tool, well under either file's size. |
 | E2E instance / SSH keys | Account-level | No instance launched. Treat the `.pem` pasted on 20 Aug as compromised. |
 
 ---

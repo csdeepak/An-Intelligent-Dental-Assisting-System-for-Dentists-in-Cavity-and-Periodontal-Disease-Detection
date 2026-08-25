@@ -416,3 +416,81 @@ entirely without looking at the images.
 1. **Bone loss is now the open OOD failure** — near-inert (0.7%) off-Tufts.
 2. Per-position gate evaluation.
 3. R1 seg retrain — still the only job needing a rented GPU.
+
+---
+
+# Addendum 7 — external Drive documented; upload blocked by a real tool limit (25 Aug)
+
+## What was done
+
+User provided two Google Drive links (DENTEX, Tufts) and asked for gitignored checkpoints and
+datasets to be backed up there in new subfolders, plus a README documenting the drive
+structure so the links never need to be re-shared.
+
+**Scoped down to exactly what's load-bearing, verified against source, not assumed:**
+cross-checked every `DEF_*` default in `scripts/run_inference.py` against `git ls-files`.
+Result: of six untracked `.pt`/`.pth` files on disk, only **two** are actually loaded by the
+pipeline — `06_yolo_detection_a100_run/best.pt` (49 MB, `DEF_DETECTOR`) and
+`09_caries_gate_v3/caries_gate_v3.pth` (43 MB, `DEF_CARIES_GATE`). Confirmed the other four are
+non-load-bearing lineage: `last.pt` is referenced only in prose/docs, never in a load path
+(grepped); `best_model.pth`'s tensor payload is bit-identical to the already-tracked
+`final_model.pth` (compared 122 tensors directly, not just file size).
+
+Did not back up the multi-GB derived datasets (`crops_v2`, `enumeration_v1`, `crops_v3_phase1`,
+`dataset_seg`, `_repo_archive/`) — all are marked in `.gitignore` as "regenerate with script X,
+never commit," which is the same reasoning that says they don't need Drive backup either:
+cheap to rebuild locally, expensive to transfer and store. `_repo_archive/opg_env/` (439 MB) is
+a Python virtualenv and should never be backed up anywhere.
+
+## The blocker, found by trying rather than assumed
+
+Browsed both drives read-only first (unauthenticated `Claude_Browser`) to see existing
+structure without risking an overwrite — DENTEX has `disease/`, `training_data/`,
+`validation_data/`; Tufts has `ZIP/`, `processed_dataset_tufts/`, `resampled_dataset/`,
+`severity_dataset/`, and an existing `models/` folder of unknown, unrelated content.
+
+Attempted the actual upload via `claude-in-chrome` (needs the user's real, authenticated
+session — Drive edit access requires it). Two blockers, both real tool limits rather than
+something to route around:
+1. The Chrome extension was not connected in this session.
+2. Even if it had been, `file_upload` caps at **10 MB per call, combined** — both checkpoints
+   (49 MB, 43 MB) exceed that alone.
+
+**Did not attempt to split either binary into <10MB chunks and reassemble.** That would trade
+a clean failure for a fragile one — a corrupted or misassembled checkpoint is a worse outcome
+for "friend's laptop continues without errors" than an honest manual step.
+
+## What was delivered instead
+
+`docs/EXTERNAL_DRIVE.md` — the two links, verified folder structure, the exact two-file table
+above with source/destination/size, restore commands for a fresh clone, and an explicit
+"upload not yet done, here's how" note rather than a false "done" claim. Referenced from
+`docs/README.md`'s index and from `models/README.md` (the first place someone hits the
+"missing model weights" error). `transfer.md` §7 updated with both the Drive pointer and a
+stale test count I found in passing (still said 46/46; R4's `test_classifiers.py` moved it to
+60/60 on 24 Aug and nothing had corrected the line since).
+
+## Decisions made
+
+- **Manual upload over a workaround.** Two files, one-time, ~60 seconds by hand once the
+  folder is open. Not worth the risk of a partial/corrupted transfer via a size-limited tool.
+- **New `capstone_checkpoints/` folder rather than reusing Tufts' existing `models/`.** Its
+  contents are unknown and the user's instruction was explicit: create new, don't touch
+  existing.
+- **Split the two checkpoints across drives by training data**, not both into one drive —
+  keeps each drive matched to the dataset context it already represents.
+
+## Open questions
+
+- The two folders (`capstone_checkpoints/` in each drive) have not been created yet — that
+  and the file drag-in are the user's remaining manual step.
+- If this becomes a recurring need (more checkpoints, more often), `rclone` is the right tool —
+  not attempted here since it needs the user's own one-time OAuth step and this was a two-file,
+  one-off ask.
+
+## Next steps
+
+1. User creates `capstone_checkpoints/` in both drives and drags in the two files
+   (`docs/EXTERNAL_DRIVE.md` has exact instructions).
+2. Everything else from the prior addenda stands: C1/C2 external validation is the real next
+   technical work, R4 and the caries gate fix are done.
