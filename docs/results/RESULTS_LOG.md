@@ -2646,3 +2646,144 @@ Copy this block verbatim to the bottom of the file and fill it in.
 - **Follow-ups:** if pursued, this becomes a new `scripts/dentex/`-style builder
   (`scripts/tufts/build_enumeration_crops.py` or similar) mirroring
   `build_enumeration_crops.py`'s verify-before-use discipline exactly.
+
+## 2026-08-25h — Tufts numbering is MIRRORED; FDI crop corpus built (42,755 crops, untrained)
+
+Follow-on from 2026-08-25g, which found Tufts carries unused per-tooth numbering. That entry
+called it "an opportunity, not a decision." This one acts on it — and the first thing the
+verification found is that reading the labels the obvious way would have been actively harmful.
+
+### The finding: Tufts titles are left-right mirrored, not plain Universal
+
+Tufts `title` values look like Universal numbers ('1'–'32') and their **within-arch ordering is
+correct**, but **which side of the patient each number denotes is inverted**. Tufts `"1"` is the
+upper-**LEFT** third molar (FDI **28**), not the upper-right (18).
+
+Anatomy cannot settle this — the dentition is bilaterally symmetric — so it was settled three
+independent ways, no one of which was trusted alone:
+
+1. **Lead side-marker.** The radiographs carry an `L` marker on the viewer's right, i.e. the
+   standard convention (patient's left on the viewer's right). Tufts `"1"` falls on the viewer's
+   right → the patient's LEFT. Standard Universal `1` is the patient's upper-RIGHT third molar.
+2. **Independent model arbiter.** The Stage-2 head trains on DENTEX (FDI spatially verified:
+   Q1 mean x=0.400 vs Q2 x=0.606) and has never seen Tufts. Over **1,188** IoU≥0.5-matched teeth
+   in 60 Tufts images:
+
+   | reading | exact FDI | quadrant |
+   |---|---|---|
+   | direct (`universal_to_fdi`) | 3.6% | **6.1%** |
+   | mirrored | 55.8% | **91.7%** |
+
+   Quadrant confusion is a clean anti-diagonal: q1→q2 290, q2→q1 278, q3→q4 267, q4→q3 254.
+3. **Control — to prove the arbiter is not itself the mirrored component.** Same head, detector
+   and matching code on **841** DENTEX teeth (60 images): **98.6% direct / 0.7% mirrored**, a
+   clean diagonal. The head is correct; Tufts is mirrored.
+
+**Nothing already trained is affected.** The detector is single-class and emits no numbering;
+the bone-loss models use the Tufts title only as an identifier and a deciduous flag, never
+deriving laterality from it (verified: zero mentions of FDI/quadrant/universal in
+`notebooks/bone_loss/02_bone_loss_dataset_construction.ipynb`).
+
+### Supporting geometry, verified rather than assumed
+
+- Annotations are **portrait** (840×1615), matching `Radiographs_rotated/`; crops are cut from
+  the **upright** 1615×840 image because Stage 2 reasons about upright anatomy. Transform is
+  CCW's inverse `(x,y)→(W-1-y,x)` — re-derived here and confirmed pixelwise (`np.rot90(land,1)`
+  mean|diff| 0.308 vs 31–73 for all five alternatives), independently matching `src/orientation.py`.
+- **Independent check on the same transform:** converted boxes have median aspect **0.371**,
+  against DENTEX's **0.347** and the ~0.35 documented in `src/crop_generator.py`. Left in
+  portrait it would have been ~2.7.
+- Anatomical sanity across all 1,000 images: the longest teeth are exactly positions 6/11/22/27
+  (the canines, median length 182/180/162/161 px) and the shortest, most-often-absent are
+  1/16/17/32 (third molars, present in only ~360/1000 images). Profile is bilaterally symmetric.
+
+### Leakage and split discipline
+
+- **Tufts is disjoint from DENTEX**: zero overlap by MD5 **and** by perceptual hash (dHash)
+  against `quadrant_enumeration` (634) and `quadrant-enumeration-disease` (705).
+- **New finding — `split_v1` has a train/test leak.** `590.JPG` (test) and `591.JPG` (train) are
+  byte-identical, so `tooth-detector-a100-1024-v1.0` **trained on one of its own test images**
+  (1 of 150). Recorded, not quietly corrected. A second pair, `1007`/`1008`, is train/train.
+  The builder keeps one representative per group, preferring test > val > train.
+- The frozen `split_v1` (700/150/150) is **reused verbatim**, not re-randomised, so images from
+  the detector's test set cannot enter the head's train set.
+
+### What was built
+
+`scripts/tufts/build_enumeration_crops.py` → `data/tufts/enumeration_v1/` (gitignored):
+
+| | teeth | crops |
+|---|---|---|
+| train | 17,629 | 35,248 (incl. ±15% jitter copies) |
+| val | 3,725 | 3,721 |
+| test | 3,789 | 3,786 |
+| **total** | **25,143** | **42,755** |
+
+All 32 FDI classes present in every split. Verified after writing: manifest↔disk match exactly
+(42,755 both ways, 0 missing, 0 orphans), **0 source images straddle splits**, 0 label
+inconsistencies, jitter confined to train. Excluded: 738 deciduous teeth (82 mixed-dentition
+images; the head's output space is the 32 permanent codes), 65 degenerate 1×1 "tooth absent"
+boxes, 2 duplicate images.
+
+For scale: **25,201 usable permanent teeth vs DENTEX's 18,095** — 1.4×, from a different
+continent and machine population.
+
+### Code
+
+- `src/utils/fdi_converter.tufts_title_to_fdi()` + `mirror_fdi_quadrant()`. The existing
+  `universal_to_fdi` table is untouched; the module docstring's claim that "Tufts uses Universal
+  numbering" is corrected in place, as it was actively misleading.
+- `tests/test_fdi_converter.py`: **60 → 65 tests**, all passing. Expected values written out
+  independently of the implementation, per that file's existing rule.
+- `scripts/dentex/train_enumeration_head.py --data` now accepts several corpus roots
+  (backwards compatible; single root behaves as before).
+
+### NOT done — deliberately
+
+**No model has been retrained.** Whether the combined corpus improves the head is an open
+experiment, not a claim. Two things to watch: Tufts teeth occupy a smaller share of the frame
+(median normalised height 0.177 vs DENTEX 0.231), a genuine covariate shift in the `cy`/`bh`
+features the head consumes; and Tufts contributes 2.0× DENTEX's training rows, so naive
+concatenation lets it dominate the loss. `verify_invariants.py` passes, including the frozen
+weight hashes — the deployed head is byte-unchanged.
+
+### 2026-08-25h (continued) — dataset-wide spatial verification, and a coordinate discrepancy
+
+**The corrected mapping passes the identical spatial test DENTEX's mapping passed.** Computed
+over all 25,143 unjittered Tufts crops, directly comparable to the DENTEX figures quoted in
+`scripts/dentex/build_enumeration_crops.py`:
+
+| check | Tufts (mirror-corrected) | DENTEX (reference) |
+|---|---|---|
+| Q1 mean cx (upper right) | **0.390** | 0.400 |
+| Q2 mean cx (upper left) | **0.603** | 0.606 |
+| Q4 mean cx / Q3 mean cx | 0.400 / 0.594 | — |
+| mean \|cx−0.5\|, position 1→8 | **0.015 → 0.236** | 0.015 → 0.227 |
+
+Q1/Q2 sit above Q4/Q3 (cy 0.473/0.469 vs 0.677/0.675); |cx−0.5| rises monotonically across all
+eight positions. Patient-right-on-image-left now holds, matching DENTEX to within 0.01. Read
+without the mirror correction, every one of these would invert.
+
+**A coordinate-convention discrepancy, resolved.** `PAPER_MATERIAL.md` §8.8 lists the Tufts
+bbox format as `[y1, x1, y2, x2]`, and `notebooks/bone_loss/02_bone_loss_dataset_construction.ipynb`
+implements exactly that against the **landscape** `Radiographs/` images. That reading is the
+exact horizontal **mirror** of the one used here (portrait `[x1, y1, x2, y2]` + the CCW inverse).
+The two cannot both be right. Measured against detector boxes over 1,022 teeth in 40 images:
+
+| reading | mean IoU vs detector |
+|---|---|
+| portrait `[x1,y1,x2,y2]` + CCW inverse (used here) | **0.611** |
+| landscape `[y1,x1,y2,x2]` (§8.8 / bone-loss notebook) | 0.489 |
+
+Independent of that, drawing the raw numbers as `(x, y)` on the **portrait** image with zero
+conversion places every box tightly on a tooth in a clean arch — which is only possible if the
+coordinates are portrait-frame. `src/orientation.py` and the archived `convert_tufts_to_yolo.py`
+(the detector's own converter, `IMG_WIDTH=840, IMG_HEIGHT=1615`) both use the portrait reading.
+
+**The bone-loss models are NOT affected, and were not changed.** Verified rather than assumed:
+the notebook cuts the image *and* the expert mask from the same landscape frame (masks are
+840×1615 on disk) at the same coordinates, so each crop is paired with the label belonging to
+the tooth actually inside it — the pair is self-consistent, merely located at the contralateral
+tooth. The only identity-derived use of `tooth_id` there is `is_deciduous`, which is
+mirror-invariant (A↔J … K↔T all remain letters). Nothing was retrained or edited; §8.8 is
+corrected in place to say which frame each reading belongs to.

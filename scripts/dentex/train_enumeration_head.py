@@ -85,12 +85,47 @@ def set_seed(s):
     torch.manual_seed(s); torch.cuda.manual_seed_all(s)
 
 
+def _jsonable(v):
+    """Paths -> str, including inside lists/tuples, so vars(args) can be dumped."""
+    if isinstance(v, Path):
+        return str(v)
+    if isinstance(v, (list, tuple)):
+        return [_jsonable(x) for x in v]
+    return v
+
+
+def load_manifests(roots):
+    """Read one or more enumeration manifests into a single row list.
+
+    More than one root lets the head train on several corpora at once — DENTEX plus the
+    Tufts set built by `scripts/tufts/build_enumeration_crops.py`. Each row carries its own
+    resolved crop path and a `corpus` tag, so the trees are never merged on disk and the
+    per-corpus split counts stay visible in the run log.
+
+    A single root behaves exactly as before, so existing invocations are unaffected.
+    """
+    rows = []
+    for root in roots:
+        root = Path(root)
+        man = root / "enumeration_manifest.csv"
+        if not man.exists():
+            raise SystemExit(f"missing manifest: {man}")
+        corpus = root.parent.name or root.name
+        n = 0
+        for r in csv.DictReader(open(man)):
+            r["_path"] = str(root / r["split"] / r["fdi"] / r["crop"])
+            r["corpus"] = corpus
+            rows.append(r); n += 1
+        print(f"  {corpus:8s} {n:7,} rows  <- {man}")
+    return rows
+
+
 class ToothSet:
     """Crops + the positional features the head needs; built from the manifest."""
 
-    def __init__(self, rows, root, train, size=224):
+    def __init__(self, rows, train, size=224):
         from torchvision import transforms
-        self.rows, self.root = rows, Path(root)
+        self.rows = rows
         norm = [transforms.ToTensor(), transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD)]
         if train:
             # NO horizontal flip: it would swap left/right and invert the quadrant label.
@@ -107,7 +142,7 @@ class ToothSet:
         import torch
         from PIL import Image
         r = self.rows[i]
-        img = Image.open(self.root / r["split"] / r["fdi"] / r["crop"]).convert("RGB")
+        img = Image.open(r["_path"]).convert("RGB")
         feats = torch.tensor([float(r["cx"]), float(r["cy"]),
                               float(r["bw"]), float(r["bh"])], dtype=torch.float32)
         return self.tf(img), feats, int(r["quadrant"]) - 1, int(r["position"]) - 1
@@ -250,7 +285,9 @@ def save_figures(res, out):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--data", type=Path, default=DEF_DATA)
+    ap.add_argument("--data", type=Path, nargs="+", default=[DEF_DATA],
+                    help="one or more enumeration_v1 roots; pass both to train on "
+                         "DENTEX + Tufts together")
     ap.add_argument("--out", type=Path, default=DEF_OUT)
     ap.add_argument("--epochs", type=int, default=15)
     ap.add_argument("--batch-size", type=int, default=64)
@@ -274,17 +311,21 @@ def main():
     args.out.mkdir(parents=True, exist_ok=True)
     print(f"device={device}")
 
-    rows = list(csv.DictReader(open(args.data / "enumeration_manifest.csv")))
+    rows = load_manifests(args.data)
     tr = [r for r in rows if r["split"] == "train"]
     va = [r for r in rows if r["split"] == "val"]
     if args.smoke:
         tr, va = tr[:512], va[:256]
     print(f"train {len(tr):,}  val {len(va):,}  classes {len({r['fdi'] for r in rows})}")
+    if len(args.data) > 1:
+        for s, subset in (("train", tr), ("val", va)):
+            per = Counter(r["corpus"] for r in subset)
+            print(f"  {s:5s} by corpus: {dict(per)}")
 
     g = torch.Generator(); g.manual_seed(args.seed)   # reproducible shuffling
-    dl_tr = DataLoader(ToothSet(tr, args.data, True), batch_size=args.batch_size,
+    dl_tr = DataLoader(ToothSet(tr, True), batch_size=args.batch_size,
                        shuffle=True, num_workers=args.workers, generator=g)
-    dl_va = DataLoader(ToothSet(va, args.data, False), batch_size=args.batch_size,
+    dl_va = DataLoader(ToothSet(va, False), batch_size=args.batch_size,
                        shuffle=False, num_workers=args.workers)
 
     model = build_model(device)
@@ -341,7 +382,10 @@ def main():
                args.out / "enumeration_head_best.pth")
     res = {"created": datetime.now().isoformat(timespec="seconds"),
            "device": str(device), "best_epoch": best_ep,
-           "config": {k: (str(v) if isinstance(v, Path) else v) for k, v in vars(args).items()},
+           # --data is a LIST of Paths (one corpus root per entry), so stringify inside
+           # sequences too -- a bare isinstance(v, Path) check misses it and json.dumps dies
+           # only at the very end of training, after the weights are already saved.
+           "config": {k: _jsonable(v) for k, v in vars(args).items()},
            "val": final, "epoch_log": log,
            "baseline_to_beat": {"source": "RESULTS_LOG 2026-08-22j / 2026-08-24a (clean 164)",
                                 "positional_fdi_exact_end_to_end": 0.229,

@@ -1,11 +1,12 @@
 # `scripts/` — runnable entry points
 
-Three families. The library they call is `src/`; see `src/README.md`.
+Four families. The library they call is `src/`; see `src/README.md`.
 
 | Path | Stage | See |
 |---|---|---|
 | `yolo/` | 1 — tooth detection (bbox + the R1 seg upgrade) | `yolo/README.md` |
 | `dentex/` | 2 and 3 — the enumeration head, plus caries data + training | `dentex/README.md` |
+| `tufts/` | 2 — Tufts as a **second** FDI-numbering corpus (its labels are mirrored) | `tufts/README.md` |
 | `eval/` | evaluation and error propagation (C3) | `eval/README.md` |
 | *(top level)* | Stage 4 bone-loss dataset/training, and the full-pipeline entry point | below |
 

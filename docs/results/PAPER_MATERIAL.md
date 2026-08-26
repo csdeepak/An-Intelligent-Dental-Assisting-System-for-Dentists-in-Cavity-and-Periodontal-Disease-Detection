@@ -690,10 +690,46 @@ These were caught during exploration and are already fixed — they are worth a 
 | Bug | Root cause | Fix | Impact if missed |
 |-----|-----------|-----|------------------|
 | Zero annotation matches | Join attempted on filename stems; real key is the nested `External ID` field | `Path(item["External ID"]).stem` | zero training samples |
-| Crops from wrong locations | Assumed `[x, y, w, h]`; actual format is `[y1, x1, y2, x2]` | swap + subtract corners | every crop wrong; models learn nothing |
+| Crops from wrong locations | Assumed `[x, y, w, h]`; actual format is corner points, not offset+size | swap + subtract corners | every crop wrong; models learn nothing |
 | U-Net severity plan invalid | Assumed masks encode severity; they encode **per-lesion instance IDs** | pivot to ResNet18 classification | architecture built on a false premise |
 | PIL DecompressionBombError | large composite figures rejected | `MAX_IMAGE_PIXELS = None` | reporting blocked |
 | Font download 404 | `wget` returned HTML, not TTF | `apt-get install fonts-dejavu-core` | PDF generation blocked |
+
+**Which frame those corner points live in — corrected 25 Aug 2026.** The row above previously
+wrote the format as `[y1, x1, y2, x2]`, which is how
+`notebooks/bone_loss/02_bone_loss_dataset_construction.ipynb` reads it against the **landscape**
+`Radiographs/` images. That is the exact horizontal **mirror** of the correct reading: the
+numbers are `[x1, y1, x2, y2]` in the **portrait** frame (840×1615, `Radiographs_rotated/`),
+which is what the detector's own converter used and what `src/orientation.py` documents.
+Measured against detector boxes over 1,022 teeth, the portrait reading scores mean IoU **0.611**
+against the landscape reading's **0.489**; and drawing the raw numbers on the portrait image
+with no conversion at all places every box tightly on a tooth, which is only possible in the
+portrait frame. The bone-loss models are unaffected — that notebook cuts image and mask from
+the same frame at the same coordinates, so each crop carries the label of the tooth actually
+inside it, and its only identity-derived use of `tooth_id` (`is_deciduous`) is mirror-invariant.
+RESULTS_LOG 2026-08-25h.
+
+### 8.8b Tufts' tooth numbering is mirrored — and it is now a usable second FDI corpus
+
+Tufts `title` values look like Universal numbers and their within-arch ordering is correct, but
+**which side of the patient each denotes is inverted**: Tufts `"1"` is FDI **28** (upper left),
+not 18. Reading them as plain Universal would have trained the Stage-2 head on systematically
+side-swapped labels — silently, with no error anywhere. Established three independent ways (an
+`L` side-marker; a DENTEX-trained arbiter scoring 91.7% mirrored vs 6.1% direct over 1,188
+matched teeth; and a DENTEX control at 98.6% direct proving the arbiter itself is sound), then
+confirmed dataset-wide: after correction, Q1 mean cx **0.390** vs Q2 **0.603**, against DENTEX's
+0.400/0.606, with |cx−0.5| rising monotonically 0.015→0.236 across positions 1–8.
+
+Worth reporting as methodology: it is a concrete case where a public dataset's labels are
+self-consistent and anatomically plausible yet globally reflected, and where no
+single check — not anatomy (the jaw is symmetric), not a visual overlay (a mirrored box still
+lands on a tooth) — could have caught it alone.
+
+The corrected corpus is built (**42,755 crops, 25,201 usable permanent teeth vs DENTEX's
+18,095**) but **no model has been retrained on it**; that remains an open experiment, with two
+known hazards: a covariate shift in the positional features (median normalised tooth height
+0.177 vs DENTEX's 0.231) and Tufts contributing 2.0× DENTEX's training rows.
+RESULTS_LOG 2026-08-25h; `scripts/tufts/README.md`.
 
 ### 8.9 The detection ground truth itself is missing 66 annotated teeth
 

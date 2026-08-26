@@ -101,6 +101,10 @@ data/dentex/crops_v2/
 # Enumeration-head training crops (~33k). Rebuild with
 # scripts/dentex/build_enumeration_crops.py; the manifest inside records provenance.
 data/dentex/enumeration_v1/
+# The Tufts half of the enumeration-head training data (~43k crops). Rebuild with
+# scripts/tufts/build_enumeration_crops.py; the manifest + meta.json inside record
+# provenance, including the mirrored-numbering correction that produced the labels.
+data/tufts/enumeration_v1/
 
 # Caries cascade weights — the two BUNDLES (final_model.pth, phase2_final_bundle.pth) are
 # tracked: together they are the complete runnable cascade, each carrying its own

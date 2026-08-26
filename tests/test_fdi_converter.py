@@ -20,6 +20,8 @@ from src.utils.fdi_converter import (
     universal_to_fdi,
     fdi_to_universal,
     is_deciduous,
+    mirror_fdi_quadrant,
+    tufts_title_to_fdi,
 )
 
 # The full expected table, written out independently of the module under test.
@@ -117,6 +119,75 @@ def test_deciduous():
     assert is_deciduous("T") is True
     assert is_deciduous("1") is False
     assert is_deciduous("15") is False
+
+
+# ---------------------------------------------------------------------------
+# Tufts mirrored numbering
+# ---------------------------------------------------------------------------
+#
+# Written out independently, same rule as EXPECTED above: these are what the FDI standard
+# requires GIVEN the measured fact that a Tufts "title" denotes the CONTRALATERAL tooth of
+# the same-numbered Universal code (RESULTS_LOG 2026-08-25h — L-marker, a DENTEX-trained
+# arbiter at 91.7% mirrored vs 6.1% direct, and a DENTEX control at 98.6% direct).
+#
+# So Tufts n names Universal (17-n) in the upper arch and Universal (49-n) in the lower.
+EXPECTED_TUFTS = {
+    # upper — Tufts 1 is the upper LEFT third molar (28), not the upper right (18)
+    "1": 28, "2": 27, "3": 26, "4": 25, "5": 24, "6": 23, "7": 22, "8": 21,
+    "9": 11, "10": 12, "11": 13, "12": 14, "13": 15, "14": 16, "15": 17, "16": 18,
+    # lower
+    "17": 48, "18": 47, "19": 46, "20": 45, "21": 44, "22": 43, "23": 42, "24": 41,
+    "25": 31, "26": 32, "27": 33, "28": 34, "29": 35, "30": 36, "31": 37, "32": 38,
+}
+
+
+def test_tufts_titles_map_to_mirrored_fdi():
+    """All 32 Tufts titles map to the contralateral FDI code."""
+    for title, expected in EXPECTED_TUFTS.items():
+        actual = tufts_title_to_fdi(title)
+        assert actual == expected, f"Tufts '{title}': expected FDI {expected}, got {actual}"
+
+
+def test_tufts_mapping_preserves_position_and_flips_quadrant():
+    """The mirror changes side only — the position digit must survive untouched.
+
+    This is the property that makes the mapping anatomically meaningful: a canine stays a
+    canine. It is what the measured tooth-length profile confirmed (Tufts 6/11/22/27 are the
+    longest teeth in each arch, and all four land on FDI position 3, the canine).
+    """
+    for title, expected in EXPECTED_TUFTS.items():
+        standard = universal_to_fdi(title)
+        assert expected % 10 == standard % 10, f"position digit changed for '{title}'"
+        assert expected // 10 != standard // 10, f"quadrant not flipped for '{title}'"
+    for canine in ("6", "11", "22", "27"):
+        assert tufts_title_to_fdi(canine) % 10 == 3, "canine must land on FDI position 3"
+    for third_molar in ("1", "16", "17", "32"):
+        assert tufts_title_to_fdi(third_molar) % 10 == 8, "third molar must be position 8"
+
+
+def test_tufts_mapping_is_a_bijection():
+    """32 distinct titles must produce 32 distinct FDI codes — no tooth may be lost."""
+    codes = [tufts_title_to_fdi(str(n)) for n in range(1, 33)]
+    assert len(set(codes)) == 32, "mirrored mapping collapsed two teeth onto one code"
+    assert set(codes) == set(UNIVERSAL_TO_FDI.values()), "mapping left the valid FDI set"
+
+
+def test_tufts_rejects_deciduous_and_junk():
+    """Deciduous letters are deliberately unmapped; junk returns None rather than guessing."""
+    for letter in ("A", "J", "K", "T"):
+        assert tufts_title_to_fdi(letter) is None
+    assert tufts_title_to_fdi("0") is None
+    assert tufts_title_to_fdi("33") is None
+    assert tufts_title_to_fdi("") is None
+    assert tufts_title_to_fdi(None) is None
+
+
+def test_mirror_is_an_involution():
+    """Mirroring twice returns the original code."""
+    for fdi in UNIVERSAL_TO_FDI.values():
+        assert mirror_fdi_quadrant(mirror_fdi_quadrant(fdi)) == fdi
+    assert mirror_fdi_quadrant(99) is None
+    assert mirror_fdi_quadrant(None) is None
 
 
 if __name__ == "__main__":

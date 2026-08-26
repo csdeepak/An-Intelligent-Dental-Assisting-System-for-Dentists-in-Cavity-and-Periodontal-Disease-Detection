@@ -722,3 +722,68 @@ trained FDI mapping, can Ningxia be used for it, and what about Tufts.
 mirroring `scripts/dentex/build_enumeration_crops.py`'s verify-before-use discipline — not
 scheduled ahead of R1 in `transfer.md` §3, but available as a between-GPU-runs task since it's
 zero-GPU-cost investigation work.
+
+---
+
+## Addendum 12 — Tufts FDI mapping implemented; its numbering turned out to be mirrored
+
+**Session goal:** user asked to actually build the Tufts→FDI tooth-number mapping flagged in
+Addendum 11, with the standing instruction to check the logic 2–3 times and cross-verify.
+
+### What was done
+
+1. **Located the real data.** Three byte-identical copies of `teeth_bbox.json` (md5
+   `8fb9182c…`); worked from the live `data/tufts/ZIP/Segmentation/Segmentation/` one. 1,000
+   records, 26,005 tooth objects, 52 distinct titles (32 numbers + 20 deciduous letters).
+2. **Established the coordinate frame from first principles** rather than from documentation:
+   coordinate ranges rule out landscape (positions 1,3 reach 1615 > the 840 landscape height);
+   `np.rot90(landscape,1)` matches the portrait file at mean|diff| 0.308 vs 31–73 for all five
+   alternatives; the numpy index formula was verified numerically before being relied on. Only
+   afterwards was `src/orientation.py` read — it independently says the same thing.
+3. **Found the numbering is left-right MIRRORED.** See RESULTS_LOG 2026-08-25h. Three
+   independent lines: the `L` side-marker, a DENTEX-trained arbiter (91.7% mirrored vs 6.1%
+   direct over 1,188 matched teeth), and a DENTEX control (98.6% direct) proving the arbiter
+   was not itself the mirrored component.
+4. **Built the corpus:** `scripts/tufts/build_enumeration_crops.py` → 42,755 crops, all 32
+   classes in every split, verified after writing (manifest↔disk exact, 0 images straddling
+   splits, jitter train-only).
+5. **Made it usable:** `train_enumeration_head.py --data` now takes several corpus roots,
+   backwards compatible; verified both single-root and combined loading, the latter by pushing
+   real Tufts rows through the actual `ToothSet`.
+6. Docs: RESULTS_LOG 2026-08-25h, `PAPER_MATERIAL.md` §8.8/§8.8b, `scripts/tufts/README.md`,
+   `scripts/README.md`, `docs/README.md`, `tests/README.md` (60→65), `transfer.md` §4.
+
+### Decisions made
+
+- **Deciduous teeth excluded, not mapped.** The head's output space is the 32 permanent codes,
+  so a deciduous FDI map would be untestable dead code — and the mirror evidence covers
+  permanent teeth only. `tufts_title_to_fdi()` returns `None` for letters rather than guessing.
+- **Reused the frozen `split_v1` verbatim** instead of re-randomising, so images from the
+  detector's test set cannot enter the head's train set.
+- **Did NOT retrain the head.** Building the corpus and claiming an improvement are different
+  things; retraining also un-freezes a hash-pinned model. Left as an explicit pending decision.
+- **Did NOT edit the bone-loss notebook** despite finding it uses the mirrored coordinate
+  reading — its crops and labels are self-consistent and its models are unaffected. Corrected
+  the *documentation* (§8.8), not the trained artefact.
+
+### Things that would have gone wrong if trusted instead of checked
+
+- Reading the titles as plain Universal (the obvious move) would have trained the head on
+  side-swapped labels — no error, no crash, just a head that learns to invert laterality.
+- Believing `PAPER_MATERIAL.md` §8.8's `[y1,x1,y2,x2]` would have produced mirrored crops.
+- A visual overlay alone could not have caught either: the jaw is symmetric, so a mirrored box
+  still lands on a real tooth.
+
+### Open questions
+
+- Does the combined corpus actually improve the head? Unmeasured. Watch the covariate shift in
+  `cy`/`bh` (Tufts median normalised height 0.177 vs DENTEX 0.231) and the 2.0× row imbalance.
+- Should the detector's test metrics be re-measured given the `590`/`591` train/test leak in
+  `split_v1` (1 of 150 test images)? Recorded, not acted on.
+- Is Tufts' *deciduous* numbering mirrored too? Untested — not needed while they are excluded.
+
+### Next steps
+
+Unchanged from `transfer.md` §3: R1 remains the headline item. The Tufts corpus is a
+zero-GPU-cost asset now sitting ready; the retraining experiment can slot in beside R1 rather
+than ahead of it.
