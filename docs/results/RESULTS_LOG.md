@@ -3347,3 +3347,60 @@ pending decision in `transfer.md` §4.
      `capstone_checkpoints/`.** It is now load-bearing and >50 MB, so a fresh clone currently
      **cannot run the pipeline at all**. `docs/EXTERNAL_DRIVE.md` lists it as missing.
   3. Re-run the C2 Ningxia external evaluation, which also used the old detector.
+
+## 2026-08-27e — Stage-2 re-measured on DENTEX: end-to-end 46.3% → 58.3% (+12.0 points)
+
+- **What was done:** Closed the blocking follow-up from 2026-08-27d. Fetched the 500-file
+  `DENTEX/disease/` subset (250 images + 250 LabelMe labels, 1,023 MB — 4.6% of the 10,781-file
+  Drive mirror, not the full ~14 GB) and re-measured Stage-2 end-to-end against the newly
+  adopted seg detector. Ran a **control first**: the same harness with the *superseded* bbox
+  detector, so any change is attributable to the detector and not to the machine or the data.
+- **Dataset / config:** 164 leak-free `DENTEX/disease/` images, 936 GT teeth (86 excluded as
+  training duplicates per `data/dentex/disease_leaked_images.json`). conf 0.25, NMS IoU 0.50,
+  imgsz 1024, CCW rotation, head v2.0, Hungarian one-to-one. Only the detector differs between
+  the two columns.
+- **Metrics:**
+
+  | Metric | bbox detector (control) | **seg detector (adopted)** | Δ |
+  |---|---|---|---|
+  | Detection recall | 67.3% (630/936) | **70.6%** (661/936) | **+3.3 pp** |
+  | FDI exact (of detected) | 68.7% | **82.6%** | **+13.9 pp** |
+  | Quadrant correct | 94.6% | **97.6%** | +3.0 pp |
+  | Right quadrant, off-by-one | 22.7% | **13.5%** | −9.2 pp |
+  | **FDI exact, end-to-end** | 46.3% (433/936) | **58.3%** (546/936) | **+12.0 pp** |
+  | Duplicate FDI codes | 0 | **0** | — |
+  | Mean detections/image | 23.7 | **22.0** | −1.7 |
+
+- **Key decision or insight:** **The detector swap bought far more than its recall gain.**
+  Recall rose 3.3 points, but end-to-end rose **12.0**. The mechanism is visible in the
+  numbers: detections per image went *down* (23.7 → 22.0) while recall went *up*, i.e. the seg
+  detector emits **fewer spurious boxes**. Because every spurious box perturbs the Hungarian
+  one-to-one assignment across an entire quadrant, cleaner boxes lift FDI-exact-of-detected by
+  13.9 points *on top of* the recall gain — and halve off-by-one errors (22.7% → 13.5%).
+  **This retroactively strengthens the 27d adoption decision, which was taken on the box-mAP
+  gain alone without knowing the downstream effect.** It also re-confirms the standing
+  conclusion that Stage 1 — not the numbering head — is the binding constraint: the head was
+  already 91% on ground-truth boxes, and improving the boxes is what moved the headline.
+- **Reproduction caveat, recorded rather than hidden:** the control did **not** exactly
+  reproduce the published bbox numbers — 67.3% / 46.3% here vs 67.0% / 46.5% as published,
+  a ~3-tooth drift consistent with CPU-vs-GPU float differences and inside the ~1-point
+  run-to-run noise floor already measured (`RESULTS_LOG` 2026-08-25i: identical configs
+  differed by 9 teeth of 936). The +12-point effect is an order of magnitude larger, so it is
+  not an artefact of that drift — but the control is not an exact reproduction and is not
+  presented as one.
+- **Also found and fixed during the fetch:** one image (`test_242.png`) was left truncated at
+  2,428 bytes by an interrupted first download attempt, and the resumable logic skipped it
+  because it was non-empty. The first control run silently evaluated **163 images / 934 teeth**
+  instead of 164 / 936. Caught from the script's own `WARNING unreadable` line, re-fetched, and
+  all 500 files were then integrity-checked (every PNG opened, every JSON parsed) before the
+  reported runs. A size>0 check is not an integrity check.
+- **Source:** `scripts/eval/validate_fdi_assignment.py --method head` with explicit `--weights`
+  and `--head-weights`; outputs in `outputs/stage2_control_olddet/` and `outputs/stage2_segdet/`.
+  Constants restored in `scripts/run_inference.py` (`STAGE1_DETECTOR_RECALL = 0.706`,
+  `STAGE2_FDI_EXACT_END_TO_END = 0.583`).
+- **Follow-ups:** (1) `scripts/eval/validate_fdi_assignment.py`'s own defaults still point at
+  the **old** detector and the **v1.0** head — they were not changed, since old numbers must
+  stay reproducible, but that means the defaults no longer describe the pipeline and every
+  invocation must pass explicit weights. Worth aligning deliberately. (2) C2's Ningxia external
+  validation still used the old detector and remains stale. (3) The seg checkpoint is still not
+  uploaded to Drive — a fresh clone still cannot run the pipeline.

@@ -78,13 +78,42 @@ all 66, so its instance counts will legitimately differ. Analysis:
 
 ## Stage 2 — FDI numbering · learned enumeration head · ResNet18 + positional features
 
-> ⚠️ **STALE SINCE 27 Aug 2026 — every number in this section was produced with the
-> SUPERSEDED bbox detector.** Stage-1 was swapped to `tooth-detector-seg-tufts-1024-v1.0`
-> (`RESULTS_LOG.md` 2026-08-27d). Detection recall, and therefore every end-to-end figure
-> derived from it, must be **re-measured** on a machine that has DENTEX before being quoted.
-> The new detector is +2.76 points better on Tufts box mAP@0.5, so recall is *expected* to be
-> no worse — but that is an expectation, not a measurement. The per-head comparisons below
-> remain valid **relative to each other**, since all three columns used the same detector.
+### Current — with the seg detector (re-measured 27 Aug 2026)
+
+Same 164 leak-free `DENTEX/disease/` images, 936 GT teeth, same conf 0.25 / NMS IoU 0.50 /
+imgsz 1024 / CCW rotation, same head v2.0. Only the detector changed. `RESULTS_LOG.md`
+2026-08-27e.
+
+| Metric | bbox detector (control re-run) | **seg detector (current)** | Δ |
+|---|---|---|---|
+| Detection recall | 67.3% (630/936) | **70.6%** (661/936) | **+3.3 pp** |
+| FDI exact (of detected) | 68.7% | **82.6%** | **+13.9 pp** |
+| Quadrant correct (of detected) | 94.6% | **97.6%** | +3.0 pp |
+| Right quadrant, off-by-one | 22.7% | **13.5%** | −9.2 pp |
+| **FDI exact, end-to-end** | 46.3% | **58.3%** (546/936) | **+12.0 pp** |
+| Duplicate FDI codes | 0 | **0** | — |
+| Mean detections/image | 23.7 | **22.0** | −1.7 |
+
+**The gain is much larger than the recall change alone explains.** Detections per image went
+*down* (23.7 → 22.0) while recall went *up* — the seg detector emits fewer spurious boxes, and
+since every spurious box perturbs the Hungarian one-to-one assignment across a whole quadrant,
+cleaner boxes lift FDI-exact-of-detected by 13.9 points on top of the recall gain.
+
+> **Reproduction caveat, stated rather than hidden:** the control re-run of the *bbox*
+> configuration on this machine gave **67.3% / 46.3%**, against the **67.0% / 46.5%** originally
+> published — a ~3-tooth drift, consistent with CPU-vs-GPU float differences and inside the
+> ~1-point run-to-run noise floor already measured here (identical configs once differed by 9
+> teeth of 936, `RESULTS_LOG` 2026-08-25i). The +12-point gain is an order of magnitude larger
+> than that drift, so it is not an artefact of it — but the control is **not** an exact
+> reproduction and is not presented as one.
+
+---
+
+### Historical — the three-head comparison, all on the SUPERSEDED bbox detector
+
+> ⚠️ The table below predates the 27 Aug detector swap. Its absolute numbers are superseded by
+> the table above. The per-head comparisons remain valid **relative to each other**, since all
+> three columns used the same detector.
 
 **Method as of 22 Aug 2026.** Evaluated on **164 leak-free `DENTEX/disease/` images**
 (936 FDI-labelled teeth) with detector boxes (`tooth-detector-a100-1024-v1.0` — the superseded

@@ -39,13 +39,15 @@ teeth. **Bone loss is the one open technical failure** — 0.92 macro-F1 on Tuft
 0.7% firing on DENTEX and 0.8–5.4% affected-tooth sensitivity on Ningxia — measured on two
 independent external datasets, not asserted from one.
 
-**Stage 2 (FDI numbering) now ships a robustness-oriented head, v2.0** (DENTEX + Tufts),
-adopted 26 Aug. It does **not** move the in-domain headline (46.6% vs 46.5% end-to-end — inside
-the measured ~1-point noise floor) but gains **+21.5 points** on a second machine population
-(Tufts). v1.0 (DENTEX-only) is retained and still hash-pinned, since every number published
-before 26 Aug was measured on it. **R1 (detector retrain) remains the thing that actually moves
-the headline number** — the head is already 91% on ground-truth boxes; the 67% detector recall
-is the ceiling.
+**Stage 2 (FDI numbering) ships head v2.0** (DENTEX + Tufts, adopted 26 Aug). Swapping heads
+did **not** move the in-domain headline (46.6% vs 46.5% — inside the ~1-point noise floor) but
+gained **+21.5 points** out-of-domain on Tufts. v1.0 is retained and hash-pinned.
+
+**The headline number moved on 27 Aug, and it was the DETECTOR that moved it: end-to-end
+46.3% → 58.3% (+12.0 points)** after adopting the seg detector (§1a). That is the prediction
+this project had been making for weeks — the head was already 91% on ground-truth boxes, so
+Stage 1 was the binding constraint — now measured rather than asserted. Detection recall is
+**70.6%** (was 67.3%).
 
 **C2 (external validation) has real numbers**: zero leakage against all internal corpora,
 caries lesion agreement 22.6–43.3% across four Ningxia hospitals (DENTEX internal was 42.6%).
@@ -137,11 +139,21 @@ met; both facts are on the record (`RESULTS_LOG.md` 2026-08-27d). Two consequenc
 more than the swap itself:
 - **Masks are not validated to §2's standard, so the model is used for its BOXES ONLY and
   R2 (mask-aware cropping) STAYS UNWIRED.**
-- ⚠️ **Every DENTEX-measured downstream number is now STALE** — Stage-1 recall (67.0%) and
-  Stage-2 end-to-end (46.5/46.6%). They could not be re-measured at adoption time because
-  DENTEX is not on the Windows machine. `run_inference.py` now emits them as `null` with a
-  "pending re-measurement" note rather than printing figures that describe a different model.
-  **Re-measure on a DENTEX-bearing machine before quoting any end-to-end number.**
+- ✅ **RE-MEASURED 27 Aug — and the swap paid off far more than expected.** Fetched just the
+  500-file `DENTEX/disease/` subset (1,023 MB, 4.6% of the Drive mirror) and re-ran Stage-2,
+  with a control on the old detector first so the delta is attributable to the detector:
+
+  | | bbox (control) | **seg (adopted)** | Δ |
+  |---|---|---|---|
+  | Detection recall | 67.3% | **70.6%** | +3.3 pp |
+  | FDI exact (of detected) | 68.7% | **82.6%** | +13.9 pp |
+  | **FDI exact, end-to-end** | 46.3% | **58.3%** | **+12.0 pp** |
+
+  **Recall rose 3.3 points but end-to-end rose 12.0.** Detections/image *fell* (23.7 → 22.0)
+  while recall *rose* — fewer spurious boxes, and every spurious box perturbs the Hungarian
+  assignment across a whole quadrant. Off-by-one errors nearly halved (22.7% → 13.5%). This
+  retroactively strengthens the adoption decision, which was taken on box mAP alone.
+  `RESULTS_LOG.md` 2026-08-27e. Constants restored in `run_inference.py`.
 - ⚠️ **The new checkpoint is >50 MB, gitignored, and NOT yet on Drive** — so a fresh clone
   currently cannot run the pipeline at all until it is uploaded (`docs/EXTERNAL_DRIVE.md`).
 

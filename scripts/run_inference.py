@@ -63,17 +63,20 @@ SCHEMA_VERSION = "opg-report/1.0"
 #   scripts/eval/validate_fdi_assignment.py --method head
 #   -> outputs/stage2_reverify/stage2_summary_head.json   (recall, fdi_exact_of_all)
 #   RESULTS_LOG 2026-08-22j (measurement), 2026-08-24b (byte-identical re-verification).
-# ⚠️ STALE AS OF 27 Aug 2026 — the Stage-1 detector was replaced (see DEF_DETECTOR below).
-# Both figures below were measured on the SUPERSEDED bbox detector over 164 leak-free DENTEX
-# images. They have NOT been re-measured against the seg detector, because that requires
-# DENTEX, which is not present on the machine where the swap was made. They are therefore
-# emitted as None rather than as numbers that would silently misdescribe the current pipeline.
-# Re-measure with scripts/eval/ on a machine that has DENTEX, then restore real values here.
-STAGE1_DETECTOR_RECALL = None         # pending re-measurement against the seg detector
-STAGE2_FDI_EXACT_END_TO_END = None    # pending re-measurement against the seg detector
+# RE-MEASURED 27 Aug 2026 against the seg detector, on the same 164 leak-free DENTEX images /
+# 936 GT teeth, same conf 0.25 / NMS IoU 0.50 / imgsz 1024 / CCW rotation, same v2.0 head.
+# RESULTS_LOG 2026-08-27e. These are the current pipeline's numbers.
+STAGE1_DETECTOR_RECALL = 0.706        # = 661/936, seg detector
+STAGE2_FDI_EXACT_END_TO_END = 0.583   # = 546/936, seg detector + head v2.0, Hungarian 1-to-1
 
-SUPERSEDED_STAGE1_RECALL = 0.670      # = 0.6699, bbox detector, 164 leak-free DENTEX, 936 GT teeth
-SUPERSEDED_STAGE2_END_TO_END = 0.465  # = 0.4647, same run
+# The superseded bbox detector, kept because every number published before 27 Aug used it.
+# NOTE the control re-run of that same configuration on THIS machine gave 67.3% / 46.3%, not
+# the 67.0% / 46.5% originally recorded — a ~3-tooth drift consistent with CPU-vs-GPU float
+# differences and well inside the ~1-point run-to-run noise floor this project already measured
+# (identical configs once differed by 9 teeth of 936, RESULTS_LOG 2026-08-25i). The +12-point
+# gain above is an order of magnitude larger than that drift.
+SUPERSEDED_STAGE1_RECALL = 0.670      # as originally published; 0.673 on this machine's re-run
+SUPERSEDED_STAGE2_END_TO_END = 0.465  # as originally published; 0.463 on this machine's re-run
 
 # Stage-1 detector — YOLOv11l-SEG, adopted 27 Aug 2026 by explicit user decision.
 #
@@ -172,12 +175,10 @@ def build_report(image_path, img_bgr, boxes, confs, fdi_assign, caries, bone, me
             "stage1_detector_recall": STAGE1_DETECTOR_RECALL,
             "stage2_fdi_exact_end_to_end": STAGE2_FDI_EXACT_END_TO_END,
             "interpretation": (
-                "STALE: the Stage-1 detector was replaced on 27 Aug 2026 and these two "
-                "figures have NOT been re-measured against it (needs DENTEX). The superseded "
-                "bbox detector measured 67.0% recall / 46.5% end-to-end on DENTEX disease/ "
-                "(164 leak-free images, RESULTS_LOG 2026-08-22j); the new detector scores "
-                "+2.76 points better on Tufts box mAP@0.5, so recall is expected to be no "
-                "worse, but that is an EXPECTATION, not a measurement. "
+                "Detection recall and FDI accuracy are measured on DENTEX disease/ "
+                "(164 leak-free images, 936 GT teeth) against the CURRENT seg detector, "
+                "re-measured 27 Aug 2026 (RESULTS_LOG 2026-08-27e). The superseded bbox "
+                "detector scored 67.3% / 46.3% on the same harness. "
                 "A missed tooth is absent "
                 "from this report; a misnumbered tooth carries correct findings under the "
                 "wrong FDI code. Expect roughly half the codes in this report to be wrong."),

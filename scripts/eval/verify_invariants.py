@@ -158,10 +158,20 @@ def inv_leakage_list():
     """The exclusion list must still describe the actual overlaps on disk."""
     f = REPO_ROOT / "data/dentex/disease_leaked_images.json"
     L = json.loads(f.read_text(encoding="utf-8"))
-    if not (DENTEX / "disease/input").exists():
+    # BOTH corpora are required. Guarding on disease/ alone reported a false FAIL on a machine
+    # that had only the disease/ subset fetched (for the Stage-2 re-measurement, 27 Aug 2026):
+    # the overlap computed as 0-of-85 simply because the enumeration xrays were absent, which
+    # reads as "the exclusion list is wrong" rather than "the data is not all here".
+    # Different machines legitimately hold different subsets — see transfer.md §8.
+    disease_dir = DENTEX / "disease/input"
+    enum_dir = DENTEX / "training_data/quadrant_enumeration/xrays"
+    if not disease_dir.exists() and not enum_dir.exists():
         return "SKIP (DENTEX not on this machine)"
-    d250 = hashes(DENTEX / "disease/input")
-    enum = hashes(DENTEX / "training_data/quadrant_enumeration/xrays")
+    if not disease_dir.exists() or not enum_dir.exists():
+        have = "disease/" if disease_dir.exists() else "training_data/quadrant_enumeration/"
+        return f"SKIP (only {have} present — this check needs both corpora)"
+    d250 = hashes(disease_dir)
+    enum = hashes(enum_dir)
     overlap = {d250[h] for h in set(d250) & set(enum)}
     listed = set(L["leaked_into_enumeration_head_training"])
     if overlap != listed:
