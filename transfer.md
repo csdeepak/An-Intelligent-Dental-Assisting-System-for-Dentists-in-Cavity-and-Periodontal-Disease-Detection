@@ -42,9 +42,12 @@ deferred to W5 by the plan, not forgotten. **65/65 tests pass, `verify_invariant
 (now checking both Stage-2 heads). We are on **W2 of the 8-week plan**
 (`docs/research/MASTER_PLAN_2026H2.md` §5), implementation freeze **14 Oct**.
 
-**⚠️ Two things need action before anything gets submitted, and neither is a modelling
-problem:** (1) a Tufts Drive folder was found browsable without sign-in, which the dataset's
-own licence forbids — see §4. (2) The Tufts left-right mirror finding (§2) is **not yet
+**⚠️ Three things need attention before anything gets submitted or made public, and none are
+modelling problems:** (1) a Tufts Drive folder was found browsable without sign-in, which the
+dataset's own licence forbids — see §4. (2) Real Tufts radiograph pixels are embedded in 7
+tracked notebooks, already on `origin/main` — the GitHub repo is confirmed **private**, so this
+is deferred risk by explicit user decision (26 Aug), not an active leak, but it must be
+resolved before any public release. (3) The Tufts left-right mirror finding (§2) is **not yet
 established as novel** — the decisive source is IEEE-paywalled and unread.
 
 **The user's stated intent: continue implementation, the paper draft happens last.**
@@ -154,6 +157,7 @@ starts.
 | Decision | Why it needs a human |
 |---|---|
 | **⚠️ Tufts licence breach — act before submitting or sharing further.** The release agreement forbids reproducing or posting the database "into any webpage or any other storage means"; `docs/EXTERNAL_DRIVE.md` records a Drive folder with the raw `ZIP/` release that was browsable **without signing in**. Restrict it, keep Tufts local-only, share the release *form* instead of the files. | Account owner's action, and a real submission risk |
+| **⚠️ Real Tufts radiograph pixels are embedded in 7 tracked notebooks, already on `origin/main`** — not references, actual base64 image data in cell outputs (`RESULTS_LOG.md` 2026-08-26b). **The GitHub repo is confirmed private, so this is deferred risk, not an active leak** — the user's explicit call. Must be resolved (strip outputs going forward, or rewrite history — destructive, needs a force-push) **before this repo, or any fork of it, is ever made public.** | Deferred by explicit user decision 26 Aug; revisit before any public release |
 | **Is the Tufts mirror finding novel?** NOT established. The Panetta et al. (IEEE JBHI 2022) full text is IEEE-paywalled and unread — tried the indexed biomedical/arXiv corpora, the DOI, the author's own site, PDF search, and GitHub; all dead ends. If the paper documents the convention, this is a usage note, not a discovery. `RESULTS_LOG.md` 2026-08-25h §2, 2026-08-26a. | Needs someone with IEEE Xplore access — a 5-minute read, not a research task |
 | **Bone-loss domain-shift fix — what approach?** Now backed by two independent external measurements. Options span the DENTEX+Tufts combined-training trick that worked for Stage 2 (untried here), R1 (shared Tufts-side fix), Ningxia-informed fine-tuning (needs care — Ningxia is locked, no tuning against it directly), or documenting it as a limitation rather than a fix. | Research direction, not a fact to look up |
 | **A third public FDI corpus exists, unused.** DentFound trains tooth-ID on the Kaggle *Dual-labeled Panoramic Radiographs* set — 2,000 images, native FDI 11–48, larger than DENTEX or Tufts, no mirror to correct. | Whether to add it before or after R1 |

@@ -3046,3 +3046,41 @@ chart — consistent with the assumption the mirror finding was tested against.
 
 Indexing status changes; **verify Scopus coverage on the Scopus source list for any venue
 before submitting** rather than trusting a call-for-papers claim.
+
+## 2026-08-26b — Found: real Tufts radiograph pixels embedded in tracked notebooks (repo is private; deferred)
+
+While cross-verifying the repo before a `git push`, checked whether any Tufts pixel data had
+ever been committed directly (not just referenced by path). It has: several notebooks carry
+rendered radiographs as base64 PNG **cell outputs** — not references, the actual pixel data,
+inside the tracked `.ipynb` JSON.
+
+| File | Embedded images | Content |
+|---|---|---|
+| `notebooks/bone_loss/01_tufts_data_exploration_v2.ipynb` | 8 | Radiograph quality audit, mask visual inspection |
+| `notebooks/bone_loss/02_bone_loss_dataset_construction.ipynb` | 3 | Sample crop grids, class visualisations |
+| `notebooks/bone_loss/03_bone_loss_model_training.ipynb` | 5 | False-positive/negative sample crops |
+| `notebooks/bone_loss/04_bone_loss_severity.ipynb` | 4 | CEJ estimation overlays on real crops |
+| `notebooks/bone_loss/05_cej_estimation_v2.ipynb` | 2 | Sample overlays |
+| `_repo_archive/datasets_workspace/week1_tufts_eda_v2.ipynb` | 22 | Full radiograph + FDI bbox overlays |
+| `_repo_archive/datasets_workspace/x.ipynb` | 6 | Rotation-verification radiograph renders |
+
+Two samples rendered directly to confirm content rather than infer it from cell source: one is
+a real Tufts image (`1010.jpg`) with bounding-box overlays; the bone-loss notebooks show real
+crop grids and mask overlays, not synthetic plots.
+
+**Confirmed via `git merge-base --is-ancestor`: all of this is already on `origin/main`**, from
+commit `6485eeb`, predating this session. Also confirmed: `_repo_archive/` — documented
+elsewhere (CLAUDE.md, `docs/README.md`) as living *outside* the git tree — is in fact **inside
+this repo's directory and partially tracked** (23 MB: scripts, notebooks, a stale survey-paper
+draft, diagrams; no raw dataset files or full-resolution image dumps).
+
+**Deferred, not actioned.** Asked the user directly: the GitHub repo is confirmed **private**,
+which changes the urgency from "active leak" to "risk to address before any public release."
+User's explicit decision: leave it as-is for now, proceed with the planned documentation push.
+No git history was rewritten, no files were deleted, nothing was force-pushed.
+
+**Action needed before this repo (or any fork/mirror of it) ever goes public:** either strip
+the embedded outputs (`nbstripout` or equivalent, going forward — old commits still carry them
+until history is rewritten) or purge the blobs from history entirely (destructive, needs a
+force-push, and does not retroactively un-expose anything already cloned). Recorded as a
+pending decision in `transfer.md` §4.
