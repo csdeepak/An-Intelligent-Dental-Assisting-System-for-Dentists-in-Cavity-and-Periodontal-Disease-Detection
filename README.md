@@ -448,16 +448,19 @@ annotated image). Two checkpoints are not in git — see
 | Phase | Description | Owner | Status |
 |-------|-------------|-------|--------|
 | Phase 0 | Literature review & survey paper | Deepak | ✅ Complete |
-| Phase 1 | Caries — gate (ResNet18 binary) | Collaborator | ✅ Complete (Phase 1 metrics not saved) |
-| Phase 2 | Caries — depth (caries vs deep_caries) | Collaborator | ✅ Complete — val acc 81%, macro F1 0.77 |
+| Phase 1 | Caries — gate (ResNet18 binary) | Gunadeep | ✅ Complete (Phase 1 metrics not saved) |
+| Phase 2 | Caries — depth (caries vs deep_caries) | Gunadeep | ✅ Complete — val acc 81%, macro F1 0.77 |
 | Phase 3 | Tooth Detection (YOLOv11l) | Deepak | ✅ Complete — test mAP@0.5 0.782; canonical run **frozen + tagged** 20 Aug 2026 |
 | Phase 4a | Bone Loss — data exploration | Deepak | ✅ Complete |
 | Phase 4b | Bone Loss — dataset construction | Deepak | ✅ Complete — 22,806 crops |
 | Phase 4c | Bone Loss — model training | Deepak | ✅ Complete — macro F1 0.9233 |
 | Phase 4d | Bone Loss — evaluation + severity | Deepak | ✅ Complete — severity macro F1 0.7208 (52 val crops) |
 | Phase 4e | CEJ bone-level estimation | Deepak | 🔬 Exploratory — negative result, not integrated |
-| Phase 5 | Full pipeline integration (Stages 5–6) | Both | ✅ **Complete** — `run_inference.py` runs all six stages; `app.py`/`Dockerfile` deployment demo |
-| Phase 6 | Paper writing | Both | ⬜ **Deliberately last** — `PAPER_MATERIAL.md` is structured and ready, but drafting has not started per explicit project sequencing |
+| Phase 5 | Full pipeline integration (Stages 5–6) | Deepak & Gunadeep | ✅ **Complete** — `run_inference.py` runs all six stages; `app.py`/`Dockerfile` deployment demo |
+| Phase 5a | Stage-2 head v2.0 — Tufts FDI corpus | Gunadeep | ✅ Complete — found + corrected Tufts' mirrored numbering, built a second FDI corpus, ran the A/B/C head comparison, adopted v2.0 (+21.5pp cross-domain, `RESULTS_LOG.md` 2026-08-25h/j) |
+| Phase 5b | Deployment — Streamlit app + Docker | Gunadeep | ✅ Complete — `app.py`, `Dockerfile`, wraps `run_inference.py` unchanged |
+| Phase 5c | C2 external validation — Ningxia | Gunadeep | ✅ Complete — 4 hospitals, zero leakage verified, `RESULTS_LOG.md` 2026-08-25d |
+| Phase 6 | Paper writing | Deepak & Gunadeep | ⬜ **Deliberately last** — `PAPER_MATERIAL.md` is structured and ready, but drafting has not started per explicit project sequencing |
 
 ---
 
