@@ -81,8 +81,12 @@ final step, not the next one.** Ordered by what actually blocks something else:
 1. **R1 — YOLOv11l-seg retrain.** The one item needing a rented GPU, and the user has cleared
    renting on **JarvisLabs**. Detector recall (67.0%) is the binding constraint on everything
    downstream of it — Stage-2 end-to-end is capped at 67.0% no matter how good the numbering
-   is, and DentFound's ablation (+20.35% precision, +23.01% recall, +23.11% F1 from instance
-   masks) is now a citable justification, not an assertion. Config is **pre-registered**
+   is. **This is now measured, not assumed:** doubling the Stage-2 training corpus with Tufts
+   (35,248 extra crops, a different continent and machine population) moved end-to-end by +10
+   teeth of 936, p=0.343 — nothing, against a ~1-point noise floor. The head is already
+   91.3–91.6% on ground-truth boxes; the detector is what is missing. `RESULTS_LOG.md`
+   2026-08-25i. DentFound's ablation (+20.35% precision, +23.01% recall, +23.11% F1 from
+   instance masks) is a citable justification, not an assertion. Config is **pre-registered**
    (`T0.6_detector_reconciliation.md` §2): imgsz 1024, batch 32, only model+data change — do
    not shrink the batch to fit a smaller card, that breaks the comparison. ~40 min on an A100.
    Runbook: §5 below.
@@ -122,7 +126,7 @@ that phase starts.
 | **What else to use `DENTEX/disease/` for**, beyond the Stage-2 eval set (164 leak-free of 250) and now the lesion-localisation source. The 91 `saglam` (healthy) teeth as a small real healthy class is still an open candidate use. | Scoping call |
 | **Clinic data governance.** `index.csv` sits beside `images/` on a shared Drive, voiding the de-identification. Five actions in `clinical_dataset_provenance.md` §4a, all needing the Drive owner. | Not this repo's account |
 | **Bone-loss weights have no version tag** — trivial to fix, listed here only so it doesn't get silently skipped again. | Just needs doing |
-| **Retrain the Stage-2 head on DENTEX + Tufts?** The corpus is **built and verified** (42,755 crops, all 32 classes per split — `RESULTS_LOG.md` 2026-08-25h) but **no model has been retrained on it**. Two real risks to handle rather than ignore: Tufts teeth occupy a smaller share of the frame (median normalised height 0.177 vs DENTEX 0.231), a covariate shift in the `cy`/`bh` features the head consumes; and Tufts contributes 2.0× DENTEX's training rows, so naive concatenation lets it dominate the loss. Retraining also un-freezes a currently-frozen, hash-pinned model. | Whether to spend the run, and whether to weight/balance the corpora rather than concatenate |
+| **~~Retrain the Stage-2 head on DENTEX + Tufts?~~ ANSWERED 25 Aug — no.** The A/B was run: +10 teeth of 936, McNemar p=0.343, against a measured run-to-run noise floor of ~1 point. The frozen head stays. `RESULTS_LOG.md` 2026-08-25i. | — (closed) |
 | **Ningxia confirmed unusable for FDI training** (25 Aug) — no tooth-identity field in the manifest, no per-tooth label file anywhere, masks are binary {0,255} disease masks only. Not a pending decision, listed here so it isn't re-asked. `RESULTS_LOG.md` 2026-08-25g. | — (closed, informational) |
 | **`split_v1` has a train/test leak** — `590.JPG` (test) and `591.JPG` (train) are byte-identical, so the frozen detector trained on one of its own test images (1 of 150). The Tufts crop builder works around it; the detector's reported test metrics have **not** been re-measured. `RESULTS_LOG.md` 2026-08-25h. | Whether to re-measure the detector, or document and move on |
 

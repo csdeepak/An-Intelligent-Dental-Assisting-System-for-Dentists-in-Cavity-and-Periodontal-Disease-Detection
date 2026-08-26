@@ -2787,3 +2787,61 @@ the tooth actually inside it — the pair is self-consistent, merely located at 
 tooth. The only identity-derived use of `tooth_id` there is `is_deciduous`, which is
 mirror-invariant (A↔J … K↔T all remain letters). Nothing was retrained or edited; §8.8 is
 corrected in place to say which frame each reading belongs to.
+
+## 2026-08-25i — A/B: adding Tufts does NOT improve Stage 2 (p=0.343). The detector is the wall.
+
+Direct test of the question left open by 2026-08-25h. Two heads trained from scratch, **same
+seed (42), same 15 epochs, same batch 64, same lr 1e-3**, differing only in training corpus,
+then evaluated like-for-like by `scripts/eval/validate_fdi_assignment.py --method head
+--head-weights ...` on the **164 leak-free `DENTEX/disease/` images (936 GT teeth)**.
+
+Pre-checked before training: the 250 eval images have **zero MD5 and zero perceptual-hash
+overlap with Tufts**, so arm B introduces no new leakage into the evaluation. (This is the
+check whose absence forced the 5.7-point withdrawal in 2026-08-22j.)
+
+| run | training corpus | rows | FDI exact of detected | **end-to-end** | correct/936 |
+|---|---|---|---|---|---|
+| frozen `v1.0` | DENTEX | 30,732 | 69.38% | **46.47%** | 435 |
+| **arm A** | DENTEX (identical config to frozen) | 30,732 | 67.94% | **45.51%** | 426 |
+| **arm B** | DENTEX + Tufts | 65,980 | 69.54% | **46.58%** | 436 |
+
+Detector recall is identical across all three (66.99%, 23.62 detections/image) — the detector
+is untouched, so only the head varies. Duplicate FDI codes: 0 in every run.
+
+### The result is null, and the control is why we know
+
+**Arm B vs arm A: +10 teeth of 936 (+1.07pp). Paired McNemar on aligned rows: 50 discordant
+in B's favour, 40 against, χ²=0.900, exact two-sided binomial p=0.343 — not significant.**
+
+More telling than the p-value: **arm A and the frozen head share an identical configuration,
+identical seed and identical data, and still differ by 9 teeth (0.96pp).** MPS float
+nondeterminism plus DataLoader worker ordering put the run-to-run noise floor at ~1 point
+end-to-end. Tufts' apparent +1.07pp is the same size as that noise. Arm B lands 1 tooth from
+the frozen head (436 vs 435).
+
+**Methodological consequence, worth stating in the paper: on this 936-tooth evaluation, any
+Stage-2 end-to-end difference below ~1 point is indistinguishable from run-to-run variance.**
+Single-run comparisons at that scale should not be reported as improvements.
+
+### What this settles
+
+The head was already at **91.3–91.6% FDI exact on ground-truth boxes**; end-to-end is 46.5%
+because the detector finds only 67.0% of teeth and the one-to-one assignment cannot know which
+third is missing. Adding 35,248 more training crops — a 2.1× increase, from a different
+continent and machine population — moved nothing. **This converts "the detector is probably the
+binding constraint" from a hypothesis into a measured result, and makes R1 unambiguously the
+next thing to do.**
+
+### Decisions
+
+- **The frozen head is NOT replaced.** `fdi-enumeration-head-resnet18-v1.0` stays; its hash is
+  unchanged and `verify_invariants.py` still passes. Neither arm wrote to `models/`.
+- **The Tufts corpus is kept**, not deleted. It cost nothing to hold (gitignored, rebuildable),
+  it is verified correct, and it remains a candidate for robustness work after R1 — where the
+  interesting question is generalisation across machines, not in-domain accuracy.
+- Arm B's own val figure (81.0% vs arm A's 91.3%) is **not** evidence of degradation: the two
+  were computed on different val populations (A: 2,729 DENTEX crops; B: 6,450 DENTEX+Tufts).
+  Not a like-for-like number and must not be quoted as one.
+
+Artefacts (scratchpad, not committed — rebuild with the same commands): `ab_A/`, `ab_B/`,
+`eval_A.json/`, `eval_B.json/`.

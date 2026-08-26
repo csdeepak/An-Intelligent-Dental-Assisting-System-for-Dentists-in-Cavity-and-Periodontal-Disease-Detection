@@ -787,3 +787,50 @@ Addendum 11, with the standing instruction to check the logic 2–3 times and cr
 Unchanged from `transfer.md` §3: R1 remains the headline item. The Tufts corpus is a
 zero-GPU-cost asset now sitting ready; the retraining experiment can slot in beside R1 rather
 than ahead of it.
+
+---
+
+## Addendum 13 — The Tufts A/B: a null result, and a noise floor worth having
+
+**Session goal:** answer the question Addendum 12 deliberately left open — does training the
+Stage-2 head on DENTEX + Tufts beat DENTEX alone?
+
+### What was done
+
+Two heads trained from scratch, seed 42 / 15 epochs / batch 64 / lr 1e-3, differing only in
+corpus; both evaluated like-for-like on the 164 leak-free images. Leakage pre-checked (eval set
+has zero MD5 and zero dHash overlap with Tufts). Neither wrote to `models/`.
+
+**Result: +10 teeth of 936, McNemar p=0.343. Null.** RESULTS_LOG 2026-08-25i.
+
+### The thing worth remembering
+
+The control did the real work. Arm A used a configuration **identical** to the frozen head —
+same seed, same data — and still landed 9 teeth away (45.51% vs 46.47%). That establishes a
+**~1-point run-to-run noise floor** on this evaluation, and Tufts' apparent +1.07pp sits inside
+it. Without arm A, +1.07pp would have looked like a modest win and could easily have been
+written up as one — which is exactly the 2026-08-22j failure mode repeating in a subtler form.
+
+**Rule this yields: on the 936-tooth eval, do not report any Stage-2 end-to-end difference
+below ~1 point as an improvement without a repeat run.**
+
+### Decisions made
+
+- **Frozen head not replaced.** Hash unchanged, `verify_invariants.py` still passes.
+- **Tufts corpus kept, not deleted.** Verified correct, gitignored, rebuildable, and still the
+  natural asset for cross-machine robustness work *after* R1 — the question it is actually
+  suited to is generalisation, not in-domain accuracy.
+- **Arm B's val figure (81.0%) deliberately not quoted anywhere as degradation** — it was
+  computed on a different val population than arm A's 91.3% and is not comparable.
+
+### What this changes
+
+"The detector is probably the binding constraint" is now a measured claim: doubling the
+numbering data changed nothing, while the head already scores 91.3–91.6% on ground-truth boxes.
+R1 is unambiguously next, and the paper gets a real ablation instead of an assertion.
+
+### Next steps
+
+R1 on JarvisLabs, config pre-registered in `T0.6_detector_reconciliation.md` §2. The three
+zero-cost items (T0.5, bone-loss version tags, `docker build` verification) remain untouched
+and are the sensible filler around it.
