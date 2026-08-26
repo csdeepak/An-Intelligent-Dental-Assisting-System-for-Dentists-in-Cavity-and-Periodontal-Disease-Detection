@@ -3126,3 +3126,62 @@ pending decision in `transfer.md` §4.
   caries work and the DENTEX+Tufts bone-loss experiment cannot be fed from here without
   fetching DENTEX first (`docs/EXTERNAL_DRIVE.md`). `models/09_caries_gate_v3/caries_gate_v3.pth`
   is also absent here, so `run_inference.py` will not complete on this machine yet.
+
+## 2026-08-27a — R1's first GPU run was trained on misaligned masks; two data defects found and fixed
+
+- **What was done:** Ran R1 (YOLOv11l-seg) to completion on a JarvisLabs A100-80GB, then found
+  the result was invalid: **every instance mask in the training data was spatially misaligned
+  with its image.** Root-caused to two *independent* defects, both now fixed and verified. The
+  run's numbers are withdrawn; the held-out test split was **not** touched, so the one-shot
+  test-set discipline of `T0.6` §2 is intact and R1 can be re-run cleanly.
+- **The trigger:** final validation on `best.pt` gave box mAP@0.5 **0.258** / mask mAP@0.5
+  **0.204**, against the canonical bbox detector's **0.834** val mAP@0.5 on the same split.
+  A ~0.58 gap is far too large for a bbox→mask change and matched the failure mode
+  `rotate_tufts_radiographs.py`'s own docstring warns about — a detector "trains perfectly
+  happily on upside-down teeth", so bad geometry degrades silently instead of crashing.
+- **Defect 1 — `teeth_polygon.json` stores points as `[y, x]`.** `teeth_bbox.json` uses
+  `[x1, y1, x2, y2]`. `convert_tufts_to_yolo_seg.py` inherited the bbox converter's
+  "no transform needed" assumption, which is correct only for the bbox file. Established by
+  matching **6,006 title-paired objects** across the two files and testing five candidate
+  transforms — median centre-distance: identity **442.13 px**, 90° CCW **288.51 px**,
+  90° CW **175.50 px**, **transpose 2.06 px**, anti-transpose **390.63 px**.
+- **Defect 2 — this machine's `Radiographs_rotated/` is 180° out.** It has an mtime of
+  20 Aug 2026, predating the 22 Aug rotation-direction fix in
+  `rotate_tufts_radiographs.py`, so it holds `ROTATE_270` (CW) output where the canonical
+  frame is `ROTATE_90` (CCW); CW and CCW differ by exactly 180°. Measured via mean pixel
+  intensity inside `teeth_bbox` annotations (teeth are radio-dense, so aligned annotations sit
+  on brighter-than-average pixels): **0.967 → 1.056** after a 180° rotation.
+  **Both defects had to be fixed — correcting either alone still yields garbage.**
+- **Metrics (verification, not model performance):** the decisive check is agreement between
+  the built seg labels' bounding boxes and `teeth_bbox.json`, the ground truth the canonical
+  detector was trained on, over 3,225 train instances:
+
+  | dataset | median IoU vs `teeth_bbox` | match @ IoU≥0.5 |
+  |---|---|---|
+  | `dataset_seg` (used by the withdrawn run) | **0.000** | **1.6 %** |
+  | `dataset_seg_v2` (fixed) | **0.837** | **99.4 %** |
+
+  Corroborated two further ways: brightness ratio inside built label polygons **0.987 → 1.072**,
+  and visual overlay on 3 radiographs (dense, sparse, restored arches) where every polygon
+  traces a real tooth. Instance counts are unchanged at **26,005** (18,268 / 3,807 / 3,930) —
+  the fix moves coordinates, it does not add or drop objects.
+- **Key decision or insight:** **A falling loss curve is not evidence of correct data.** The
+  withdrawn run's losses decreased smoothly for 90 epochs, GPU/throughput/checkpointing were
+  all healthy, and every hyperparameter matched the pre-registration exactly — the run was
+  *operationally* flawless and *scientifically* void. What caught it was comparing the result
+  against a known reference (0.834) and treating the discrepancy as a defect to explain rather
+  than a disappointing outcome to report. Geometry must be verified against an independent
+  annotation source **before** training, which is now a required pre-flight step.
+  Consequently, `T0.6` §3.5's claim that this converter was "verified end-to-end against real
+  data" on 20–21 Aug (7 images spot-checked) is **not reliable** — it did not catch either
+  defect and needs re-checking on the macOS machine.
+- **Source:** `scripts/yolo/fix_tufts_orientation.py` (new, self-verifying, refuses to run on
+  an already-aligned source); `scripts/yolo/convert_tufts_to_yolo_seg.py` (`[y,x]`→`(x,y)`
+  swap); `data/tufts/dataset_seg_v2/`. Withdrawn run: 90 epochs, early-stopped, best epoch 60.
+- **Cost:** ₹118.81 of the ₹900 JarvisLabs balance (~45 min wall-clock incl. debugging);
+  instance destroyed, nothing left billing.
+- **Follow-ups:** re-run R1 on `dataset_seg_v2` against the unchanged pre-registered criterion
+  (box mAP@0.5 ≥ 0.75, mask mAP@0.5 ≥ 0.65). **Re-verify the macOS machine's `dataset_seg/`
+  and its `Radiographs_rotated/` for the same two defects** — if its polygon data went through
+  the same converter, anything derived from it is suspect. `data/tufts/dataset_seg/` (broken)
+  is retained, not deleted, per `CLAUDE.md` rule 3.

@@ -35,9 +35,25 @@ bbox converter's <2px filter here — that would propagate a data bug for cosmet
 comparability. It does mean seg and bbox test metrics are measured against ground truth
 differing by 6 instances (0.15%); that caveat is pre-registered in T0.6 §2.
 
+⚠️ CORRECTED 27 August 2026 — TWO independent defects made every mask in the previously-built
+dataset misaligned. Both are fixed; both were required, since fixing either alone still
+produces garbage. Full record: RESULTS_LOG.md 2026-08-27a.
+
+  1. `teeth_polygon.json` stores points as [y, x], while `teeth_bbox.json` uses
+     [x1, y1, x2, y2]. This script had inherited the bbox converter's "no transform needed"
+     assumption. Proven by matching 6,006 title-paired objects across the two files:
+     transpose gives a 2.06 px median centre-distance, every other candidate 175-442 px.
+  2. On a machine whose `Radiographs_rotated/` predates the 22 Aug rotation-direction fix,
+     the images themselves are 180 degrees out. `scripts/yolo/fix_tufts_orientation.py`
+     detects and corrects that; point TUFTS_IMG_DIR at its output.
+
+The line below in §3.5 of T0.6 claiming this script was "verified end-to-end against real
+data" on 20-21 Aug predates both findings and should be treated as UNRELIABLE until
+re-checked on the macOS machine — a spot-check that passed there did not catch this.
+
 Input:
-  - Radiographs_rotated/{image_id}.jpg          (portrait 840x1615 — see rotation note above)
-  - Segmentation/teeth_polygon.json             (portrait-coordinate polygon annotations)
+  - Radiographs_rotated_fixed/{image_id}.jpg    (portrait 840x1615, orientation-corrected)
+  - Segmentation/teeth_polygon.json             (polygon annotations, points stored [y, x])
   - outputs/eda_tufts/split_v1.csv              (frozen 70/15/15 split — STILL MISSING, see above)
 
 Output:
@@ -192,7 +208,24 @@ def parse_annotations():
 
             # Keep only the largest-area fragment per object (see module docstring).
             best_fragment = max(fragments, key=lambda pts: polygon_area([tuple(p) for p in pts]))
-            points = [(p[0], p[1]) for p in best_fragment]
+
+            # teeth_polygon.json stores each point as [y, x] -- NOT [x, y] like
+            # teeth_bbox.json's [x1, y1, x2, y2]. The two annotation files ship in different
+            # point orders, and this script previously inherited the bbox converter's
+            # "no transform needed" assumption, which is only correct for teeth_bbox.json.
+            #
+            # Established 27 Aug 2026 by matching 6,006 title-paired objects across the two
+            # files and testing five candidate transforms; median centre-distance:
+            #     identity (what this line used to do) 442.13 px
+            #     90 deg CCW rotation                  288.51 px
+            #     90 deg CW rotation                   175.50 px
+            #     TRANSPOSE  (x=p[1], y=p[0])            2.06 px   <- correct
+            #     anti-transpose                       390.63 px
+            # Corroborated visually: after this swap every polygon traces a real tooth.
+            # Left uncorrected, every mask in the dataset is misplaced -- training still
+            # "works" and losses still fall, which is exactly why this went unnoticed
+            # through a full 90-epoch GPU run. RESULTS_LOG.md 2026-08-27a.
+            points = [(p[1], p[0]) for p in best_fragment]
 
             if len(points) < MIN_POLYGON_POINTS:
                 stats["too_few_points"] += 1
