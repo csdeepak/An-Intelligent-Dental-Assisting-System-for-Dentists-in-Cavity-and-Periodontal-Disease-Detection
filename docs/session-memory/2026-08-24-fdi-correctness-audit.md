@@ -894,3 +894,66 @@ asked because the user pushed on the corpus question again.
 
 R1 remains top of `transfer.md` §3 — nothing here contradicts that the detector is the
 in-domain bottleneck.
+
+---
+
+## Addendum 15 — v2.0 adopted; literature check; and a licence problem worth more than the model
+
+**Session goal:** adopt arm B, and research (via firecrawl) what datasets DPML and DentFound
+used, whether they are public, and whether the Tufts mirror finding is actually novel.
+
+### What was done
+
+1. **Adopted arm B as `fdi-enumeration-head-resnet18-v2.0`** in a *new* directory
+   (`models/10_fdi_head_dentex_tufts_v2/`), not by overwriting v1.0. `DEF_FDI_HEAD` repointed;
+   verified live (report records the v2 path). `verify_invariants.py` now pins **both** heads —
+   v1.0 must stay byte-reproducible because every pre-26-Aug number was measured on it.
+   65 tests, 7/7 invariants still pass. `scripts/eval/crop_eval.py` promoted out of scratchpad.
+2. **Read both papers directly** (pypdf text extraction; the Read tool needed poppler, absent).
+3. **Literature check** across the indexed biomedical/arXiv corpora + web + GitHub.
+
+### The findings that change something
+
+- **DPML's numbering is 8-class, not FDI.** It collapses left/right by design, citing bilateral
+  symmetry. Its 95.80% is therefore *not* comparable to our 32-class FDI — the comparable
+  quantity is our `position` sub-task.
+- **DPML on public DENTEX: 61.83 mAP, against 95.06 on its own 110-image single-centre set.**
+  A 33-point in-domain/out-of-domain gap, reported by a Q1 paper, independently mirroring what
+  this project measured for Stage 2 and bone loss. This is the single most useful number found.
+- **DentFound uses two PUBLIC Kaggle sets for tooth ID** — including *Dual-labeled Panoramic
+  Radiographs*: **2,000 images, native FDI 11–48**. That is a third FDI corpus, larger than
+  DENTEX or Tufts, with no mirror to correct. Logged as a pending decision.
+- **The mirror novelty claim is NOT established.** The Panetta et al. full text is not in the
+  indexed corpus and was not read; the nearest literature hit (MDPI J. Imaging 12(6):256) turns
+  out to be about *model prediction* errors, not mirrored ground truth. Recorded as unverified.
+
+### Decisions made
+
+- **New directory, not overwrite.** v1.0 is the provenance of every published number; deleting
+  or replacing it would break reproducibility (CLAUDE.md rule 3).
+- **run_summary.txt leads with "adopted for robustness, NOT in-domain accuracy."** The +0.11pp
+  in-domain number is inside the noise floor and is the easiest thing in this project to
+  misquote as an improvement.
+- **Did not claim novelty for the mirror finding.** Absence of a hit in one search session is
+  not proof; the decisive check (Panetta full text) is still outstanding and is written down as
+  such rather than glossed.
+
+### The thing that matters most and is not about models
+
+The Tufts release agreement forbids reproducing or posting the database *"into any webpage or
+any other storage means"* and forbids giving colleagues access. `EXTERNAL_DRIVE.md` records a
+Drive folder holding the raw `ZIP/` release that was **browsable without signing in**. That is
+a licence breach, and the kind of thing that surfaces at submission. Documented in
+`EXTERNAL_DRIVE.md` and `transfer.md` §4 with the required action.
+
+### Open questions
+
+- Read Panetta et al. (IEEE JBHI 2022) full text — settles the novelty question either way.
+- Add the Kaggle *Dual-labeled* set as a third corpus? Would turn a 2-corpus generalisation
+  result into a 3-corpus one, which is a materially stronger paper claim.
+- Does the combined-corpus trick help **bone loss**, the actual generalisation failure?
+
+### Next steps
+
+R1 remains top of §3. The licence fix is not blocked on anything and should be done first —
+it takes a minute and it is a submission risk.

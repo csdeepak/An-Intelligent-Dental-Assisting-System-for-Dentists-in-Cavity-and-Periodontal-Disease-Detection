@@ -1,0 +1,68 @@
+=================================================================
+ STAGE 2 — FDI ENUMERATION HEAD v2.0  (DENTEX + Tufts)
+=================================================================
+
+TAG:      fdi-enumeration-head-resnet18-v2.0
+STATUS:   Current Stage-2 head. Supersedes
+          fdi-enumeration-head-resnet18-v1.0 (models/08_fdi_enumeration_head/),
+          which is RETAINED unchanged — v1.0 is the DENTEX-only model every
+          number before 26 Aug 2026 was measured on.
+
+sha256    6c675fa014551a0f184cf87a52d55ea26d21f23ae84dd5df1f7efce78a43004b
+
+-----------------------------------------------------------------
+ WHY v2 EXISTS — robustness, NOT in-domain accuracy
+-----------------------------------------------------------------
+v2 does not beat v1 in-domain and was never expected to. It was adopted
+because it holds up on a second machine population at no in-domain cost.
+Do not quote it as an accuracy improvement.
+
+                        DENTEX 164 (e2e)   Tufts test (3,786 crops)
+  v1.0  DENTEX only          46.47%              50.0%
+  v2.0  DENTEX + Tufts       46.58%              71.5%
+
+  in-domain  : +0.11pp — inside the ~1pt run-to-run noise floor measured in
+               RESULTS_LOG 2026-08-25i (two IDENTICAL configs differed by 9
+               teeth of 936). NOT an improvement.
+  out-domain : +21.5pp — the reason for the swap. RESULTS_LOG 2026-08-25j.
+
+A Tufts-ONLY head (arm C) was also trained and rejected: it loses 9.1 points
+on DENTEX (37.39%) while beating v2 on Tufts by an amount that is not
+significant (McNemar p=0.732). v2 strictly dominates it.
+
+-----------------------------------------------------------------
+ DATA
+-----------------------------------------------------------------
+  DENTEX  data/dentex/enumeration_v1   30,732 train / 2,729 val
+  Tufts   data/tufts/enumeration_v1    35,248 train / 3,721 val
+          (Tufts labels are left-right MIRRORED as shipped and are corrected
+           by src.utils.fdi_converter.tufts_title_to_fdi — RESULTS_LOG
+           2026-08-25h. Reading them raw would train side-swapped labels.)
+  Tufts test (3,786) held out from training; DENTEX disease/ 164 leak-free
+  images held out from both corpora (0 MD5 / 0 dHash overlap with Tufts).
+
+-----------------------------------------------------------------
+ TRAINING  (identical to v1.0 except the added corpus)
+-----------------------------------------------------------------
+  arch        resnet18 + 4 positional feats -> (quadrant 4, position 8)
+  seed 42 · epochs 15 · batch 64 · lr 1e-3 · backbone lr x0.1 · device MPS
+  best epoch  12
+  command     python scripts/dentex/train_enumeration_head.py \
+                --data data/dentex/enumeration_v1 data/tufts/enumeration_v1
+
+-----------------------------------------------------------------
+ METRICS
+-----------------------------------------------------------------
+  DENTEX 164 leak-free, end-to-end (detector boxes, Hungarian one-to-one):
+    FDI exact end-to-end      46.58%   (436 / 936)
+    FDI exact of detected     69.54%
+    quadrant of detected      94.10%
+    detector recall           66.99%   (unchanged — detector untouched)
+    duplicate FDI codes       0
+
+  Crop-level, GT boxes, plain argmax (scripts/eval/crop_eval.py):
+    DENTEX val  (2,729)  quadrant 99.0%  position 91.9%  FDI exact 91.0%
+    Tufts test  (3,786)  quadrant 97.4%  position 73.5%  FDI exact 71.5%
+
+  The two settings are NOT comparable to each other (end-to-end vs GT-box
+  crop-level); they are comparable across heads within each row.

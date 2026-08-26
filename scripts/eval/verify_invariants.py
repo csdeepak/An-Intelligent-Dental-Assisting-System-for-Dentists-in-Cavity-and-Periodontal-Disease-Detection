@@ -59,8 +59,12 @@ def hashes(d):
 def inv_weight_hashes():
     """A frozen model's bytes must still match the hash its run_summary records."""
     pairs = [
+        # v1.0 stays pinned even though v2 superseded it: it is the head every Stage-2
+        # number before 26 Aug 2026 was measured on, so it must stay byte-reproducible.
         ("models/08_fdi_enumeration_head/enumeration_head_best.pth",
          "models/08_fdi_enumeration_head/run_summary.txt"),
+        ("models/10_fdi_head_dentex_tufts_v2/enumeration_head_best.pth",
+         "models/10_fdi_head_dentex_tufts_v2/run_summary.txt"),
         ("models/09_caries_gate_v3/caries_gate_v3.pth",
          "models/09_caries_gate_v3/run_summary.txt"),
     ]

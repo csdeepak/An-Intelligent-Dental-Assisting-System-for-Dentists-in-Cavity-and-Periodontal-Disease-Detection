@@ -67,7 +67,11 @@ STAGE1_DETECTOR_RECALL = 0.670        # = 0.6699, 164 leak-free DENTEX images, 9
 STAGE2_FDI_EXACT_END_TO_END = 0.465   # = 0.4647, same run
 
 DEF_DETECTOR = REPO_ROOT / "models/06_yolo_detection_a100_run/best.pt"
-DEF_FDI_HEAD = REPO_ROOT / "models/08_fdi_enumeration_head/enumeration_head_best.pth"
+# v2.0 = DENTEX + Tufts. Adopted 26 Aug 2026 for ROBUSTNESS, not in-domain accuracy:
+# in-domain it is +0.11pp (inside the ~1pt noise floor), out-of-domain +21.5pp on Tufts.
+# v1.0 (models/08_fdi_enumeration_head/) is retained unchanged — it is the head every
+# Stage-2 number before this date was measured on. RESULTS_LOG 2026-08-25j.
+DEF_FDI_HEAD = REPO_ROOT / "models/10_fdi_head_dentex_tufts_v2/enumeration_head_best.pth"
 # The v3 gate, whose negative class contains 5,366 real healthy teeth. The legacy gate
 # (models/07_caries_cascade/final_model.pth) had NO healthy teeth in its negative class and
 # called 84.9% of detected teeth carious in this pipeline; v3 calls 19.1% against an 11.7%

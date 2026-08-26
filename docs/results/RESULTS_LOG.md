@@ -2935,3 +2935,70 @@ wrong tooth. 86 additional mis-numbered teeth per 936 is 86 more caries/bone-los
 filed against the wrong tooth in the JSON and the overlay.
 
 Recommendation stands: **adopt arm B, not arm C**; `transfer.md` §4.
+
+## 2026-08-26a — Head v2.0 (DENTEX+Tufts) adopted; literature check on the mirror claim; a licence problem
+
+### 1. Arm B adopted as `fdi-enumeration-head-resnet18-v2.0`
+
+New directory `models/10_fdi_head_dentex_tufts_v2/`, sha256
+`6c675fa014551a0f184cf87a52d55ea26d21f23ae84dd5df1f7efce78a43004b`. `DEF_FDI_HEAD` in
+`run_inference.py` repointed; verified live — a real run records
+`models/10_fdi_head_dentex_tufts_v2` in the report's `models` block, 23 teeth, 0 duplicates.
+
+**v1.0 is retained unchanged and STILL hash-pinned.** `verify_invariants.py` now checks both
+heads (7/7 still passing). Every Stage-2 number published before today was measured on v1.0,
+so it must stay byte-reproducible; this is an addition, not an overwrite (CLAUDE.md rule 3).
+
+**Adopted for robustness, not accuracy** — restated here because it is the single easiest
+thing to misquote: in-domain +0.11pp (inside the ~1pt noise floor), out-of-domain **+21.5pp**.
+
+### 2. Literature check on the Tufts mirror finding — NOT yet a novelty claim
+
+Searched the indexed biomedical/arXiv corpora and the web for prior reports.
+
+- **The Tufts paper itself** (Panetta et al., IEEE JBHI 2022, pmid:34606466) states the
+  *"universal tooth numbering system was used to identify and label"*. Full text is not in the
+  indexed corpus, so **the paper's own description of its handedness convention has NOT been
+  read** — only the abstract/figure text. **This is the one check still outstanding**; it must
+  be done before any novelty claim, because if the paper documents the convention, the finding
+  is a usage note, not a discovery.
+- **The nearest hit is not the same thing.** *Structure-Guided Tooth Numbering and Lesion…*
+  (MDPI J. Imaging 12(6):256) reports *"numbering jumps, duplicates, and left–right mirror
+  errors"* — but that text is about **its own model's prediction errors** from a YOLOv8n-cls
+  quadrant classifier, not about mirrored ground-truth labels in a released dataset. Read
+  directly; different phenomenon.
+- No GitHub issue or paper was found reporting mirrored ground truth in Tufts. **Absence of
+  evidence found in one search session is not proof of novelty** — treat the claim as
+  *unverified* until the Panetta full text is read.
+
+### 3. What the two comparison papers actually used
+
+| | DPML (ESWA 254:124446, 2024) | DentFound (Nat. Biomed. Eng. 2026) |
+|---|---|---|
+| Own data | 110 images, **10 train / 100 val**, one hospital, mostly one machine (Sirona Orthophos XG) | 101,000+ patients, multi-centre, 4 IRBs |
+| Public? | **No** — *"Data will be made available on request"* | Clinical data **no** (IRB/PHI); tooth-ID data **yes** |
+| Public sets used | **DENTEX** — the same corpus we use | **Dual-labeled Panoramic Radiographs** (Kaggle, 2,000 images, FDI 11–48 + label 91, 33 classes); **Teeth Segmentation on Dental X-ray Images** (Kaggle, 598 images, 15,318 polygons, 32 classes) |
+| Code | not released | **released** — github.com/ahukui/DentFound |
+| Numbering granularity | **8 classes** (tooth *type*; left/right collapsed by design, justified by bilateral symmetry) | **52 classes** (FDI 11–48 permanent **+ 20 primary**; 53-channel mask) |
+| Headline | 95.80% acc / 97.70% precision (8-class, own data); 95.06% detection mAP | — |
+
+**The number that matters most for our positioning:** DPML also evaluated on public DENTEX,
+and reports **mAP 61.83 / mIoU 0.5562** there — against **95.06 mAP on its own data**. Their
+own table shows HierarchicalDet at 60.11 and Faster-RCNN at 53.37 on DENTEX. So the published
+ceiling on the shared public benchmark is ~62 mAP, **33 points below the headline they
+advertise on their private single-centre set.** That is the same in-domain/out-of-domain gap
+this project measured for Stage 2 (2026-08-25j) and for bone loss (2026-08-25d), reported
+independently by a Q1 paper.
+
+### 4. A licence problem, found while checking provenance
+
+The Tufts release agreement (`https://tdd.ece.tufts.edu/`) states verbatim: *"No permission is
+granted to reproduce the database or post into any webpage or any other storage means"*, *"The
+Researcher may not provide research associates and colleagues with access to the Database"*,
+and *"Failure to follow the above steps will invite legal prosecution."*
+
+`docs/EXTERNAL_DRIVE.md` records a Google Drive folder holding the Tufts `ZIP/` raw release
+that was **browsable without signing in**. That is link-accessible redistribution, which the
+agreement forbids. Flagged in `EXTERNAL_DRIVE.md` with the required action (restrict the
+folder; share the release *form*, not the files) and the mandatory citation. Not a model or
+metric issue — but it is the kind of thing that surfaces at submission, so it is logged here.

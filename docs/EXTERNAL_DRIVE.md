@@ -21,6 +21,33 @@ verified, not assumed. Neither drive's contents are duplicated here in detail; t
 the source of truth for what's inside each folder and update this table if the top-level
 layout changes.
 
+> ### ⚠️ LICENCE PROBLEM WITH THE TUFTS DRIVE — resolve before submitting anything
+>
+> The Tufts Dental Database release agreement (read from `https://tdd.ece.tufts.edu/`,
+> 26 Aug 2026) states, verbatim:
+>
+> - *"No permission is granted to reproduce the database or post into any webpage or any
+>   other storage means."*
+> - *"The Researcher may not provide research associates and colleagues with access to the
+>   Database."*
+> - *"The distribution of this database to any parties that have not read and agreed to the
+>   terms and conditions of usage is strictly prohibited."*
+> - *"Failure to follow the above steps will invite legal prosecution."*
+>
+> The Tufts drive above holds `ZIP/` — the **raw release** — and the note directly above
+> records that it was browsable **without signing in**, i.e. link-accessible to anyone.
+> That is squarely what the agreement forbids. **Action: set that folder to private /
+> restricted immediately**, and keep Tufts data local-only. Each user must sign the release
+> form themselves; the correct way to "share" it is to send the form link, not the files.
+>
+> Every publication using it must cite **both** the website and Panetta, K., Rajendran, R.,
+> Ramesh, A., Rao, S. P., & Agaian, S. (2021), *Tufts Dental Database: A Multimodal
+> Panoramic X-ray Dataset for Benchmarking Diagnostic Systems*, IEEE JBHI. Use is
+> **non-commercial research/education only**.
+>
+> DENTEX is a separate matter and is not covered by this warning — check its own licence
+> before mirroring it publicly too.
+
 ---
 
 ## Model checkpoints — what a fresh clone is missing, and where to get it
@@ -34,7 +61,8 @@ every `DEF_*` default in that script (25 Aug 2026) against `git ls-files`:
 |---|---|
 | `models/07_caries_cascade/final_model.pth` | (superseded by v3 below, kept for reproducibility) |
 | `models/07_caries_cascade/phase2_final_bundle.pth` | `DEF_CARIES_SEVERITY` |
-| `models/08_fdi_enumeration_head/enumeration_head_best.pth` | `DEF_FDI_HEAD` |
+| `models/08_fdi_enumeration_head/enumeration_head_best.pth` | Stage-2 head **v1.0** — superseded 26 Aug but retained and hash-pinned |
+| `models/10_fdi_head_dentex_tufts_v2/enumeration_head_best.pth` | `DEF_FDI_HEAD` (**v2.0**, DENTEX+Tufts) |
 | `models/03_bone_loss_model_training_notebook_models/bone_loss_resnet18_best.pth` | `DEF_BONE_LOSS` |
 | `models/04_bone_loss_severity_notebook_models/bone_loss_severity_resnet18_best.pth` | `DEF_BONE_SEVERITY` |
 

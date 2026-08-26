@@ -47,13 +47,33 @@ enumeration-head training images, 1 to a detector training image. An earlier ver
 table reported 52.2% on the contaminated 249-image set; that figure was inflated by 5.7 points
 and is withdrawn. Exclusion list: `data/dentex/disease_leaked_images.json`.
 
-| Metric | Positional (superseded) | **Learned head** |
-|--------|------------------------|------------------|
-| Detection recall | 67.0% | 67.0% |
-| Quadrant correct (of detected) | 92.3% | **94.7%** |
-| FDI exact (of detected) | 34.1% | **69.4%** |
-| **FDI exact, end-to-end** | 22.9% | **46.5%** |
-| Duplicate FDI codes | 0 | **0** |
+| Metric | Positional (superseded) | Head v1.0 (DENTEX) | **Head v2.0 (DENTEX+Tufts)** |
+|--------|------------------------|--------------------|------------------------------|
+| Detection recall | 67.0% | 67.0% | 67.0% |
+| Quadrant correct (of detected) | 92.3% | **94.7%** | 94.1% |
+| FDI exact (of detected) | 34.1% | **69.4%** | 69.5% |
+| **FDI exact, end-to-end** | 22.9% | **46.5%** | **46.6%** |
+| Duplicate FDI codes | 0 | **0** | **0** |
+
+**v2.0 is the current deployed head (26 Aug 2026). It was adopted for ROBUSTNESS, not
+in-domain accuracy — do not quote it as an accuracy improvement.** In-domain it is +0.11pp,
+which is inside the ~1-point run-to-run noise floor (two *identical* configurations differed
+by 9 teeth of 936, RESULTS_LOG 2026-08-25i). What it buys is the second column below.
+
+**Cross-domain, crop-level, GT boxes, plain argmax** (`scripts/eval/crop_eval.py` — not
+comparable to the end-to-end table above, but comparable *across heads* within each row):
+
+| Head | DENTEX val (2,729 crops) | Tufts test (3,786 crops) |
+|---|---|---|
+| v1.0 — DENTEX only | 91.6% | 50.0% |
+| **v2.0 — DENTEX + Tufts** | 91.0% | **71.5%** |
+| *(rejected)* Tufts only | — | 71.8% (but **37.4%** end-to-end on DENTEX) |
+
+A Tufts-only head was trained and rejected: it is not significantly better than v2 on Tufts
+(McNemar p=0.732) while losing 9.1 points on DENTEX (p=4.7×10⁻¹¹). v2 strictly dominates it.
+RESULTS_LOG 2026-08-25j. v1.0 weights are **retained unchanged** in
+`models/08_fdi_enumeration_head/` and still hash-pinned — every Stage-2 number published
+before 26 Aug 2026 was measured on v1.0.
 
 **A 2.0× improvement on both measures**, on data the head has never seen.
 
