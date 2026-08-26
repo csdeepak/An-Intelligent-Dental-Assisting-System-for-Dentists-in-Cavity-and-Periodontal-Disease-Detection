@@ -2912,3 +2912,26 @@ deal out-of-domain.
 - Adoption, if taken, means: re-freeze arm B with a new tag, update the hash in
   `verify_invariants.py`, and re-state Stage-2 numbers in `model_metrics.md` with **both**
   domains, not just DENTEX.
+
+### 2026-08-25j (continued) — arm B strictly dominates arm C; the choice is not a trade-off
+
+Asked directly: prefer arm B (both corpora) or arm C (Tufts only)? Paired McNemar in **both**
+domains settles it — arm C's apparent Tufts advantage is not real, and its DENTEX loss is.
+
+| domain | arm B | arm C | net | McNemar |
+|---|---|---|---|---|
+| Tufts held-out test (3,786 crops) | 71.50% | 71.76% | C +10 crops | 351 vs 341, χ²=0.117, **p=0.732 — not significant** |
+| DENTEX 164 leak-free (936 teeth) | **46.58%** | 37.39% | **B +86 teeth** | 44 vs 130, χ²=41.52, **p=4.7×10⁻¹¹ — significant** |
+
+**Arm C is a dominated option.** It is not better than arm B anywhere measurable — its 0.26pp
+Tufts edge is 10 crops out of 3,786 and sits inside the same noise the 2026-08-25i control
+established — while being 9.2 points worse on the evaluation this project reports. There is no
+deployment target for which C is the right choice: on Tufts-like images B ties it, on
+DENTEX-like images B beats it decisively.
+
+**The downstream cost of choosing C is not just a headline number.** Stages 5–6 emit a
+*per-tooth* report, so an FDI error does not lose a finding — it attaches a real finding to the
+wrong tooth. 86 additional mis-numbered teeth per 936 is 86 more caries/bone-loss findings
+filed against the wrong tooth in the JSON and the overlay.
+
+Recommendation stands: **adopt arm B, not arm C**; `transfer.md` §4.
