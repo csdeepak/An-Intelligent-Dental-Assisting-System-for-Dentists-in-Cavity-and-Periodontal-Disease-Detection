@@ -3,11 +3,17 @@
 Current best numbers only. One table per model, nothing else. For how a number was
 obtained see `PAPER_MATERIAL.md`; for when and why it changed see `RESULTS_LOG.md`.
 
-**Last updated:** 2026-08-22 (Stage 2 replaced)
+**Last updated:** 2026-08-27 (Stage-1 detector swapped to the seg model; every DENTEX-measured Stage-1/Stage-2 figure is consequently STALE — see below)
 
 ---
 
-## Stage 1 — Tooth detection · YOLOv11l · Tufts
+## Stage 1 — Tooth detection · Tufts
+
+**Current default since 27 Aug 2026 is the YOLOv11l-SEG model — see the R1 block below.**
+The YOLOv11l **bbox** run immediately following is the SUPERSEDED detector, retained and
+hash-pinned because every number published before 27 Aug was measured on it.
+
+### YOLOv11l bbox (superseded as default, still the reference for older results)
 
 Best run: A100, imgsz 1024, 150 epochs requested / 128 run, best epoch 98.
 
@@ -24,7 +30,7 @@ Verified by loading under Ultralytics (task=detect, 1 class, 25.3M params) and b
 byte-identical `args.yaml`/`results.csv` against the copies already committed here — see
 `docs/research/T0.6_detector_reconciliation.md` §1 for the full verification record.
 
-### R1 — YOLOv11l-**seg** (27 Aug 2026) — trained, **NOT canonical**
+### R1 — YOLOv11l-**seg** (27 Aug 2026) — **ADOPTED as Stage-1 default**
 
 Same frozen split, same config, only `model` and label format changed. Held-out test touched
 once. Weights `models/11_yolo_seg_tufts_r1/run/weights/best.pt` (gitignored), tag
@@ -38,13 +44,22 @@ once. Weights `models/11_yolo_seg_tufts_r1/run/weights/best.pt` (gitignored), ta
 | Validation | 150 | 3,807 | **Mask** | 0.6100 | 0.6490 | **0.6520** | 0.2310 |
 
 **Pre-registered bar (`T0.6` §2): box ≥ 0.75 PASS · mask ≥ 0.65 FAIL (0.6383, short by
-0.0117). The bar was not adjusted after the fact, so the bbox model above REMAINS canonical**
-and R2 stays unwired. `RESULTS_LOG.md` 2026-08-27b.
+0.0117). The bar was NOT adjusted.** This model was nonetheless **adopted as the Stage-1
+default on 27 Aug 2026 by an explicit human decision**, on the strength of the box result
+alone — **+2.76 points over the superseded detector (0.8100 vs 0.7824)**, same frozen split,
+otherwise identical config. Adoption ≠ the bar being met; both facts are recorded.
+`RESULTS_LOG.md` 2026-08-27b, 2026-08-27d.
 
-**Box detection nonetheless improved: 0.8100 vs the bbox detector's 0.7824 (+2.76 points)** on
-the same split — masks produced a better *box* detector than boxes alone. Whether to adopt on
-that basis is an open decision, deliberately not defaulted into. Note the 3,930-vs-3,924
-instance difference below makes this near-, not exactly, like-for-like.
+**Because the mask bar was missed, this model is used for its BOXES ONLY and R2 (mask-aware
+cropping) stays UNWIRED** — that floor existed to protect R2, and nothing has changed it.
+
+⚠️ **Stage-1 recall (67.0%) and every Stage-2 end-to-end figure below were measured on the
+SUPERSEDED bbox detector and are now STALE.** They need re-measuring on a machine that has
+DENTEX. `run_inference.py` emits them as `null` with a pending note rather than as numbers
+that would misdescribe the running pipeline.
+
+Note the 3,930-vs-3,924 instance difference below makes the box comparison near-, not exactly,
+like-for-like.
 
 ⚠️ An earlier R1 run (26 Aug) was **withdrawn** — its masks were misaligned by two data
 defects. Nothing from it is reported here. `RESULTS_LOG.md` 2026-08-27a.
@@ -63,9 +78,18 @@ all 66, so its instance counts will legitimately differ. Analysis:
 
 ## Stage 2 — FDI numbering · learned enumeration head · ResNet18 + positional features
 
-**Current method as of 22 Aug 2026.** Evaluated on **164 leak-free `DENTEX/disease/` images**
-(936 FDI-labelled teeth) with detector boxes (`tooth-detector-a100-1024-v1.0`, imgsz 1024,
-conf 0.25, NMS IoU 0.50, rotated 90° CCW), Hungarian one-to-one assignment over the 32 codes.
+> ⚠️ **STALE SINCE 27 Aug 2026 — every number in this section was produced with the
+> SUPERSEDED bbox detector.** Stage-1 was swapped to `tooth-detector-seg-tufts-1024-v1.0`
+> (`RESULTS_LOG.md` 2026-08-27d). Detection recall, and therefore every end-to-end figure
+> derived from it, must be **re-measured** on a machine that has DENTEX before being quoted.
+> The new detector is +2.76 points better on Tufts box mAP@0.5, so recall is *expected* to be
+> no worse — but that is an expectation, not a measurement. The per-head comparisons below
+> remain valid **relative to each other**, since all three columns used the same detector.
+
+**Method as of 22 Aug 2026.** Evaluated on **164 leak-free `DENTEX/disease/` images**
+(936 FDI-labelled teeth) with detector boxes (`tooth-detector-a100-1024-v1.0` — the superseded
+detector, imgsz 1024, conf 0.25, NMS IoU 0.50, rotated 90° CCW), Hungarian one-to-one
+assignment over the 32 codes.
 
 **86 of the original 250 images are excluded as training duplicates** — 85 byte-identical to
 enumeration-head training images, 1 to a detector training image. An earlier version of this

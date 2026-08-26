@@ -127,8 +127,26 @@ immediately before launch.
 | **Box** | **0.8100** | ≥ 0.75 | **PASS** |
 | **Mask** | **0.6383** | ≥ 0.65 | **FAIL** (short 0.0117) |
 
-**The bar was not moved after seeing the number.** The bbox detector
-`tooth-detector-a100-1024-v1.0` **remains canonical Stage-1**, and **R2 stays unwired**.
+**The bar was not moved after seeing the number.** §2 stands exactly as written and this model
+does not satisfy it.
+
+**ADOPTED ANYWAY, 27 Aug, by explicit user decision — for the box gain alone.**
+`DEF_DETECTOR` is now `models/11_yolo_seg_tufts_r1/best.pt`
+(`tooth-detector-seg-tufts-1024-v1.0`). Adoption is a dated human call, **not** the bar being
+met; both facts are on the record (`RESULTS_LOG.md` 2026-08-27d). Two consequences that matter
+more than the swap itself:
+- **Masks are not validated to §2's standard, so the model is used for its BOXES ONLY and
+  R2 (mask-aware cropping) STAYS UNWIRED.**
+- ⚠️ **Every DENTEX-measured downstream number is now STALE** — Stage-1 recall (67.0%) and
+  Stage-2 end-to-end (46.5/46.6%). They could not be re-measured at adoption time because
+  DENTEX is not on the Windows machine. `run_inference.py` now emits them as `null` with a
+  "pending re-measurement" note rather than printing figures that describe a different model.
+  **Re-measure on a DENTEX-bearing machine before quoting any end-to-end number.**
+- ⚠️ **The new checkpoint is >50 MB, gitignored, and NOT yet on Drive** — so a fresh clone
+  currently cannot run the pipeline at all until it is uploaded (`docs/EXTERNAL_DRIVE.md`).
+
+The bbox detector is retained unchanged and hash-pinned; every pre-27-Aug number was measured
+on it.
 
 **But box detection genuinely improved: 0.8100 vs the bbox detector's 0.7824 — +2.76 points**
 on the same frozen split, otherwise identical config. Masks produced a *better box detector*
@@ -187,12 +205,14 @@ not, and would have been quietly wrong if the second measurement had not been as
 **User's explicit framing: continue implementation now; the paper draft is the final step, not
 the next one.** Ordered by what actually blocks something else:
 
-1. **R1 — YOLOv11l-seg retrain. ✅ DONE 27 Aug — but it did NOT become canonical.** Box bar
+1. **R1 — YOLOv11l-seg retrain. ✅ DONE 27 Aug, and ADOPTED as Stage-1 default.** Box bar
    passed (0.8100 test mAP@0.5 vs a 0.75 bar, and vs the bbox detector's 0.7824); **mask bar
    missed** (0.6383 vs 0.65). Per the pre-registration the bar was not moved and the bbox
-   detector stays Stage-1 canonical; R2 stays unwired. `RESULTS_LOG.md` 2026-08-27b,
-   `models/11_yolo_seg_tufts_r1/run_summary.txt`. **The open decision is whether the +2.76-point
-   box gain justifies adopting it anyway** — a real methodology call, not a default.
+   detector *would* have stayed canonical on the bar alone; **the user then decided on 27 Aug to
+   adopt it for the +2.76-point box gain regardless.** R2 stays unwired either way.
+   `RESULTS_LOG.md` 2026-08-27b/d, `models/11_yolo_seg_tufts_r1/run_summary.txt`.
+   **Now blocking: re-measure Stage-1 recall + Stage-2 end-to-end on DENTEX** (stale since the
+   swap), and **upload the checkpoint to Drive** (a fresh clone cannot run without it).
    Original framing kept below for context. Detector recall (67.0%) is the binding constraint on everything
    downstream of it — Stage-2 end-to-end is capped at 67.0% no matter how good the numbering
    is. **This is now measured, not assumed:** doubling the Stage-2 training corpus with Tufts

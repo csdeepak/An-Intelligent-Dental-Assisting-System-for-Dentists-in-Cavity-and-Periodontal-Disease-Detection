@@ -67,6 +67,10 @@ def inv_weight_hashes():
          "models/10_fdi_head_dentex_tufts_v2/run_summary.txt"),
         ("models/09_caries_gate_v3/caries_gate_v3.pth",
          "models/09_caries_gate_v3/run_summary.txt"),
+        # Stage-1 detector as of 27 Aug 2026. Pinned because it is now the pipeline default;
+        # adopted for its box gain despite missing §2's mask bar (RESULTS_LOG 2026-08-27d).
+        ("models/11_yolo_seg_tufts_r1/best.pt",
+         "models/11_yolo_seg_tufts_r1/run_summary.txt"),
     ]
     out = []
     for w, s in pairs:
@@ -75,7 +79,10 @@ def inv_weight_hashes():
             out.append(f"SKIP {Path(w).name} (not on this machine)")
             continue
         want = None
-        for line in sp.read_text().splitlines():
+        # encoding is explicit: Windows defaults to cp1252 and dies on the em-dashes
+        # and warning glyphs these summaries contain, while macOS defaults to utf-8 and
+        # passes. That asymmetry is exactly the class of bug this repo keeps hitting.
+        for line in sp.read_text(encoding="utf-8").splitlines():
             if "sha256" in line.lower():
                 for tok in line.split():
                     if len(tok) == 64 and all(c in "0123456789abcdef" for c in tok):
@@ -135,7 +142,7 @@ def inv_stage2_reproduces():
         return "SKIP (outputs/stage2_clean not present)"
     out = []
     for meth, exp_all, exp_det in (("head", 0.465, 0.694), ("positional", 0.229, 0.341)):
-        rows = json.loads((run / f"stage2_rows_{meth}.json").read_text())
+        rows = json.loads((run / f"stage2_rows_{meth}.json").read_text(encoding="utf-8"))
         det = [r for r in rows if r["detected"]]
         ok = [r for r in det if r["pred_fdi"] == r["gt_fdi"]]
         a, d = len(ok) / len(rows), len(ok) / len(det)
@@ -150,7 +157,7 @@ def inv_stage2_reproduces():
 def inv_leakage_list():
     """The exclusion list must still describe the actual overlaps on disk."""
     f = REPO_ROOT / "data/dentex/disease_leaked_images.json"
-    L = json.loads(f.read_text())
+    L = json.loads(f.read_text(encoding="utf-8"))
     if not (DENTEX / "disease/input").exists():
         return "SKIP (DENTEX not on this machine)"
     d250 = hashes(DENTEX / "disease/input")
@@ -171,8 +178,8 @@ def inv_v3_join():
     DI = DENTEX / "training_data/quadrant-enumeration-disease"
     if not DI.exists():
         return "SKIP (DENTEX not on this machine)"
-    en = json.loads((EN / "train_quadrant_enumeration.json").read_text())
-    di = json.loads((DI / "train_quadrant_enumeration_disease.json").read_text())
+    en = json.loads((EN / "train_quadrant_enumeration.json").read_text(encoding="utf-8"))
+    di = json.loads((DI / "train_quadrant_enumeration_disease.json").read_text(encoding="utf-8"))
     eh = {md5(EN / "xrays" / i["file_name"]): i for i in en["images"]
           if (EN / "xrays" / i["file_name"]).exists()}
     dh = {md5(DI / "xrays" / i["file_name"]): i for i in di["images"]

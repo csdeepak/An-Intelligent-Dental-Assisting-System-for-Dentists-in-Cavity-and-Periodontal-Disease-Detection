@@ -4,7 +4,7 @@
 against the working tree, not carried over from a previous version of this file.
 
 **Cloned this repo and `run_inference.py` says a weight is missing?** Only two checkpoints
-(`06_yolo_detection_a100_run/best.pt`, `09_caries_gate_v3/caries_gate_v3.pth`) are not in git
+(`11_yolo_seg_tufts_r1/best.pt`, `06_yolo_detection_a100_run/best.pt`, `09_caries_gate_v3/caries_gate_v3.pth`) are not in git
 and live on Google Drive instead — see `../docs/EXTERNAL_DRIVE.md` for the links and exact
 restore steps. **Everything else here, including the Stage-2 head the pipeline currently
 loads, is already tracked in git — `git clone` (or `git pull`) is enough for it.**
@@ -15,7 +15,8 @@ One numbered directory per trained stage, each with a `*summary*.txt` beside the
 
 | Directory | Stage | Weights | Tracked in git? |
 |---|---|---|---|
-| `06_yolo_detection_a100_run/` | Stage 1 — tooth detection, YOLOv11l | `best.pt`, `last.pt` (49 MB each) | **No** — `.gitignore` `models/**/*.pt`. Location + SHA-256 in `run_summary.txt`. |
+| `06_yolo_detection_a100_run/` | Stage 1 — tooth detection, YOLOv11l **bbox**. **Superseded as the pipeline default 27 Aug 2026**; retained and hash-pinned, since every number published before that date was measured on it. | `best.pt`, `last.pt` (49 MB each) | **No** — `.gitignore` `models/**/*.pt`. Location + SHA-256 in `run_summary.txt`. |
+| `11_yolo_seg_tufts_r1/` | Stage 1 — tooth detection, YOLOv11l-**seg**. **Current pipeline default (`DEF_DETECTOR`), adopted 27 Aug 2026.** Adopted for its box gain (+2.76 pts) **despite MISSING the pre-registered mask bar** — used for BOXES ONLY, R2 stays unwired. | `best.pt` (55.8 MB) | **No** — gitignored. SHA-256 in `run_summary.txt`; **not yet on Drive**. |
 | `07_caries_cascade/` | Stage 3 — caries cascade, ResNet18 ×2 | 5 `.pth` (43 MB each) | **Partly** — the two bundles are tracked; the three lineage checkpoints are not. See below. |
 | `09_caries_gate_v3/` | Stage 3 — **the gate the pipeline actually uses**, retrained with a real negative class (5,366 healthy teeth) | 1 `.pth` (43 MB) | Weights gitignored; summary + reports tracked |
 | `03_bone_loss_model_training_notebook_models/` | Stage 4a — bone-loss binary | `bone_loss_resnet18_{best,final}.pth` | **Yes** |
@@ -34,6 +35,7 @@ One numbered directory per trained stage, each with a `*summary*.txt` beside the
 |---|---|---|
 | `tooth-detector-a100-1024-v1.0` | Stage 1 detector | 20 Aug 2026 — `docs/research/T0.6_detector_reconciliation.md` §1 |
 | `caries-cascade-resnet18-v1.0` | Stage 3 cascade | 21 Aug 2026 — `07_caries_cascade/run_summary.txt` |
+| `tooth-detector-seg-tufts-1024-v1.0` | Stage 1 detection (**pipeline default**) | 27 Aug 2026 — `11_yolo_seg_tufts_r1/run_summary.txt` |
 | `caries-gate-resnet18-v3.0` | Stage 3 gate (**pipeline default**) | 25 Aug 2026 — `09_caries_gate_v3/run_summary.txt` |
 | `fdi-enumeration-head-resnet18-v1.0` | Stage 2 numbering (DENTEX only) | 22 Aug 2026 — `08_fdi_enumeration_head/run_summary.txt` |
 | `fdi-enumeration-head-resnet18-v2.0` | Stage 2 numbering (DENTEX + Tufts, **pipeline default**) | 26 Aug 2026 — `10_fdi_head_dentex_tufts_v2/run_summary.txt` |

@@ -1,13 +1,13 @@
 ================================================================================
 R1 — YOLOv11l-seg instance segmentation on Tufts
 Version tag: tooth-detector-seg-tufts-1024-v1.0
-Status:      PARTIAL RESULT — pre-registered bar MISSED on mask. NOT canonical.
-             The bbox detector `tooth-detector-a100-1024-v1.0` REMAINS Stage-1 canonical.
-Date:        27 August 2026
+Status:      ADOPTED as Stage-1 default, 27 August 2026 — by explicit user decision,
+             NOT because the pre-registered bar was met. Mask bar was MISSED. Read below.
+Date:        27 August 2026 (trained), 27 August 2026 (adopted)
 ================================================================================
 
-WHY THIS IS NOT THE PIPELINE DEFAULT
-------------------------------------
+WHY THIS IS THE PIPELINE DEFAULT — AND WHY THAT IS NOT THE SAME AS "IT PASSED"
+------------------------------------------------------------------------------
 `docs/research/T0.6_detector_reconciliation.md` §2 pre-registered, before any seg run
 existed, that the segmentation model replaces the frozen bbox model as canonical Stage-1
 ONLY IF, on the held-out test split, BOTH of:
@@ -15,11 +15,28 @@ ONLY IF, on the held-out test split, BOTH of:
     Box  mAP@0.5 >= 0.75      -> 0.8100   PASS
     Mask mAP@0.5 >= 0.65      -> 0.6383   FAIL  (short by 0.0117)
 
-Mask missed. Per §2's own instruction ("report the result honestly, keep the current bbox
-model as canonical, and treat R1/R2 as a documented negative or partial result rather than
-silently lowering the bar to declare success"), the bar was NOT adjusted after the fact and
-this checkpoint does NOT become the pipeline default. R2 (mask-aware cropping) therefore
-stays unwired, since it depends on masks this model does not yet produce well enough.
+**The mask bar was missed and the bar was NOT changed.** §2 stands exactly as written; this
+model does not satisfy it. Adoption is a SEPARATE, DATED HUMAN DECISION taken on 27 Aug 2026
+on the strength of the box result alone (+2.76 points over the superseded detector, 0.8100 vs
+0.7824, same frozen split, otherwise identical config). Recorded as such rather than presented
+as the bar having been met, because those are different claims and only one of them is true.
+
+What follows from adopting a model that missed the mask bar:
+  - **The masks are NOT validated to the standard §2 asked for.** This model is used for its
+    BOXES ONLY, exactly like its predecessor. **R2 (mask-aware cropping) stays UNWIRED** — it
+    was the thing the 0.65 floor existed to protect, and nothing has changed that judgement.
+  - Any future use of this model's masks needs its own pre-registered evaluation first.
+  - The superseded bbox detector is retained unchanged and hash-pinned at
+    `models/06_yolo_detection_a100_run/` — every number published before 27 Aug was measured
+    on it, so it must stay byte-reproducible.
+
+⚠️ **DOWNSTREAM NUMBERS MEASURED ON THE OLD DETECTOR ARE NOW STALE.** Stage-1 recall (67.0%)
+and Stage-2 FDI end-to-end (46.5/46.6%) were measured on DENTEX against the bbox detector and
+have NOT been re-measured. DENTEX is not present on the machine where the swap was made, so
+this could not be done at adoption time. `run_inference.py` now emits these as `None` with an
+explicit "pending re-measurement" note rather than printing figures that would misdescribe the
+running pipeline. **Re-measure on a machine that has DENTEX before quoting any end-to-end
+number.**
 
 
 HELD-OUT TEST RESULTS (touched exactly once, after checkpoint selection on val)
@@ -102,6 +119,12 @@ so the data actually trained on is verified, not merely the data that left this 
 
 ARTIFACTS
 ---------
+  models/11_yolo_seg_tufts_r1/best.pt               55.8 MB  <- PIPELINE DEFAULT (DEF_DETECTOR)
+sha256    271316c46caaf4029ea707fa77b6fe30697795e46632e1f6fcae3498c48781ba
+      (byte-identical copy of run/weights/best.pt, placed at a stable path so the pipeline
+       default does not point into a run directory. Pinned by scripts/eval/verify_invariants.py
+       — the line above is the format that checker parses, keep it as-is.)
+
   models/11_yolo_seg_tufts_r1/run/weights/best.pt   55.8 MB  (gitignored, >50MB, rule 4)
       SHA-256 271316c46caaf4029ea707fa77b6fe30697795e46632e1f6fcae3498c48781ba
       (verified byte-identical between the GPU box and this machine after download)
@@ -112,8 +135,11 @@ ARTIFACTS
   models/11_yolo_seg_tufts_r1/run/*.png             PR/F1/P/R curves, confusion matrices
   models/11_yolo_seg_tufts_r1/run/val_batch*_pred.jpg  qualitative predictions
 
-Weights are on local disk only. They are NOT on either Google Drive yet — if this checkpoint
-ever becomes load-bearing, upload it and add it to docs/EXTERNAL_DRIVE.md's table.
+⚠️ Weights are on local disk only and are >50 MB, so they are gitignored (rule 4). **This
+checkpoint is NOW LOAD-BEARING** — `run_inference.py` will not run without it — so it MUST be
+uploaded to the Tufts drive's `capstone_checkpoints/` folder. It is listed in
+`docs/EXTERNAL_DRIVE.md`'s missing-after-clone table; the upload itself is a manual step that
+has not been done yet.
 
 
 WHAT WOULD CLOSE THE MASK GAP (not attempted — would need a new pre-registration)

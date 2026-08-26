@@ -63,10 +63,33 @@ SCHEMA_VERSION = "opg-report/1.0"
 #   scripts/eval/validate_fdi_assignment.py --method head
 #   -> outputs/stage2_reverify/stage2_summary_head.json   (recall, fdi_exact_of_all)
 #   RESULTS_LOG 2026-08-22j (measurement), 2026-08-24b (byte-identical re-verification).
-STAGE1_DETECTOR_RECALL = 0.670        # = 0.6699, 164 leak-free DENTEX images, 936 GT teeth
-STAGE2_FDI_EXACT_END_TO_END = 0.465   # = 0.4647, same run
+# ⚠️ STALE AS OF 27 Aug 2026 — the Stage-1 detector was replaced (see DEF_DETECTOR below).
+# Both figures below were measured on the SUPERSEDED bbox detector over 164 leak-free DENTEX
+# images. They have NOT been re-measured against the seg detector, because that requires
+# DENTEX, which is not present on the machine where the swap was made. They are therefore
+# emitted as None rather than as numbers that would silently misdescribe the current pipeline.
+# Re-measure with scripts/eval/ on a machine that has DENTEX, then restore real values here.
+STAGE1_DETECTOR_RECALL = None         # pending re-measurement against the seg detector
+STAGE2_FDI_EXACT_END_TO_END = None    # pending re-measurement against the seg detector
 
-DEF_DETECTOR = REPO_ROOT / "models/06_yolo_detection_a100_run/best.pt"
+SUPERSEDED_STAGE1_RECALL = 0.670      # = 0.6699, bbox detector, 164 leak-free DENTEX, 936 GT teeth
+SUPERSEDED_STAGE2_END_TO_END = 0.465  # = 0.4647, same run
+
+# Stage-1 detector — YOLOv11l-SEG, adopted 27 Aug 2026 by explicit user decision.
+#
+# ADOPTED FOR THE BOX GAIN, NOT BECAUSE THE PRE-REGISTERED BAR WAS MET. T0.6 §2 required BOTH
+# box mAP@0.5 >= 0.75 AND mask mAP@0.5 >= 0.65 on the held-out test split. Box PASSED (0.8100,
+# vs the superseded bbox detector's 0.7824 — +2.76 points on the same frozen split with an
+# otherwise identical config). Mask FAILED (0.6383, short by 0.0117). The bar was NOT changed;
+# adoption is a separate, dated human decision, recorded as such. RESULTS_LOG 2026-08-27b/d.
+#
+# Consequences, stated here because they are easy to miss:
+#   - masks are NOT validated to the standard §2 asked for, so R2 (mask-aware cropping) stays
+#     unwired; this model is used for its BOXES only, exactly like its predecessor;
+#   - every DENTEX-measured downstream number is now stale — see the constants above.
+# The bbox detector is retained, unchanged and hash-pinned, at models/06_yolo_detection_a100_run/.
+DEF_DETECTOR = REPO_ROOT / "models/11_yolo_seg_tufts_r1/best.pt"
+DETECTOR_TAG = "tooth-detector-seg-tufts-1024-v1.0"
 # v2.0 = DENTEX + Tufts. Adopted 26 Aug 2026 for ROBUSTNESS, not in-domain accuracy:
 # in-domain it is +0.11pp (inside the ~1pt noise floor), out-of-domain +21.5pp on Tufts.
 # v1.0 (models/08_fdi_enumeration_head/) is retained unchanged — it is the head every
@@ -149,8 +172,13 @@ def build_report(image_path, img_bgr, boxes, confs, fdi_assign, caries, bone, me
             "stage1_detector_recall": STAGE1_DETECTOR_RECALL,
             "stage2_fdi_exact_end_to_end": STAGE2_FDI_EXACT_END_TO_END,
             "interpretation": (
-                "Detection recall and FDI accuracy are measured on DENTEX disease/ "
-                "(164 leak-free images, RESULTS_LOG 2026-08-22j). A missed tooth is absent "
+                "STALE: the Stage-1 detector was replaced on 27 Aug 2026 and these two "
+                "figures have NOT been re-measured against it (needs DENTEX). The superseded "
+                "bbox detector measured 67.0% recall / 46.5% end-to-end on DENTEX disease/ "
+                "(164 leak-free images, RESULTS_LOG 2026-08-22j); the new detector scores "
+                "+2.76 points better on Tufts box mAP@0.5, so recall is expected to be no "
+                "worse, but that is an EXPECTATION, not a measurement. "
+                "A missed tooth is absent "
                 "from this report; a misnumbered tooth carries correct findings under the "
                 "wrong FDI code. Expect roughly half the codes in this report to be wrong."),
             "caries_gate_precision": (
@@ -283,7 +311,7 @@ def run_pipeline(img_bgr, models, device, paths, image_label="image", imgsz=1024
     bone = run_bone_loss(models["bbin"], models["bsev"], img_bgr, boxes, device)
 
     meta = {
-        "detector": {"weights": str(paths["detector"]), "tag": "tooth-detector-a100-1024-v1.0",
+        "detector": {"weights": str(paths["detector"]), "tag": DETECTOR_TAG,
                      "imgsz": imgsz, "conf": conf, "nms_iou": det_iou,
                      "input_rotation": "90 deg counter-clockwise (src/orientation.py)"},
         "fdi_head": {"weights": str(paths["fdi_head"]), "tag": "fdi-enumeration-head-resnet18-v1.0",

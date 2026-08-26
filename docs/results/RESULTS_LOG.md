@@ -3302,3 +3302,48 @@ pending decision in `transfer.md` §4.
   the converter docstring as unreliable *evidence of correctness* (a 7-image spot-check passed
   with both defects live) — but it invalidates no published number. `docs/research/` is owned by
   a separate workstream, so §3.5's own text is left for that owner to amend.
+
+## 2026-08-27d — Seg detector ADOPTED as Stage-1 default (human decision; the bar was not met)
+
+- **What was done:** Swapped `DEF_DETECTOR` from the bbox detector to
+  `tooth-detector-seg-tufts-1024-v1.0` (`models/11_yolo_seg_tufts_r1/best.pt`), on the user's
+  explicit instruction, for the box gain alone.
+- **This is a decision, not a bar being met — stated plainly because the two are different
+  claims.** `T0.6` §2 required **both** box mAP@0.5 ≥ 0.75 **and** mask mAP@0.5 ≥ 0.65 on the
+  held-out test split. Box passed (0.8100); **mask failed (0.6383, short by 0.0117)**. §2 was
+  **not** rewritten, softened, or reinterpreted, and 2026-08-27b's verdict stands as recorded.
+  Adoption is logged here as a separate, dated human call.
+- **Rationale (the user's, recorded as given):** +2.76 points of box mAP@0.5 over the
+  superseded detector (0.8100 vs 0.7824) on the same frozen split with an otherwise identical
+  config — and box quality, not mask quality, is what bounds everything downstream, since
+  Stage-2 end-to-end is capped by detector recall.
+- **Consequences, enforced in code rather than just written down:**
+  - **Masks are NOT validated to §2's standard, so the model is used for its BOXES ONLY and
+    R2 (mask-aware cropping) stays UNWIRED.** The 0.65 floor existed to protect R2; nothing has
+    changed that judgement.
+  - **Every DENTEX-measured downstream figure is now STALE.** `STAGE1_DETECTOR_RECALL` (0.670)
+    and `STAGE2_FDI_EXACT_END_TO_END` (0.465) in `run_inference.py` are now `None`, with the
+    old values kept as `SUPERSEDED_*` constants and a "pending re-measurement" note emitted in
+    every report's `limitations` block. They could not be re-measured at adoption time because
+    **DENTEX is not on the machine where the swap was made**. Emitting `null` was chosen over
+    printing figures that would silently misdescribe the running pipeline.
+  - The detector tag in report metadata was hardcoded as `tooth-detector-a100-1024-v1.0`; it is
+    now a `DETECTOR_TAG` constant beside `DEF_DETECTOR` so the two cannot drift apart.
+  - The bbox detector is **retained unchanged and hash-pinned** — every pre-27-Aug number was
+    measured on it and it must stay byte-reproducible.
+- **Verification before the swap:** confirmed the seg model is drop-in for the pipeline's
+  detector call path — `src/orientation.detect_upright()` reads `r.boxes.xyxy`/`.conf`, which a
+  `task=segment` model provides. Ran both models through it on the same image: **31 boxes each**
+  (image 50 has 32 annotated teeth). `verify_invariants.py` now hash-pins the new default and
+  reports **7/7 holding**; **65/65 tests pass**.
+- **Source:** `scripts/run_inference.py` (`DEF_DETECTOR`, `DETECTOR_TAG`, stale-constant
+  handling), `scripts/eval/verify_invariants.py`, `models/11_yolo_seg_tufts_r1/run_summary.txt`,
+  `docs/results/model_metrics.md`, `models/README.md`, `docs/EXTERNAL_DRIVE.md`.
+- **Follow-ups — the first is blocking for any quoted end-to-end number:**
+  1. **Re-measure Stage-1 recall and Stage-2 end-to-end on DENTEX** against the new detector,
+     then restore real values to the two constants. Until then the pipeline honestly reports
+     that it does not know them.
+  2. **Upload `models/11_yolo_seg_tufts_r1/best.pt` to the Tufts drive's
+     `capstone_checkpoints/`.** It is now load-bearing and >50 MB, so a fresh clone currently
+     **cannot run the pipeline at all**. `docs/EXTERNAL_DRIVE.md` lists it as missing.
+  3. Re-run the C2 Ningxia external evaluation, which also used the old detector.

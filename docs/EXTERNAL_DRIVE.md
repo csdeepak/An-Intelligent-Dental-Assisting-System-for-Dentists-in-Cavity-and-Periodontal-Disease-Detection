@@ -72,8 +72,18 @@ has not changed with the v2.0 adoption, since v2.0 is 43 MB and already tracked 
 
 | File | Size | Trained on | Loaded as |
 |---|---|---|---|
-| `models/06_yolo_detection_a100_run/best.pt` | 49 MB | Tufts | `DEF_DETECTOR` |
+| **`models/11_yolo_seg_tufts_r1/best.pt`** | **55.8 MB** | **Tufts** | **`DEF_DETECTOR` (since 27 Aug 2026)** |
+| `models/06_yolo_detection_a100_run/best.pt` | 49 MB | Tufts | superseded as `DEF_DETECTOR`; still needed to reproduce every pre-27-Aug number |
 | `models/09_caries_gate_v3/caries_gate_v3.pth` | 43 MB | DENTEX | `DEF_CARIES_GATE` |
+
+> **⚠️ Changed 27 Aug 2026 — a fresh clone now needs THREE files, not two.** The Stage-1
+> detector was swapped to the YOLOv11l-seg model (`RESULTS_LOG.md` 2026-08-27d). Both detectors
+> are listed because the new one is required to *run* the pipeline and the old one is required
+> to *reproduce* anything published before that date.
+>
+> **The seg checkpoint has NOT been uploaded to Drive yet.** Until someone does, a fresh clone
+> cannot run `run_inference.py` even after following the steps below. Upload it to the Tufts
+> drive's `capstone_checkpoints/` (it was trained on Tufts) and delete this warning.
 
 Everything else on local disk under `models/` (`last.pt`, `best_model.pth`,
 `best_phase2_final.pth`, `best_phase2_fixed.pth`) is training lineage, not load-bearing —
@@ -83,6 +93,8 @@ ever needed.
 
 ### Where they live
 
+- `models/11_yolo_seg_tufts_r1/best.pt` → **Tufts drive**, `capstone_checkpoints/`
+  (trained on Tufts). **Not uploaded yet — see the warning above.**
 - `models/06_yolo_detection_a100_run/best.pt` → **Tufts drive**, `capstone_checkpoints/`
   (it was trained on Tufts).
 - `models/09_caries_gate_v3/caries_gate_v3.pth` → **DENTEX drive**, `capstone_checkpoints/`
