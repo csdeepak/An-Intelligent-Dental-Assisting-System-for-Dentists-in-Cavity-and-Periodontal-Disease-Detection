@@ -3084,3 +3084,45 @@ the embedded outputs (`nbstripout` or equivalent, going forward — old commits 
 until history is rewritten) or purge the blobs from history entirely (destructive, needs a
 force-push, and does not retroactively un-expose anything already cloned). Recorded as a
 pending decision in `transfer.md` §4.
+
+## 2026-08-26c — The frozen Tufts split is now derived from code, not carried between laptops
+
+- **What was done:** Reproduced `outputs/eda_tufts/split_v1.csv` **byte-for-byte** on the
+  Windows machine, from the raw data alone, and extracted the logic into
+  `scripts/tufts/regenerate_split_v1.py`. Then rebuilt `data/tufts/dataset_seg/` from it —
+  the R1 training input — which had never existed on this machine. R1 is now unblocked here
+  with no file transfer from the macOS machine required.
+- **Dataset / config:** Tufts, 1,000 rotated radiographs (840×1615) + `teeth_bbox.json` +
+  `teeth_polygon.json`. Split logic lifted verbatim from `week1_tufts_eda_v2.ipynb` cells
+  6/12/24: `np.random.RandomState(42).shuffle` over the sorted filename list, ratios
+  70/15/15. NumPy's *legacy* `RandomState` is stream-stable across versions, which is why it
+  reproduces exactly on NumPy 2.4.6 having been written under NumPy 1.x.
+- **Metrics:** Four independent invariants, all recorded in this repo *before* the script
+  existed, all passed:
+  1. split counts **700 train / 150 val / 150 test**
+  2. empty-label images per split **21 / 5 / 6**
+  3. the documented duplicate leak **`590.JPG`→test, `591.JPG`→train**
+  4. **SHA-256 `6de8cef2af1e73ff843f0353dccc0f93ddac34f33422c418f8ac07c67accb58b`** — exact
+     match to `T0.6_detector_reconciliation.md` §3.3.
+
+  The rebuilt `dataset_seg/` independently reproduces the macOS build: **26,005 instances**
+  (18,268 train / 3,807 val / 3,930 test) over 700/150/150 images, 334 MB on disk. The test
+  count of **3,930** matches the figure `T0.6` §2 pre-registered its acceptance caveat
+  around (vs the bbox set's 3,924), confirming this is the same conversion, not a similar one.
+- **Key decision or insight:** **`split_v1.csv` was never an irreplaceable artefact — it was
+  always a pure function of the data plus seed 42, and nobody had written that down as code.**
+  Because it is gitignored (`outputs/`), it was twice treated as a hard blocker: declared
+  "lost after an exhaustive search" on 2026-08-20 (the search ran over a Windows filesystem
+  while the file sat on macOS — see 2026-08-21), and genuinely absent again on 2026-08-26 when
+  work resumed on Windows. The EDA notebook stated the determinism in its own header the whole
+  time ("Rule 2: Split is deterministic and write-once, random seed FIXED to 42"). This entry
+  closes that failure mode permanently: the split is now regenerable anywhere in seconds, and
+  `--verify` turns the four invariants into a guard rather than a one-off check.
+- **Source:** `scripts/tufts/regenerate_split_v1.py` (self-verifying; run with `--verify`);
+  `scripts/yolo/convert_tufts_to_yolo_seg.py` run unmodified via its env-var overrides;
+  provenance notebook `_repo_archive/datasets_workspace/week1_tufts_eda_v2.ipynb` cells 6/12/24.
+- **Follow-ups:** R1 (`train_yolo_seg.py`) is now blocked on **nothing but GPU time** on this
+  machine. Note this machine has **only** Tufts — DENTEX (~14 GB) and Ningxia are absent, so
+  caries work and the DENTEX+Tufts bone-loss experiment cannot be fed from here without
+  fetching DENTEX first (`docs/EXTERNAL_DRIVE.md`). `models/09_caries_gate_v3/caries_gate_v3.pth`
+  is also absent here, so `run_inference.py` will not complete on this machine yet.
