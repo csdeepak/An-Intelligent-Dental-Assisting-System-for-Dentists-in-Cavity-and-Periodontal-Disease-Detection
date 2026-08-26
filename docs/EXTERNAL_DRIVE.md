@@ -82,8 +82,35 @@ has not changed with the v2.0 adoption, since v2.0 is 43 MB and already tracked 
 > to *reproduce* anything published before that date.
 >
 > **The seg checkpoint has NOT been uploaded to Drive yet.** Until someone does, a fresh clone
-> cannot run `run_inference.py` even after following the steps below. Upload it to the Tufts
-> drive's `capstone_checkpoints/` (it was trained on Tufts) and delete this warning.
+> cannot run `run_inference.py` even after following the steps below.
+>
+> **This is a manual step and cannot be automated from a Claude Code session** — confirmed
+> twice now (25 Aug for the first two checkpoints, 27 Aug for this one). The reasons are
+> concrete, not incidental: the browser tool's file-upload caps at **10 MB** and this file is
+> **53.3 MiB**; `gdown` is download-only; `rclone` and `gh` are not installed; and uploading to
+> Drive requires authenticating as the account owner, which a session will not do. Please stop
+> re-attempting it and just do the 60-second drag-and-drop below.
+
+### Uploading `models/11_yolo_seg_tufts_r1/best.pt` — the exact steps
+
+1. Open the **Tufts** drive folder (link in the table above) — it was trained on Tufts.
+2. If `capstone_checkpoints/` does not exist yet: **New → Folder → `capstone_checkpoints`**.
+3. Drag `models/11_yolo_seg_tufts_r1/best.pt` into it. **Rename it in Drive to
+   `yolo_seg_tufts_r1_best.pt`** — three of this project's checkpoints are called `best.pt`,
+   and a folder with two files of that name is how the wrong weights get restored.
+4. **Verify the upload is intact** — re-download it and check the hash matches the frozen one:
+
+   ```bash
+   # expected, from models/11_yolo_seg_tufts_r1/run_summary.txt
+   # 271316c46caaf4029ea707fa77b6fe30697795e46632e1f6fcae3498c48781ba
+   sha256sum <downloaded-file>
+   ```
+
+   This is not paranoia: during the 27 Aug DENTEX fetch, one file arrived truncated at 2,428
+   bytes and was silently accepted by a size>0 check, which cost a full evaluation run.
+   `scripts/eval/verify_invariants.py` checks this same hash automatically once the file is in
+   place locally.
+5. Delete this whole warning block once it is done, and un-bold the row above.
 
 Everything else on local disk under `models/` (`last.pt`, `best_model.pth`,
 `best_phase2_final.pth`, `best_phase2_fixed.pth`) is training lineage, not load-bearing —
