@@ -6,9 +6,12 @@ It is **rewritten, not appended to** — unlike `docs/results/RESULTS_LOG.md` (a
 history) and `docs/session-memory/` (one file per session, never edited). Those two are the
 record; this is the snapshot.
 
-**Last updated: 27 August 2026** (R1 ran twice: the first attempt was withdrawn — its masks were
-misaligned by two data defects, both now fixed; the re-run PASSED the box bar and MISSED the
-mask bar, so the bbox detector remains canonical. See §1a.)
+**Last updated: 27 August 2026** (R1 ran twice — the first attempt was withdrawn, its masks
+misaligned by two data defects, both now fixed. The re-run passed the box bar, missed the mask
+bar, and was **adopted anyway by user decision** for its box gain. Stage-2 was then
+**re-measured on DENTEX: end-to-end 46.3% → 58.3%, +12.0 points** — the largest single jump this
+project has recorded. **No GPU instances are running or paused; ₹650.81 of ₹900 remains.**
+See §1a.)
 
 **Previously: 26 August 2026** (later the same day: work resumed on the **Windows** machine;
 the frozen Tufts split was made regenerable from code and `dataset_seg/` rebuilt, so R1 is
@@ -223,8 +226,11 @@ the next one.** Ordered by what actually blocks something else:
    detector *would* have stayed canonical on the bar alone; **the user then decided on 27 Aug to
    adopt it for the +2.76-point box gain regardless.** R2 stays unwired either way.
    `RESULTS_LOG.md` 2026-08-27b/d, `models/11_yolo_seg_tufts_r1/run_summary.txt`.
-   **Now blocking: re-measure Stage-1 recall + Stage-2 end-to-end on DENTEX** (stale since the
-   swap), and **upload the checkpoint to Drive** (a fresh clone cannot run without it).
+   ✅ **Stage-2 re-measured 27 Aug — 46.3% → 58.3% end-to-end (+12.0 pts), recall 67.3% → 70.6%**
+   (`RESULTS_LOG.md` 2026-08-27e). Constants restored in `run_inference.py`. **Still open:
+   upload the checkpoint to Drive** — it is >50 MB and gitignored, so a fresh clone still cannot
+   run the pipeline at all; and **C2's Ningxia external validation is still on the old
+   detector**, so those numbers are stale in the same way Stage-2 was.
    Original framing kept below for context. Detector recall (67.0%) is the binding constraint on everything
    downstream of it — Stage-2 end-to-end is capped at 67.0% no matter how good the numbering
    is. **This is now measured, not assumed:** doubling the Stage-2 training corpus with Tufts
@@ -378,8 +384,22 @@ framing above is what gives it the best odds.
 
 ## 6. The R1 GPU session — run order, JarvisLabs
 
-The only job that needs renting. Everything else runs locally on the M4 Pro (ResNet18 work at
-~287 img/s on MPS — minutes per job).
+> ✅ **R1 IS DONE (27 Aug 2026) and no instance is running.** This section is retained as the
+> validated runbook for the *next* rented job, not as an outstanding task. What it cost in
+> practice: **₹249.19 across two runs** (one void, one real), against the ~₹210–280 estimated
+> for a single run — i.e. the estimate was right, and the overrun was entirely the withdrawn
+> run. **₹650.81 remains.**
+>
+> **Two things this runbook did NOT say, learned the hard way — do them next time:**
+> 1. **Verify data geometry against an independent reference BEFORE renting.** The first run
+>    burned ~₹119 and 47 minutes training on misaligned masks and failed nothing along the way.
+>    `convert_tufts_to_yolo_seg.py` now enforces this automatically and exits non-zero.
+> 2. **Re-run that check ON the rented box after upload**, not just locally — cheap insurance
+>    that what arrived is what you built.
+
+The only job that needed renting. Everything else runs locally on the M4 Pro (ResNet18 work at
+~287 img/s on MPS — minutes per job); the Windows machine is CPU-only torch, so even ResNet18
+work is slow there.
 
 **Full runbook with the exact commands: `docs/research/GPU_SETUP.md`** (rewritten 26 Aug 2026
 for JarvisLabs, verified against their live pricing and CLI/SSH docs). Summary:
@@ -405,7 +425,8 @@ Start training detached (`nohup … &`) so a dropped connection cannot kill the 
 storage at ₹0.0130/GB/hr. `GPU_SETUP.md` §2 has the details and the key-setup gotcha (adding
 an SSH key does not apply to an already-running instance until you pause and resume it).
 
-**Budget reality:** at ₹140.94/hr a ₹900 balance is **6 h 23 min**. R1 is estimated at
+**Budget reality (as written before R1 ran; the actual spend was ₹249.19 for both runs, leaving
+₹650.81 ≈ 4 h 37 min):** at ₹140.94/hr a ₹900 balance is **6 h 23 min**. R1 was estimated at
 ~1.5–2 h, leaving room for the one full redo `MASTER_PLAN_2026H2.md` §6 already assumes.
 That plan's ~6 GPU-hour line item for this job predates the measured 16.6 s/epoch of the
 actual A100 bbox run and looks conservative by roughly 3–4×.
@@ -455,7 +476,8 @@ fresh clone after `git push`), read this section in full before assuming anythin
 | Python env | `/opt/anaconda3` (python 3.12) | **65/65 tests, 7/7 invariants.** torch 2.2.0 + MPS, cv2 5.0.0, ultralytics 8.4.127, scipy, sklearn, streamlit 1.37.1. ⚠️ **`numpy` must stay `<2`** — pinned 1.26.4 in `requirements.txt`; numpy 2.x silently breaks `scipy.optimize` (the Hungarian FDI assignment) at import. A fresh machine should `pip install -r requirements.txt` into a venv rather than assume any particular Python distribution. |
 | **Model checkpoints — what `git clone` alone gets you, and what it does not.** | `docs/EXTERNAL_DRIVE.md` | **Only two files, unchanged from before, need a manual fetch**: `models/06_yolo_detection_a100_run/best.pt` (detector, Tufts drive) and `models/09_caries_gate_v3/caries_gate_v3.pth` (caries gate, DENTEX drive) — both >50 MB, gitignored per `CLAUDE.md` rule 4. **Everything else `run_inference.py` needs, including the new Stage-2 head v2.0 (`models/10_fdi_head_dentex_tufts_v2/enumeration_head_best.pth`, 43 MB), is committed to git and needs no Drive fetch.** `docs/EXTERNAL_DRIVE.md` has exact restore steps and a runnable smoke-test command. |
 | Docker daemon | Not verified this session either | `docker build` has never actually executed — see §3 item 7. |
-| E2E instance / SSH keys | Account-level | No instance launched. Treat the `.pem` pasted on 20 Aug as compromised. |
+| JarvisLabs instances | Account-level | **None running, none paused — verified 27 Aug.** Both R1 instances (482754 void run, 482810 the real one) were destroyed after artefacts were downloaded and checksum-verified. Balance **₹650.81** of the original ₹900. |
+| SSH keys | `~/.ssh/id_ed25519_jarvis` (+ a copy at `~/.ssh/id_ed25519`, since `jl` passes no `-i` and relies on OpenSSH's default lookup) | Registered with JarvisLabs as `r1-seg-windows`. The **E2E** `.pem` pasted into a chat on 20 Aug is still to be treated as compromised — different provider, unrelated key. |
 
 ### The Windows machine — a different inventory, verified 26 Aug 2026
 
@@ -469,7 +491,8 @@ holds a strictly smaller set. Check this before concluding anything is lost:
 | `data/tufts/dataset_seg/` | ✅ | Rebuilt 26 Aug, 26,005 instances, 334 MB — reproduces the macOS build exactly |
 | `models/06_yolo_detection_a100_run/best.pt` | ✅ | 51 MB, present |
 | `models/09_caries_gate_v3/caries_gate_v3.pth` | ❌ | Drive-only; **`run_inference.py` will not complete here until fetched** |
-| DENTEX (~14 GB) | ❌ | `data/dentex/` holds two JSON files only |
+| DENTEX `disease/` (250 img + 250 labels, 1,023 MB) | ✅ | At `~/Downloads/Capstone/DENTEX/disease/` — fetched 27 Aug for the Stage-2 re-measurement. All 500 files integrity-checked (every PNG opened, every JSON parsed). **This is the subset the Stage-2 eval needs**, and it is enough to re-run `validate_fdi_assignment.py` here. |
+| DENTEX — everything else (~13 GB: `training_data/`, `validation_data/`) | ❌ | Not fetched. Its absence makes `verify_invariants.py`'s leakage check SKIP (it needs the enumeration corpus too) and blocks the caries work. |
 | Ningxia | ❌ | `data/ningxia/` holds `manifest.csv` only |
 | Tufts bone-loss crops | ❌ | metadata CSVs only, no images |
 | `_repo_archive/datasets_workspace/` | ⚠️ partial | Has the EDA/conversion notebooks (incl. `week1_tufts_eda_v2.ipynb`), **not** `Radiographs_rotated/`, `dataset/` or `outputs/` |
