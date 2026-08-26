@@ -84,13 +84,19 @@ Documented in `RESULTS_LOG.md` 2026-08-27a/b, `model_metrics.md`,
 
 ## Open questions
 
-- **The macOS machine's `dataset_seg/` and `Radiographs_rotated/` are very likely affected by
-  the same two defects.** Its `Radiographs_rotated/` may be correct (the 22 Aug fix was made
-  there), but defect 1 is machine-independent — it is in the converter — so **anything derived
-  from its polygon data is suspect.** `fix_tufts_orientation.py --verify` and the IoU check
-  will settle it in minutes. Not checkable from here.
-- **T0.6 §3.5's "verified end-to-end against real data" claim is not reliable** and should be
-  annotated. A 7-image visual spot-check passed with both defects live.
+- ~~The macOS machine's `dataset_seg/` and `Radiographs_rotated/` are very likely affected~~
+  **RESOLVED later the same session — no other result is affected, and there is nothing to
+  check on the other machine.** I had written this as a hand-off task without establishing it
+  was either reachable or necessary; the user pointed out the MacBook is their friend's laptop.
+  Traced properly instead: **defect 2 is Windows-only** (the macOS images were always CCW —
+  the EDA notebook says so, and the bbox converter applies no transform, so the canonical
+  detector's 0.7824 is itself proof its images matched `teeth_bbox.json`), and **defect 1 has
+  no blast radius** (only `dataset_seg/` consumes it, and `train_yolo_seg.py` was unrun until
+  27 Aug; bone-loss crops come from `teeth_bbox.json`, R2 is unwired).
+- **T0.6 §3.5's "verified end-to-end against real data" claim is not reliable evidence of
+  correctness** — a 7-image spot-check passed with both defects live — but it does **not**
+  invalidate any published number, per the blast-radius trace above. Annotated in the
+  converter docstring.
 - **Adopt the seg detector for its +2.76-point box gain, or not?** Open, deliberately.
 - **Chase the 1.2-point mask gap?** Only with a fresh pre-registration first. Untuned levers:
   `mask_ratio` (4) and `overlap_mask` (True) were inherited defaults; the
@@ -99,9 +105,13 @@ Documented in `RESULTS_LOG.md` 2026-08-27a/b, `model_metrics.md`,
 
 ## Next steps
 
-1. **Re-verify the macOS machine** for both defects — highest priority, cheap, and it
-   determines whether other Tufts-derived results are affected.
-2. **Annotate `T0.6` §3.5** to record that its verification claim did not catch these.
+1. ~~Re-verify the macOS machine~~ — **done by analysis, no access needed** (see Open
+   questions). Instead, the guard is now enforced in code: `convert_tufts_to_yolo_seg.py`
+   selects its image directory by **measuring** against `teeth_bbox.json` rather than by name,
+   so whichever machine is in use auto-selects its own correct copy, and it re-scores the
+   written labels afterwards and exits non-zero on disagreement. Both paths tested.
+2. **Annotate `T0.6` §3.5** — done in the converter docstring; the T0.6 doc itself is owned by
+   the research workstream, so its §3.5 text was left for that owner to amend.
 3. **Decide on adoption** of the seg detector (box gain vs missed mask bar).
 4. If adopted, **re-measure Stage-2 end-to-end** — detector recall changing moves the ceiling,
    and that must be measured, not assumed.

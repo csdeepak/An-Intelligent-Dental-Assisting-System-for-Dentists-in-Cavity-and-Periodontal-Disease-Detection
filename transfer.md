@@ -89,6 +89,28 @@ already-aligned source) and a one-line swap in `convert_tufts_to_yolo_seg.py`. V
 `teeth_bbox.json` — the ground truth the 0.7824 detector was trained on — over 3,225 instances:
 **median IoU 0.000 → 0.837, agreement 1.6% → 99.4%.** `RESULTS_LOG.md` 2026-08-27a.
 
+**Blast radius — settled 27 Aug, no other result is affected, and there is nothing to check on
+the other machine.** Traced both defects through every consumer:
+- **Defect 2 (rotation) is Windows-only.** The macOS copy was always correct: the EDA notebook
+  records the original rotation as `img.rotate(90)` (CCW), and `convert_tufts_to_yolo.py`
+  applies *no* coordinate transform — so the canonical detector's **0.7824** test mAP is only
+  achievable if that machine's images already matched `teeth_bbox.json`. Misaligned data scores
+  ~0.25, as the withdrawn run showed. `rotate_tufts_radiographs.py` was written 20 Aug as a
+  reconstruction of undocumented tribal knowledge, got the direction wrong, and **was only ever
+  run on Windows** — on macOS the correct images already existed.
+- **Defect 1 (`[y,x]`) is machine-independent but has no blast radius.** Its only consumer is
+  `dataset_seg/`, and `train_yolo_seg.py` was unrun until 27 Aug. The bone-loss crops are built
+  from `teeth_bbox.json` (verified: `02_bone_loss_dataset_construction.ipynb` sets
+  `BBOX_JSON`; `teeth_polygon.json` appears there only in a comment); `src/crop_generator.py`
+  mentions polygons only in a docstring and R2 is unwired from `run_inference.py`.
+
+**The fix is enforced in code, not documentation** (27 Aug): `convert_tufts_to_yolo_seg.py` now
+picks its image directory **by measuring** against `teeth_bbox.json` rather than by name — so
+either machine auto-selects its own correct copy — and re-scores the written labels afterwards,
+exiting non-zero if they disagree. Both paths were tested: the good path passes
+(0.837 / 99.4%), and pointing it at the known-broken directory aborts with exit code 1 and
+writes nothing. Shared thresholds in `scripts/yolo/_tufts_align.py`.
+
 **The lesson worth carrying: a falling loss curve is not evidence of correct data.** That run's
 losses fell smoothly for 90 epochs, throughput and checkpointing were healthy, and every
 hyperparameter matched the pre-registration. It was operationally flawless and scientifically

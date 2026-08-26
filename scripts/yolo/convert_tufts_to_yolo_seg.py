@@ -44,17 +44,31 @@ produces garbage. Full record: RESULTS_LOG.md 2026-08-27a.
      assumption. Proven by matching 6,006 title-paired objects across the two files:
      transpose gives a 2.06 px median centre-distance, every other candidate 175-442 px.
   2. On a machine whose `Radiographs_rotated/` predates the 22 Aug rotation-direction fix,
-     the images themselves are 180 degrees out. `scripts/yolo/fix_tufts_orientation.py`
-     detects and corrects that; point TUFTS_IMG_DIR at its output.
+     the images themselves are 180 degrees out. This is MACHINE-SPECIFIC: the Windows copy
+     was generated 20 Aug by the pre-fix script and is wrong; the macOS copy was always
+     correct (the EDA notebook records `img.rotate(90)` = CCW, and the canonical detector's
+     0.7824 test mAP is only reachable on correctly-oriented images).
 
-The line below in §3.5 of T0.6 claiming this script was "verified end-to-end against real
-data" on 20-21 Aug predates both findings and should be treated as UNRELIABLE until
-re-checked on the macOS machine — a spot-check that passed there did not catch this.
+GUARDS, added 27 Aug — this script now REFUSES to emit a misaligned dataset on any machine:
+  - the image directory is chosen by MEASUREMENT against teeth_bbox.json, not by name, so
+    whichever machine you are on the correct local copy is picked automatically;
+  - after building, the written labels are scored against teeth_bbox.json and the script
+    exits non-zero if they disagree.
+Both thresholds and the shared geometry helpers live in `scripts/yolo/_tufts_align.py`.
+
+Scope note on §3.5 of T0.6, which claims this script was "verified end-to-end against real
+data" on 20-21 Aug: that verification did NOT catch defect 1, so treat it as unreliable
+evidence of correctness. It does not, however, invalidate any published result — the only
+consumer of this script's output is `dataset_seg/`, and `train_yolo_seg.py` was unrun until
+27 Aug. The detector, both FDI heads, the caries gate and the bone-loss models all read
+`teeth_bbox.json` (or DENTEX), which defect 1 does not touch.
 
 Input:
-  - Radiographs_rotated_fixed/{image_id}.jpg    (portrait 840x1615, orientation-corrected)
+  - Radiographs_rotated[_fixed]/{image_id}.jpg  (portrait 840x1615; auto-selected by measurement)
   - Segmentation/teeth_polygon.json             (polygon annotations, points stored [y, x])
-  - outputs/eda_tufts/split_v1.csv              (frozen 70/15/15 split — STILL MISSING, see above)
+  - Segmentation/teeth_bbox.json                (reference used by the alignment guards)
+  - outputs/eda_tufts/split_v1.csv              (frozen 70/15/15 split; regenerate with
+                                                 scripts/tufts/regenerate_split_v1.py)
 
 Output:
   - dataset_seg/images/{train,val,test}/*.jpg
@@ -89,6 +103,15 @@ import pandas as pd
 from tqdm import tqdm
 from PIL import Image
 
+# Shared geometry guards. Same module used by fix_tufts_orientation.py, so the definition of
+# "aligned" cannot drift between the two scripts.
+import sys as _sys
+_sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _tufts_align import (
+    polygon_points_to_xy, image_orientation_score, pick_image_dir,
+    label_agreement, MIN_MEDIAN_IOU, MIN_AGREEMENT_PCT,
+)
+
 
 # =============================================================================
 # CONFIGURATION — edit paths to your local setup (mirrors convert_tufts_to_yolo.py)
@@ -100,8 +123,22 @@ from PIL import Image
 # patched copy is not the thing that gets reviewed. Defaults are the original hard-coded
 # values, so existing invocations are unaffected.
 TUFTS_ROOT = Path(os.environ.get("TUFTS_ROOT", "/Users/chennupatigunadeep/Downloads/Capstone/DataSets"))
-IMG_SRC_DIR = Path(os.environ.get("TUFTS_IMG_DIR", TUFTS_ROOT / "Radiographs_rotated"))
+
+# IMG_SRC_DIR is AUTO-DETECTED unless TUFTS_IMG_DIR is set explicitly (see validate_inputs).
+# This project is worked on from two machines whose local copies differ: the macOS
+# `Radiographs_rotated/` is correctly oriented, the Windows one predates the 22 Aug 2026
+# rotation-direction fix and is 180 degrees out, with its corrected copy beside it. Rather
+# than requiring anyone to remember that, the correct directory is MEASURED at run time.
+_IMG_DIR_ENV = os.environ.get("TUFTS_IMG_DIR")
+IMG_SRC_DIR = Path(_IMG_DIR_ENV) if _IMG_DIR_ENV else None
+IMG_DIR_CANDIDATES = [
+    TUFTS_ROOT / "Radiographs_rotated_fixed",   # orientation-corrected copy, if one was made
+    TUFTS_ROOT / "Radiographs_rotated",          # canonical name; correct on macOS
+]
+
 POLY_JSON = Path(os.environ.get("TUFTS_POLY_JSON", TUFTS_ROOT / "Segmentation" / "teeth_polygon.json"))
+BBOX_JSON = Path(os.environ.get(
+    "TUFTS_BBOX_JSON", TUFTS_ROOT / "Segmentation" / "teeth_bbox.json"))
 SPLIT_CSV = Path(os.environ.get("TUFTS_SPLIT_CSV", "outputs/eda_tufts/split_v1.csv"))
 
 # Output — will be created fresh, kept separate from the bbox dataset/ dir
@@ -137,7 +174,51 @@ def polygon_area(points):
 # =============================================================================
 
 def validate_inputs():
+    global IMG_SRC_DIR
+
     assert TUFTS_ROOT.exists(), f"TUFTS_ROOT missing: {TUFTS_ROOT}"
+
+    # --- Resolve the image directory by MEASUREMENT, not by name ---------------------
+    # The two machines' local copies differ in orientation (see the module docstring). An
+    # explicit TUFTS_IMG_DIR is still honoured, but is verified rather than trusted.
+    if BBOX_JSON.exists():
+        if IMG_SRC_DIR is not None:
+            score = image_orientation_score(IMG_SRC_DIR, BBOX_JSON)
+            print(f"Image orientation check (TUFTS_IMG_DIR): {IMG_SRC_DIR}  ratio={score:.3f}")
+            if score <= 1.0:
+                raise SystemExit(
+                    f"\nABORT: {IMG_SRC_DIR} is MISALIGNED with teeth_bbox.json (ratio {score:.3f}, "
+                    "expected > 1.0).\n"
+                    "Teeth are radio-dense, so correctly-oriented annotations sit on brighter-than-\n"
+                    "average pixels. A ratio below 1.0 means the images and annotations disagree.\n\n"
+                    "This is the defect that voided a full GPU run on 26 Aug 2026 "
+                    "(RESULTS_LOG.md 2026-08-27a).\n"
+                    "Fix: python scripts/yolo/fix_tufts_orientation.py   then point TUFTS_IMG_DIR\n"
+                    "at its output, or unset TUFTS_IMG_DIR to let this script auto-detect.\n"
+                )
+        else:
+            chosen, score, report = pick_image_dir(IMG_DIR_CANDIDATES, BBOX_JSON)
+            print("Image orientation check (auto-detect):")
+            for line in report:
+                print(line)
+            if chosen is None:
+                raise SystemExit(
+                    "\nABORT: no correctly-oriented Tufts image directory found.\n"
+                    f"Best candidate scored {score:.3f}; anything <= 1.0 is misaligned.\n\n"
+                    "Fix: python scripts/yolo/fix_tufts_orientation.py\n"
+                    "That script rotates 180 degrees and refuses to touch already-correct images.\n"
+                )
+            IMG_SRC_DIR = chosen
+            print(f"  -> using {IMG_SRC_DIR}")
+    else:
+        # No reference file: proceed, but say plainly that the guard is not active.
+        assert IMG_SRC_DIR is not None, (
+            f"teeth_bbox.json not found at {BBOX_JSON}, so the image directory cannot be "
+            "auto-detected. Set TUFTS_IMG_DIR explicitly."
+        )
+        print(f"WARNING: {BBOX_JSON} not found - orientation guard SKIPPED. "
+              "Verify geometry by hand before training on this output.")
+
     assert IMG_SRC_DIR.exists(), f"Rotated images missing: {IMG_SRC_DIR}"
     assert POLY_JSON.exists(), (
         f"Polygon annotations missing: {POLY_JSON}. "
@@ -146,7 +227,10 @@ def validate_inputs():
     )
     assert SPLIT_CSV.exists(), f"Split CSV missing: {SPLIT_CSV}"
 
-    n_imgs = len(list(IMG_SRC_DIR.glob("*.jpg"))) + len(list(IMG_SRC_DIR.glob("*.JPG")))
+    # Case-insensitive filesystems (Windows/macOS) match BOTH globs against the same
+    # files, which double-counted to "2000 images" and would have hidden a half-empty
+    # directory from this assert. Deduplicate by resolved path.
+    n_imgs = len({p.resolve() for p in list(IMG_SRC_DIR.glob("*.jpg")) + list(IMG_SRC_DIR.glob("*.JPG"))})
     assert n_imgs >= 990, f"Expected ~1000 images, found {n_imgs}"
 
     sample = next(IMG_SRC_DIR.glob("*.jpg"), None) or next(IMG_SRC_DIR.glob("*.JPG"))
@@ -225,7 +309,7 @@ def parse_annotations():
             # Left uncorrected, every mask in the dataset is misplaced -- training still
             # "works" and losses still fall, which is exactly why this went unnoticed
             # through a full 90-epoch GPU run. RESULTS_LOG.md 2026-08-27a.
-            points = [(p[1], p[0]) for p in best_fragment]
+            points = polygon_points_to_xy(best_fragment)
 
             if len(points) < MIN_POLYGON_POINTS:
                 stats["too_few_points"] += 1
@@ -381,6 +465,33 @@ def main():
     write_split(split_df, per_image_polygons)
     write_data_yaml()
     verify_output()
+
+    # --- FINAL GATE: does the dataset we just wrote actually agree with the reference? ------
+    # Reads the BUILT label files — what YOLO will really load — not the source JSON and not
+    # what the code intended. This is the check that would have caught the 26 Aug void run
+    # before a single rupee of GPU time was spent.
+    if BBOX_JSON.exists():
+        print("\n" + "=" * 60)
+        print("ALIGNMENT GATE — built labels vs teeth_bbox.json")
+        print("=" * 60)
+        med, pct, n = label_agreement(DATASET_DIR / "labels" / "train", BBOX_JSON)
+        if n == 0:
+            print("  WARNING: nothing comparable found; gate INCONCLUSIVE.")
+        else:
+            print(f"  median IoU {med:.3f}   agreement@IoU>=0.5 {pct:.1f}%   (n={n} instances)")
+            print(f"  thresholds: median IoU >= {MIN_MEDIAN_IOU}, agreement >= {MIN_AGREEMENT_PCT}%")
+            if med < MIN_MEDIAN_IOU or pct < MIN_AGREEMENT_PCT:
+                raise SystemExit(
+                    "\n  GATE FAILED — this dataset is MISALIGNED. DO NOT TRAIN ON IT.\n\n"
+                    "  For scale: a correct build measures ~0.837 / ~99.4%; the dataset behind\n"
+                    "  the withdrawn 26 Aug run measured 0.000 / 1.6% and still trained happily\n"
+                    "  for 90 epochs with falling losses. A clean loss curve proves nothing.\n\n"
+                    "  Check, in order: the image orientation report above; that\n"
+                    "  teeth_polygon.json points are read via polygon_points_to_xy() ([y,x]);\n"
+                    "  that TUFTS_SPLIT_CSV is the real frozen split.\n"
+                    "  Record: RESULTS_LOG.md 2026-08-27a.\n"
+                )
+            print("  GATE PASSED — geometry verified against the reference annotations.")
 
     print("\n" + "=" * 60)
     print("CONVERSION COMPLETE")

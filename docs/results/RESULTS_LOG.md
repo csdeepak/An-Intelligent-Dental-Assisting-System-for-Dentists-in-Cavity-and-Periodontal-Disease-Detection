@@ -3245,3 +3245,60 @@ pending decision in `transfer.md` §4.
   and `Radiographs_rotated/` for the same two defects** — still open from 2026-08-27a.
   (4) Re-measure Stage-2 end-to-end if this detector is ever adopted; the recall change moves
   the ceiling and that must be measured, not assumed.
+
+## 2026-08-27c — Blast radius of the two data defects: no other result affected. Guards moved into code.
+
+- **What was done:** Traced both defects from 2026-08-27a through every consumer, and replaced
+  the "re-verify the other machine" follow-up — which entries 27a and 27b both listed — with an
+  enforced guard in the converter. **This entry corrects those two follow-ups**; per the
+  append-only rule they are left as written rather than edited.
+- **Why it was wrong:** 27a/27b told the reader to go re-check the macOS machine. That machine
+  is a second person's laptop and is not always reachable, so the follow-up was not actionable
+  — and, once traced, not necessary either. Recording a hand-off task without establishing it
+  is reachable *or* needed is the same failure mode as a stale status claim.
+- **Findings — traced, not assumed:**
+  - **Defect 2 (180° rotation) is Windows-only.** The macOS copy was always correct:
+    `week1_tufts_eda_v2.ipynb` Rule 1 records the original rotation as `img.rotate(90)` (CCW),
+    and `convert_tufts_to_yolo.py` applies **no** coordinate transform — so the canonical
+    detector's **0.7824** test mAP@0.5 is only reachable if that machine's images already
+    agreed with `teeth_bbox.json`. Misaligned data scores ~0.25 (the withdrawn run).
+    `rotate_tufts_radiographs.py` was written 20 Aug as a reconstruction of undocumented
+    knowledge, got the direction wrong, and **was only ever executed on Windows** — on macOS
+    the correct images already existed, which is also why the 22 Aug fix was a code change with
+    no data regeneration.
+  - **Defect 1 (`[y,x]` point order) is machine-independent but has zero blast radius.** Its
+    only consumer is `dataset_seg/`, and `train_yolo_seg.py` was unrun until 27 Aug. Verified
+    every other reader of Tufts geometry: bone-loss crops are built from **`teeth_bbox.json`**
+    (`02_bone_loss_dataset_construction.ipynb` sets `BBOX_JSON`; `teeth_polygon.json` appears
+    only in a comment), `01_tufts_data_exploration_v2.ipynb` is exploration-only,
+    `src/crop_generator.py` mentions polygons only in a docstring, and R2 is unwired from
+    `run_inference.py`. **The detector, both FDI heads, the caries gate and the bone-loss
+    models are all unaffected.**
+- **Metrics (guard behaviour, verified both ways):**
+
+  | path | image-orientation ratio | built-label agreement | outcome |
+  |---|---|---|---|
+  | auto-detect, correct dir | 1.040 (vs 0.964 for the broken dir) | median IoU 0.837, 99.4% @IoU≥0.5, n=3,225 | **GATE PASSED**, dataset written |
+  | forced at the broken dir | 0.964 | — | **ABORT, exit code 1**, nothing written |
+
+- **Key decision or insight:** **Documentation cannot enforce a data invariant; only an
+  assertion can.** The 26 Aug void run happened despite the defects being discoverable, because
+  nothing in the pipeline was obliged to check. So the fix is now code, and — because two
+  machines with *different* local data are both in active use — it is written to be
+  machine-agnostic: `convert_tufts_to_yolo_seg.py` chooses its image directory by **measuring**
+  each candidate against `teeth_bbox.json` rather than trusting a directory name, then
+  re-scores the labels it wrote and exits non-zero if they disagree. Neither machine needs
+  configuring and nobody needs to remember which local copy is the good one. Shared thresholds
+  and helpers: `scripts/yolo/_tufts_align.py`, imported by both scripts so the definition of
+  "aligned" cannot drift between them.
+- **Also fixed:** `validate_inputs()` counted images as `glob("*.jpg") + glob("*.JPG")`, which
+  on a case-insensitive filesystem matched every file twice and reported "2000 images" for
+  1,000 — it would have passed a half-empty directory. Now deduplicated by resolved path.
+- **Source:** `scripts/yolo/_tufts_align.py` (new), `scripts/yolo/convert_tufts_to_yolo_seg.py`
+  (auto-detect + post-build gate + count fix). Guard behaviour tested in both directions on the
+  Windows machine, which holds one correct and one known-broken image directory — an unusually
+  good test fixture for exactly this.
+- **Follow-ups:** `T0.6` §3.5's "verified end-to-end against real data" claim is annotated in
+  the converter docstring as unreliable *evidence of correctness* (a 7-image spot-check passed
+  with both defects live) — but it invalidates no published number. `docs/research/` is owned by
+  a separate workstream, so §3.5's own text is left for that owner to amend.
