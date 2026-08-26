@@ -3002,3 +3002,47 @@ that was **browsable without signing in**. That is link-accessible redistributio
 agreement forbids. Flagged in `EXTERNAL_DRIVE.md` with the required action (restrict the
 folder; share the release *form*, not the files) and the mandatory citation. Not a model or
 metric issue — but it is the kind of thing that surfaces at submission, so it is logged here.
+
+### 2026-08-26a (continued) — novelty check: still NOT established, and why
+
+Second, harder attempt to verify the Tufts mirror finding's novelty. Routes tried, all dead
+ends for the decisive source:
+
+| route | result |
+|---|---|
+| Indexed biomedical/arXiv corpora (`pmid:34606466`) | *"no full-text passages available"* |
+| Same via DOI `10.1109/JBHI.2021.3117575` | 404 — not indexed |
+| Author's own site (karenpanetta.com) | citation only, links to the paywalled IEEE DOI |
+| PDF-category web search | no accessible full text; IEEE Xplore paywalled |
+| GitHub (`JinweiZhu/ToothDetectionAndNumbering`, "Detecting and Labeling Panoramic Tufts…") | repo contains only a course-paper PDF, no README or code describing the convention |
+
+**Verdict unchanged: novelty NOT established, and it cannot be from open sources.** The
+decisive check — does Panetta et al. document the handedness convention? — needs IEEE Xplore
+access. **Anyone with an institutional IEEE subscription can settle this in five minutes;
+until then the claim stays out of the paper.**
+
+**Supporting evidence found, which is worth having either way.** Eftimie et al. 2025
+(*MethodsX* 15:103696, PMC12637385) describes the dataset as: *"1,000 panoramic radiographs
+with tooth-level annotations, including tooth polygons and **FDI-based numbering (classes
+0–31)**."* That is wrong on the face of it — Tufts ships Universal-style labels ('1'–'32' plus
+deciduous letters 'A'–'T'), not FDI codes (11–48), as verified directly from `teeth_bbox.json`
+(2026-08-25h). A peer-reviewed paper mis-naming the numbering system is concrete evidence that
+the convention is genuinely unclear to users of this dataset — **but it is a different error
+from the handedness one, and must not be presented as prior art for the mirror.**
+
+Standard convention re-confirmed from a reference source while checking: Universal tooth 1 is
+the maxillary **right** third molar, and the patient's right appears on the **left** of the
+chart — consistent with the assumption the mirror finding was tested against.
+
+### Venue facts (verified 26 Aug 2026, from the official sites)
+
+- **IEEE ISBI 2027** — the **24th** International Symposium on Biomedical Imaging. Paper
+  submission deadline **Monday 26 October 2026** (biomedicalimaging.org/2027/papers/). Well
+  past the "10th edition" bar; already the target named in `transfer.md` §1.
+- **IEEE ICBET 2027** — 17th International Conference on Biomedical Engineering and Technology
+  (Aug 2027) — a mid/upper-tier fallback by edition count.
+- Newly-launched venues (e.g. AIHC 2027, advertised as a **1st** International Conference,
+  IEEE Conference Record #71011) sit in the lowest grading band by edition count.
+
+Indexing status changes; **verify Scopus coverage on the Scopus source list for any venue
+before submitting** rather than trusting a call-for-papers claim.
