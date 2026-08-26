@@ -121,11 +121,16 @@ the repo, and has twice described a closed item as open. The authoritative snaps
 
 The only durable facts worth repeating here, because they shape almost every task:
 
-- The pipeline is **six stages; Stages 5–6 (integration → per-tooth JSON/PDF report) do not
-  exist.** That is the project's largest gap and its central paper claim (C3).
-- **Four models are trained** (detection, caries cascade ×2, bone-loss binary + severity) and
-  all their weights are on local disk. "Trained" does **not** mean validated to publication
-  standard — the Tier-0 repairs are prepared but unrun.
+- The pipeline is **six stages, and all six now run** — `scripts/run_inference.py` takes an
+  image and emits per-tooth JSON + an overlay (R4, paper claim C3); `app.py` + `Dockerfile`
+  wrap it for a browser demo. "Runs" does **not** mean "validated to publication standard":
+  the honest per-stage numbers, including the ones that collapse out-of-domain, are in
+  `transfer.md` §1–§2.
+- **Model weights live under `models/<NN>_<name>/`, and which checkpoint is the pipeline
+  default changes** — as of 26 Aug the Stage-2 head is v2.0 (`models/10_fdi_head_dentex_tufts_v2/`),
+  with v1.0 retained and hash-pinned. Read `models/README.md` and the `DEF_*` defaults in
+  `run_inference.py` rather than assuming. Two checkpoints exceed 50 MB and are Drive-only —
+  `docs/EXTERNAL_DRIVE.md` says which and where.
 - **Ningxia is external test data.** Never train on it, never tune on it
   (`MASTER_PLAN_2026H2.md` §4.1).
 - The Universal→FDI lower-arch bug is **fixed** (`f8b31f8`), regression-tested in

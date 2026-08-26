@@ -6,8 +6,16 @@ It is **rewritten, not appended to** — unlike `docs/results/RESULTS_LOG.md` (a
 history) and `docs/session-memory/` (one file per session, never edited). Those two are the
 record; this is the snapshot.
 
-**Last updated: 26 August 2026** (Stage-2 head v2.0 adopted; publication/grading guidance
-added; full README + checkpoint-continuity audit for a machine handoff).
+**Last updated: 26 August 2026** (later the same day: work resumed on the **Windows** machine;
+the frozen Tufts split was made regenerable from code and `dataset_seg/` rebuilt, so R1 is
+blocked on nothing but GPU time; GPU provider switched to **JarvisLabs** and `GPU_SETUP.md`
+rewritten for it. Earlier that day: Stage-2 head v2.0 adopted; publication/grading guidance
+added; full README + checkpoint-continuity audit for a machine handoff.)
+
+> **⚠️ Two machines are now in play, and they do not hold the same data.** The macOS machine
+> (M4 Pro) has DENTEX, Ningxia and the Tufts archive; the Windows machine has **only** Tufts,
+> plus the detector checkpoint. §8 covers both — read the machine column before concluding a
+> file is missing. The git history is the same on both; the *data* is not.
 
 > **Maintenance rule (CLAUDE.md rule 5):** whenever a session finishes something, decides
 > something, or changes what should happen next, update this file **before the session ends**.
@@ -73,7 +81,8 @@ See §5 for the grading stakes this is being built toward.
 | **6 paper/review figures**, generated from saved artefacts only | `scripts/figures/make_paper_figures.py`, `docs/results/figures/paper/`, `RESULTS_LOG.md` 2026-08-25e |
 | **Literature check on two comparison papers** (DPML, DentFound) — what they used, whether public, and independent confirmation that DPML also collapses out-of-domain (95.06 mAP own data → 61.83 on public DENTEX) | `RESULTS_LOG.md` 2026-08-26a |
 | **Bone-loss binary + severity** trained (Tufts) | `models/03_.../run_summary.txt`, `models/04_.../severity_summary.txt` — **still untagged**, see §4 |
-| **R1 seg dataset** built on the frozen split, ready to train | `data/tufts/dataset_seg/` — 26,005 instances, 700/150/150 |
+| **R1 seg dataset** built on the frozen split, ready to train | `data/tufts/dataset_seg/` — 26,005 instances, 700/150/150. Rebuilt independently on the Windows machine 26 Aug and reproduces exactly (18,268/3,807/3,930) |
+| **The frozen Tufts split is now derived from code**, not a file carried between laptops — reproduces byte-for-byte (SHA-256 verified) | `scripts/tufts/regenerate_split_v1.py`; `RESULTS_LOG.md` 2026-08-26c |
 | **R2 mask-aware cropping** implemented + unit-tested (**unwired** — needs R1's masks) | `src/crop_generator.py`, `tests/test_crop_generator.py` |
 | **Environment fixed and pinned** — numpy<2, or `scipy.optimize` (the Hungarian assignment) silently breaks | `requirements.txt`, `RESULTS_LOG.md` 2026-08-24b |
 | **All READMEs + this file** swept for staleness (three passes across two sessions) | `RESULTS_LOG.md` 2026-08-25e/f, 2026-08-26b, this rewrite |
@@ -110,7 +119,12 @@ the next one.** Ordered by what actually blocks something else:
    +23.01% recall, +23.11% F1 from instance masks) is a citable justification, not an assertion.
    Config is **pre-registered** (`T0.6_detector_reconciliation.md` §2): imgsz 1024, batch 32,
    only model+data change — do not shrink the batch to fit a smaller card, that breaks the
-   comparison. ~40 min on an A100. Runbook: §6 below.
+   comparison. Runbook: **`docs/research/GPU_SETUP.md`**, rewritten 26 Aug for JarvisLabs with
+   the full `jl` CLI command sequence; §6 below is the summary.
+   **As of 26 Aug this is blocked on nothing but GPU time** — on the Windows machine the split
+   and `dataset_seg/` are both present and verified (`RESULTS_LOG.md` 2026-08-26c). Estimated
+   cost on a JarvisLabs A100 80GB at ₹140.94/hr: **~1.5–2 h, ~₹210–280** including upload and
+   evaluation (estimate extrapolated from this project's own A100 bbox run, not a vendor claim).
 2. **Fix the Tufts Drive permissions.** Costs a minute, zero compute, and is a real submission
    risk if left — see §4. Do this before anything else gets shared or pushed further.
 3. **Settle the Tufts-mirror novelty question.** Needs institutional IEEE Xplore access to read
@@ -251,11 +265,14 @@ framing above is what gives it the best odds.
 The only job that needs renting. Everything else runs locally on the M4 Pro (ResNet18 work at
 ~287 img/s on MPS — minutes per job).
 
+**Full runbook with the exact commands: `docs/research/GPU_SETUP.md`** (rewritten 26 Aug 2026
+for JarvisLabs, verified against their live pricing and CLI/SSH docs). Summary:
+
 | Step | Action |
 |---|---|
-| 1 | Provision a JarvisLabs instance with an A100 (or equivalent holding **batch 32 @ 1024px**, ~17.9 GB — do not size down and shrink the batch, that breaks the pre-registered comparison). |
-| 2 | Upload `data/tufts/dataset_seg/` (474 MB) and `models/06_yolo_detection_a100_run/best.pt` (for reference/warm-start if the plan calls for it — confirm against `T0.6_detector_reconciliation.md` §2 before assuming). |
-| 3 | Fix `data.yaml`'s absolute `path:` for the rented machine before launching. |
+| 1 | Provision a JarvisLabs **A100 80GB** (**₹140.94/hr**, verified 26 Aug) holding **batch 32 @ 1024px**, ~17.9 GB. Do not size down to the 40GB card and shrink the batch — that breaks the pre-registered comparison. |
+| 2 | Upload `data/tufts/dataset_seg/` (**334 MB**; gzips to roughly half). **Do not upload `best.pt` as a warm start** — `train_yolo_seg.py` deliberately starts from COCO-pretrained `yolo11l-seg.pt`, and §2's pre-registration allows only the model and data to change. Warm-starting from the bbox detector would be a third change and would void the comparison. |
+| 3 | Fix `data.yaml`'s absolute `path:` for the rented machine before launching — the uploaded copy still carries the path of the machine that built it. |
 | 4 | Run `python scripts/yolo/train_yolo_seg.py` — config is pre-registered, do not modify hyperparameters. |
 | 5 | Bring back `weights/` and `results.csv`. Freeze and tag on return, same convention as every other model (`run_summary.txt`, SHA-256, version tag). |
 | 6 | Re-run `scripts/eval/verify_invariants.py` and the Stage-2 eval after freezing — detector recall changing should shift the Stage-2 end-to-end ceiling, and that shift needs to be measured, not assumed. |
@@ -263,6 +280,19 @@ The only job that needs renting. Everything else runs locally on the M4 Pro (Res
 **What NOT to do:** don't rent for T0.5, the version tag, or IRB paperwork — none of those are
 compute. Don't pull C1 forward to use the rented instance "while it's up" — it needs its own
 properly-scoped session (W5), not a rushed add-on.
+
+**You do not have to babysit this in a browser.** JarvisLabs ships a `jl` CLI (`jl create`,
+`jl upload`, `jl exec`, `jl ssh`, `jl download`, `jl pause`) plus ordinary SSH, so the whole
+run can be driven from a local terminal — including by a Claude Code session on the laptop.
+Start training detached (`nohup … &`) so a dropped connection cannot kill the run, and
+**`jl pause` the instance the moment results are downloaded**; paused instances still bill
+storage at ₹0.0130/GB/hr. `GPU_SETUP.md` §2 has the details and the key-setup gotcha (adding
+an SSH key does not apply to an already-running instance until you pause and resume it).
+
+**Budget reality:** at ₹140.94/hr a ₹900 balance is **6 h 23 min**. R1 is estimated at
+~1.5–2 h, leaving room for the one full redo `MASTER_PLAN_2026H2.md` §6 already assumes.
+That plan's ~6 GPU-hour line item for this job predates the measured 16.6 s/epoch of the
+actual A100 bbox run and looks conservative by roughly 3–4×.
 
 ---
 
@@ -310,6 +340,35 @@ fresh clone after `git push`), read this section in full before assuming anythin
 | **Model checkpoints — what `git clone` alone gets you, and what it does not.** | `docs/EXTERNAL_DRIVE.md` | **Only two files, unchanged from before, need a manual fetch**: `models/06_yolo_detection_a100_run/best.pt` (detector, Tufts drive) and `models/09_caries_gate_v3/caries_gate_v3.pth` (caries gate, DENTEX drive) — both >50 MB, gitignored per `CLAUDE.md` rule 4. **Everything else `run_inference.py` needs, including the new Stage-2 head v2.0 (`models/10_fdi_head_dentex_tufts_v2/enumeration_head_best.pth`, 43 MB), is committed to git and needs no Drive fetch.** `docs/EXTERNAL_DRIVE.md` has exact restore steps and a runnable smoke-test command. |
 | Docker daemon | Not verified this session either | `docker build` has never actually executed — see §3 item 7. |
 | E2E instance / SSH keys | Account-level | No instance launched. Treat the `.pem` pasted on 20 Aug as compromised. |
+
+### The Windows machine — a different inventory, verified 26 Aug 2026
+
+The table above describes the **macOS** machine. Work resumed on Windows on 26 Aug, and it
+holds a strictly smaller set. Check this before concluding anything is lost:
+
+| Item | Windows | Note |
+|---|---|---|
+| Tufts raw `ZIP/` — 1,000 rotated radiographs (840×1615), `teeth_bbox.json`, `teeth_polygon.json` | ✅ | ~400 MB, at `data/tufts/ZIP/` |
+| `outputs/eda_tufts/split_v1.csv` | ✅ | **Regenerated from code**, SHA-256 verified. `scripts/tufts/regenerate_split_v1.py` |
+| `data/tufts/dataset_seg/` | ✅ | Rebuilt 26 Aug, 26,005 instances, 334 MB — reproduces the macOS build exactly |
+| `models/06_yolo_detection_a100_run/best.pt` | ✅ | 51 MB, present |
+| `models/09_caries_gate_v3/caries_gate_v3.pth` | ❌ | Drive-only; **`run_inference.py` will not complete here until fetched** |
+| DENTEX (~14 GB) | ❌ | `data/dentex/` holds two JSON files only |
+| Ningxia | ❌ | `data/ningxia/` holds `manifest.csv` only |
+| Tufts bone-loss crops | ❌ | metadata CSVs only, no images |
+| `_repo_archive/datasets_workspace/` | ⚠️ partial | Has the EDA/conversion notebooks (incl. `week1_tufts_eda_v2.ipynb`), **not** `Radiographs_rotated/`, `dataset/` or `outputs/` |
+| Python env | ✅ | Python 3.11.9, **numpy 2.4.6**, scipy 1.17.1, sklearn 1.9.0, torch **2.13.0+cpu**, ultralytics 8.4.123. **65/65 tests pass, invariants clean** (some checks SKIP for want of DENTEX). CPU-only torch — no local GPU, and no MPS either, so even ResNet18 jobs are slow here. |
+
+**Consequence for planning: R1 is the only GPU job this machine can currently feed.** Anything
+touching caries, or the DENTEX+Tufts bone-loss experiment, needs DENTEX fetched first.
+
+**On the `numpy<2` pin:** `requirements.txt` says numpy 2.x silently breaks `scipy.optimize`,
+torch↔numpy and sklearn. That is true of the stack it was written against (torch 2.2.0 / scipy
+1.12 / sklearn 1.4, built against numpy 1.x) — it is **not** true in general. Verified on
+Windows: numpy 2.4.6 with scipy 1.17.1 / torch 2.13.0 runs `linear_sum_assignment` and
+torch↔numpy conversion correctly, 65/65 green. The real constraint is that numpy match what
+torch/scipy/sklearn were built against, not the number 2. The pin was left unchanged, since it
+still protects the environment every published number was produced in. `GPU_SETUP.md` §6.
 
 ### Checklist for "does a fresh clone actually run the pipeline"
 
