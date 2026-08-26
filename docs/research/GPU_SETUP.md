@@ -75,10 +75,11 @@ browser.** JarvisLabs ships a first-class CLI, `jl`, and SSH access.
 
 ### 2a. `jl` CLI — the recommended path
 
-**Verified against `docs.jarvislabs.ai/cli`, 26 Aug 2026.** It creates, uploads to, executes
-on, downloads from, pauses and destroys instances — all from a local terminal. That means a
-Claude Code session on this machine can run the entire R1 job end to end without anyone
-clicking through a console.
+**Verified by installing it — `jl 0.2.17`, read from `--help` on this machine 26 Aug 2026.**
+Where the published docs page and the installed binary disagree, the binary wins and is what
+is recorded below. It creates, uploads to, executes on, downloads from, pauses and destroys
+instances — all from a local terminal. A Claude Code session on this machine can therefore run
+the entire R1 job end to end without anyone clicking through a console.
 
 ```bash
 pip install jarvislabs          # or: uv tool install jarvislabs
@@ -86,7 +87,34 @@ jl setup --token <API_TOKEN> --yes
 ```
 
 Get the token from **`jarvislabs.ai/settings/api-keys`**. It can also be supplied as the
-`JL_API_KEY` environment variable.
+`JL_API_KEY` environment variable. `jl setup` also installs agent skills — pass
+`--agents claude-code` to install the Claude Code ones alongside the default `.agents/skills`.
+
+> **⚠️ Windows / Git Bash: `jl` crashes on any help or table output** with a `rich` console
+> traceback (`_check_buffer`, a Unicode encode failure against the console codepage). It is a
+> display bug, not an auth or network problem. Prefix commands with UTF-8 output:
+>
+> ```bash
+> PYTHONIOENCODING=utf-8 TERM=dumb NO_COLOR=1 jl gpus
+> ```
+>
+> Exporting `PYTHONIOENCODING=utf-8` once per shell is enough. Without it, every table-printing
+> subcommand (`gpus`, `list`, `status`, `templates`, `--help`) dies mid-render.
+
+**The full command surface** (from `jl --help`, v0.2.17), beyond the machine-management verbs
+in the table below:
+
+| Group | Commands |
+|---|---|
+| Account | `setup`, `status` (**shows account balance** — check it before and after a run), `logout` |
+| Resources | `gpus` (availability **and** pricing), `resources`, `cpus`, `templates` |
+| Machines | `list`, `get`, `create`, `rename`, `pause`, `resume`, `destroy` |
+| Remote access | `ssh`, `exec`, `upload`, `download` |
+| Infrastructure | `ssh-key {list,add,remove}`, `scripts`, `filesystem`, `vpc` |
+| Workloads | `run` (managed: create → upload → install → run → auto-pause) |
+
+**`jl ssh-key add` means SSH keys can be registered from the terminal** — the web-console step
+in §2b is optional.
 
 > **The API token is a credential.** Put it in the environment or let `jl setup` store it —
 > do not paste it into a chat window, a commit, or a doc. This repo has already had one
@@ -106,19 +134,35 @@ Core commands:
 | Stop billing, keep data | `jl pause <id> --yes` |
 | Delete everything | `jl destroy <id> --yes` |
 
-**Preflight before spending anything** — the exact accepted value for `--gpu` (in particular
-how the 80 GB A100 is distinguished from the 40 GB one) was **not** verifiable from the public
-docs page, which 404s on the `create` sub-page. Confirm locally first, and confirm what you
-got *after* creating:
+**`jl create` options, read from the binary (v0.2.17) — two published defaults are wrong:**
+
+| Option | Real default | Note |
+|---|---|---|
+| `--template` / `-t` | **`pytorch`** | Already the right template for this repo — everything here is PyTorch/torchvision/Ultralytics |
+| `--storage` / `-s` | **100 GB** | The docs page says 40. 100 is already the comfortable figure §1 recommends, so the default is fine as-is |
+| `--gpu` / `-g` | *(none)* | Free text, "e.g. H100, A100, L4" |
+| `--num-gpus` | 1 | Correct — nothing queued here is multi-GPU |
+| `--region` | *(unpinned)* | `IN1`, `IN2`, `EU1` |
+| `--spot` | off | Cheaper (~up to 56%) but preemptible — **not** for a 1.5 h pre-registered run you cannot restart mid-way without voiding determinism |
+| `--vm` | off (container) | Containers ship PyTorch + Jupyter + IDE. Keep the default |
+| `--http-ports` | — | Only needed to expose the Streamlit demo, not for R1 |
+
+**Still unresolved: how `--gpu` distinguishes the 80 GB A100 from the 40 GB one.** The help
+text just reads "A100". `jl gpus` prints live availability *and* pricing and would settle it,
+but requires auth, so it cannot be checked before `jl setup`. **Resolve it as the first
+authenticated command, before creating anything:**
 
 ```bash
-jl create --help                       # see the real accepted --gpu / --template values
-jl list                                # confirm GPU type and hourly rate before training
-jl exec <id> -- nvidia-smi             # confirm 80GB and that CUDA is live
+jl status                              # account balance — confirm the ₹ figure first
+jl gpus                                # exact GPU strings + live ₹/hr; find the 80GB A100
+jl create --gpu <exact-string> --name "r1-seg" --yes
+jl list                                # confirm the card and rate you actually got
+jl exec <id> -- nvidia-smi             # confirm 80GB VRAM and that CUDA is live
 ```
 
-If `jl list` shows a 40 GB card or a rate that isn't ~₹140.94/hr, destroy and recreate before
-running anything — a wrong card discovered 40 minutes into training costs the whole run.
+If `jl list` or `nvidia-smi` shows a 40 GB card, or a rate that isn't ~₹140.94/hr, **destroy
+and recreate before training** — a wrong card discovered 40 minutes in costs the whole run,
+and silently shrinking to fit it would void the pre-registered comparison (§1).
 
 ### 2b. Plain SSH
 
@@ -177,10 +221,13 @@ genuinely useful here — it removes the "forgot to shut it down overnight" fail
 # 0. LOCAL — package the dataset (labels are ~206 MB of polygon text; they gzip well)
 tar -czf dataset_seg.tar.gz -C data/tufts dataset_seg
 
-# 1. Create the box
-jl create --gpu A100 --storage 100 --template pytorch --name "r1-seg" --yes
+# 1. Create the box. Check balance and resolve the exact A100-80GB string FIRST (§2a) —
+#    these two are free, the mistake they prevent is not.
+jl status                                  # account balance
+jl gpus                                    # exact --gpu strings + live ₹/hr
+jl create --gpu <A100-80GB-string> --storage 100 --template pytorch --name "r1-seg" --yes
 jl list                                    # note the machine id; CONFIRM 80GB + rate
-jl exec <id> -- nvidia-smi                 # confirm CUDA is live before spending more
+jl exec <id> -- nvidia-smi                 # confirm 80GB VRAM + CUDA live before spending more
 
 # 2. Code + data
 jl exec <id> -- sh -lc 'cd /home && git clone https://github.com/csdeepak/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection.git repo'
