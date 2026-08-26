@@ -834,3 +834,63 @@ R1 is unambiguously next, and the paper gets a real ablation instead of an asser
 R1 on JarvisLabs, config pre-registered in `T0.6_detector_reconciliation.md` §2. The three
 zero-cost items (T0.5, bone-loss version tags, `docker build` verification) remain untouched
 and are the sensible filler around it.
+
+---
+
+## Addendum 14 — "Tufts instead of DENTEX?" — and the correction it forced
+
+**Session goal:** user asked whether the head could be trained on Tufts numbering *alone*,
+dropping DENTEX.
+
+### What was done
+
+Arm C (Tufts only, 35,248 crops) trained identically to arms A and B, then **all** heads
+evaluated in both directions — DENTEX 164 leak-free end-to-end, and Tufts held-out test
+(3,786 crops, unseen by every arm). RESULTS_LOG 2026-08-25j.
+
+| head | trained on | DENTEX end-to-end | Tufts test |
+|---|---|---|---|
+| frozen | DENTEX | 46.47% | 50.0% |
+| A | DENTEX | 45.51% | 49.8% |
+| B | both | **46.58%** | **71.5%** |
+| C | Tufts only | 37.39% | **71.8%** |
+
+### The answer, and the correction
+
+- **No, Tufts cannot replace DENTEX** — arm C loses 9.1 points on the project's standard
+  evaluation, far outside the ~1-point noise floor.
+- **It is symmetric domain shift, not a weak corpus.** Arm C is the best head on Tufts.
+- **Addendum 13's conclusion was too strong.** "Adding Tufts does nothing" was measured in one
+  domain. In the other it is worth **+21.5 points** (71.5% vs 50.0%). Arm B matches DENTEX-only
+  in-domain *and* nearly matches the Tufts specialist out-of-domain — robustness at no
+  measurable in-domain cost.
+
+**The lesson, which is the same shape as the noise-floor lesson but worse:** a single-domain
+evaluation answered the wrong question confidently. The A/B in Addendum 13 was correctly run
+and correctly analysed, and its headline was still misleading, because the metric could not see
+the effect. Asking "compared to what, measured where?" was what fixed it — and it only got
+asked because the user pushed on the corpus question again.
+
+### Decisions made
+
+- **Frozen head still not replaced** — no arm wrote to `models/`; hash unchanged, invariants
+  pass. Adopting arm B is now a *recommended* pending decision in `transfer.md` §4, not an open
+  question, but it is the user's freeze call.
+- **Crop-level evaluator kept in scratchpad, not committed** — it was validated by reproducing
+  the frozen head's documented DENTEX-val numbers exactly (99.4/92.1/91.6) and it imports
+  `ToothSet` rather than reimplementing preprocessing. If arm B is adopted it should be
+  promoted into `scripts/eval/`, since the two-domain table becomes a reported result.
+- Also fixed: `transfer.md` still said 60/60 tests in three places; now 65/65.
+
+### Open questions
+
+- Adopt arm B? Needs: new tag, hash update in `verify_invariants.py`, and `model_metrics.md`
+  Stage-2 restated with **both** domains rather than DENTEX alone.
+- Does the same combined-corpus trick help the **bone-loss** cascade, which is the project's
+  actual generalisation failure (0.92 in-domain → 0.7–5.4% external)? Untested, and a much
+  more valuable question than Stage 2 was.
+
+### Next steps
+
+R1 remains top of `transfer.md` §3 — nothing here contradicts that the detector is the
+in-domain bottleneck.

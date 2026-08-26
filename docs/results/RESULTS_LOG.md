@@ -2845,3 +2845,70 @@ next thing to do.**
 
 Artefacts (scratchpad, not committed — rebuild with the same commands): `ab_A/`, `ab_B/`,
 `eval_A.json/`, `eval_B.json/`.
+
+## 2026-08-25j — Tufts-only tested; the 25i "null result" was measured in one domain only
+
+Follow-on from 2026-08-25i, prompted by the question "can we use Tufts numbering *instead of*
+DENTEX?". Arm C (**Tufts only**, 35,248 crops) trained at seed 42 / 15 epochs / batch 64 /
+lr 1e-3, identical to arms A and B. Then every head was evaluated in **both** directions.
+
+**This entry corrects the framing of 2026-08-25i.** That entry concluded "adding Tufts does not
+improve Stage 2." That is true *on the DENTEX evaluation* and remains true. But it was a
+single-domain measurement, and it missed the effect entirely. Measured on Tufts, adding Tufts
+is worth **+21.5 points**.
+
+### The 2×2
+
+| head | trained on | DENTEX 164 leak-free (end-to-end) | Tufts test, 3,786 crops (FDI exact) |
+|---|---|---|---|
+| frozen `v1.0` | DENTEX | 46.47% | 50.0% |
+| **arm A** | DENTEX | 45.51% | 49.8% |
+| **arm B** | DENTEX + Tufts | **46.58%** | **71.5%** |
+| **arm C** | Tufts only | 37.39% | **71.8%** |
+
+Detector recall identical (66.99%) in all end-to-end runs; 0 duplicate FDI codes everywhere.
+Arm C's of-detected accuracy is 55.82% against arm A's 67.94%.
+
+**The two columns are not comparable to each other** — DENTEX is end-to-end (detector boxes,
+Hungarian one-to-one), Tufts is crop-level (GT boxes, plain argmax). Within each column the
+four heads are directly comparable, which is what the question needs. The crop evaluator was
+validated first by reproducing the frozen head's documented DENTEX-val numbers exactly
+(99.4% / 92.1% / 91.6%) and it imports `ToothSet` from the trainer rather than reimplementing
+preprocessing, so the eval path cannot drift from the training path. Tufts `test` is unseen by
+every arm: A never saw Tufts at all, B and C trained on `split==train/val` only.
+
+### Answers
+
+1. **Can Tufts replace DENTEX? No.** Arm C loses **9.1 points** on the project's standard
+   evaluation (37.39% vs the frozen 46.47%) — far outside the ~1-point noise floor established
+   in 2026-08-25i. Dropping DENTEX would be a straight downgrade against how this pipeline is
+   measured.
+2. **It is symmetric domain shift, not a weak corpus.** Arm C is the *best* head on Tufts
+   (71.8%). Each corpus trains a head that wins on its own domain and loses on the other. A
+   DENTEX-trained head scores 50.0% on Tufts; a Tufts-trained head scores 37.4% on DENTEX.
+3. **The real result is arm B.** Training on both matches DENTEX-only in-domain (46.58% vs
+   46.47%, inside noise) *and* gains **+21.5 points** on Tufts (71.5% vs 50.0%) — within 0.3
+   points of the Tufts-specialist. Combined training buys cross-machine robustness at no
+   measurable in-domain cost.
+
+### Why this matters more than the in-domain number
+
+Generalisation is this project's central documented weakness — the bone-loss cascade scores
+0.92 macro-F1 in-domain on Tufts and 0.7–5.4% on DENTEX/Ningxia (2026-08-25d), and C2 external
+validation is a headline paper claim. A Stage-2 head that holds up across two machine
+populations at zero in-domain cost speaks directly to that, and it is a real ablation rather
+than an assertion.
+
+**2026-08-25i's conclusion that "the detector is the binding constraint" still stands** — it
+was measured in-domain and nothing here contradicts it. R1 remains the top item. What changes
+is that "adding Tufts does nothing" was too strong: it does nothing *in-domain*, and a great
+deal out-of-domain.
+
+### Decisions
+
+- **The frozen head is still NOT replaced** — no arm wrote to `models/`; hash unchanged,
+  `verify_invariants.py` passes. Adopting arm B is now a *recommended* pending decision
+  (`transfer.md` §4) rather than an open question, but it is a model-freeze call.
+- Adoption, if taken, means: re-freeze arm B with a new tag, update the hash in
+  `verify_invariants.py`, and re-state Stage-2 numbers in `model_metrics.md` with **both**
+  domains, not just DENTEX.

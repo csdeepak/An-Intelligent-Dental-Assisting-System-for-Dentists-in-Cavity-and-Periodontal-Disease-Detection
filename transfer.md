@@ -31,7 +31,7 @@ caries lesion agreement 22.6–43.3% across four Ningxia hospitals (DENTEX inter
 **C1 (VLM baseline) is the only headline paper contribution still at 0%** — deliberately
 deferred to W5 by the plan, not forgotten. Phase III's checklist (system testing, V&V,
 deployment, results, tables/graphs) is met on every item except one: `docker build` itself has
-never actually run (daemon unavailable this session) — do that before relying on it. **60/60
+never actually run (daemon unavailable this session) — do that before relying on it. **65/65
 tests pass, `verify_invariants.py` is 7/7.** We are on **W2 of the 8-week plan**
 (`docs/research/MASTER_PLAN_2026H2.md` §5), implementation freeze **14 Oct**, ISBI **26 Oct**.
 
@@ -59,7 +59,7 @@ left**, and the user has explicitly cleared renting a cloud GPU for it on Jarvis
 | **R2 mask-aware cropping** implemented + unit-tested (**unwired** — needs R1's masks) | `src/crop_generator.py`, `tests/test_crop_generator.py` |
 | **Environment fixed and pinned** — numpy<2, or `scipy.optimize` (the Hungarian assignment) silently breaks | `requirements.txt`, `RESULTS_LOG.md` 2026-08-24b |
 | **All READMEs + this file** swept for staleness twice this session | `RESULTS_LOG.md` 2026-08-25e/f, this rewrite |
-| Test suite | **60/60 pass**; `scripts/eval/verify_invariants.py` **7/7** |
+| Test suite | **65/65 pass**; `scripts/eval/verify_invariants.py` **7/7** |
 
 **The pattern worth remembering, stated once rather than per-entry below:** every defect found
 this session was in *documentation* or *methodology* — a stale claim, a metric applied outside
@@ -82,10 +82,11 @@ final step, not the next one.** Ordered by what actually blocks something else:
    renting on **JarvisLabs**. Detector recall (67.0%) is the binding constraint on everything
    downstream of it — Stage-2 end-to-end is capped at 67.0% no matter how good the numbering
    is. **This is now measured, not assumed:** doubling the Stage-2 training corpus with Tufts
-   (35,248 extra crops, a different continent and machine population) moved end-to-end by +10
-   teeth of 936, p=0.343 — nothing, against a ~1-point noise floor. The head is already
-   91.3–91.6% on ground-truth boxes; the detector is what is missing. `RESULTS_LOG.md`
-   2026-08-25i. DentFound's ablation (+20.35% precision, +23.01% recall, +23.11% F1 from
+   (35,248 extra crops, a different continent and machine population) moved in-domain
+   end-to-end by +10 teeth of 936, p=0.343 — nothing, against a ~1-point noise floor. The head
+   is already 91.3–91.6% on ground-truth boxes; the detector is what is missing. (That extra
+   data was *not* wasted — it buys +21.5 points out-of-domain, see §4 — but it does not move
+   the in-domain number, which is what R1 addresses.) `RESULTS_LOG.md` 2026-08-25i, 2026-08-25j. DentFound's ablation (+20.35% precision, +23.01% recall, +23.11% F1 from
    instance masks) is a citable justification, not an assertion. Config is **pre-registered**
    (`T0.6_detector_reconciliation.md` §2): imgsz 1024, batch 32, only model+data change — do
    not shrink the batch to fit a smaller card, that breaks the comparison. ~40 min on an A100.
@@ -126,7 +127,7 @@ that phase starts.
 | **What else to use `DENTEX/disease/` for**, beyond the Stage-2 eval set (164 leak-free of 250) and now the lesion-localisation source. The 91 `saglam` (healthy) teeth as a small real healthy class is still an open candidate use. | Scoping call |
 | **Clinic data governance.** `index.csv` sits beside `images/` on a shared Drive, voiding the de-identification. Five actions in `clinical_dataset_provenance.md` §4a, all needing the Drive owner. | Not this repo's account |
 | **Bone-loss weights have no version tag** — trivial to fix, listed here only so it doesn't get silently skipped again. | Just needs doing |
-| **~~Retrain the Stage-2 head on DENTEX + Tufts?~~ ANSWERED 25 Aug — no.** The A/B was run: +10 teeth of 936, McNemar p=0.343, against a measured run-to-run noise floor of ~1 point. The frozen head stays. `RESULTS_LOG.md` 2026-08-25i. | — (closed) |
+| **Adopt the DENTEX+Tufts head (arm B)? — RECOMMENDED, needs a freeze decision.** Measured both directions (`RESULTS_LOG.md` 2026-08-25j): arm B matches DENTEX-only in-domain (46.58% vs frozen 46.47%, inside the ~1pt noise floor) **and gains +21.5 points out-of-domain** (71.5% vs 50.0% on Tufts held-out). Tufts-*only* is not an option — it loses 9.1 points on DENTEX. The earlier "adding Tufts does nothing" (2026-08-25i) was measured in-domain only and was too strong. Adoption means re-freezing with a new tag, updating the hash in `verify_invariants.py`, and restating `model_metrics.md` Stage-2 with **both** domains. | Replacing a frozen, hash-pinned model — and whether cross-machine robustness is worth a re-freeze this close to Review 1 |
 | **Ningxia confirmed unusable for FDI training** (25 Aug) — no tooth-identity field in the manifest, no per-tooth label file anywhere, masks are binary {0,255} disease masks only. Not a pending decision, listed here so it isn't re-asked. `RESULTS_LOG.md` 2026-08-25g. | — (closed, informational) |
 | **`split_v1` has a train/test leak** — `590.JPG` (test) and `591.JPG` (train) are byte-identical, so the frozen detector trained on one of its own test images (1 of 150). The Tufts crop builder works around it; the detector's reported test metrics have **not** been re-measured. `RESULTS_LOG.md` 2026-08-25h. | Whether to re-measure the detector, or document and move on |
 
@@ -195,7 +196,7 @@ Every directory containing code has a README; all were swept for staleness 25 Au
 | Tufts frozen split | `_repo_archive/datasets_workspace/outputs/eda_tufts/split_v1.csv` | Gitignored — which is why a previous session wrongly declared it lost |
 | **Ningxia** | `~/Downloads/Capstone/ningxia_local/` (test splits, 2.4 GB) | **Connected, copied, evaluated 25 Aug.** Train (11.2 GB) deliberately left on the pen drive — locked external data. Zero leakage vs all 5 other corpora. |
 | Clinic (SDH) data | Not on this machine | Governance-blocked |
-| Python env | `/opt/anaconda3` (python 3.12) | **60/60 tests, 7/7 invariants.** torch 2.2.0 + MPS, cv2 5.0.0, ultralytics 8.4.127, scipy, sklearn, **streamlit 1.37.1** (added 25 Aug for `app.py`). ⚠️ **`numpy` must stay `<2`** — pinned 1.26.4 in `requirements.txt`; numpy 2.x silently breaks `scipy.optimize` (the Hungarian FDI assignment) at import. |
+| Python env | `/opt/anaconda3` (python 3.12) | **65/65 tests, 7/7 invariants.** torch 2.2.0 + MPS, cv2 5.0.0, ultralytics 8.4.127, scipy, sklearn, **streamlit 1.37.1** (added 25 Aug for `app.py`). ⚠️ **`numpy` must stay `<2`** — pinned 1.26.4 in `requirements.txt`; numpy 2.x silently breaks `scipy.optimize` (the Hungarian FDI assignment) at import. |
 | Two gitignored checkpoints, on Google Drive | `docs/EXTERNAL_DRIVE.md` | `06_yolo_detection_a100_run/best.pt` + `09_caries_gate_v3/caries_gate_v3.pth`. **Present locally on this machine right now** (frozen here) — a Docker build run on this machine will bake them in; a fresh clone needs the manual Drive fetch described in that file. |
 | Docker daemon | **Not running this session** | `open -a Docker` + 120s wait did not bring it up. `docker build` has never actually executed — see §3 item 5. |
 | E2E instance / SSH keys | Account-level | No instance launched. Treat the `.pem` pasted on 20 Aug as compromised. |
