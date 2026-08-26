@@ -3185,3 +3185,63 @@ pending decision in `transfer.md` §4.
   and its `Radiographs_rotated/` for the same two defects** — if its polygon data went through
   the same converter, anything derived from it is suspect. `data/tufts/dataset_seg/` (broken)
   is retained, not deleted, per `CLAUDE.md` rule 3.
+
+## 2026-08-27b — R1 re-run on corrected data: box bar PASSED, mask bar MISSED, bbox stays canonical
+
+- **What was done:** Re-ran R1 (YOLOv11l-seg) on `dataset_seg_v2` after the two data defects
+  in 2026-08-27a were fixed and verified. Config unchanged from the pre-registration.
+  Evaluated the held-out test split **exactly once**, after checkpoint selection on val.
+- **Dataset / config:** Tufts frozen `split_v1` (700/150/150, not re-randomised),
+  `dataset_seg_v2` (26,005 instances). `yolo11l-seg.pt` COCO-pretrained, **no warm start**
+  from the bbox detector. imgsz 1024, batch 32, AdamW, lr0 0.001, seed 42, deterministic,
+  degrees 10, mosaic 0, flipud 0 — every value verified against
+  `models/06_yolo_detection_a100_run/train_args.yaml` before launch and against Ultralytics'
+  resolved-config echo at runtime. 135 epochs (early stop, patience 30), best epoch 105,
+  0.788 h on a JarvisLabs A100-80GB.
+- **Metrics — held-out TEST, 150 images / 3,930 instances, single evaluation:**
+
+  | | P | R | mAP@0.5 | mAP@0.5:0.95 |
+  |---|---|---|---|---|
+  | **Box** | 0.7666 | 0.7751 | **0.8100** | 0.3411 |
+  | **Mask** | 0.6270 | 0.6339 | **0.6383** | 0.2238 |
+
+  Validation (`best.pt`, 150 img / 3,807 inst): box mAP@0.5 **0.8250**, mask **0.6520**.
+
+  **Against the pre-registered bar (`T0.6` §2):**
+
+  | bar | result | verdict |
+  |---|---|---|
+  | Box mAP@0.5 ≥ 0.75 | 0.8100 | **PASS** |
+  | Mask mAP@0.5 ≥ 0.65 | 0.6383 | **FAIL** (short by 0.0117) |
+
+- **Key decision or insight:** **The bar was missed on mask, so the bbox detector
+  `tooth-detector-a100-1024-v1.0` REMAINS the canonical Stage-1 model, and the 0.65 floor was
+  not adjusted after seeing the number.** This is logged as a documented partial result, per
+  §2's own instruction. R2 (mask-aware cropping) stays unwired.
+
+  **But the box result is a genuine positive worth reporting on its own:** the seg model
+  reaches **0.8100** test mAP@0.5 against the bbox detector's **0.7824** — **+2.76 points** on
+  the same frozen split with an otherwise identical config. Training with instance masks
+  produced a *better box detector* than training on boxes alone, directionally consistent with
+  DentFound's ablation. This is also the number that matters most downstream, since Stage-2
+  end-to-end is capped by **detector recall**, not mask quality. Whether that box gain is worth
+  adopting is a **separate decision from the §2 bar**, which was written to govern a
+  mask-driven replacement — it should not be resolved by quietly reinterpreting §2.
+
+  **Caveat, pre-registered in §2 and repeated rather than buried:** the seg test ground truth
+  holds 3,930 instances vs the bbox test set's 3,924 — 6 real teeth (0.15%) the bbox converter
+  dropped on a corrupt `bounding box` field. Near-like-for-like, not exactly like-for-like.
+- **Source:** `models/11_yolo_seg_tufts_r1/run_summary.txt`, `.../run/results.csv`,
+  `.../test_results.txt` (the evaluation verbatim), `.../run/args.yaml`.
+  Weights `best.pt` SHA-256 `271316c46caaf4029ea707fa77b6fe30697795e46632e1f6fcae3498c48781ba`,
+  verified byte-identical after download; gitignored per `CLAUDE.md` rule 4, local disk only.
+- **Cost:** ₹130.38 (₹781.19 → ₹650.81). Instance destroyed. Total R1 spend including the
+  withdrawn run: **₹249.19** of the original ₹900.
+- **Follow-ups:** (1) Decide whether the **+2.76-point box gain** justifies adopting this as
+  Stage-1 despite the mask miss — a real methodology call, **not** something to default into.
+  (2) If the mask gap is to be chased, pre-register the change first; candidate levers in
+  `run_summary.txt` (`mask_ratio`/`overlap_mask` were never tuned; the largest-fragment
+  heuristic caps achievable mask quality). (3) **Re-verify the macOS machine's `dataset_seg/`
+  and `Radiographs_rotated/` for the same two defects** — still open from 2026-08-27a.
+  (4) Re-measure Stage-2 end-to-end if this detector is ever adopted; the recall change moves
+  the ceiling and that must be measured, not assumed.

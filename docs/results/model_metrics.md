@@ -24,6 +24,31 @@ Verified by loading under Ultralytics (task=detect, 1 class, 25.3M params) and b
 byte-identical `args.yaml`/`results.csv` against the copies already committed here — see
 `docs/research/T0.6_detector_reconciliation.md` §1 for the full verification record.
 
+### R1 — YOLOv11l-**seg** (27 Aug 2026) — trained, **NOT canonical**
+
+Same frozen split, same config, only `model` and label format changed. Held-out test touched
+once. Weights `models/11_yolo_seg_tufts_r1/run/weights/best.pt` (gitignored), tag
+`tooth-detector-seg-tufts-1024-v1.0`, SHA-256 `271316c46caaf4029ea707fa77b6fe30697795e46632e1f6fcae3498c48781ba`.
+
+| Split | Images | Instances | | P | R | mAP@0.5 | mAP@0.5:0.95 |
+|---|---|---|---|---|---|---|---|
+| Test (held out) | 150 | 3,930 | **Box** | 0.7666 | 0.7751 | **0.8100** | 0.3411 |
+| Test (held out) | 150 | 3,930 | **Mask** | 0.6270 | 0.6339 | **0.6383** | 0.2238 |
+| Validation | 150 | 3,807 | **Box** | 0.7690 | 0.7730 | **0.8250** | 0.3530 |
+| Validation | 150 | 3,807 | **Mask** | 0.6100 | 0.6490 | **0.6520** | 0.2310 |
+
+**Pre-registered bar (`T0.6` §2): box ≥ 0.75 PASS · mask ≥ 0.65 FAIL (0.6383, short by
+0.0117). The bar was not adjusted after the fact, so the bbox model above REMAINS canonical**
+and R2 stays unwired. `RESULTS_LOG.md` 2026-08-27b.
+
+**Box detection nonetheless improved: 0.8100 vs the bbox detector's 0.7824 (+2.76 points)** on
+the same split — masks produced a better *box* detector than boxes alone. Whether to adopt on
+that basis is an open decision, deliberately not defaulted into. Note the 3,930-vs-3,924
+instance difference below makes this near-, not exactly, like-for-like.
+
+⚠️ An earlier R1 run (26 Aug) was **withdrawn** — its masks were misaligned by two data
+defects. Nothing from it is reported here. `RESULTS_LOG.md` 2026-08-27a.
+
 **Ground-truth caveat (found 21 Aug 2026, numbers above unchanged):** the instance counts in
 this table are the counts the model was actually scored against, but the Tufts source data
 holds **66 more annotated teeth** than this dataset contains — objects with a corrupt

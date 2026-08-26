@@ -92,6 +92,11 @@ data/tufts/ZIP/Segmentation/Segmentation/teeth_polygon.json
 # Built YOLO-seg training dataset (1,000 images + labels) — regenerate with
 # scripts/yolo/convert_tufts_to_yolo_seg.py, never commit.
 data/tufts/dataset_seg/
+# Corrected R1 seg dataset (27 Aug 2026). Same reason as above: generated, ~320 MB, and
+# fully reproducible from the raw data via fix_tufts_orientation.py + convert_tufts_to_yolo_seg.py.
+data/tufts/dataset_seg_v2/
+# Orientation-corrected radiographs (27 Aug 2026) — regenerable, ~130 MB.
+data/tufts/ZIP/Radiographs_rotated_fixed/
 # Raw DENTEX source annotations (re-downloadable) — the SPLIT MANIFEST built from
 # them, data/dentex/splits_v2.json, IS committed and must stay tracked.
 data/dentex/raw/

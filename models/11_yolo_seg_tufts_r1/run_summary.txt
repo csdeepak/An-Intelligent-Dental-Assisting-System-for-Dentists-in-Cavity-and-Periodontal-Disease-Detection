@@ -1,0 +1,130 @@
+================================================================================
+R1 — YOLOv11l-seg instance segmentation on Tufts
+Version tag: tooth-detector-seg-tufts-1024-v1.0
+Status:      PARTIAL RESULT — pre-registered bar MISSED on mask. NOT canonical.
+             The bbox detector `tooth-detector-a100-1024-v1.0` REMAINS Stage-1 canonical.
+Date:        27 August 2026
+================================================================================
+
+WHY THIS IS NOT THE PIPELINE DEFAULT
+------------------------------------
+`docs/research/T0.6_detector_reconciliation.md` §2 pre-registered, before any seg run
+existed, that the segmentation model replaces the frozen bbox model as canonical Stage-1
+ONLY IF, on the held-out test split, BOTH of:
+
+    Box  mAP@0.5 >= 0.75      -> 0.8100   PASS
+    Mask mAP@0.5 >= 0.65      -> 0.6383   FAIL  (short by 0.0117)
+
+Mask missed. Per §2's own instruction ("report the result honestly, keep the current bbox
+model as canonical, and treat R1/R2 as a documented negative or partial result rather than
+silently lowering the bar to declare success"), the bar was NOT adjusted after the fact and
+this checkpoint does NOT become the pipeline default. R2 (mask-aware cropping) therefore
+stays unwired, since it depends on masks this model does not yet produce well enough.
+
+
+HELD-OUT TEST RESULTS (touched exactly once, after checkpoint selection on val)
+------------------------------------------------------------------------------
+  Split: Tufts frozen split_v1 test, 150 images, 3,930 instances
+
+              P         R         mAP@0.5    mAP@0.5:0.95
+    Box     0.7666    0.7751     0.8100        0.3411
+    Mask    0.6270    0.6339     0.6383        0.2238
+
+VALIDATION (best.pt, 150 images / 3,807 instances)
+    Box     0.7690    0.7730     0.8250        0.3530
+    Mask    0.6100    0.6490     0.6520        0.2310
+
+
+THE HEADLINE FINDING: BOX DETECTION IMPROVED OVER THE BBOX DETECTOR
+-------------------------------------------------------------------
+    bbox detector (canonical)   test mAP@0.5 = 0.7824
+    seg model     (this run)    test mAP@0.5 = 0.8100      +0.0276
+
+Training with instance masks produced a BETTER box detector than training on boxes alone,
+on the same frozen split with an otherwise identical config. That is a real, reportable
+result and is directionally consistent with DentFound's ablation (masks improve detection).
+It is also the number that matters for the Stage-2 ceiling, since Stage-2 end-to-end is
+capped by detector recall, not by mask quality.
+
+CAVEAT, pre-registered in T0.6 §2 and repeated here rather than buried: the seg test ground
+truth holds 3,930 instances vs the bbox test set's 3,924 — 6 real teeth (0.15%) that the bbox
+converter dropped on a corrupt `bounding box` field and this converter keeps. Same images,
+same split. Near-like-for-like, not exactly like-for-like.
+
+
+TRAINING CONFIG — identical to the canonical bbox run except model + data format
+--------------------------------------------------------------------------------
+  Model:          yolo11l-seg.pt (COCO-pretrained, NOT dental-specific, NO warm start
+                  from the bbox detector — that would have been a third change and would
+                  have voided the comparison)
+  Data:           data/tufts/dataset_seg_v2/  (see DATA CORRECTION below)
+  Split:          frozen split_v1, 700/150/150, NOT re-randomised
+  imgsz 1024 | batch 32 | epochs 150 (ran 135, early stop) | patience 30 | workers 8
+  optimizer AdamW | lr0 0.001 | lrf 0.01 | momentum 0.937 | weight_decay 0.0005
+  warmup 3 | cos_lr True | seed 42 | deterministic True
+  box 7.5 | cls 0.5 | dfl 1.5
+  hsv_h 0.0 | hsv_s 0.0 | hsv_v 0.2 | degrees 10.0 | translate 0.1 | scale 0.2
+  fliplr 0.5 | flipud 0.0 (never — breaks maxilla/mandible) | mosaic 0.0 | mixup 0.0
+
+  Every value above was verified against models/06_yolo_detection_a100_run/train_args.yaml
+  before launch, and again in Ultralytics' own resolved-config echo at runtime.
+
+
+RUN
+---
+  Hardware:       JarvisLabs A100-SXM4-80GB (IN2), on-demand, Rs 140.94/hr
+  Wall-clock:     0.788 h (47 min), 135 epochs
+  Best epoch:     105 (early stopped at 135, no improvement in 30)
+  Peak VRAM:      ~63.5 GB / 81.9 GB
+  Cost:           Rs 130.38
+
+
+DATA CORRECTION — this run's inputs differ from the first, withdrawn attempt
+----------------------------------------------------------------------------
+An earlier 90-epoch run on this same config was WITHDRAWN: every instance mask in its
+training data was spatially misaligned with its image. Two independent defects, both fixed
+before this run (RESULTS_LOG.md 2026-08-27a):
+
+  1. teeth_polygon.json stores points as [y, x]; teeth_bbox.json uses [x1,y1,x2,y2].
+     The converter had inherited the bbox converter's "no transform" assumption.
+  2. This machine's Radiographs_rotated/ predates the 22 Aug rotation-direction fix and
+     was 180 degrees out.
+
+Verified before training, against teeth_bbox.json (the ground truth the canonical bbox
+detector was trained on), over 3,225 train instances:
+
+     broken dataset   median IoU 0.000    1.6% agreement at IoU>=0.5
+     dataset_seg_v2   median IoU 0.837   99.4% agreement at IoU>=0.5
+
+The same gate was re-run ON THE GPU MACHINE immediately before launch and passed identically,
+so the data actually trained on is verified, not merely the data that left this laptop.
+
+
+ARTIFACTS
+---------
+  models/11_yolo_seg_tufts_r1/run/weights/best.pt   55.8 MB  (gitignored, >50MB, rule 4)
+      SHA-256 271316c46caaf4029ea707fa77b6fe30697795e46632e1f6fcae3498c48781ba
+      (verified byte-identical between the GPU box and this machine after download)
+  models/11_yolo_seg_tufts_r1/run/weights/last.pt   55.8 MB  (gitignored)
+  models/11_yolo_seg_tufts_r1/run/results.csv       per-epoch metrics, 135 rows
+  models/11_yolo_seg_tufts_r1/run/args.yaml         full resolved training config
+  models/11_yolo_seg_tufts_r1/test_results.txt      the single test evaluation, verbatim
+  models/11_yolo_seg_tufts_r1/run/*.png             PR/F1/P/R curves, confusion matrices
+  models/11_yolo_seg_tufts_r1/run/val_batch*_pred.jpg  qualitative predictions
+
+Weights are on local disk only. They are NOT on either Google Drive yet — if this checkpoint
+ever becomes load-bearing, upload it and add it to docs/EXTERNAL_DRIVE.md's table.
+
+
+WHAT WOULD CLOSE THE MASK GAP (not attempted — would need a new pre-registration)
+---------------------------------------------------------------------------------
+Mask mAP@0.5 0.6383 vs a 0.65 bar is a 1.2-point miss, close enough that ordinary run-to-run
+variance is a plausible part of it. Anything done to chase it must be pre-registered BEFORE
+running, exactly as §2 was, or the result is not honest:
+  - the 0.65 floor was itself a judgment call ("a mask must at minimum give a materially
+    usable instance signal for R2"), not derived from a prior measurement
+  - mask quality is bounded by the polygon ground truth, which uses the largest-fragment-
+    per-object heuristic; multi-fragment teeth lose their smaller fragments
+  - `mask_ratio` (4) and `overlap_mask` (True) were inherited as Ultralytics defaults and
+    were never tuned for this data
+================================================================================

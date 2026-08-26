@@ -6,7 +6,11 @@ It is **rewritten, not appended to** — unlike `docs/results/RESULTS_LOG.md` (a
 history) and `docs/session-memory/` (one file per session, never edited). Those two are the
 record; this is the snapshot.
 
-**Last updated: 26 August 2026** (later the same day: work resumed on the **Windows** machine;
+**Last updated: 27 August 2026** (R1 ran twice: the first attempt was withdrawn — its masks were
+misaligned by two data defects, both now fixed; the re-run PASSED the box bar and MISSED the
+mask bar, so the bbox detector remains canonical. See §1a.)
+
+**Previously: 26 August 2026** (later the same day: work resumed on the **Windows** machine;
 the frozen Tufts split was made regenerable from code and `dataset_seg/` rebuilt, so R1 is
 blocked on nothing but GPU time; GPU provider switched to **JarvisLabs** and `GPU_SETUP.md`
 rewritten for it. Earlier that day: Stage-2 head v2.0 adopted; publication/grading guidance
@@ -63,6 +67,59 @@ See §5 for the grading stakes this is being built toward.
 
 ---
 
+## 1a. R1 — what actually happened, 26–27 Aug
+
+**Ran twice. The first run is withdrawn; the second is a documented PARTIAL result.**
+
+**Attempt 1 (26 Aug) — WITHDRAWN, not a result.** Completed 90 epochs cleanly on an A100 and
+was scientifically void: **every instance mask was spatially misaligned with its image.**
+Caught by comparing final val mAP@0.5 (0.258) against the canonical bbox detector's 0.834 on
+the same split — a gap far too large for a bbox→mask change. Two *independent* data defects,
+both required to produce the failure:
+
+1. `teeth_polygon.json` stores points as **`[y, x]`**; `teeth_bbox.json` uses `[x1,y1,x2,y2]`.
+   The seg converter had inherited the bbox converter's "no transform needed" assumption.
+   Proven over **6,006 title-paired objects**: transpose → 2.06 px median centre-distance,
+   every other candidate 175–442 px.
+2. This machine's `Radiographs_rotated/` predates the 22 Aug rotation-direction fix and was
+   **180° out**.
+
+Fixed in `scripts/yolo/fix_tufts_orientation.py` (new, self-verifying, refuses to run on an
+already-aligned source) and a one-line swap in `convert_tufts_to_yolo_seg.py`. Verified against
+`teeth_bbox.json` — the ground truth the 0.7824 detector was trained on — over 3,225 instances:
+**median IoU 0.000 → 0.837, agreement 1.6% → 99.4%.** `RESULTS_LOG.md` 2026-08-27a.
+
+**The lesson worth carrying: a falling loss curve is not evidence of correct data.** That run's
+losses fell smoothly for 90 epochs, throughput and checkpointing were healthy, and every
+hyperparameter matched the pre-registration. It was operationally flawless and scientifically
+void. What caught it was **comparing against a known reference and treating the gap as a defect
+to explain rather than a disappointing number to report.** Geometry is now verified against an
+independent annotation source *before* training, and that gate is re-run **on the GPU box**
+immediately before launch.
+
+**Attempt 2 (27 Aug) — ran clean, PARTIAL result.** 135 epochs, early-stopped, best epoch 105,
+47 min. Held-out test touched **exactly once**:
+
+| | mAP@0.5 | bar (`T0.6` §2) | verdict |
+|---|---|---|---|
+| **Box** | **0.8100** | ≥ 0.75 | **PASS** |
+| **Mask** | **0.6383** | ≥ 0.65 | **FAIL** (short 0.0117) |
+
+**The bar was not moved after seeing the number.** The bbox detector
+`tooth-detector-a100-1024-v1.0` **remains canonical Stage-1**, and **R2 stays unwired**.
+
+**But box detection genuinely improved: 0.8100 vs the bbox detector's 0.7824 — +2.76 points**
+on the same frozen split, otherwise identical config. Masks produced a *better box detector*
+than boxes alone. That is also the number that matters downstream, since Stage-2 end-to-end is
+capped by **detector recall**, not mask quality. **Whether to adopt on that basis is an open
+decision (§4) — §2's bar governed a mask-driven replacement and should not be quietly
+reinterpreted to wave this through.** Caveat, pre-registered: seg test GT has 3,930 instances
+vs bbox's 3,924 (+0.15%), so near-, not exactly, like-for-like.
+
+**Cost:** ₹249.19 total across both runs (₹900 → ₹650.81). No instance left running.
+
+---
+
 ## 2. What is DONE — verified, not assumed
 
 | Item | Evidence |
@@ -108,8 +165,13 @@ not, and would have been quietly wrong if the second measurement had not been as
 **User's explicit framing: continue implementation now; the paper draft is the final step, not
 the next one.** Ordered by what actually blocks something else:
 
-1. **R1 — YOLOv11l-seg retrain.** The one item needing a rented GPU, and the user has cleared
-   renting on **JarvisLabs**. Detector recall (67.0%) is the binding constraint on everything
+1. **R1 — YOLOv11l-seg retrain. ✅ DONE 27 Aug — but it did NOT become canonical.** Box bar
+   passed (0.8100 test mAP@0.5 vs a 0.75 bar, and vs the bbox detector's 0.7824); **mask bar
+   missed** (0.6383 vs 0.65). Per the pre-registration the bar was not moved and the bbox
+   detector stays Stage-1 canonical; R2 stays unwired. `RESULTS_LOG.md` 2026-08-27b,
+   `models/11_yolo_seg_tufts_r1/run_summary.txt`. **The open decision is whether the +2.76-point
+   box gain justifies adopting it anyway** — a real methodology call, not a default.
+   Original framing kept below for context. Detector recall (67.0%) is the binding constraint on everything
    downstream of it — Stage-2 end-to-end is capped at 67.0% no matter how good the numbering
    is. **This is now measured, not assumed:** doubling the Stage-2 training corpus with Tufts
    moved in-domain end-to-end by +10 teeth of 936, p=0.343 — nothing, against a ~1-point noise

@@ -1,0 +1,17 @@
+Ultralytics 8.4.129 🚀 Python-3.10.20 torch-2.11.0+cu130 CUDA:0 (NVIDIA A100-SXM4-80GB, 81153MiB)
+YOLO11l-seg summary (fused): 204 layers, 27,585,363 parameters, 0 gradients, 132.1 GFLOPs
+[34m[1mval: [0mFast image access ✅ (ping: 0.0±0.0 ms, read: 1254.7±42.0 MB/s, size: 288.2 KB)
+[K[34m[1mval: [0mScanning /home/dataset_seg_v2/labels/test.cache... 150 images, 6 backgrounds, 0 corrupt: 100% ━━━━━━━━━━━━ 150/150 27.4Mit/s 0.0s
+[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95)     Mask(P          R      mAP50  mAP50-95): 20% ━━────────── 1/5 1.9s/it 0.6s<7.8s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95)     Mask(P          R      mAP50  mAP50-95): 40% ━━━━╸─────── 2/5 1.3it/s 0.9s<2.3s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95)     Mask(P          R      mAP50  mAP50-95): 60% ━━━━━━━───── 3/5 1.8it/s 1.2s<1.1s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95)     Mask(P          R      mAP50  mAP50-95): 80% ━━━━━━━━━╸── 4/5 2.2it/s 1.6s<0.5s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95)     Mask(P          R      mAP50  mAP50-95): 100% ━━━━━━━━━━━━ 5/5 2.8it/s 1.8s
+                   all        150       3930      0.767      0.775       0.81      0.341      0.627      0.634      0.638      0.224
+Speed: 1.5ms preprocess, 5.8ms inference, 0.0ms loss, 1.2ms postprocess per image
+
+=== HELD-OUT TEST RESULTS (single evaluation) ===
+  Box  P=0.7666  R=0.7751  mAP50=0.8100  mAP50-95=0.3411
+  Mask P=0.6270  R=0.6339  mAP50=0.6383  mAP50-95=0.2238
+
+=== PRE-REGISTERED BAR (T0.6 section 2) ===
+  Box  mAP50 >= 0.75 : 0.8100  PASS
+  Mask mAP50 >= 0.65 : 0.6383  FAIL
+
+  VERDICT: BAR MISSED - bbox model stays canonical
