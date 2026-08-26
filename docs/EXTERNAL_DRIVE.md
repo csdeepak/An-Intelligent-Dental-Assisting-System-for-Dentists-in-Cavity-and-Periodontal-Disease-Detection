@@ -53,7 +53,9 @@ layout changes.
 ## Model checkpoints — what a fresh clone is missing, and where to get it
 
 `git clone` alone is **not** enough to run `scripts/run_inference.py`. Cross-checked against
-every `DEF_*` default in that script (25 Aug 2026) against `git ls-files`:
+every `DEF_*` default in that script (re-verified 26 Aug 2026, after the Stage-2 head v2.0
+swap) against `git ls-files`. **Only the two checkpoints below actually block inference — that
+has not changed with the v2.0 adoption, since v2.0 is 43 MB and already tracked in git.**
 
 **Already in git — nothing to do:**
 
@@ -120,3 +122,7 @@ If a new gitignored checkpoint becomes load-bearing (a new `DEF_*` default in
 it to the matching drive's `capstone_checkpoints/` folder. If the top-level structure of either
 drive changes, update the table in "The two drives" section — verify by opening the link, don't
 assume it still matches what's written here.
+
+---
+
+**Publication target and grading criteria:** `../transfer.md` §5.

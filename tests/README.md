@@ -41,3 +41,7 @@ No pytest plugins or fixtures are required; every file also runs standalone
 Unit tests cannot catch any of these on their own — all needed an artefact comparison against
 ground truth. That is what `scripts/eval/` is for, and `scripts/eval/verify_invariants.py` in
 particular re-checks the facts the documentation depends on.
+
+---
+
+**Publication target and grading criteria:** `../transfer.md` §5.

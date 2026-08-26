@@ -1,8 +1,13 @@
 # `data/` — datasets
 
-**Last verified: 22 August 2026 (enumeration data added)** against the working tree. Everything of size here is
-git-ignored; what *is* tracked is the small, high-value metadata that makes a run
-reproducible — split manifests and index CSVs.
+**Last verified: 26 August 2026 (Tufts enumeration corpus added)** against the working tree.
+Everything of size here is git-ignored; what *is* tracked is the small, high-value metadata
+that makes a run reproducible — split manifests and index CSVs.
+
+**⚠️ Tufts licence note.** The Tufts Dental Database's release agreement forbids reproducing
+or posting it "into any webpage or any other storage means." `docs/EXTERNAL_DRIVE.md` has the
+full warning and the required citation — read it before sharing anything under `tufts/` beyond
+this machine.
 
 > The previous version of this file described a single `processed_dataset_tufts/` layout that
 > does not exist, and said the Tufts raw data "should be stored on Google Drive". Both were
@@ -12,12 +17,15 @@ reproducible — split manifests and index CSVs.
 
 ```
 data/
-├── tufts/                     765 MB   Stage 1 detection + Stage 4 bone loss
+├── tufts/                     2.2 GB   Stage 1 detection + Stage 4 bone loss + Stage 2 (second corpus)
 │   ├── ZIP/                   291 MB   raw Tufts release (teeth_polygon.json, teeth_bbox.json, …)
 │   ├── dataset_seg/           474 MB   [R1] YOLO-seg training set — 26,005 instances, 700/150/150
+│   ├── enumeration_v1/        1.5 GB   [Stage 2] FDI-labelled crops (42,755) + manifest — Tufts'
+│   │                                   numbering is left-right MIRRORED and corrected before use;
+│   │                                   see scripts/tufts/README.md before touching this data
 │   ├── resampled_dataset/     140 KB   bone-loss binary crop metadata
 │   └── severity_dataset/      148 KB   bone-loss severity crop metadata
-├── dentex/                    2.9 GB   Stages 2 and 3
+├── dentex/                    3.2 GB   Stages 2 and 3
 │   ├── splits_v2.json          56 KB   ** TRACKED ** — the frozen image-level 70/15/15 split
 │   ├── disease_leaked_images.json      ** TRACKED ** — the 86 evaluation images that must be
 │   │                                   excluded as training duplicates. Read this before
@@ -64,4 +72,9 @@ Ignored: every image, crop, archive and raw annotation dump.
 Rationale: a split manifest is what makes a result reproducible and is a few tens of KB; the
 pixels are re-derivable from the source release. `crops_v2/` regenerates with
 `scripts/dentex/build_dentex_crops.py`, `dataset_seg/` with
-`scripts/yolo/convert_tufts_to_yolo_seg.py`.
+`scripts/yolo/convert_tufts_to_yolo_seg.py`, `tufts/enumeration_v1/` with
+`scripts/tufts/build_enumeration_crops.py`.
+
+---
+
+**Publication target and grading criteria:** `../transfer.md` §5.

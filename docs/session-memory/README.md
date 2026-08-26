@@ -53,3 +53,7 @@ the story around it.
 
 Newest file first. `2026-08-12-repo-understanding-and-restructure.md` is the seed example
 and also documents the restructure that produced the current repo layout.
+
+---
+
+**Publication target and grading criteria:** `../../transfer.md` §5.

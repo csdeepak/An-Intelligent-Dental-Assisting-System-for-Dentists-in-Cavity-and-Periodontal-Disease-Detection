@@ -1,15 +1,15 @@
 # `src/` — the pipeline library
 
-**Last verified: 22 August 2026 (Stage 2 replaced by a learned head).** Importable modules that implement pipeline stages. The
+**Last verified: 26 August 2026 (Stage 2 head v2.0 adopted).** Importable modules that implement pipeline stages. The
 runnable entry points live in `scripts/`; these are the pieces they call. Everything here is
-covered by `tests/` (60 tests, all passing).
+covered by `tests/` (65 tests, all passing).
 
 ## Modules, by pipeline stage
 
 | Module | Stage | What it does | Status |
 |---|---|---|---|
 | `orientation.py` | 1 (input) | **The detector's input-orientation contract.** Rotate 90° CCW for the detector, un-rotate immediately. | ✅ tested |
-| `utils/fdi_converter.py` | 2 | Universal ↔ FDI lookup *table* (32 permanent teeth). Not positional logic. | ✅ tested, bug fixed `f8b31f8` |
+| `utils/fdi_converter.py` | 2 | Universal ↔ FDI lookup *table* (32 permanent teeth), **plus `tufts_title_to_fdi()`** — Tufts' numbering is left-right mirrored (its "1" is FDI 28, not 18) and must go through this, never through `universal_to_fdi()` directly. | ✅ tested (13 tests), bug fixed `f8b31f8`; mirror correction added 25 Aug — `RESULTS_LOG.md` 2026-08-25h |
 | `fdi_assignment.py` | 2 | Positional (rank-order) FDI assignment | ⚠️ **SUPERSEDED** — kept as the measured baseline, not the pipeline default |
 | `fdi_head_inference.py` | 2 | **The current method** — runs the learned enumeration head over detector boxes, with Hungarian one-to-one assignment | ✅ **use this** |
 | `classifiers.py` | 3/4 | **Caries + bone-loss cascades.** Owns the per-branch crop contract — caries **1.0× tight**, bone loss **1.5×W/2.0×H** — and the class orders. | ✅ tested (14) |
@@ -43,8 +43,15 @@ produced a 5.9% quadrant score (worse than guessing) when rotated boxes reached 
 
 ### 2. Stage 2 uses the learned head, not the positional module
 
-Both are measured on the **same 164 leak-free `DENTEX/disease/` images** (936 teeth), same
-detector, same matching rule:
+**Which head:** `run_inference.py`'s `DEF_FDI_HEAD` points at
+`models/10_fdi_head_dentex_tufts_v2/` (v2.0, DENTEX+Tufts) as of 26 Aug 2026 — adopted for
+cross-domain robustness (+21.5pp on Tufts), not for the number below, which it does not move
+(46.58% vs v1.0's 46.47%, inside the measured noise floor). `models/README.md` "Which FDI head
+to use" has the full comparison; the table immediately below is v1.0's, unchanged since 24 Aug
+because that is what it has always measured.
+
+Both positional and head (v1.0) are measured on the **same 164 leak-free `DENTEX/disease/`
+images** (936 teeth), same detector, same matching rule:
 
 | | `fdi_assignment.py` (positional) | **`fdi_head_inference.py` (head)** |
 |---|---|---|
@@ -117,3 +124,7 @@ confident wrong output, with **nothing raised anywhere**:
 bone-loss crop is exactly 1.5×/2.0×, and that **the two branches never produce the same crop**.
 Sources: `scripts/dentex/build_dentex_crops.py`, `PAPER_MATERIAL.md` §6.1,
 `configs/dataset_config.yaml`. RESULTS_LOG 2026-08-24f.
+
+---
+
+**Publication target and grading criteria:** `../transfer.md` §5.

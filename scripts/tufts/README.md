@@ -93,14 +93,27 @@ rather than silently baked in. Their handedness was *not* covered by the evidenc
 concerns permanent teeth only — so `tufts_title_to_fdi()` returns `None` for letters rather
 than guessing.
 
-## What this is NOT
+## What happened when this corpus was actually used — updated 26 Aug 2026
 
-The crops are built and verified; **no model has been retrained on them.** Whether the combined
-corpus actually improves the head is an open experiment, not a claim — see `transfer.md` §4.
-Two things to watch when it is run:
+The paragraph below originally said no model had been retrained on this corpus and framed the
+question as open. It has since been answered — kept here so the reasoning is not lost, not
+because it is still open:
+
+**A head trained on DENTEX + Tufts (`fdi-enumeration-head-resnet18-v2.0`) was adopted as the
+pipeline default.** It does **not** beat the DENTEX-only head in-domain (46.58% vs 46.47%
+end-to-end — inside a measured ~1-point run-to-run noise floor) but gains **+21.5 points** on
+Tufts held-out crops (71.5% vs 50.0%). A Tufts-**only** head was also trained and rejected: it
+loses 9.1 points on DENTEX while its Tufts edge over v2.0 is not significant (McNemar p=0.732).
+`RESULTS_LOG.md` 2026-08-25j, 2026-08-26a; `models/README.md` "Which FDI head to use".
+
+The two covariate-shift risks flagged below were real but did not derail the result:
 
 - Teeth occupy a smaller fraction of the frame in Tufts (median normalised height **0.177** vs
   DENTEX's **0.231**), so the `cy`/`bh` positional features have different distributions across
   the two corpora. That is a genuine covariate shift feeding a feature the head consumes.
 - Tufts contributes 2.0× DENTEX's training rows (35,248 vs 17,619 after jitter), so a naive
   concatenation lets it dominate the loss.
+
+---
+
+**Publication target and grading criteria:** `../../transfer.md` §5.

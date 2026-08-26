@@ -25,6 +25,14 @@ builds the same app as a CPU-only container. Neither is under `scripts/`; both a
 because they exist entirely to expose what this directory builds. Use
 `src.fdi_head_inference.assign_fdi_head`, not the superseded positional module.
 
+**`DEF_FDI_HEAD` points at Stage-2 head v2.0** (`models/10_fdi_head_dentex_tufts_v2/`,
+DENTEX+Tufts) as of 26 Aug 2026 — adopted for cross-domain robustness, not in-domain accuracy.
+`models/README.md` "Which FDI head to use" has the comparison against v1.0, which is retained.
+
+---
+
+**Publication target and grading criteria:** `../transfer.md` §5.
+
 ## If you are running anything on a non-Tufts image
 
 Rotate it. The frozen detector consumes **90° counter-clockwise** panoramics; DENTEX, Ningxia

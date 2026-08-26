@@ -12,7 +12,9 @@ three files in order:
 
 **Starting cold? Read `../transfer.md` first** — it is the project's living snapshot of where
 we are, what is done, and what is next, maintained per `CLAUDE.md` rule 5. It is rewritten in
-place; the append-only history is `results/RESULTS_LOG.md`.
+place; the append-only history is `results/RESULTS_LOG.md`. Its §5 has the **publication target
+and grading criteria** this project is being built toward, and its §8 is the checklist for
+setting the repo up on a new machine without missing a checkpoint.
 
 If you want the *plan* rather than the snapshot, read `research/MASTER_PLAN_2026H2.md` §5 (the
 week-by-week schedule) and the status block at the top of `research/PUBLICATION_TODO.md`. The
@@ -39,7 +41,7 @@ plan supersedes the older schedules elsewhere for sequencing.
 | `reports/legacy/DENTAL_AI_ANALYSIS_REPORT.md` | The original all-in-one analysis document (written as placement/interview prep). Technically accurate and still a useful source, but **no longer the entry point** — its content has been reorganised into `results/PAPER_MATERIAL.md`. |
 | `exploration/README.md` | Dataset quirks and the five critical bugs caught during exploration, with root cause and fix for each. Still the best single explanation of *why* the data handling looks the way it does. |
 | `session-memory/` | One dated file per substantial working session: goal, what was done, decisions, open questions, next steps. See `session-memory/README.md`. |
-| `EXTERNAL_DRIVE.md` | The two Google Drive links (DENTEX, Tufts) and which gitignored model checkpoints live in each — read this before assuming a file not in git is lost. |
+| `EXTERNAL_DRIVE.md` | The two Google Drive links (DENTEX, Tufts) and which gitignored model checkpoints live in each — read this before assuming a file not in git is lost. **Carries a licence warning: the Tufts Drive folder was found link-accessible without sign-in, which its release agreement forbids.** |
 | *(outside `docs/`)* | Code documentation: [`../src/README.md`](../src/README.md) (pipeline modules, and the two contracts that are easy to get wrong), [`../scripts/README.md`](../scripts/README.md) (entry points), [`../scripts/eval/README.md`](../scripts/eval/README.md) (C3 evaluation), [`../scripts/tufts/README.md`](../scripts/tufts/README.md) (Tufts as a second FDI corpus — **read before touching its numbering, which is mirrored**), [`../tests/README.md`](../tests/README.md). |
 | `research/` | Maintained by a parallel workstream. **It has no README of its own** (this index used to claim it did). Contents, in reading order: `MASTER_PLAN_2026H2.md` — the governing 8-week plan, which *supersedes the other docs for sequencing*; `PUBLICATION_TODO.md` — the tiered T0–T3 work list, with a verified status block at the top; `gap_analysis.md`, `PUBLICATION_STRATEGY.md`; `T0.6_detector_reconciliation.md` — detector freeze + the pre-registered R1 criterion; `GPU_SETUP.md` — E2E provisioning checklist; `clinical_dataset_plan.md` and `clinical_dataset_provenance.md` — the clinic track, currently governance-blocked. |
 

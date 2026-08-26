@@ -6,7 +6,7 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-red.svg)](https://pytorch.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-6%2F6%20Stages%20Running-brightgreen.svg)]()
-[![Tests](https://img.shields.io/badge/tests-60%20passing-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/tests-65%20passing-brightgreen.svg)]()
 [![External](https://img.shields.io/badge/external%20validation-4%20hospitals-blue.svg)]()
 
 ---
@@ -29,6 +29,8 @@
 > | What should I work on? | [`docs/research/PUBLICATION_TODO.md`](docs/research/PUBLICATION_TODO.md) status block, sequenced by [`MASTER_PLAN_2026H2.md`](docs/research/MASTER_PLAN_2026H2.md) |
 > | How is the documentation laid out? | [`docs/README.md`](docs/README.md) |
 > | What does the code do? | [`src/README.md`](src/README.md), [`scripts/README.md`](scripts/README.md) |
+> | **Publication target and grading criteria** | [`transfer.md`](transfer.md) §5 |
+> | **Setting this up on a new machine — what's in git vs what needs a manual Drive fetch** | [`transfer.md`](transfer.md) §8, [`docs/EXTERNAL_DRIVE.md`](docs/EXTERNAL_DRIVE.md) |
 >
 > ⚠️ **Before running the pipeline on any non-Tufts image, rotate it 90° counter-clockwise**
 > — the frozen detector was trained on sideways panoramics. Upright input gives 7.5% recall
@@ -52,6 +54,7 @@
 - [Evaluation Targets](#evaluation-targets)
 - [Risks & Mitigations](#risks--mitigations)
 - [Universal to FDI Conversion](#universal-to-fdi-conversion)
+- [Publication Target & Grading Criteria](#publication-target--grading-criteria)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -81,10 +84,12 @@ Tooth [FDI Number]
   → Bone Loss: Present | Severity: Mild
 ```
 
-> ⚠️ **This output format is the design target, not a shipped feature.** The four
-> classification/detection models are trained and evaluated independently; the code that
-> joins them into one runnable inference (Stages 5–6) **does not exist yet**. See
-> [Pipeline Stages](#pipeline-stages).
+> ✅ **This output format is shipped, not just a design target.** `scripts/run_inference.py`
+> joins all six stages into one runnable inference: OPG in, per-tooth JSON + annotated overlay
+> out. There is also a browser demo — `streamlit run app.py`, or `docker build` from the
+> repo's `Dockerfile`. See [Usage](#usage) and [Pipeline Stages](#pipeline-stages) below.
+> ⚠️ What "shipped" does **not** mean: validated to clinical standard. Every generated report
+> carries a `limitations` field naming exactly what is still weak — see that table below.
 
 ---
 
@@ -106,8 +111,8 @@ bounding box.
 └──────────────────────────┬──────────────────────────────────────┘
                            ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│              Stage 2: Sorting & FDI Assignment                  │
-│              Left→Right sort, jaw split, Universal→FDI          │
+│              Stage 2: FDI Assignment (learned head)             │
+│              ResNet18 + position → quadrant/position → FDI      │
 └──────────┬───────────────────────────────────────┬──────────────┘
            ▼                                       ▼
 ┌──────────────────────┐              ┌──────────────────────────┐
@@ -148,7 +153,7 @@ bounding box.
 | Stage | Component | Input | Output | Status |
 |-------|-----------|-------|--------|--------|
 | 1 | Tooth Detection (YOLOv11l) | Full OPG | Tooth bboxes | ✅ **Complete** — test mAP@0.5 **0.782**; canonical run **frozen** as `tooth-detector-a100-1024-v1.0` (T0.6, 20 Aug 2026) |
-| 2 | Sorting + FDI assignment | Tooth bboxes | FDI-keyed tooth list | ✅ **Complete — learned enumeration head** ([validated](scripts/eval/README.md) on 164 leak-free images): quadrant 94.7%, FDI exact **46.5% end-to-end**, up from 22.9% for the positional method it replaced. Universal→FDI table correct (`f8b31f8`). |
+| 2 | Sorting + FDI assignment | Tooth bboxes | FDI-keyed tooth list | ✅ **Complete — learned enumeration head** ([validated](scripts/eval/README.md) on 164 leak-free images): quadrant 94.7%, FDI exact **46.5% end-to-end**, up from 22.9% for the positional method it replaced. Universal→FDI table correct (`f8b31f8`). **Pipeline default is now v2.0** (DENTEX+Tufts, adopted for cross-domain robustness — +21.5pp on a second machine population, same 46.5% in-domain). See [`models/README.md`](models/README.md) "Which FDI head to use". |
 | 3 | Caries cascade (ResNet18 ×2) | Tight 1.0× crop | caries / deep_caries | ✅ **Complete, gate rebuilt 25 Aug** — `caries-gate-resnet18-v3.0` is the pipeline default, trained on a repaired negative class (5,366 real healthy teeth). In-pipeline caries rate **84.9% → 19.1%**. Held-out precision **0.40** — improved, not solved. |
 | 4a | Bone Loss binary (ResNet18) | Expanded 1.5×W/2.0×H crop | Present / Absent | ✅ **Complete** — macro F1 **0.9233** |
 | 4b | Bone Loss severity (ResNet18) | Expanded crop | Mild / Moderate / Severe | ✅ **Complete** — macro F1 0.7208 (only 52 val crops) |
@@ -175,6 +180,7 @@ Full tables and provenance: [`docs/results/model_metrics.md`](docs/results/model
 |-------|---------|-------|-----------------|
 | YOLOv11l tooth detection (A100, imgsz 1024, 150 ep) | Tufts | val / **test** | mAP@0.5 0.834 / **0.782** |
 | YOLOv11l tooth detection (H200, imgsz 768, 50 ep) — superseded | Tufts | val | mAP@0.5 0.678 |
+| FDI enumeration head v2.0 (DENTEX+Tufts, **pipeline default**) | DENTEX / Tufts | 164 leak-free / held-out | end-to-end **46.6%** DENTEX, **71.5%** Tufts (v1.0 DENTEX-only: 46.5% / 50.0%) |
 | Caries cascade Phase 2 (caries vs deep_caries) | DENTEX | val (133) | acc **0.81**, macro F1 **0.77** |
 | Bone loss binary | Tufts | val (1,558, real prevalence) | macro F1 **0.9233**, sens 83.05%, spec 99.53% |
 | Bone loss severity (3-class) | Tufts | val (52) | macro F1 **0.7208** |
@@ -211,8 +217,8 @@ Full tables and provenance: [`docs/results/model_metrics.md`](docs/results/model
 | Avg teeth per image | 26.9 |
 | Tooth aspect ratio | ~0.35 (3× taller than wide) |
 | Michelson contrast | 0.999 (high quality) |
-| Bbox coordinate format | `[y1, x1, y2, x2]` corner points |
-| Tooth numbering | Universal (1-32) — converted to FDI |
+| Bbox coordinate format | Corner points, frame-dependent — `[y1,x1,y2,x2]` landscape (bone-loss path) or `[x1,y1,x2,y2]` portrait (FDI numbering path); see `docs/exploration/README.md` Bug 2's note |
+| Tooth numbering | Universal (1-32) — converted to FDI, and **left-right mirrored** in the raw data (Tufts "1" = FDI 28, not 18); see `scripts/tufts/README.md` |
 | Join key | `External ID` field in JSON records |
 
 ### Crop Strategy
@@ -230,26 +236,35 @@ Full tables and provenance: [`docs/results/model_metrics.md`](docs/results/model
 An-Intelligent-Dental-Assisting-System-.../
 │
 ├── README.md                       ← You are here
+├── transfer.md                     ← ★ START HERE for a cold session — living state snapshot
 ├── CLAUDE.md                       ← Working rules for AI/automation sessions in this repo
 ├── LICENSE  ·  requirements.txt  ·  setup.py  ·  .gitignore
+├── app.py                          ← Streamlit deployment demo (wraps run_inference.py)
+├── Dockerfile  ·  .dockerignore    ← CPU-only container for the same demo
 │
 ├── configs/
 │   └── dataset_config.yaml         ← All paths, hyperparameters, Universal→FDI table
 │
 ├── src/
+│   ├── orientation.py              ← Detector input-rotation contract
+│   ├── fdi_head_inference.py       ← Stage 2 — the learned enumeration head (current method)
+│   ├── classifiers.py              ← Stages 3/4 — caries + bone-loss cascades
 │   ├── data_loader.py              ← JSON parsing, coordinate conversion
 │   ├── crop_generator.py           ← Expanded crop, jitter, resize
 │   ├── label_assigner.py           ← Pixel-overlap ratio, thresholding
-│   └── utils/                      ← fdi_converter, visualization, constants
+│   └── utils/                      ← fdi_converter (incl. Tufts mirror correction), visualization, constants
 │
 ├── scripts/
-│   ├── build_dataset.py            ← CLI: build the crop training dataset
-│   ├── train_model.py              ← CLI: train the bone loss model
-│   ├── run_inference.py            ← CLI: pipeline inference (stub — Stage 5/6 not built)
-│   └── yolo/                       ← Stage 1 detection toolchain (+ its own README)
-│       ├── convert_tufts_to_yolo.py
-│       ├── train_yolo.py
-│       └── evaluate_yolo.py
+│   ├── run_inference.py            ← ★ CLI: full six-stage pipeline, OPG in → JSON + overlay out
+│   ├── build_dataset.py            ← CLI: build the crop training dataset (legacy bone-loss path)
+│   ├── train_model.py              ← CLI: train the bone loss model (legacy bone-loss path)
+│   ├── yolo/                       ← Stage 1 detection toolchain (+ its own README)
+│   │   ├── convert_tufts_to_yolo.py
+│   │   ├── train_yolo.py
+│   │   └── evaluate_yolo.py
+│   ├── dentex/                     ← Stage 2 head (DENTEX) + Stage 3 caries toolchain (+ README)
+│   ├── tufts/                      ← Stage 2 — Tufts as a second FDI corpus (+ README)
+│   └── eval/                       ← Evaluation, error propagation, invariant checks (+ README)
 │
 ├── notebooks/
 │   ├── yolo_detection/             ← Stage 1 — the two competing runs (+ README)
@@ -283,15 +298,19 @@ An-Intelligent-Dental-Assisting-System-.../
 │   ├── session-memory/             ← one dated file per working session
 │   └── research/                   ← maintained by a separate workstream
 │
-├── models/                         ← Trained checkpoints + training summaries
+├── models/                         ← Trained checkpoints + training summaries (see models/README.md)
 │   ├── 03_bone_loss_model_training_notebook_models/
 │   ├── 04_bone_loss_severity_notebook_models/
 │   ├── 05_cej_estimation_v2_models/
-│   └── 06_yolo_detection_a100_run/ ← best.pt/last.pt (git-ignored), args, results.csv
+│   ├── 06_yolo_detection_a100_run/ ← best.pt/last.pt (git-ignored), args, results.csv
+│   ├── 08_fdi_enumeration_head/    ← Stage-2 head v1.0 (DENTEX) — retained, hash-pinned
+│   ├── 09_caries_gate_v3/          ← caries gate — current pipeline default
+│   └── 10_fdi_head_dentex_tufts_v2/← Stage-2 head v2.0 (DENTEX+Tufts) — current pipeline default
 │
 ├── data/                           ← Datasets and metadata (large files git-ignored)
-└── tests/                          ← test_data_loader, test_crop_generator,
-                                       test_label_assigner, test_fdi_converter
+└── tests/                          ← 65 tests — test_data_loader, test_crop_generator,
+                                       test_label_assigner, test_fdi_converter, test_orientation,
+                                       test_classifiers, test_fdi_assignment
 ```
 
 > Bulky untracked material (a stale nested clone, the 2.2 GB raw-data workspace, the YOLO
@@ -324,6 +343,12 @@ pip install -r requirements.txt
 
 ### Dataset Setup
 
+**Just want to run inference?** You don't need any of the dataset layout below — see
+[Setting up on a new machine](#setting-up-on-a-new-machine-checkpoints-only) further down.
+The Google-Drive layout here is only for **retraining** the bone-loss branch from the original
+notebooks (`notebooks/bone_loss/`), which is one specific path through this repo, not the
+default one.
+
 The Tufts Dental Dataset is expected in Google Drive:
 
 ```
@@ -339,6 +364,28 @@ Google Drive/
 > Update the `paths.base` value in `configs/dataset_config.yaml` to match your mount.
 > The YOLO scripts in `scripts/yolo/` still carry hard-coded macOS paths — edit them
 > before use (noted in `scripts/yolo/README.md`).
+>
+> **⚠️ Tufts licence note:** the dataset's own release agreement forbids re-posting it
+> anywhere, including a shared Drive folder without access controls. See
+> [`docs/EXTERNAL_DRIVE.md`](docs/EXTERNAL_DRIVE.md) before setting one up.
+
+### Setting up on a new machine (checkpoints only)
+
+To just **run the pipeline** — `run_inference.py`, `app.py`, or the Docker demo — none of the
+raw datasets above are needed. Only two model checkpoints are not in git (everything else,
+including the current Stage-2 head, is committed):
+
+```bash
+git clone <this repo>
+pip install -r requirements.txt
+# fetch these two from docs/EXTERNAL_DRIVE.md's links — everything else is already in git:
+#   models/06_yolo_detection_a100_run/best.pt        (Tufts drive)
+#   models/09_caries_gate_v3/caries_gate_v3.pth      (DENTEX drive)
+python scripts/eval/verify_invariants.py   # should print "all invariants hold"
+python scripts/run_inference.py --image path/to/opg.png --output report.json
+```
+
+Full checklist, including what to do if a step fails: [`transfer.md`](transfer.md) §8.
 
 ---
 
@@ -373,7 +420,7 @@ and rebuild.
 `notebooks/caries/phase-1.ipynb` (Kaggle, DENTEX pre-processed crops). Read
 `notebooks/caries/approach.txt` first — it documents both the method and its gaps.
 
-### 4. Full pipeline inference — not available yet
+### 4. Full pipeline inference
 
 ```bash
 python scripts/run_inference.py --image path/to/opg.jpg --output report.json
@@ -409,8 +456,8 @@ annotated image). Two checkpoints are not in git — see
 | Phase 4c | Bone Loss — model training | Deepak | ✅ Complete — macro F1 0.9233 |
 | Phase 4d | Bone Loss — evaluation + severity | Deepak | ✅ Complete — severity macro F1 0.7208 (52 val crops) |
 | Phase 4e | CEJ bone-level estimation | Deepak | 🔬 Exploratory — negative result, not integrated |
-| Phase 5 | Full pipeline integration (Stages 5–6) | Both | ⬜ **Not started — current milestone** |
-| Phase 6 | Paper writing | Both | 🟡 In progress — see `docs/results/PAPER_MATERIAL.md` |
+| Phase 5 | Full pipeline integration (Stages 5–6) | Both | ✅ **Complete** — `run_inference.py` runs all six stages; `app.py`/`Dockerfile` deployment demo |
+| Phase 6 | Paper writing | Both | ⬜ **Deliberately last** — `PAPER_MATERIAL.md` is structured and ready, but drafting has not started per explicit project sequencing |
 
 ---
 
@@ -530,8 +577,12 @@ literature benchmark of ≥ 0.90 — **not met**.
 
 ## Universal to FDI Conversion
 
-Tufts uses Universal numbering (1–32); the clinical report requires FDI. **Correct**
-mapping:
+Tufts *labels look like* Universal numbering (1–32); the clinical report requires FDI. This is
+the **standard Universal→FDI table**, and it is correct for standard Universal input — **but
+Tufts' own labels are left-right mirrored relative to it** (Tufts "1" is FDI 28, the upper-left
+third molar, not FDI 18). Apply `src.utils.fdi_converter.tufts_title_to_fdi()` to Tufts titles,
+never this table directly — see `scripts/tufts/README.md` for how that was established.
+**Correct** mapping, for genuine Universal input:
 
 | Universal | FDI | Universal | FDI | Universal | FDI | Universal | FDI |
 |-----------|-----|-----------|-----|-----------|-----|-----------|-----|
@@ -549,6 +600,39 @@ mapping:
 > and `tests/test_fdi_converter.py` (regression tests that name the historical bug — the
 > shifted lower arch, and the duplicated FDI 33/34 that collapsed the reverse lookup).
 > The fix landed in `f8b31f8`; this warning had outlived it.
+
+---
+
+## Publication Target & Grading Criteria
+
+**Grading rubric for this course project:**
+
+| Grade | Requirement |
+|---|---|
+| **S** | Publication in a journal, or a conference in its **10th edition or later** |
+| **A** | Mid-tier conference, **5th–10th edition** |
+| **B** | Newer/lower-tier conference, **1st–5th edition** |
+| **C** | No publication secured |
+
+**Senior guidance:** target an IEEE conference with good Scopus indexing for S/A grades.
+Verify Scopus coverage on the official Scopus source list before submitting to any specific
+venue — a call-for-papers page claiming indexing is not the same as being on that list.
+
+**Named target: IEEE ISBI 2027** — the **24th** International Symposium on Biomedical Imaging,
+paper submission deadline **26 Oct 2026** (verified against the official conference site). That
+edition count clears the **S**-grade bar. `MASTER_PLAN_2026H2.md` schedules W8 as the
+submission window.
+
+**Where this project stands toward that, honestly:** not on the strength of any single model
+swap, but on cross-corpus generalisation measured with paired significance tests (something
+comparable published work in this space does not do), external validation on four hospitals
+never trained on, and a visibly-corrected result (a leaked evaluation set found and fixed
+before publication, not after). The current weak point — Stage-2 end-to-end at 46.5%,
+capped by detector recall — is the reason R1 (detector retrain) is the top implementation
+priority; a second published paper's own numbers independently show the same in-domain/
+out-of-domain gap this project measured, which supports the framing rather than undermining it.
+
+**Full assessment, kept current, not duplicated here:** [`transfer.md`](transfer.md) §5.
 
 ---
 

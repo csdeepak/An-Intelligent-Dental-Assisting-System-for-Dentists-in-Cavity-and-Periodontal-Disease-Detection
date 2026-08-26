@@ -1,12 +1,13 @@
 # `models/` — trained checkpoints
 
-**Last verified: 22 August 2026 (a fifth model now exists).** Every claim below was checked against the working tree,
-not carried over from a previous version of this file.
+**Last verified: 26 August 2026 (Stage-2 head v2.0 added).** Every claim below was checked
+against the working tree, not carried over from a previous version of this file.
 
-**Cloned this repo and `run_inference.py` says a weight is missing?** Two checkpoints
+**Cloned this repo and `run_inference.py` says a weight is missing?** Only two checkpoints
 (`06_yolo_detection_a100_run/best.pt`, `09_caries_gate_v3/caries_gate_v3.pth`) are not in git
 and live on Google Drive instead — see `../docs/EXTERNAL_DRIVE.md` for the links and exact
-restore steps.
+restore steps. **Everything else here, including the Stage-2 head the pipeline currently
+loads, is already tracked in git — `git clone` (or `git pull`) is enough for it.**
 
 ## What is actually here
 
@@ -20,7 +21,8 @@ One numbered directory per trained stage, each with a `*summary*.txt` beside the
 | `03_bone_loss_model_training_notebook_models/` | Stage 4a — bone-loss binary | `bone_loss_resnet18_{best,final}.pth` | **Yes** |
 | `04_bone_loss_severity_notebook_models/` | Stage 4b — bone-loss severity | `bone_loss_severity_resnet18_best.pth` | **Yes** |
 | `05_cej_estimation_v2_models/` | Exploratory CEJ (negative result, not in the pipeline) | summary only | n/a |
-| `08_fdi_enumeration_head/` | **Stage 2 — FDI enumeration head, ResNet18 + positional features** | `enumeration_head_best.pth` (43 MB) | **Yes** |
+| `08_fdi_enumeration_head/` | Stage 2 — FDI head **v1.0** (DENTEX only). Superseded as the pipeline default 26 Aug, **retained and still hash-pinned** — every Stage-2 number published before that date was measured on it. | `enumeration_head_best.pth` (43 MB) | **Yes** |
+| `10_fdi_head_dentex_tufts_v2/` | Stage 2 — FDI head **v2.0** (DENTEX + Tufts). **Current pipeline default (`DEF_FDI_HEAD`).** Adopted for cross-domain robustness, not in-domain accuracy — see below. | `enumeration_head_best.pth` (43 MB) | **Yes** |
 
 > The previous version of this file claimed "**Model files (.pth, .pt) are git-ignored** due
 > to file size" and showed a flat `models/*.pth` layout. Both were wrong: the ResNet18 `.pth`
@@ -33,9 +35,33 @@ One numbered directory per trained stage, each with a `*summary*.txt` beside the
 | `tooth-detector-a100-1024-v1.0` | Stage 1 detector | 20 Aug 2026 — `docs/research/T0.6_detector_reconciliation.md` §1 |
 | `caries-cascade-resnet18-v1.0` | Stage 3 cascade | 21 Aug 2026 — `07_caries_cascade/run_summary.txt` |
 | `caries-gate-resnet18-v3.0` | Stage 3 gate (**pipeline default**) | 25 Aug 2026 — `09_caries_gate_v3/run_summary.txt` |
-| `fdi-enumeration-head-resnet18-v1.0` | Stage 2 numbering | 22 Aug 2026 — `08_fdi_enumeration_head/run_summary.txt` |
+| `fdi-enumeration-head-resnet18-v1.0` | Stage 2 numbering (DENTEX only) | 22 Aug 2026 — `08_fdi_enumeration_head/run_summary.txt` |
+| `fdi-enumeration-head-resnet18-v2.0` | Stage 2 numbering (DENTEX + Tufts, **pipeline default**) | 26 Aug 2026 — `10_fdi_head_dentex_tufts_v2/run_summary.txt` |
 
 **One gap remains:** bone-loss weights (Stages 4a/4b) are still not version-tagged.
+
+## Which FDI head to use — v1.0 vs v2.0
+
+**`10_fdi_head_dentex_tufts_v2/enumeration_head_best.pth` — it is the pipeline default
+(`DEF_FDI_HEAD` in `scripts/run_inference.py`).**
+
+v2.0 was adopted for **cross-domain robustness, not in-domain accuracy — do not quote it as an
+accuracy improvement.** Measured both ways (`RESULTS_LOG.md` 2026-08-25j, 2026-08-26a):
+
+| | DENTEX 164 leak-free, end-to-end | Tufts held-out test, 3,786 crops (GT boxes) |
+|---|---|---|
+| v1.0 (DENTEX only) | 46.47% | 50.0% |
+| **v2.0 (DENTEX + Tufts)** | 46.58% (+0.11pp — inside the ~1pt noise floor) | **71.5%** (+21.5pp) |
+
+A Tufts-only head was also trained and rejected: it loses 9.1 points on DENTEX while its edge
+over v2.0 on Tufts is not statistically significant (McNemar p=0.732). v2.0 strictly dominates
+it. `v1.0` is retained and still hash-pinned by `scripts/eval/verify_invariants.py` — it is the
+provenance of every Stage-2 number published before 26 Aug 2026, so it must stay
+byte-reproducible even though it is no longer what `run_inference.py` loads by default.
+
+Tufts' numbering had to be corrected before use — its labels are left-right **mirrored**
+relative to standard Universal numbering (Tufts "1" = FDI 28, not 18). See
+`../scripts/tufts/README.md` before touching this data yourself.
 
 ## `07_caries_cascade/` — which file is which
 
@@ -94,3 +120,9 @@ annotated floor. Held-out precision is **0.40** — improved, not solved.
 
 `07_caries_cascade/` is retained: it is still the model behind the published `phase1_legacy`
 numbers, and its Phase-2 severity head is unchanged and still in use. RESULTS_LOG 2026-08-25a.
+
+---
+
+**Setting up on a new machine?** `../transfer.md` §8 has the full checklist — in short, `git
+clone` plus the two Drive-only checkpoints above is everything `run_inference.py` needs.
+**Publication target and grading criteria:** `../transfer.md` §5.

@@ -63,3 +63,7 @@ and tooth detection is largely indifferent to a 180° flip.
   Actual numbers: val mAP@0.5 = 0.834, test mAP@0.5 = 0.782. See
   `docs/results/model_metrics.md`.
 - `RUN_NAME` in the scripts is `tufts_v1`; the executed run was named `tufts_clean_v1`.
+
+---
+
+**Publication target and grading criteria:** `../../transfer.md` §5.

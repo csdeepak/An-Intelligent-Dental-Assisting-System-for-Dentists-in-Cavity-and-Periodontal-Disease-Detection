@@ -21,3 +21,7 @@ those two were relocated to `_repo_archive/archi_duplicate_diagrams/` (nothing d
 3. If the architecture itself changed, also update the ASCII diagram in the root
    `README.md` and the "System Architecture" section of `docs/results/PAPER_MATERIAL.md`,
    and log the change in `docs/results/RESULTS_LOG.md`.
+
+---
+
+**Publication target and grading criteria:** `../../transfer.md` §5.

@@ -38,6 +38,15 @@ byte-identical to enumeration training images. They are excluded via
 `data/dentex/disease_leaked_images.json`. Anything trained here must be scored with that
 exclusion applied, or the number is inflated (it was, by 5.7 points, before this was caught).
 
+**This is v1.0 (DENTEX only) — not the current pipeline default.** `train_enumeration_head.py`
+now also accepts `../tufts/build_enumeration_crops.py`'s output; a head trained on both
+corpora (`fdi-enumeration-head-resnet18-v2.0`) is what `run_inference.py` loads by default as
+of 26 Aug 2026. It does not change the number above (46.5% end-to-end is still what v1.0
+measures, and v2.0 lands within 0.1pp of it) — v2.0 was adopted for a different reason
+entirely: it gains +21.5 points on a second machine population (Tufts) that v1.0 never saw.
+See `../tufts/README.md` and `../../models/README.md` "Which FDI head to use" before assuming
+which head a given number came from.
+
 ### Stage 3 — caries data + training
 
 | Script | Status | What it does |
@@ -94,3 +103,7 @@ path, not a logic difference).
 
 The DENTEX release lives outside the repo at `~/Downloads/Capstone/DENTEX/`. See
 `data/README.md` for the full subset map and which parts are usable.
+
+---
+
+**Publication target and grading criteria:** `../../transfer.md` §5.

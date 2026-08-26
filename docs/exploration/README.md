@@ -49,6 +49,17 @@ h = y2 - y1
 
 **Impact:** Every single tooth crop would have been extracted from the wrong location. Models trained on these crops would learn nothing useful.
 
+> **Later nuance (26 Aug 2026), for anyone reusing this fix outside the bone-loss pipeline:**
+> `[y1, x1, y2, x2]` against the **landscape** `Radiographs/` frame is what this fix uses, and
+> it is self-consistent for bone loss — the crop and the expert mask are cut from the same
+> frame at the same coordinates. But the raw numbers are actually `[x1, y1, x2, y2]` in the
+> **portrait** frame (`Radiographs_rotated/`, 840×1615) — the format used for FDI tooth
+> *numbering* (Stage 2). Reading them the landscape way there produces a left-right **mirror**
+> of the correct tooth locations. Verified by mean IoU against detector boxes (0.611 portrait
+> vs 0.489 landscape, n=1,022) and by drawing raw coordinates on the portrait image with zero
+> conversion, which lands cleanly on real teeth only in that frame. See
+> `docs/results/PAPER_MATERIAL.md` §8.8/§8.8b and `RESULTS_LOG.md` 2026-08-25h, 2026-08-26a.
+
 ---
 
 ### Bug 3 — Mask Encoding Assumption (SEVERITY: HIGH)
@@ -88,3 +99,8 @@ h = y2 - y1
 | Expert masks are instance IDs | Rules out severity segmentation |
 | 285 empty masks = normal cases | Perfect label-mask alignment verified |
 | Tooth aspect ratio ~0.35 | Asymmetric crop expansion required |
+| Tufts' per-tooth numbering is left-right mirrored | Corrected via `src.utils.fdi_converter.tufts_title_to_fdi()` before any FDI use — see Bug 2's note above |
+
+---
+
+**Publication target and grading criteria:** `../../transfer.md` §5.

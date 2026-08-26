@@ -13,12 +13,22 @@ Scripts that measure the pipeline rather than build or train it. This is where c
 | **`verify_invariants.py`** | **Re-checks the facts the documentation depends on.** Run after changing data, swapping a checkpoint, or before trusting a number in a draft | ✅ 7/7 hold |
 | **`lesion_localization.py`** | Do predicted-diseased teeth spatially overlap a real expert lesion? §4.3.4's primary EXTERNAL number for C2 (Ningxia-ready — no negatives needed) and the T1.5 XAI metric | ✅ 42.6% on DENTEX |
 | **`ningxia_external.py`** | **C2 external validation** — the three §4.3.4 measurements on Ningxia, stratified by centre. Metric differs by category (focal vs diffuse) | ✅ caries 22.6–43.3%, periodontitis 0.8–5.4% |
+| **`crop_eval.py`** | **Crop-level** Stage-2 evaluation on a held-out manifest split — GT boxes, plain argmax, no detector in the loop. Used to compare Stage-2 heads **across corpora** (e.g. a DENTEX-trained head measured on Tufts), which `validate_fdi_assignment.py` cannot do since it always runs against `DENTEX/disease/`. Imports `ToothSet` from `scripts/dentex/train_enumeration_head.py` rather than reimplementing preprocessing. | ✅ produced the v1.0-vs-v2.0-vs-Tufts-only 2×2, `RESULTS_LOG.md` 2026-08-25j |
 
 ## `validate_fdi_assignment.py`
 
 Runs the frozen detector plus either Stage-2 method against `DENTEX/disease/` — the only
 per-tooth FDI ground truth this project has (LabelMe polygons labelled
 `{id}-{Turkish name}-{FDI}`).
+
+**`--head-weights` still defaults to Stage-2 head v1.0** (`models/08_fdi_enumeration_head/`),
+not the pipeline's current default (v2.0, `models/10_fdi_head_dentex_tufts_v2/`). This is
+deliberate: this script is the reproducibility harness for the historical 46.5% end-to-end
+number, and changing its default would make a bare re-run silently reproduce a different
+figure than every number already written into `docs/results/*.md`. Pass
+`--head-weights models/10_fdi_head_dentex_tufts_v2/enumeration_head_best.pth` explicitly to
+evaluate the currently-deployed head this way — or use `crop_eval.py` below, which is what
+actually produced the v1.0-vs-v2.0 comparison.
 
 ```bash
 python scripts/eval/validate_fdi_assignment.py --method positional   # the baseline
@@ -113,4 +123,10 @@ The failure was never difficulty — it was that the check felt unnecessary.
 
 This script runs those checks. It proves the specific things the docs assert are still true of
 the files on disk; it does not prove the project correct. It needs no GPU and no model
-inference — `--skip-slow` drops the two MD5 corpus joins and finishes in seconds.
+inference — `--skip-slow` drops the two MD5 corpus joins and finishes in seconds. Since
+26 Aug 2026 it pins **both** Stage-2 head hashes (v1.0 and v2.0) — a model swap is only ever
+an addition here, never an overwrite, so both must stay reproducible.
+
+---
+
+**Publication target and grading criteria:** `../../transfer.md` §5.
