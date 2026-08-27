@@ -96,6 +96,22 @@ sys.path.insert(0, str(REPO_ROOT))
 DEF_ROOT = Path.home() / "Downloads/Capstone/ningxia_local"
 DEF_OUT = REPO_ROOT / "outputs/ningxia_external"
 
+# WEIGHTS ARE NO LONGER HARDCODED (changed 27 Aug 2026).
+# They were, and that is exactly why the 25 Aug C2 numbers went stale silently the moment the
+# Stage-1 default changed: this script kept loading models/06 (the bbox detector) and models/08
+# (FDI head v1.0) with no way to say otherwise and no record in its output of what it had used.
+# Defaults now track the live pipeline by importing run_inference's DEF_* constants, so the
+# script describes the pipeline instead of a frozen snapshot of it.
+#
+# To reproduce the ORIGINAL 25 Aug numbers (RESULTS_LOG 2026-08-25d), pass them explicitly:
+#   --detector models/06_yolo_detection_a100_run/best.pt
+#   --fdi-head models/08_fdi_enumeration_head/enumeration_head_best.pth
+# The resolved paths and their SHA-256 go into the output JSON either way, so any results file
+# can be traced to the exact weights that produced it.
+sys.path.insert(0, str(REPO_ROOT / "scripts"))
+from run_inference import (DEF_BONE_LOSS, DEF_BONE_SEVERITY, DEF_CARIES_GATE,
+                           DEF_CARIES_SEVERITY, DEF_DETECTOR, DEF_FDI_HEAD)
+
 # Only the categories this pipeline actually predicts. impacted_teeth has no branch.
 CATEGORY_BRANCH = {"dental_caries": "caries", "periodontitis": "bone_loss"}
 SPLITS = ["test1", "test2", "test3", "test4"]
@@ -103,6 +119,42 @@ SPLITS = ["test1", "test2", "test3", "test4"]
 SPLIT_CENTRE = {"test1": "cross_centre", "test2": "same_centre_as_train",
                 "test3": "cross_centre", "test4": "cross_centre"}
 MIN_LESION_PX = 20   # ignore specks; the smallest real blob measured was 89 px
+
+
+def read_mask_2d(mask_path):
+    """Read a binary GT mask as a strictly 2-D boolean array. Returns None if unreadable.
+
+    WHY THIS EXISTS -- `cv2.imread` is not the function you think it is here.
+    `import ultralytics` MONKEYPATCHES cv2.imread globally, replacing it with
+    ultralytics.utils.patches.imread, which ends with:
+
+        return im[..., None] if im.ndim == 2 else im
+
+    so a cv2.IMREAD_GRAYSCALE read returns (H, W, 1), not (H, W). Measured on this machine
+    with ultralytics 8.4.123:
+        before `import ultralytics`:  cv2.imread(mask, IMREAD_GRAYSCALE).shape == (1480, 2893)
+        after:                        (1480, 2893, 1)
+    Every mask read in this file happens after the pipeline's `from ultralytics import YOLO`,
+    so the patched version is always the one that runs. `affected_tooth_sensitivity` unpacked
+    `H, W = mb.shape` and died with "too many values to unpack" on the very first image.
+
+    That is an environment-dependent landmine, not a data problem: the two machines run
+    different ultralytics versions (8.4.123 here, 8.4.127 on the macOS box), the patch is
+    applied by an unrelated import, and the failure mode for code that *doesn't* unpack the
+    shape is silent rather than loud. Normalising in one place is the only safe fix.
+    """
+    import cv2
+    import numpy as np
+    m = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)
+    if m is None:
+        return None
+    m = np.asarray(m)
+    if m.ndim == 3:
+        # (H, W, 1) from the patched reader, or (H, W, 3) if a mask was saved as RGB.
+        m = m[..., 0] if m.shape[2] == 1 else m.max(axis=2)
+    if m.ndim != 2:
+        raise ValueError(f"mask {mask_path} has unusable shape {m.shape}")
+    return m > 0
 
 
 def lesions_from_mask(mask_path, min_px=MIN_LESION_PX):
@@ -113,10 +165,10 @@ def lesions_from_mask(mask_path, min_px=MIN_LESION_PX):
     """
     import cv2
     import numpy as np
-    m = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)
-    if m is None:
+    mb = read_mask_2d(mask_path)
+    if mb is None:
         return None
-    n, _, stats, cent = cv2.connectedComponentsWithStats((m > 0).astype(np.uint8), connectivity=8)
+    n, _, stats, cent = cv2.connectedComponentsWithStats(mb.astype(np.uint8), connectivity=8)
     out = []
     for i in range(1, n):                       # 0 is background
         if stats[i, cv2.CC_STAT_AREA] < min_px:
@@ -145,12 +197,9 @@ def affected_tooth_sensitivity(mask_path, all_boxes, positive_idx, min_frac=0.50
 
     Returns (n_affected, n_affected_flagged).
     """
-    import cv2
-    import numpy as np
-    m = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)
-    if m is None:
+    mb = read_mask_2d(mask_path)
+    if mb is None:
         return 0, 0
-    mb = (m > 0)
     H, W = mb.shape
     pos = set(positive_idx)
     n_aff = n_hit = 0
@@ -209,6 +258,17 @@ def main():
     ap.add_argument("--root", type=Path, default=DEF_ROOT)
     ap.add_argument("--out", type=Path, default=DEF_OUT)
     ap.add_argument("--limit", type=int, default=None, help="first N images per category/split")
+    ap.add_argument("--detector", type=Path, default=DEF_DETECTOR)
+    ap.add_argument("--fdi-head", type=Path, default=DEF_FDI_HEAD)
+    ap.add_argument("--caries-gate", type=Path, default=DEF_CARIES_GATE)
+    ap.add_argument("--caries-severity", type=Path, default=DEF_CARIES_SEVERITY)
+    ap.add_argument("--bone-loss", type=Path, default=DEF_BONE_LOSS)
+    ap.add_argument("--bone-severity", type=Path, default=DEF_BONE_SEVERITY)
+    ap.add_argument("--categories", nargs="+", default=list(CATEGORY_BRANCH),
+                    choices=list(CATEGORY_BRANCH),
+                    help="subset to evaluate; a branch's models load only if it is selected")
+    ap.add_argument("--tag", default=None,
+                    help="label written into the results file, e.g. segdet or control_olddet")
     args = ap.parse_args()
 
     import cv2
@@ -221,22 +281,59 @@ def main():
 
     device = torch.device("cuda" if torch.cuda.is_available()
                           else "mps" if torch.backends.mps.is_available() else "cpu")
-    det = YOLO(str(REPO_ROOT / "models/06_yolo_detection_a100_run/best.pt"))
-    head = load_head(REPO_ROOT / "models/08_fdi_enumeration_head/enumeration_head_best.pth", device)
-    gate, gate_cls = load_classifier(REPO_ROOT / "models/09_caries_gate_v3/caries_gate_v3.pth", 2, device)
-    csev, csev_cls = load_classifier(REPO_ROOT / "models/07_caries_cascade/phase2_final_bundle.pth", 2, device)
-    bbin, _ = load_classifier(REPO_ROOT / "models/03_bone_loss_model_training_notebook_models/bone_loss_resnet18_best.pth", 2, device)
-    bsev, _ = load_classifier(REPO_ROOT / "models/04_bone_loss_severity_notebook_models/bone_loss_severity_resnet18_best.pth", 3, device)
-    if gate_cls and gate_cls != {"caries": 0, "no_caries": 1}:
-        raise SystemExit(f"caries gate class order changed: {gate_cls}")
-    if csev_cls and csev_cls != {"caries": 0, "deep_caries": 1}:
-        raise SystemExit(f"caries severity class order changed: {csev_cls}")
+    categories = {c: CATEGORY_BRANCH[c] for c in args.categories}
+    branches = set(categories.values())
+
+    def _need(path, what):
+        path = Path(path)
+        if not path.exists():
+            raise SystemExit(
+                f"missing {what}: {path}\n"
+                f"  This machine does not have it -- see docs/EXTERNAL_DRIVE.md.\n"
+                f"  To evaluate only the branch that IS runnable here, pass e.g.\n"
+                f"    --categories periodontitis")
+        return path
+
+    def _sha(path):
+        import hashlib
+        return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+    det = YOLO(str(_need(args.detector, "detector")))
+    head = load_head(_need(args.fdi_head, "FDI head"), device)
+    used = {"detector": str(args.detector), "detector_sha256": _sha(args.detector),
+            "fdi_head": str(args.fdi_head), "fdi_head_sha256": _sha(args.fdi_head)}
+
+    gate = csev = bbin = bsev = None
+    if "caries" in branches:
+        gate, gate_cls = load_classifier(_need(args.caries_gate, "caries gate"), 2, device)
+        csev, csev_cls = load_classifier(_need(args.caries_severity, "caries severity"), 2, device)
+        if gate_cls and gate_cls != {"caries": 0, "no_caries": 1}:
+            raise SystemExit(f"caries gate class order changed: {gate_cls}")
+        if csev_cls and csev_cls != {"caries": 0, "deep_caries": 1}:
+            raise SystemExit(f"caries severity class order changed: {csev_cls}")
+        used["caries_gate"] = str(args.caries_gate)
+        used["caries_gate_sha256"] = _sha(args.caries_gate)
+        used["caries_severity"] = str(args.caries_severity)
+    if "bone_loss" in branches:
+        bbin, _ = load_classifier(_need(args.bone_loss, "bone-loss binary"), 2, device)
+        bsev, _ = load_classifier(_need(args.bone_severity, "bone-loss severity"), 3, device)
+        # These carry no class_to_idx; the order is confirmed in models/03_.../run_summary.txt.
+        used["bone_loss"] = str(args.bone_loss)
+        used["bone_loss_sha256"] = _sha(args.bone_loss)
+        used["bone_severity"] = str(args.bone_severity)
+        used["bone_loss_class_order"] = "[normal, bone_loss] -- confirmed, see run_summary.txt"
+
     print(f"device={device}")
+    print("weights in use:")
+    for k, v in used.items():
+        if not k.endswith("_sha256"):
+            print(f"  {k:18s} {v}")
+    print(f"categories: {', '.join(categories)}")
 
     agg = defaultdict(lambda: defaultdict(int))
     per_image = []
 
-    for category, branch in CATEGORY_BRANCH.items():
+    for category, branch in categories.items():
         for split in SPLITS:
             img_dir = args.root / "segmentation" / category / split / "img"
             msk_dir = args.root / "segmentation" / category / split / "mask"
@@ -300,6 +397,9 @@ def main():
                                                "no tuning of any kind against it",
                "matching": "centroid containment (NOT IoU -- see module docstring)",
                "rotation_applied": "none (Ningxia is upright, verified)",
+               "tag": args.tag,
+               "categories_evaluated": list(categories),
+               "weights": used,
                "by_category_split": {}, "per_image": per_image}
 
     print(f"\n{'='*82}")
