@@ -89,7 +89,7 @@ def main():
     ap.add_argument("--limit", type=int, default=None, help="stop after N downloads (smoke test)")
     args = ap.parse_args()
 
-    import gdown
+    import gdown            # listing only; downloads use requests (see below)
 
     print(f"listing {DRIVE_FOLDER} …", flush=True)
     entries = gdown.download_folder(url=DRIVE_FOLDER, skip_download=True, quiet=True)
@@ -121,26 +121,71 @@ def main():
     if args.limit:
         todo = todo[:args.limit]
 
-    ok = failed = 0
-    for i, (dpath, fid, local) in enumerate(todo, 1):
+    # ONE session for all files, and a few workers. Measured on this drive: gdown's
+    # per-file download re-establishes a session each time and ran at **45.7 s/file**
+    # (~90 KB/s for 4 MB images) while the same drive served a single 45 MB checkpoint at
+    # 29 MB/s -- i.e. the cost was request setup, not bandwidth. A persistent
+    # requests.Session against the direct download endpoint measured **3.31 s/file**, a 14x
+    # improvement, which is the difference between ~17 hours and ~30 minutes for 1,390 files.
+    # Workers kept low on purpose: Drive rate-limits, and a concurrent probe during an
+    # earlier run triggered "Failed to retrieve file url" on an unrelated file.
+    import threading
+
+    import requests
+
+    lock = threading.Lock()
+    counts = {"ok": 0, "failed": 0, "done": 0}
+    local_sessions = threading.local()
+
+    def session():
+        s = getattr(local_sessions, "s", None)
+        if s is None:
+            s = local_sessions.s = requests.Session()
+        return s
+
+    def fetch_one(job):
+        dpath, fid, local = job
         local.parent.mkdir(parents=True, exist_ok=True)
-        if local.exists():
-            local.unlink()                       # corrupt leftover
-        for attempt in (1, 2, 3):
+        tmp = local.with_suffix(local.suffix + ".part")
+        for attempt in (1, 2, 3, 4):
             try:
-                gdown.download(id=fid, output=str(local), quiet=True)
-                if verify(local):
-                    ok += 1
-                    break
-                local.unlink(missing_ok=True)    # truncated -- do not leave it looking fine
+                r = session().get(
+                    "https://drive.usercontent.google.com/download",
+                    params={"id": fid, "export": "download", "confirm": "t"},
+                    timeout=180,
+                )
+                r.raise_for_status()
+                tmp.write_bytes(r.content)
+                # Write to .part and only rename once verified, so an interrupted run can
+                # never leave a truncated file that looks complete to the next run.
+                if verify(tmp):
+                    tmp.replace(local)
+                    with lock:
+                        counts["ok"] += 1
+                    return
+                tmp.unlink(missing_ok=True)
             except Exception as exc:
-                if attempt == 3:
-                    print(f"  FAILED {dpath}: {exc}", flush=True)
-            time.sleep(1.5 * attempt)
-        else:
-            failed += 1
-        if i % 50 == 0 or i == len(todo):
-            print(f"  {i}/{len(todo)}  ok={ok} failed={failed}", flush=True)
+                tmp.unlink(missing_ok=True)
+                if attempt == 4:
+                    with lock:
+                        print(f"  FAILED {dpath}: {exc}", flush=True)
+            time.sleep(2.0 * attempt)          # back off; Drive throttles
+        with lock:
+            counts["failed"] += 1
+
+    def wrapped(job):
+        fetch_one(job)
+        with lock:
+            counts["done"] += 1
+            d = counts["done"]
+            if d % 50 == 0 or d == len(todo):
+                print(f"  {d}/{len(todo)}  ok={counts['ok']} failed={counts['failed']}",
+                      flush=True)
+
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=4) as ex:
+        list(ex.map(wrapped, todo))
+    ok, failed = counts["ok"], counts["failed"]
 
     print(f"\ndone: {ok} downloaded and verified, {failed} failed", flush=True)
     for pref in WANTED_PREFIXES:
