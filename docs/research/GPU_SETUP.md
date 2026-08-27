@@ -124,7 +124,7 @@ Core commands:
 
 | Purpose | Command |
 |---|---|
-| Create | `jl create --gpu A100 --storage 100 --template pytorch --name "r1-seg" --yes` |
+| Create | `jl create --gpu A100-80GB --storage 100 --template pytorch --name "r1-seg" --yes` — **`A100-80GB`, not `A100`**; see the resolved note below |
 | List / status | `jl list` (add `--json` to parse) |
 | Details incl. SSH string | `jl get <machine_id>` |
 | Upload | `jl upload <id> ./local/path /home/remote/path` |
@@ -147,15 +147,30 @@ Core commands:
 | `--vm` | off (container) | Containers ship PyTorch + Jupyter + IDE. Keep the default |
 | `--http-ports` | — | Only needed to expose the Streamlit demo, not for R1 |
 
-**Still unresolved: how `--gpu` distinguishes the 80 GB A100 from the 40 GB one.** The help
-text just reads "A100". `jl gpus` prints live availability *and* pricing and would settle it,
-but requires auth, so it cannot be checked before `jl setup`. **Resolve it as the first
-authenticated command, before creating anything:**
+**RESOLVED 27 Aug 2026 — the two cards are different `--gpu` strings, and the obvious one is
+the wrong one.** Read from `jl gpus` on the authenticated account:
+
+| `--gpu` string | VRAM | Region | ₹/hr | Container availability |
+|---|---|---|---|---|
+| **`A100-80GB`** | **80 GB** | IN2 | **₹140.94** | ● available — **this is the one** |
+| `A100` | 40 GB | IN2 | ₹84.24 | ○ unavailable |
+
+**`--gpu A100` requests the 40 GB card.** This document's own command table said exactly that
+until 27 Aug — which would have silently produced the batch-32-won't-fit / shrink-the-batch
+failure §1 spends a warning box forbidding, while looking like it followed the runbook. Both
+occurrences are now `A100-80GB`.
+
+Note also that `A100-80GB` is available as a **GPU Container** (●) but *not* as a GPU VM (○).
+The runbook uses containers (the `jl create` default), so this is fine — do not add `--vm`.
+
+**Still run these before creating anything.** They are free, and they confirm you got what you
+asked for:
 
 ```bash
+export PYTHONIOENCODING=utf-8           # Windows/Git Bash: required, see the warning above
 jl status                              # account balance — confirm the ₹ figure first
-jl gpus                                # exact GPU strings + live ₹/hr; find the 80GB A100
-jl create --gpu <exact-string> --name "r1-seg" --yes
+jl gpus                                # confirm A100-80GB still shows ● and ~₹140.94
+jl create --gpu A100-80GB --name "r1-seg" --yes
 jl list                                # confirm the card and rate you actually got
 jl exec <id> -- nvidia-smi             # confirm 80GB VRAM and that CUDA is live
 ```
@@ -221,11 +236,12 @@ genuinely useful here — it removes the "forgot to shut it down overnight" fail
 # 0. LOCAL — package the dataset (labels are ~206 MB of polygon text; they gzip well)
 tar -czf dataset_seg.tar.gz -C data/tufts dataset_seg
 
-# 1. Create the box. Check balance and resolve the exact A100-80GB string FIRST (§2a) —
-#    these two are free, the mistake they prevent is not.
+# 1. Create the box. Check balance and card availability FIRST — both are free,
+#    the mistake they prevent is not. The string is A100-80GB; plain `A100` is the 40GB card (§2a).
+export PYTHONIOENCODING=utf-8              # Windows/Git Bash: without this every table crashes
 jl status                                  # account balance
-jl gpus                                    # exact --gpu strings + live ₹/hr
-jl create --gpu <A100-80GB-string> --storage 100 --template pytorch --name "r1-seg" --yes
+jl gpus                                    # confirm A100-80GB shows ● and ~₹140.94
+jl create --gpu A100-80GB --storage 100 --template pytorch --name "r1-seg" --yes
 jl list                                    # note the machine id; CONFIRM 80GB + rate
 jl exec <id> -- nvidia-smi                 # confirm 80GB VRAM + CUDA live before spending more
 
