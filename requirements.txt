@@ -27,7 +27,13 @@ seaborn>=0.12.0
 ultralytics>=8.0.0
 
 # Deployment demo (app.py)
-streamlit>=1.30.0
+# >=1.62.0, not >=1.30.0. app.py calls st.image/st.dataframe with width="stretch"; Streamlit has
+# churned this kwarg twice (use_column_width -> use_container_width -> width) and REMOVED
+# use_column_width in 1.6x, which crashed the deployed demo at upload time on 27 Aug 2026 --
+# after a green build and a green page load, because the call only runs once an image is
+# uploaded. RESULTS_LOG 2026-08-27m. 1.62.0 is the version this was verified against; the
+# Dockerfile guard re-checks the API at build time so a future removal fails the build.
+streamlit>=1.62.0
 
 # Configuration
 PyYAML>=6.0

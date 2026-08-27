@@ -28,10 +28,11 @@ Composing four independently-trained stages does not produce a clinically valida
 and the numbers here are not a performance claim. Two limitations are structural and are
 written into every report rather than left to a footnote:
 
-  * ERROR PROPAGATION. Detector recall is 67.0% and Stage-2 FDI accuracy is 46.5% end-to-end
-    (RESULTS_LOG 2026-08-22j). A tooth that is missed is absent from the report entirely, and
-    a tooth numbered wrongly attaches correct findings to the wrong tooth. Roughly half the
-    FDI codes in any report are expected to be wrong. `stage2_fdi_exact_end_to_end` says so.
+  * ERROR PROPAGATION. Detector recall is 70.6% and Stage-2 FDI accuracy is 58.3% end-to-end
+    (RESULTS_LOG 2026-08-27e, seg detector + head v2.0; it was 67.0% / 46.5% on the superseded
+    bbox detector). A tooth that is missed is absent from the report entirely, and a tooth
+    numbered wrongly attaches correct findings to the wrong tooth. Roughly two FDI codes in
+    five are still expected to be wrong. `stage2_fdi_exact_end_to_end` is the authority.
   * THE CARIES GATE IS IMPROVED BUT NOT RELIABLE. The legacy gate's `no_caries` class held
     no healthy teeth at all and called 84.9% of detected teeth carious. The default is now
     caries-gate-resnet18-v3.0, trained on a rebuilt negative class of 5,366 real healthy
@@ -381,7 +382,14 @@ def main():
     if args.overlay:
         draw_overlay(img, report, args.overlay)
         print(f"  -> {args.overlay}")
-    print("\n  NOTE: ~half the FDI codes are expected wrong (Stage 2 = 46.5% end-to-end), and")
+    # DERIVED from the constant, never hardcoded: this line still said "46.5%" a full day
+    # after STAGE2_FDI_EXACT_END_TO_END was set to 0.583 on 27 Aug, so the deployed demo
+    # printed a superseded number to users while the JSON it wrote beside it was correct.
+    # A literal in a print() is a second source of truth. RESULTS_LOG 2026-08-27m.
+    _wrong = 1.0 - STAGE2_FDI_EXACT_END_TO_END
+    print("")
+    print(f"  NOTE: ~{_wrong:.0%} of FDI codes are expected wrong "
+          f"(Stage 2 = {STAGE2_FDI_EXACT_END_TO_END:.1%} end-to-end), and")
     print("  the caries gate is out of distribution here. See report['limitations'].")
 
 

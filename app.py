@@ -15,8 +15,9 @@ It is a single-user, unauthenticated, local demo for showing the pipeline workin
 
 WHY THE LIMITATIONS ARE RENDERED, NOT LINKED
 ---------------------------------------------
-`report["limitations"]` already carries the honest caveats (detector recall 67.0%, Stage-2
-46.5% end-to-end, caries gate uncalibrated at 0.40 precision, bone-loss domain shift). This
+`report["limitations"]` already carries the honest caveats (detector recall 70.6%, Stage-2
+58.3% end-to-end -- both re-measured 27 Aug on the seg detector, RESULTS_LOG 2026-08-27e --
+caries gate uncalibrated at 0.40 precision, bone-loss domain shift). This
 page puts that block directly under the results, same size as everything else, so it cannot
 be screenshotted away from the numbers it qualifies.
 """
@@ -108,7 +109,15 @@ def main():
         # channels="BGR" is for raw arrays; draw_overlay already wrote correct colours via
         # cv2.imwrite, and st.image reads a path as file bytes without decoding it, so no
         # channel argument applies here.
-        st.image(str(overlay_path), use_column_width=True,
+        # width="stretch", NOT use_column_width / use_container_width. `use_column_width` was
+        # REMOVED in Streamlit 1.6x and raised TypeError at runtime the first time anyone
+        # actually uploaded an image to this demo (27 Aug 2026) -- the build and the page load
+        # were both green, because the call is only reached after an upload. Its obvious
+        # replacement `use_container_width` is ITSELF deprecated ("will be removed in a future
+        # release", per st.image's docstring in 1.62), so switching to it would have fixed the
+        # crash and re-armed the same trap. `width="stretch"` is the current API for both
+        # st.image and st.dataframe.
+        st.image(str(overlay_path), width="stretch",
                 caption="Blue = assessable · Orange = flagged / finding · Red = not assessable")
 
     with right:
@@ -123,7 +132,8 @@ def main():
                 "Bone loss": t["bone_loss"]["finding"],
                 "Assessable": "✅" if t["assessable"] else "❌",
             })
-        st.dataframe(rows, use_container_width=True, height=420, hide_index=True)
+        # width="stretch" -- see the note on st.image above; use_container_width is deprecated.
+        st.dataframe(rows, width="stretch", height=420, hide_index=True)
 
     st.subheader("⚠️ Limitations — read before trusting a number above")
     lim = report["limitations"]

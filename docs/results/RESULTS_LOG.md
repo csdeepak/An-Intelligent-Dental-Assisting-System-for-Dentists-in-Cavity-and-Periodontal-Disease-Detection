@@ -3797,3 +3797,67 @@ angxia_dataset`, so the blocker recorded earlier today is lifted.
   `http://localhost:8501`.
 - **Follow-ups:** one known bloat item left — `.dockerignore` still ships `models/*/run/` and
   `models/06/last.pt`, roughly 300 MB of the 608 MB models context that inference never reads.
+
+---
+
+## 2026-08-27m — The demo crashed on first real use; fixed, and a real inference now verified in-container
+
+- **What happened:** the user uploaded an image to the containerised demo and it raised
+  `TypeError: ImageMixin.image() got an unexpected keyword argument 'use_column_width'`
+  (`app.py:111`). **The build was green and the page load was green** — the crashing line only
+  runs *after* an upload, so every check made up to that point passed while the demo was broken.
+  The Dockerfile's own comment warns about exactly this shape ("easy to miss if you only
+  smoke-test the build, not the run") and the verification stopped one step short anyway.
+- **Root cause — the same unpinned-dependency class as the torch defect (2026-08-27j).**
+  `requirements.txt` said `streamlit>=1.30.0`; the image resolved **1.62.0**, where
+  `use_column_width` has been REMOVED. Streamlit has churned this kwarg twice:
+  `use_column_width` → `use_container_width` → `width`.
+- **Why the obvious fix was rejected.** Swapping to `use_container_width` would have worked
+  today, but st.image's own docstring in 1.62 says it "is deprecated and will be removed in a
+  future release", so it would have fixed the crash and **re-armed the identical trap**. Both
+  call sites now use `width="stretch"`, the current API. **`st.dataframe` at `app.py:126` had
+  the same latent bug** — it was already on `use_container_width`, one release from breaking —
+  and is fixed in the same change.
+- **A second defect found while testing the fix: the demo was printing a superseded number to
+  users.** `run_inference.py` line 384 hardcoded *"Stage 2 = 46.5% end-to-end"* while
+  `STAGE2_FDI_EXACT_END_TO_END = 0.583` sat 300 lines above it — updated on 27 Aug, but the
+  `print()` literal beside it was not. The JSON written alongside was correct; only the
+  human-facing text was stale. **Now derived from the constant** (`~42% of FDI codes are
+  expected wrong (Stage 2 = 58.3% end-to-end)`), so it cannot drift again. The same stale pair
+  was in `run_inference.py`'s module docstring and `app.py`'s header; both corrected.
+- **Prevention, enforced rather than documented:** `requirements.txt` floor raised to
+  `streamlit>=1.62.0`, and the Dockerfile guard now **binds `width="stretch"` against both
+  `st.image` and `st.dataframe` at build time**, so a future removal of that kwarg fails the
+  BUILD instead of surfacing at upload:
+
+      OK torch 2.2.0+cpu | numpy 1.26.4 | cv2 4.11.0 | streamlit 1.62.0 | hungarian works | no jupyter | st width API ok
+
+- **VERIFIED WITH A REAL INFERENCE THIS TIME, not a page load.** Ran the full six-stage pipeline
+  inside the container on a real DENTEX radiograph (`disease/input/test_0.png`, 2829×1316):
+
+  | | |
+  |---|---|
+  | teeth detected | **28** |
+  | assessable | 24 |
+  | distinct FDI codes | 28, **duplicates 0** |
+  | caries-positive | 7 |
+  | bone-loss-positive | 0 |
+
+  **`duplicates 0` is the meaningful one** — it means `scipy.optimize`'s Hungarian assignment ran
+  correctly under the pinned numpy 1.26.4, i.e. the invariant the `numpy<2` pin exists to protect
+  was verified *in the deployment artefact*, not inferred from the dev environment. A valid
+  report JSON (schema_version, summary, 28 tooth records, models, limitations) and a 1.0 MB
+  overlay were written; the overlay renders correct boxes, FDI labels and CARI/DEEP flags. The
+  report's `limitations` block correctly carries `stage1_detector_recall 0.706` and
+  `stage2_fdi_exact_end_to_end 0.583`.
+- **The Streamlit calls themselves were exercised**, not just signature-checked: both fixed calls
+  were run through `streamlit.testing.v1.AppTest` inside the container —
+  `exception raised: NONE`. That harness raises exactly as the user's upload did.
+- **Lesson, and it is the same one this repo keeps paying for:** *a green build and a green page
+  load are not a working app.* The check that mattered was the one nobody had run — feeding it a
+  real image. Every stage of this session's Docker work (build completes → container starts →
+  app loads) passed while the app was broken at the first thing a user would do.
+- **Source:** `app.py`, `scripts/run_inference.py`, `requirements.txt`, `Dockerfile`; container
+  run of `scripts/run_inference.py --image /tmp/test_0.png`; AppTest render probe.
+- **Follow-ups:** unchanged — `.dockerignore` still ships `models/*/run/` and
+  `models/06/last.pt` (~300 MB of unused build context).
