@@ -66,12 +66,20 @@ def norm(p):
     return p.replace("\\", "/")
 
 
-def verify(path):
-    """True only if the file is genuinely readable -- not merely non-empty."""
+def verify(path, as_suffix=None):
+    """True only if the file is genuinely readable -- not merely non-empty.
+
+    `as_suffix` overrides the extension used to pick the check. Downloads land in a `.part`
+    file, whose suffix is `.part` and not `.json`, so judging by `path.suffix` sent every
+    annotation JSON down the image branch and tried to open it with PIL. All three JSONs
+    "failed verification" while their bytes were perfectly valid -- the images were unaffected
+    only because PIL ignores the extension. Callers pass the final suffix explicitly.
+    """
     try:
         if path.stat().st_size == 0:
             return False
-        if path.suffix.lower() == ".json":
+        suffix = (as_suffix or path.suffix).lower()
+        if suffix == ".json":
             json.loads(path.read_text(encoding="utf-8"))
             return True
         from PIL import Image
@@ -159,7 +167,7 @@ def main():
                 tmp.write_bytes(r.content)
                 # Write to .part and rename only once verified, so an interrupted run can
                 # never leave a truncated file that looks complete to the next run.
-                if verify(tmp):
+                if verify(tmp, as_suffix=local.suffix):
                     tmp.replace(local)
                     with lock:
                         counts["ok"] += 1
@@ -202,6 +210,20 @@ def main():
         d = args.dest / pref
         n = len(list(d.glob("*"))) if d.exists() else 0
         print(f"  {pref:52s} {n} files")
+    # The three JSONs have TWO consumers expecting TWO different locations:
+    #   build_dentex_crops.py  -> data/dentex/raw/<name>.json          (its DEF_* constants)
+    #   verify_invariants.py   -> <DENTEX tree>/<original drive path>  (caries v3 MD5 join)
+    # Downloading once and mirroring keeps them identical by construction; fetching twice, or
+    # documenting "also copy it", is how the two drift.
+    import shutil
+    for drive_path, name in WANTED_JSON.items():
+        src = RAW_DIR / name
+        dst = args.dest / drive_path
+        if src.exists() and (not dst.exists() or dst.stat().st_size != src.stat().st_size):
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src, dst)
+            print("  mirrored -> {}".format(dst), flush=True)
+
     have_json = sorted(q.name for q in RAW_DIR.glob("*.json")) if RAW_DIR.exists() else []
     print("  {:52s} {}/{} annotations".format("data/dentex/raw/", len(have_json), len(WANTED_JSON)))
     missing = [v for v in WANTED_JSON.values() if v not in have_json]

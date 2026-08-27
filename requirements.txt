@@ -44,3 +44,9 @@ ipykernel>=6.0.0
 
 # Utilities
 tqdm>=4.65.0
+
+# Test runner. transfer.md 8's fresh-clone checklist says to run `python -m pytest tests/ -q`
+# and expect a green suite, but pytest was never listed here -- it happened to be installed
+# ad-hoc in the old environment, and a Python reinstall on 27 Aug 2026 exposed that a clean
+# `pip install -r requirements.txt` cannot run the repo's own 79 tests.
+pytest>=7.0.0
