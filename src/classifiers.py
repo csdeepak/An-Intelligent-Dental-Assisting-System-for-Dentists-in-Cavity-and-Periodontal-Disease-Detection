@@ -62,6 +62,14 @@ treating any tooth without a disease annotation as healthy, which is absence of 
 than evidence of absence. So every caries prediction -- positive AND negative -- still carries
 `caries_uncalibrated`, and the report metadata states both limits. Do not read a caries field
 as a diagnosis, and do not quote pipeline caries rates as clinical performance.
+
+**Calibrated confidence, added 27 Aug 2026.** The gate's raw probabilities were measured as
+systematically overconfident (test ECE 0.136; a predicted 0.85 corresponds to an observed 0.26).
+An isotonic calibrator fitted on the validation split brings that to **ECE 0.043**, and it is
+applied to the REPORTED confidence only -- `gate_confidence_calibrated`. **The verdict is still
+`argmax` on the raw logits and has not changed**, because remapping the score axis would flip 18%
+of decisions and invalidate every downstream caries number. `gate_confidence` remains raw and
+unchanged for the same reason. RESULTS_LOG 2026-08-27q/r/s.
 """
 
 import numpy as np
@@ -155,6 +163,34 @@ def _probs(model, batch):
         return torch.softmax(model(batch), dim=1).cpu().numpy()
 
 
+_ISOTONIC = "unloaded"          # sentinel: distinguishes "not tried" from "absent"
+
+
+def _isotonic_knots():
+    """Load the caries gate's isotonic calibrator, or None if it is not on disk.
+
+    CONFIDENCE ONLY -- never the verdict. Isotonic remaps the score axis, so applying it to the
+    decision would flip 18% of verdicts (155 of 863 on the held-out test set) and invalidate
+    every downstream caries number: the in-pipeline caries rate, the DENTEX lesion agreement,
+    and the four Ningxia hospital figures, the last of which would cost another touch on locked
+    external data. Reporting a calibrated probability alongside an unchanged verdict buys the
+    calibration (test ECE 0.136 -> 0.043) for free. RESULTS_LOG 2026-08-27s.
+
+    Absent file is not an error: the pipeline then reports raw confidence, exactly as before.
+    """
+    global _ISOTONIC
+    if _ISOTONIC == "unloaded":
+        import json
+        from pathlib import Path
+        f = Path(__file__).resolve().parents[1] / "models/09_caries_gate_v3/isotonic_calibrator.json"
+        try:
+            d = json.loads(f.read_text(encoding="utf-8"))
+            _ISOTONIC = (np.asarray(d["x"], dtype=float), np.asarray(d["y"], dtype=float))
+        except Exception:
+            _ISOTONIC = None
+    return _ISOTONIC
+
+
 def run_caries(gate, severity, img_bgr, boxes, device):
     """
     Caries cascade on TIGHT crops. Gate first; the severity head only sees teeth the gate
@@ -171,6 +207,12 @@ def run_caries(gate, severity, img_bgr, boxes, device):
     idx_caries = CARIES_GATE_CLASSES.index("caries")
 
     positives = [i for i in range(len(boxes)) if int(pg[i].argmax()) == idx_caries]
+
+    # Calibrated P(caries) for REPORTING. The verdict above is already decided from the raw
+    # argmax and is deliberately not recomputed here -- that ordering is the whole point.
+    knots = _isotonic_knots()
+    p_caries_cal = (np.interp(pg[:, idx_caries], knots[0], knots[1])
+                    if knots is not None else None)
     ps = _probs(severity, batch[positives]) if positives else np.empty((0, 2))
     sev_of = {i: ps[k] for k, i in enumerate(positives)}
 
@@ -181,14 +223,27 @@ def run_caries(gate, severity, img_bgr, boxes, device):
             # grades what the gate passed. Reporting the gate label separately as well would
             # be two fields that can only ever agree.
             "finding": "no_caries",
+            # RAW, unchanged. scripts/eval/lesion_localization.py reads this field, and every
+            # published caries number was measured against it, so its meaning must not move.
             "gate_confidence": round(float(pg[i].max()), 4),
             "severity": None,
             "severity_confidence": None,
             # Stated on EVERY tooth, positive or not. Precision is 0.40, and the negative
             # class rests on the presumed-negative assumption, so a negative here is no more
             # trustworthy than a positive. See the module docstring.
+            # `caries_uncalibrated` stays on every tooth even when a calibrated confidence is
+            # reported: it carries the precision-0.40 and presumed-negative caveats, which
+            # calibration does not touch. `caries_confidence_isotonic` marks the separate fact
+            # that gate_confidence_calibrated exists and which transform produced it.
             "flags": ["caries_uncalibrated"],
         }
+        if p_caries_cal is not None:
+            pc = float(p_caries_cal[i])
+            # Confidence in the REPORTED finding, so it is 1-p for a negative verdict.
+            r["gate_confidence_calibrated"] = round(pc if i in sev_of or
+                                                    int(pg[i].argmax()) == idx_caries
+                                                    else 1.0 - pc, 4)
+            r["flags"].append("caries_confidence_isotonic")
         if i in sev_of:
             p = sev_of[i]
             r["finding"] = CARIES_SEVERITY_CLASSES[int(p.argmax())]   # caries | deep_caries

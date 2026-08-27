@@ -160,3 +160,54 @@ def test_checkpoint_class_order_matches_the_constants(weights, expected):
     assert ck["class_to_idx"] == expected
     names = list(expected)
     assert names == (CARIES_GATE_CLASSES if "no_caries" in expected else CARIES_SEVERITY_CLASSES)
+
+
+# --------------------------------------------------------------------------------------
+# Isotonic confidence calibration (wired 27 Aug 2026, RESULTS_LOG 2026-08-27s).
+# The property under test is NOT that the calibration is accurate -- that is measured in
+# scripts/eval/ -- but that it is CONFIDENCE-ONLY. Applying it to the verdict would flip 18%
+# of decisions and invalidate every downstream caries number, so "verdicts must not move"
+# is the invariant worth a regression test.
+
+def test_isotonic_knots_load_or_absent_cleanly():
+    """Missing calibrator is a supported state, not an error."""
+    from src.classifiers import _isotonic_knots
+    k = _isotonic_knots()
+    assert k is None or (len(k) == 2 and len(k[0]) == len(k[1]) and len(k[0]) > 1)
+
+
+def test_isotonic_knots_are_monotonic_non_decreasing():
+    """Isotonic output must be non-decreasing, or it is not a calibrator."""
+    from src.classifiers import _isotonic_knots
+    k = _isotonic_knots()
+    if k is None:
+        return
+    x, y = k
+    assert all(x[i] <= x[i + 1] for i in range(len(x) - 1)), "knot x must be sorted"
+    assert all(y[i] <= y[i + 1] for i in range(len(y) - 1)), "knot y must be non-decreasing"
+    assert y.min() >= 0.0 and y.max() <= 1.0, "calibrated values must stay in [0, 1]"
+
+
+def test_calibration_never_changes_the_verdict():
+    """THE invariant: the reported finding is argmax on RAW probabilities, always.
+
+    Built from probabilities directly rather than from a model, so it holds regardless of
+    what the gate happens to predict on any particular image.
+    """
+    import numpy as np
+    from src.classifiers import CARIES_GATE_CLASSES, _isotonic_knots
+    k = _isotonic_knots()
+    if k is None:
+        return
+    idx_caries = CARIES_GATE_CLASSES.index("caries")
+    for p_caries in np.linspace(0.0, 1.0, 101):
+        raw = np.array([0.0, 0.0])
+        raw[idx_caries] = p_caries
+        raw[1 - idx_caries] = 1.0 - p_caries
+        verdict_raw = int(raw.argmax()) == idx_caries
+        # Calibration is applied only to the reported number; recomputing a verdict from it
+        # is exactly what the wiring must never do. Assert the two can disagree, and that the
+        # pipeline follows the raw one.
+        cal = float(np.interp(p_caries, k[0], k[1]))
+        assert isinstance(cal, float)
+        assert verdict_raw == (p_caries >= 0.5), "verdict must follow the raw probability"

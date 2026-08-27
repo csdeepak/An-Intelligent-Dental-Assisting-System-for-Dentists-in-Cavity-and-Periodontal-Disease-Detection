@@ -129,6 +129,14 @@ def main():
                 "Det. conf": round(t["detection_confidence"], 3),
                 "FDI conf": round(t["fdi_confidence"], 3) if t["fdi_confidence"] is not None else "—",
                 "Caries": t["caries"]["finding"],
+                # Calibrated, not raw. The raw gate is systematically overconfident (test ECE
+                # 0.136 vs 0.043 calibrated), so showing the raw number would tell a viewer a
+                # borderline positive is a confident one. A `caries` verdict can legitimately
+                # display a calibrated confidence below 0.5 -- that is the honest reading of a
+                # gate whose precision is 0.40, not a bug. RESULTS_LOG 2026-08-27s.
+                "Caries conf (cal.)": (round(t["caries"]["gate_confidence_calibrated"], 3)
+                                       if t["caries"].get("gate_confidence_calibrated") is not None
+                                       else "—"),
                 "Bone loss": t["bone_loss"]["finding"],
                 "Assessable": "✅" if t["assessable"] else "❌",
             })

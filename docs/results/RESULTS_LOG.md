@@ -4183,3 +4183,51 @@ angxia_dataset`, so the blocker recorded earlier today is lifted.
   `docs/results/figures/paper/caries_gate_isotonic.png`.
 - **Follow-ups:** wire confidence-only isotonic into `run_inference.py` if the presentational
   wrinkle is acceptable; bone-loss calibration still blocked on a geometry-verified crop rebuild.
+
+---
+
+## 2026-08-27t — Confidence-only isotonic wired into the pipeline; verdicts verified unchanged
+
+- **What was done:** wired 2026-08-27s's isotonic calibrator into `src/classifiers.run_caries`,
+  applied to the **reported confidence only**. Schema `opg-report/1.0` → **1.1** (additive).
+- **The calibrator is stored as KNOTS, not a pickle** —
+  `models/09_caries_gate_v3/isotonic_calibrator.json`, 28 (x, y) pairs applied with
+  `numpy.interp`. sklearn's `IsotonicRegression.predict` is exactly linear interpolation between
+  `X_thresholds_`/`y_thresholds_` with end clipping, so this reproduces the fit with no sklearn
+  dependency and no version coupling — and unlike a pickle it is readable, diffable and hashable.
+- **A round-trip guard caught a real defect before anything was wired.** The first export rounded
+  the knots to 6 dp and reproduced sklearn to only **1.89e-04**, above the 1e-5 bar, so the script
+  printed `MISMATCH -- DO NOT WIRE`. Storing full float precision brought it to **6.03e-08**. A
+  calibrator that cannot reproduce its own fit is a second source of truth; the bar was fixed
+  rather than loosened.
+- **VERDICTS VERIFIED UNCHANGED, not assumed.** Ran the pipeline on the same DENTEX image the
+  containerised pre-patch build ran (`disease/input/test_0.png`) and diffed the reports:
+
+      teeth 28 -> 28
+      VERDICTS IDENTICAL: True   (0 differences)
+      raw gate_confidence identical: True
+
+  `gate_confidence` is deliberately left raw and untouched: `scripts/eval/lesion_localization.py`
+  reads it, and every published caries number was measured against it, so its meaning must not
+  move. The calibrated value is a **new** field, `gate_confidence_calibrated`.
+- **What the calibrated numbers actually say, and it is uncomfortable in a useful way.** On that
+  image, a tooth called `caries` at raw confidence **0.504** now reports a calibrated **0.285**.
+  A positive verdict carrying a calibrated confidence below 0.5 is not a bug — it is the honest
+  reading of a gate whose precision is 0.40, and it is exactly the signal the raw number was
+  hiding. Also visible: many negatives collapse to identical values (0.9674), the isotonic
+  step-function ties that cost 5 AP points in 27s.
+- **Flags:** `caries_uncalibrated` **stays on every tooth** — it carries the precision-0.40 and
+  presumed-negative caveats, which calibration does not address. `caries_confidence_isotonic` is
+  added to mark that a calibrated field exists and which transform produced it. Conflating the
+  two would have let a reader believe calibration fixed the precision.
+- **Surfaced in the demo**, or the wiring would not reach a user: `app.py`'s per-tooth table gained
+  a **"Caries conf (cal.)"** column showing the calibrated value, not the raw one.
+- **Tests: 79 → 82.** The new ones assert the property that matters — the calibrator is monotonic
+  and in [0, 1], a missing calibrator is a supported state rather than an error, and **the verdict
+  follows the raw probability across the whole [0, 1] range**. That last one is the regression
+  guard against someone later "simplifying" the code by recomputing the verdict from the
+  calibrated score.
+- **Source:** `src/classifiers.py`, `scripts/run_inference.py`, `app.py`,
+  `models/09_caries_gate_v3/isotonic_calibrator.json`, `tests/test_classifiers.py`.
+- **Follow-ups:** bone-loss calibration still blocked on a geometry-verified crop rebuild
+  (2026-08-27q). The container image predates this change and would need a rebuild to serve it.

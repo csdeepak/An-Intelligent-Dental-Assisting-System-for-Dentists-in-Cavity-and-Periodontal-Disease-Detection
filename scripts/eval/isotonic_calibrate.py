@@ -130,6 +130,35 @@ def main():
     args.out.mkdir(parents=True, exist_ok=True)
     (args.out / "caries_gate_isotonic.json").write_text(json.dumps(res, indent=2) + "\n")
 
+    # Export the calibrator as KNOTS, not a pickle. sklearn IsotonicRegression.predict is linear
+    # interpolation between (X_thresholds_, y_thresholds_) with clipping at the ends, so
+    # numpy.interp over these reproduces it exactly -- no sklearn dependency, no version
+    # coupling, and the artifact is readable, diffable and hashable, which a pickle is not.
+    knots = {"kind": "isotonic-knots",
+             # Full float precision, NOT rounded. Rounding the knots to 6 dp put the
+             # round-trip 1.89e-04 away from sklearn -- small, but this artifact is meant to
+             # BE the calibrator, and a calibrator that does not reproduce its own fit is a
+             # second source of truth. The guard below is what caught it.
+             "x": [float(v) for v in iso.X_thresholds_],
+             "y": [float(v) for v in iso.y_thresholds_],
+             "apply": "p_cal = numpy.interp(p_raw, x, y)   # clipped at the ends",
+             "fitted_on": "crops_v3_phase1 val split (1,003 crops, 199 positive)",
+             "gate_sha256_prefix": "8f4a99ba412c",
+             "scope": ("REPORTED CONFIDENCE ONLY -- the verdict stays argmax on raw logits. "
+                       "Applying this to decisions would flip 18% of verdicts and invalidate "
+                       "every downstream caries number (RESULTS_LOG 2026-08-27s)."),
+             "test_ece_raw": round(e0, 4), "test_ece_calibrated": round(e1, 4)}
+    kp = REPO_ROOT / "models/09_caries_gate_v3/isotonic_calibrator.json"
+    kp.write_text(json.dumps(knots, indent=2) + chr(10))
+    print("  calibrator ({} knots) -> {}".format(len(knots["x"]), kp))
+
+    # Round-trip: the exported knots must reproduce sklearn own predictions, or do not wire it.
+    rt = np.interp(pt, knots["x"], knots["y"])
+    max_err = float(np.abs(rt - pt_cal).max())
+    ok = "OK" if max_err < 1e-5 else "MISMATCH -- DO NOT WIRE"
+    print("  knot round-trip max abs error vs sklearn: {:.2e}   {}".format(max_err, ok))
+
+
     try:
         import matplotlib
         matplotlib.use("Agg")

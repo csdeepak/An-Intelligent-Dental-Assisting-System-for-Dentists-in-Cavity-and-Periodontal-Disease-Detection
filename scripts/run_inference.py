@@ -53,7 +53,10 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 
-SCHEMA_VERSION = "opg-report/1.0"
+# 1.1 (27 Aug 2026): per-tooth caries records gained `gate_confidence_calibrated` and the
+# `caries_confidence_isotonic` flag. Additive only -- `gate_confidence` and every verdict
+# are unchanged, so 1.0 consumers keep working. RESULTS_LOG 2026-08-27s.
+SCHEMA_VERSION = "opg-report/1.1"
 
 # Measured Stage-1/Stage-2 performance, stamped into every report's "limitations" block so a
 # report always carries the accuracy of the pipeline that produced it.
@@ -319,7 +322,11 @@ def run_pipeline(img_bgr, models, device, paths, image_label="image", imgsz=1024
         "fdi_head": {"weights": str(paths["fdi_head"]), "tag": "fdi-enumeration-head-resnet18-v1.0",
                      "one_to_one": one_to_one, "crop_expand": [1.5, 1.5]},
         "caries": {"gate": str(paths["caries_gate"]), "severity": str(paths["caries_severity"]),
-                   "tag": "caries-cascade-resnet18-v1.0", "crop_expand": [1.0, 1.0]},
+                   "tag": "caries-cascade-resnet18-v1.0", "crop_expand": [1.0, 1.0],
+                   "confidence_calibration": (
+                       "isotonic, fitted on the crops_v3_phase1 val split; applied to "
+                       "gate_confidence_calibrated ONLY. Verdicts remain argmax on raw "
+                       "logits. Test ECE 0.136 -> 0.043. RESULTS_LOG 2026-08-27s.")},
         "bone_loss": {"binary": str(paths["bone_loss"]), "severity": str(paths["bone_severity"]),
                       "crop_expand": [1.5, 2.0], "severity_classes": BONE_LOSS_SEVERITY_CLASSES,
                       "tag_binary": "bone-loss-binary-resnet18-v1.0",
