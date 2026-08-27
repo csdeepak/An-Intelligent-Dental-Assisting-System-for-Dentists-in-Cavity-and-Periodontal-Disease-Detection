@@ -4546,3 +4546,59 @@ angxia_dataset`, so the blocker recorded earlier today is lifted.
   from the provider 26 Aug) and `docs/research/clinical_dataset_provenance.md` §4/§4a.
 - **Follow-ups:** all four blockers are user/account-owner actions, not engineering. They are the
   only items on the critical path that no amount of local work can clear.
+
+---
+
+## 2026-08-27aa — C1 DONE: the VLM baseline does not beat a constant guess
+
+- **What was done:** contribution **C1** — specialist pipeline vs a general-purpose VLM on the
+  same 164 leak-free DENTEX images, one scorer, zero-shot. Instance 484872 (A100-80GB),
+  **created, run and destroyed; total cost ₹37.93**, balance ₹650.81 → **₹612.88**. Nothing left
+  running or paused.
+- **The task was chosen by measurement, not habit.** The obvious framing — "does this radiograph
+  show caries?" — is **degenerate here: 148 of 164 images (90.2%) contain caries**, so answering
+  "yes" always scores 90.2%. C1 therefore asks **which teeth, by FDI code**, and scores both arms
+  identically on the per-image FDI set (micro P/R/F1 + exact-set match).
+
+| Arm | Precision | Recall | **F1** | exact-set | latency |
+|---|---|---|---|---|---|
+| **Our six-stage pipeline** | 0.235 | **0.390** | **0.294** | 1.2% | 2.39 s/img (CPU) |
+| Constant guess `{26,36}` — **image ignored** | 0.250 | 0.172 | **0.204** | — | 0 |
+| Qwen2.5-VL-7B-Instruct, zero-shot | 0.236 | 0.103 | **0.143** | 5.5% | 1.08 s/img (A100) |
+
+- **THE RESULT: Qwen2.5-VL-7B scores BELOW a constant guess that never looks at the image.**
+  A fixed answer of `{26,36}` scores **F1 0.204**; the VLM scores **0.143**. Its variation across
+  images is not merely uninformative, it is actively harmful.
+- **How that was established, because it would be easy to get wrong.** The smoke test returned
+  suspiciously uniform answers, so a control was run on the box: the same prompt against a real
+  radiograph, a **blank grey image**, and a **random-noise image**. Blank and noise both returned
+  **`26,36`** — a confident, dental-specific answer identical to one given for a real radiograph.
+  **A grey rectangle contains no teeth.** Across all 164 radiographs the model produced only
+  **6 distinct answers**, with `{26,36}` and `{}` covering 110 of them.
+  *26, 36 and 37 are among the most common caries sites — the model is reciting a prior.*
+- **⚠️ A verdict bug of mine, corrected here because it reached the wrong conclusion.** The control
+  script tested `if blank == real_A == real_B`, which requires all three to match; since the two
+  radiographs differed it took the else-branch and printed *"the model IS looking at the pixels"*.
+  That is the opposite of what the data shows — blank matched real_B **exactly**. The raw
+  responses were inspected rather than the verdict trusted, which is the only reason it was
+  caught. **A control whose pass condition is wrong is worse than no control.**
+- **Efficiency comparison** (part of C1's brief): the VLM is **8.29 B parameters, 18.01 GB peak
+  VRAM, 1.08 s/image on an A100-80GB**. Our pipeline is ~25 M parameters across five small
+  models, runs at **2.39 s/image on a CPU with no GPU at all**, and scores **2.1× the F1**. That
+  is the efficiency argument this project has been asserting, now measured.
+- **The honest limits of this claim, which the paper must carry.** This is **one** open-weight
+  model, **zero-shot**, under **one** prompt, on **one** task. It does **not** show that VLMs
+  cannot read radiographs; it shows that this model, prompted this way, does not — and that its
+  apparent score is a prior rather than perception. A larger model, few-shot prompting, or a
+  domain-tuned VLM could differ, and the constant-guess control is the tool that would expose
+  the same failure in any of them. **Report the control alongside the number, always** — the
+  number without it invites a reviewer to read 0.143 as "the VLM is a bit worse", when the
+  finding is "the VLM is not doing the task".
+- **Source:** `scripts/eval/c1_vlm_baseline.py`, `scripts/eval/c1_constant_baseline.py`,
+  `outputs/c1_vlm/{arm_pipeline,arm_vlm,c1_comparison,c1_constant_baseline}.json`.
+- **Operational notes from the rental**, for the next one: the SSH key needed
+  `icacls /inheritance:r` before `jl exec` would authenticate; `validate_fdi_assignment.py` could
+  not be imported on the box (it pulls in cv2 and `src.fdi_assignment`), so `LABEL_RE` is now
+  defined locally in the C1 script **with `tests/test_c1_label_re.py` asserting it never drifts
+  from the canonical copy**; and the model download was started detached so it overlapped the
+  539 MB data upload.

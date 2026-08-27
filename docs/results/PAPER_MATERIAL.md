@@ -1630,6 +1630,47 @@ paper clean.
 
 ---
 
+### 8.20 C1 — the VLM baseline, and why its score must be reported with a control
+
+**Run 27 Aug 2026** on the 164 leak-free DENTEX images, zero-shot, one scorer for both arms.
+Model: **Qwen2.5-VL-7B-Instruct** (open-weight, so another lab can rerun this — the same
+reproducibility argument the survey makes).
+
+**Task choice, decided by measuring the data first.** "Does this radiograph show caries?" is
+degenerate on this set: **148 of 164 images (90.2%) contain caries**, so a model answering "yes"
+always scores 90.2% and specificity rests on 16 images. C1 therefore asks **which teeth, by FDI
+code** — 477 affected teeth — scoring both arms on the per-image FDI set.
+
+| Arm | Precision | Recall | **F1** | exact-set | latency |
+|---|---|---|---|---|---|
+| **Our six-stage pipeline** | 0.235 | **0.390** | **0.294** | 1.2% | 2.39 s/img (CPU) |
+| Constant guess `{26,36}` — **image ignored** | 0.250 | 0.172 | **0.204** | — | 0 |
+| Qwen2.5-VL-7B-Instruct, zero-shot | 0.236 | 0.103 | **0.143** | 5.5% | 1.08 s/img (A100) |
+
+**The headline is not "we beat the VLM by 2x". It is that the VLM does not beat a constant.**
+A fixed answer of `{26,36}`, ignoring the image entirely, scores **F1 0.204** against the model's
+**0.143**.
+
+**The control that establishes it.** The same prompt was run against a real radiograph, a **blank
+grey image**, and a **random-noise image**. Blank and noise both returned `26,36` — the identical
+confident dental answer given for a real radiograph. Across all 164 radiographs the model emitted
+only **6 distinct answers**, two of which cover 110 images. 26, 36 and 37 are among the most
+common caries sites: **the model is reciting a prior, not reading the image.**
+
+**Efficiency, which is the other half of C1's brief.** The VLM is **8.29 B parameters, 18.01 GB
+peak VRAM, 1.08 s/image on an A100-80GB**. This pipeline is ~25 M parameters across five small
+models, runs at **2.39 s/image on CPU with no GPU at all**, and scores **2.1x the F1**. The
+"small specialist beats large generalist, at a fraction of the compute" claim is now measured
+rather than assumed.
+
+⚠️ **State the limits, or a reviewer will.** One model, zero-shot, one prompt, one task. This does
+**not** show VLMs cannot read radiographs — it shows this model, prompted this way, does not, and
+that its score reflects a prior rather than perception. A larger, few-shot, or domain-tuned VLM
+could differ. **Always publish the constant-guess control beside the number:** 0.143 alone reads
+as "slightly worse"; with the control it reads correctly as "not performing the task".
+
+---
+
 ## 9. What's not yet written — checklist
 
 For whoever drafts the actual paper. Tick items off here as they land.
@@ -1737,6 +1778,10 @@ For whoever drafts the actual paper. Tick items off here as they land.
 
 **Nice to have**
 
+- [x] **C1 — VLM baseline. DONE 27 Aug 2026** (§8.20): Qwen2.5-VL-7B zero-shot on the 164
+      leak-free images, F1 0.143 vs our 0.294 — and **below a constant guess (0.204)** that
+      ignores the image. Control: blank and noise images produce the same confident answer.
+      Cost ₹37.93.
 - [ ] Reader study or comparison against a junior clinician baseline (the motivating claim
       of the paper is currently unquantified).
 - [x] Calibration analysis (reliability diagram) **for the caries gate** — **Done 27 Aug 2026**,
