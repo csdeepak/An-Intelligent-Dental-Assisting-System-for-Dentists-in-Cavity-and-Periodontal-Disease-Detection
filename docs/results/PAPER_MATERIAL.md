@@ -67,7 +67,7 @@ loss, DENTEX for caries) and joined at inference on the FDI key.
 
 ## 2. Related Context
 
-*(This section is the thinnest part of the document — see the checklist in Section 9.)*
+*(§2.1 below now carries the comparison table and the validation-landscape count, added 27 Aug 2026. The remaining thin part is narrative prose, reusable from the archived `02_literature.tex`.)*
 
 Source material available in the repo:
 
@@ -92,6 +92,71 @@ Anchors that already influenced this project's design decisions:
   CEJ module stayed exploratory (Section 5.6).
 
 ---
+
+### 2.1 Related work — the comparison table, built from this project's own review sheet
+
+**Extracted 27 Aug 2026** from `docs/reports/literature/Dental X-Ray Capstone Literature
+Review.xlsx` (Sheets 3 and 5) with `scripts/eval/` tooling; the machine-readable extract is
+`outputs/related_work_extract.csv`. Of 117 reviewed papers, **49 are task-relevant** (tooth
+detection/numbering, caries, or periodontal bone loss on radiographs) after de-duplication.
+
+#### 2.1.1 The validation landscape — the gap this project actually fills
+
+The review sheet records a `Validation` field per paper. Classifying those 49:
+
+| Validation design | n | % |
+|---|---|---|
+| **Genuine external / multi-centre validation** | **2** | **4%** |
+| Explicitly states it has **none** | 10 | 20% |
+| Internal split, cross-validation, or unstated | 37 | 76% |
+
+> ⚠️ **Read the field, not the keyword.** A naive search for "external" returns 13 papers, but
+> most of those contain the phrase only in the form *"no external validation"*. Counting them as
+> externally validated would invert the finding. The two that genuinely qualify are named below.
+
+**The two that do validate externally:**
+
+- **Advancing Dental Caries Detection in Panoramic X-rays: A Two-Step Deep Learning Approach**
+  (*Informatica Medica Slovenica*, 2024) — DENTEX internally, plus a Slovenian clinical set.
+- **A novel AI-powered radiographic analysis surpasses specialists in stage II–IV periodontitis**
+  — multicentre internal plus two external cohorts; the strongest validation design in the review.
+
+**This is the claim to make, and it is now evidenced rather than asserted:** external validation
+is near-absent in this subfield. Our four-hospital Ningxia evaluation with per-corpus leakage
+checks (§8.12, §8.12a) puts this work in a group of roughly three.
+
+#### 2.1.2 Head-to-head on the datasets we actually use
+
+| Work | Year | Task / dataset | Their reported result | Their validation | Ours |
+|---|---|---|---|---|---|
+| Two-Step YOLOv8 (*Inform Med Slov*) | 2024 | Enumeration + caries, **DENTEX** | Enumeration mAP@0.5 **0.95**; caries lesion sensitivity **0.70** internal → **0.67** external | DENTEX + external clinic | Detection mAP@0.5 **0.810** (Tufts); caries lesion agreement **44.3%** internal → **40.8%** external (4 hospitals) |
+| AI-powered precision (*PLOS Digit Health*) | 2025 | Tooth numbering + caries, **DENTEX** + private | Numbering accuracy **0.9988**, F1 0.9788; caries accuracy 0.94 | 5-fold CV, internal | FDI **82.6%** of detected teeth; **58.3%** end-to-end |
+| Reliable Multi-Stage System | 2025 | Instance segmentation + numbering, **Tufts** | mAP **66.2%**, AP50 **97.3%** | Train/val/test split | Detection mAP@0.5 **0.810**, AP50-equivalent |
+| Comparative DL architectures | 2026 | Tooth segmentation, **Tufts** | EfficientNet-B7 best Dice | Internal only, 5-fold CV | (segmentation not our reported task) |
+| ML for Periodontal Bone Loss (*BMC Oral Health*) | 2024 | Periodontal bone loss, **Tufts** + Chile | Weighted F1 **0.29**; **severe PBL F1 = 0** | Internal, vs 5 clinicians | Bone loss **0.9233** in-domain → **2.4%** external (§8.13) |
+| DPML (Cao et al., *ESWA*) | 2024 | Caries detection | **95.06** mAP own data → **61.83** on public DENTEX | Own single-centre + public | The same in/out-of-domain gap we measure |
+
+#### 2.1.3 How to read that table honestly — three traps
+
+1. **"Numbering accuracy 0.9988" is not our 58.3%.** That figure classifies an *already-cropped,
+   correctly-detected* tooth. Our directly comparable number is **82.6% of detected teeth**;
+   **58.3%** is end-to-end and *includes* the detector's 70.6% recall. Comparing 0.9988 against
+   58.3% would be dishonest in our favour if reversed, and dishonest against us as written. State
+   both of ours, and state which one is comparable to what.
+2. **Our absolute numbers are lower than several published ones, and the paper should say so
+   plainly.** Detection 0.810 against a reported 0.95–0.97 on similar tasks. The contribution here
+   is not peak accuracy; it is that the numbers survive an external test, carry confidence
+   intervals (§8.14), and come with a stage-wise error attribution (§8.16).
+3. **The bone-loss comparator is the most useful row in the table.** An independent group reports
+   **weighted F1 0.29 and severe-PBL F1 = 0 on Tufts**, with clinician comparison. Periodontal
+   bone loss on this data is *hard for everyone*, which is important context for §8.13's honest
+   report of our own out-of-domain collapse — it makes ours a measured limitation of the task,
+   not a uniquely bad model.
+
+**Source:** `outputs/related_work_extract.csv`, regenerable from the review sheet.
+Prose for the fuller narrative is reusable from
+`_repo_archive/pes_capstone_report/chapters/02_literature.tex`.
+
 
 ## 3. Dataset Descriptions
 
@@ -1541,10 +1606,12 @@ For whoever drafts the actual paper. Tick items off here as they land.
       corrupt `bounding box` fields in the source data) as a short data-quality paragraph —
       it is both an honest limitation of our Stage-1 numbers and a reusable finding about
       the public dataset.
-- [ ] Related Work section — extract from
-      `docs/reports/literature/Dental X-Ray Capstone Literature Review.xlsx` and
-      `_repo_archive/pes_capstone_report/chapters/02_literature.tex` (archived); build a comparison
-      table (paper / dataset / task / reported metric / our result).
+- [x] Related Work section — **comparison table DONE 27 Aug 2026** (§2.1): 117 reviewed papers,
+      49 task-relevant after de-duplication, head-to-head table on Tufts/DENTEX with our result
+      beside each, plus the validation-landscape count (**only 2 of 49 validate externally**) that
+      evidences this project's central differentiator. Machine-readable extract at
+      `outputs/related_work_extract.csv`. **Still to write: the narrative prose**, reusable from
+      the archived `02_literature.tex`.
 - [ ] Formal dataset ethics + licensing statement for Tufts and DENTEX (usage terms,
       de-identification, IRB status).
 - [ ] Precise definition of the overlap-ratio severity thresholds as a *proxy* measure,

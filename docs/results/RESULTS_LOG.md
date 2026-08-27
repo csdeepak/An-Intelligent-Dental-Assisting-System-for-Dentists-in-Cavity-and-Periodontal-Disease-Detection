@@ -4464,3 +4464,49 @@ angxia_dataset`, so the blocker recorded earlier today is lifted.
 - **Source:** `scripts/figures/make_stage34_figures.py`,
   `docs/results/figures/paper/stage4a_training_curves.png`,
   `docs/results/figures/paper/stage34_confusion_matrices.png`.
+
+---
+
+## 2026-08-27y — Related-work comparison table built; only 2 of 49 comparable papers validate externally
+
+- **What was done:** built §9's related-work comparison table from this project's own review
+  sheet (`Dental X-Ray Capstone Literature Review.xlsx`, Sheets 3 and 5). 117 reviewed papers →
+  **49 task-relevant** after de-duplication (tooth detection/numbering, caries, periodontal bone
+  loss). Written into `PAPER_MATERIAL.md` §2.1; machine-readable extract at
+  `outputs/related_work_extract.csv`.
+- **THE HEADLINE, and it is now evidence rather than assertion:**
+
+  | Validation design | n | % |
+  |---|---|---|
+  | **Genuine external / multi-centre** | **2** | **4%** |
+  | Explicitly states it has none | 10 | 20% |
+  | Internal split, CV, or unstated | 37 | 76% |
+
+  Only two of the 49 validate externally: the two-step YOLOv8 DENTEX paper (*Informatica Medica
+  Slovenica* 2024, external Slovenian clinic) and a periodontitis paper with multicentre plus two
+  external cohorts. **This project's four-hospital Ningxia evaluation therefore puts it in a group
+  of about three.** The claim that external validation is near-absent in this subfield has been
+  made in planning documents for months; it is now counted.
+- **A counting trap I nearly walked into, recorded because it inverts the result.** A keyword
+  search for "external" returns **13** papers — but most contain the phrase only as
+  *"no external validation"*. Taking that count would have reported 13 externally-validated papers
+  when the true number is 2. The classifier now handles negation, and the §2.1 text warns the next
+  reader explicitly. *Matching a keyword is not reading a field.*
+- **Head-to-head table built on the datasets we actually use**, with our result beside each:
+  the two-step YOLOv8 work (enumeration mAP 0.95; caries lesion sensitivity 0.70 internal → 0.67
+  external), PLOS Digital Health's numbering accuracy 0.9988, a Tufts multi-stage system at
+  mAP 66.2% / AP50 97.3%, and DPML's 95.06 → 61.83 in/out-of-domain gap.
+- **Three reading traps written into the section so the comparison stays honest.** (1) The
+  published *"numbering accuracy 0.9988"* classifies an already-cropped, correctly-detected tooth;
+  our comparable figure is **82.6% of detected teeth**, not the **58.3%** end-to-end that includes
+  detector recall — the paper must state both and say which compares to what. (2) **Our absolute
+  numbers are lower than several published ones** (detection 0.810 vs a reported 0.95–0.97) and
+  the paper should say so plainly; the contribution is external survival, intervals and error
+  attribution, not peak accuracy. (3) The most useful row is the bone-loss comparator: an
+  independent group reports **weighted F1 0.29 and severe-PBL F1 = 0 on Tufts** with clinician
+  comparison, which makes §8.13's collapse a measured limitation of a hard task rather than a
+  uniquely bad model.
+- **Source:** `outputs/related_work_extract.csv`; `PAPER_MATERIAL.md` §2.1.
+- **Follow-ups:** the narrative prose is still to write and is reusable from the archived
+  `_repo_archive/pes_capstone_report/chapters/02_literature.tex`. §9's item is ticked for the
+  table, with the prose noted as outstanding.
