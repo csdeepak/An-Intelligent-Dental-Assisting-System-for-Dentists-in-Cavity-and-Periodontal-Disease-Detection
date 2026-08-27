@@ -4300,3 +4300,64 @@ angxia_dataset`, so the blocker recorded earlier today is lifted.
   and A-T for deciduous ones**, and `teeth_bbox.json`'s title vocabulary is exactly 32 numeric
   plus 20 lettered. Legitimate primary teeth, not corrupt names; the guard surfaced a real gap in
   my pattern rather than silently dropping 3% of the set.
+
+---
+
+## 2026-08-27v — Stage-2 failure taxonomy: the headline is detection-bound, and the errors are benign
+
+- **What was done:** bucketed all 936 ground-truth teeth by *how* Stage 2 fails, from the
+  already-saved `outputs/stage2_segdet/stage2_rows_head.json`. **No inference re-run, no test data
+  re-touched** — pure analysis of a measurement that already happened.
+  `scripts/eval/stage2_failure_taxonomy.py`. Answers `MASTER_PLAN_2026H2.md` W7's "failure
+  taxonomy bucketed by confounder".
+
+| Outcome | n | % of 936 GT teeth |
+|---|---|---|
+| **correct** | 546 | **58.3%** |
+| **not_detected** (Stage 1 never found it) | 275 | **29.4%** |
+| off_by_one (right quadrant, adjacent position) | 89 | 9.5% |
+| same_quadrant_far (counting slip, 2+ positions) | 10 | 1.1% |
+| mirror_lr (right arch + position, wrong SIDE) | 8 | 0.9% |
+| wrong_arch (upper called lower, or vice versa) | 6 | 0.6% |
+| other | 2 | 0.2% |
+
+- **FINDING 1 — the 58.3% headline is a DETECTION number, not a numbering number.** 275 teeth
+  (29.4%) are never detected and so can never be numbered. **Of the 661 teeth Stage 1 does find,
+  Stage 2 numbers 82.6% correctly.** Those are two very different claims, and the paper has so far
+  been reporting only the pessimistic composite. Both belong in the results.
+- **FINDING 2 — the numbering errors that do occur are overwhelmingly benign.** Of 115 wrong codes
+  on detected teeth, **89 (77.4%) are off-by-one**: right quadrant, adjacent position, usually the
+  same tooth type. Only **16 of 661 detected teeth (2.4%)** suffer a *category* error —
+  wrong arch (6), mirrored side (8), or other (2). For a screening aid, "26 called 27" and
+  "upper-right molar called lower-left incisor" are not the same failure, and this is the first
+  time the project can say which one it makes.
+- **FINDING 3 — the off-by-one drift is not a systematic indexing bug.** Direction splits
+  **53 mesial / 36 distal**. A clean one-sided lean would have implicated an off-by-one in the
+  assignment code; a 60/40 split is consistent with genuine ambiguity at arch ends, not a defect.
+  Worth checking, and worth reporting that it was checked.
+- **FINDING 4 — first premolars are the hardest teeth, molars the easiest.** Wrong-code rate by
+  position: **pos 4 = 41.7%** (of only 24 detected — small support, do not over-read), pos 5 =
+  26.9%, positions 1–3 ≈ 18–20%, and **molars 6/7/8 = 13.0 / 14.9 / 14.3%** on much larger support
+  (215 / 159 / 244 GT teeth). The counterintuitive direction — molars *easier* — is worth a
+  sentence: they are large, distinctive and terminal, so they anchor the arch ordering.
+- **FINDING 5 — the detector swap changed the SHAPE of the errors, not just the count.**
+
+| Category | bbox control | seg detector | Δ |
+|---|---|---|---|
+| correct | 46.3% | **58.3%** | **+12.1 pp** |
+| not_detected | 32.7% | 29.4% | −3.3 pp |
+| off_by_one | 15.3% | 9.5% | −5.8 pp |
+| same_quadrant_far | 2.1% | 1.1% | −1.1 pp |
+| mirror_lr | 1.1% | 0.9% | −0.2 pp |
+| **wrong_arch** | **2.4%** | **0.6%** | **−1.7 pp (a 75% reduction)** |
+
+  **`wrong_arch` fell by 75%.** The seg detector did not merely find more teeth; it removed
+  disproportionately many *category* errors. That is a stronger statement than "+12.1 points",
+  and it is consistent with 2026-08-27p's interval result that the recall gain alone was not
+  significant — the improvement is in the *quality* of the boxes, not the quantity.
+- **Source:** `scripts/eval/stage2_failure_taxonomy.py`,
+  `outputs/stage2_taxonomy/stage2_failure_taxonomy.json`,
+  `docs/results/figures/paper/stage2_failure_taxonomy.png`.
+- **Follow-ups:** the §9 failure-case *panel* item asks specifically for the bone-loss FN/FP crops
+  with Grad-CAM, and remains blocked on the crop rebuild (2026-08-27u). A caries failure panel is
+  buildable from `crops_v3_phase1` whenever wanted.

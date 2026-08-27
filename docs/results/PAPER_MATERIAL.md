@@ -1348,6 +1348,59 @@ curve while looking plausible. It needs a geometry-verified rebuild first.
 
 ---
 
+### 8.16 Stage-2 failure taxonomy — what the 41.7% of wrong codes actually are
+
+**Added 27 Aug 2026** from the saved 936-tooth evaluation; no inference re-run.
+Figure: `figures/paper/stage2_failure_taxonomy.png`.
+
+| Outcome | n | % of 936 GT teeth |
+|---|---|---|
+| **correct** | 546 | **58.3%** |
+| **not_detected** (Stage 1 never found it) | 275 | **29.4%** |
+| off_by_one (right quadrant, adjacent position) | 89 | 9.5% |
+| same_quadrant_far (counting slip, 2+ positions) | 10 | 1.1% |
+| mirror_lr (right arch + position, wrong SIDE) | 8 | 0.9% |
+| wrong_arch (upper called lower, or vice versa) | 6 | 0.6% |
+| other | 2 | 0.2% |
+
+**The single most important reframing in this section: 58.3% is a detection-bound number.**
+275 teeth (29.4%) are never detected and cannot be numbered. **Of the 661 teeth Stage 1 finds,
+Stage 2 numbers 82.6% correctly.** Report both — the composite is the honest end-to-end figure,
+and the conditional is the honest assessment of the numbering method itself. §8.10 already argued
+the detector was the binding constraint; this is the direct evidence.
+
+**The errors that remain are overwhelmingly benign.** Of 115 wrong codes, **89 (77.4%) are
+off-by-one** — right quadrant, adjacent position, usually the same tooth type. Only **16 of 661
+detected teeth (2.4%)** are category errors: wrong arch (6), mirrored side (8), other (2). For a
+screening aid these are not interchangeable failures, and this distinction should be stated
+plainly rather than buried in an aggregate. The off-by-one drift splits **53 mesial / 36 distal**,
+which is *not* the one-sided lean an indexing bug would produce — a check worth reporting as
+having been made.
+
+**Difficulty is not where intuition puts it.** Wrong-code rate by position: first premolars
+**41.7%** (24 detected — small support, do not over-read), second premolars 26.9%, incisors and
+canines ~18–20%, and **molars 13.0–14.9%** on the largest support (215/159/244 GT teeth). Molars
+are the *easiest*: large, distinctive and terminal, so they anchor arch ordering.
+
+**The detector swap changed the shape of the errors, not just the count:**
+
+| Category | bbox control | seg detector | Δ |
+|---|---|---|---|
+| correct | 46.3% | **58.3%** | **+12.1 pp** |
+| not_detected | 32.7% | 29.4% | −3.3 pp |
+| off_by_one | 15.3% | 9.5% | −5.8 pp |
+| same_quadrant_far | 2.1% | 1.1% | −1.1 pp |
+| mirror_lr | 1.1% | 0.9% | −0.2 pp |
+| **wrong_arch** | **2.4%** | **0.6%** | **−1.7 pp (a 75% reduction)** |
+
+**`wrong_arch` fell 75%.** Combined with §8.14's finding that the recall gain alone was **not**
+statistically significant, this says the seg detector's contribution is box *quality*, not box
+*quantity* — fewer spurious detections perturbing the Hungarian assignment across a quadrant.
+That is a mechanism claim with evidence behind it, and it is the kind of stage-wise error
+attribution contribution [C3] promises.
+
+---
+
 ## 9. What's not yet written — checklist
 
 For whoever drafts the actual paper. Tick items off here as they land.
@@ -1427,8 +1480,13 @@ For whoever drafts the actual paper. Tick items off here as they land.
 - [ ] Ablation: with vs without ±15% bbox jitter, evaluated on **real detector crops**.
 - [ ] Ablation: symmetric vs asymmetric (1.5×/2.0×) crop expansion.
 - [ ] Runtime/efficiency table for the full pipeline (per-OPG latency, per stage).
+- [x] **Failure taxonomy for Stage 2** (`MASTER_PLAN` W7's "bucketed by confounder") — **Done
+      27 Aug 2026**, §8.16: 58.3% shown to be detection-bound (82.6% correct on detected teeth),
+      77.4% of numbering errors are benign off-by-one, only 2.4% of detected teeth suffer a
+      category error, and the detector swap cut `wrong_arch` by 75%.
 - [ ] Failure-case figure panel: the 10 false negatives and 7 false positives from the
-      bone-loss confusion matrix, with Grad-CAM.
+      bone-loss confusion matrix, with Grad-CAM. **Blocked** on the bone-loss crop rebuild
+      (RESULTS_LOG 2026-08-27u). A caries failure panel is buildable from `crops_v3_phase1`.
 - [~] **PARTIALLY DONE 27 Aug 2026** (§8.14) — cluster-bootstrap 95% CIs over images for Stage-2 (recall, FDI exact ×2), DENTEX lesion agreement, and Ningxia caries per hospital, plus paired CIs on the detector-swap deltas. **Still missing: Ningxia periodontitis, detection mAP, and both ResNet18 classifiers**, all of which need per-item prediction dumps first. Original item: Statistical treatment: confidence intervals or k-fold for every headline metric —
       especially the 52-crop severity model.
 - [ ] Figures for Stages 3/4: training curves and confusion matrices are referenced in the
