@@ -4510,3 +4510,39 @@ angxia_dataset`, so the blocker recorded earlier today is lifted.
 - **Follow-ups:** the narrative prose is still to write and is reusable from the archived
   `_repo_archive/pes_capstone_report/chapters/02_literature.tex`. §9's item is ticked for the
   table, with the prose noted as outstanding.
+
+---
+
+## 2026-08-27z — Ethics and licensing statement written; two compliance items still open, two licences unverified
+
+- **What was done:** wrote `PAPER_MATERIAL.md` §8.19, the dataset ethics / licensing /
+  de-identification statement ISBI requires, covering all four corpora with a pre-submission
+  checklist. Closes §9's item as far as it can be closed — **the statement cannot be finalised
+  until four things outside this repo are resolved.**
+- **Tufts — terms recorded verbatim, and two distinct problems.** The release agreement forbids
+  reproducing the database or posting it "into any webpage or any other storage means".
+  (1) A Drive folder holding the raw `ZIP/` release was found **browsable without signing in** —
+  squarely forbidden, unresolved, account-owner action. (2) Real Tufts pixels are embedded as
+  base64 in **7 tracked notebooks already on `origin/main`**; the repo is private, so this is
+  deferred risk by explicit user decision, but it blocks any public release. Different problems,
+  different remedies, recorded separately so neither is mistaken for the other.
+- **DENTEX and Ningxia licences are NOT verified, and the section says so rather than guessing.**
+  Nothing in this repo records either licence — `EXTERNAL_DRIVE.md` says only that DENTEX
+  "is a separate matter … check its own licence", and that check has never been done. Both are
+  widely used public datasets so the expected answer is permissive, but **an ethics statement
+  asserting a licence nobody read is exactly the kind of claim this project should not make.**
+  Recorded as a pre-submission action instead.
+- **Clinic (SDH) data — stated plainly as unusable.** It contributes to no result and must not
+  until (1) `metadata/index.csv`, the 267 KB re-identification mapping, is moved out of the shared
+  Drive folder where it currently sits **as a sibling of `images/`** — which voids the
+  de-identification for that copy, exactly as `clinical_dataset_provenance.md` §4 warned before
+  §4a found it had already happened — and (2) IRB approval is started, which it has not been.
+  The paper should describe it as future work with governance pending.
+- **A seven-item pre-submission checklist** is embedded in §8.19 so these do not have to be
+  rediscovered under deadline: restrict the Tufts folder, record both licences, move the SDH
+  mapping, decide on the notebook pixels, start IRB if clinic data is ever used, and confirm no
+  submitted figure redistributes a restricted database.
+- **Source:** `PAPER_MATERIAL.md` §8.19, drawing on `docs/EXTERNAL_DRIVE.md` (Tufts terms, read
+  from the provider 26 Aug) and `docs/research/clinical_dataset_provenance.md` §4/§4a.
+- **Follow-ups:** all four blockers are user/account-owner actions, not engineering. They are the
+  only items on the critical path that no amount of local work can clear.

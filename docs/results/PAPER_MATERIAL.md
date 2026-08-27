@@ -1540,6 +1540,96 @@ confusion matrix — only per-class F1 was saved, on 52 crops. Both gaps are pri
 
 ---
 
+### 8.19 Dataset ethics, licensing and de-identification — with two unresolved compliance items
+
+**Written 27 Aug 2026.** ISBI requires an ethics statement, and this section is the material for
+it. It is deliberately blunt about what is **not** yet cleared, because two items here can block a
+submission and one of them is a licence breach that is live today.
+
+#### 8.19.1 Per-corpus status
+
+| Corpus | Role | Licence / terms | De-identified? | Status |
+|---|---|---|---|---|
+| **Tufts Dental Database** | detector + bone-loss training | **Restrictive, read verbatim from `tdd.ece.tufts.edu` (26 Aug 2026)** — see below | Yes, by the provider | ⚠️ **BREACH TO RESOLVE** |
+| **DENTEX** | caries + FDI-head training, Stage-2 eval | ❓ **NOT VERIFIED** — no licence is recorded anywhere in this repo | Public challenge release | ⚠️ **must be established before submission** |
+| **Ningxia** | locked external test (4 hospitals) | ❓ **NOT VERIFIED** — obtained from a public GitHub release; terms not recorded | Public release | ⚠️ **must be established before submission** |
+| **SDH clinic (3,219 images)** | not used in any result | Institutional; no data-use agreement recorded | **Images yes, mapping file NO** | ⛔ **IRB not started; de-identification void** |
+
+#### 8.19.2 Tufts — the terms, and the breach
+
+The release agreement states, verbatim:
+
+> *"No permission is granted to reproduce the database or post into any webpage or any other
+> storage means."*
+> *"The Researcher may not provide research associates and colleagues with access to the Database."*
+> *"The distribution of this database to any parties that have not read and agreed to the terms and
+> conditions of usage is strictly prohibited."*
+> *"Failure to follow the above steps will invite legal prosecution."*
+
+**Two separate problems follow from that, and they need different remedies.**
+
+1. **A Google Drive folder holding the raw `ZIP/` release was found browsable without signing in**
+   (`docs/EXTERNAL_DRIVE.md`) — i.e. link-accessible to anyone. That is squarely what the
+   agreement forbids. **Remedy: restrict the folder, keep Tufts local-only, and share the release
+   *form* rather than the files.** Account-owner action; unresolved as of this writing.
+2. **Real Tufts radiograph pixels are embedded as base64 output in 7 tracked notebooks, already
+   pushed to `origin/main`** (RESULTS_LOG 2026-08-26b). The repository is confirmed **private**, so
+   this is deferred risk rather than an active disclosure — an explicit user decision on 26 Aug —
+   but **it must be resolved before this repo, or any fork, is ever made public**, and before any
+   artefact derived from it is distributed. Remedy: strip outputs going forward, or rewrite
+   history (destructive, needs a force-push).
+
+**Consequence for the paper:** figures may show Tufts-derived *crops and overlays* as analysis
+output, which is normal scholarly use, but **no part of the database may be redistributed** and the
+paper must not link to any copy of it. Cite the source and point readers at the release form.
+
+#### 8.19.3 DENTEX and Ningxia — honestly unestablished
+
+Neither licence is recorded in this repo. `docs/EXTERNAL_DRIVE.md` says of DENTEX only that it
+"is a separate matter … check its own licence", and that check has never been done and written
+down. **This section will not guess at terms.** Before submission, someone must read and record,
+for each: the licence name, whether redistribution is permitted, whether commercial use is
+restricted, and the required citation form. Both are widely used public datasets, so the expected
+answer is permissive — but *expected* is not *verified*, and an ethics statement asserting a
+licence nobody read is exactly the kind of claim that should not appear in a paper from this
+project.
+
+Ningxia carries an additional, self-imposed constraint that **is** documented and honoured: it is
+locked external test data, never trained or tuned on (`MASTER_PLAN_2026H2.md` §4.1). Sections
+§8.12/§8.12a record how many times it has been evaluated.
+
+#### 8.19.4 The clinic dataset — not used, and not usable yet
+
+The SDH set (3,219 enhanced radiographs) **contributes to no result in this work** and must not,
+until two things are true:
+
+1. **The de-identification is currently void for the shared copy.**
+   `metadata/index.csv` — the 267 KB re-identification mapping — sits as a **sibling of
+   `images/`** under the same shared Drive folder. `clinical_dataset_provenance.md` §4 forbids
+   exactly this: *"`index.csv` must never travel with `images/` … If both move together, the
+   de-identification is void."* §4a records that it had already happened. Sharing is
+   account-to-account, not a public link, so this is a protocol breach rather than a public
+   disclosure — but the file-structure de-identification provides **no protection** for that copy.
+   **Remedy: move the mapping out of the shared tree and keep it offline.**
+2. **IRB approval has not been started.** Zero progress, and it has the longest lead time of
+   anything open in this project.
+
+**Write it this way in the paper:** the clinic data is described as future work with governance
+pending, and **no clinic-derived number appears anywhere**. That is accurate today and keeps the
+paper clean.
+
+#### 8.19.5 Pre-submission checklist
+
+- [ ] Restrict the Tufts Drive folder; confirm it is no longer link-accessible
+- [ ] Read and record the DENTEX licence, redistribution terms and citation form
+- [ ] Read and record the Ningxia licence and citation form
+- [ ] Move SDH `metadata/index.csv` out of the shared Drive tree
+- [ ] Decide on the embedded Tufts pixels in the 7 notebooks **before** any public release
+- [ ] Start IRB paperwork if clinic data is ever to be used
+- [ ] Confirm no figure in the submitted paper redistributes any part of a restricted database
+
+---
+
 ## 9. What's not yet written — checklist
 
 For whoever drafts the actual paper. Tick items off here as they land.
@@ -1612,8 +1702,12 @@ For whoever drafts the actual paper. Tick items off here as they land.
       evidences this project's central differentiator. Machine-readable extract at
       `outputs/related_work_extract.csv`. **Still to write: the narrative prose**, reusable from
       the archived `02_literature.tex`.
-- [ ] Formal dataset ethics + licensing statement for Tufts and DENTEX (usage terms,
-      de-identification, IRB status).
+- [x] Formal dataset ethics + licensing statement for Tufts and DENTEX (usage terms,
+      de-identification, IRB status). **Done 27 Aug 2026** — §8.19, covering all four corpora with
+      a pre-submission checklist. **It records two UNRESOLVED compliance items** (the
+      link-accessible Tufts Drive folder; SDH's `index.csv` sharing a folder with `images/`) and
+      **two unverified licences** (DENTEX, Ningxia — deliberately not guessed at). The statement
+      cannot be finalised until those four are closed.
 - [ ] Precise definition of the overlap-ratio severity thresholds as a *proxy* measure,
       with an argument for why 0.05 / 0.15 were chosen (currently undocumented — were they
       tuned or picked by eye?).
