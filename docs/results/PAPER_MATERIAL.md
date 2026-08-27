@@ -1270,6 +1270,58 @@ per-item prediction dumps are saved. Those need an evaluation pass that writes p
 
 ---
 
+### 8.15 Calibration — the caries gate's probabilities are not probabilities
+
+**Measured 27 Aug 2026** on the frozen `caries-gate-resnet18-v3.0` over its held-out test split
+(863 crops, 14.7% prevalence). `run_inference.py` stamps every tooth with a `caries_uncalibrated`
+flag; this section replaces that assertion with a number.
+
+| | |
+|---|---|
+| Average precision | **0.550** [0.445, 0.660] |
+| Chance (prevalence) | 0.147 |
+| **Expected calibration error** | **0.136** |
+| Max calibration error | 0.596 |
+| Brier score | 0.137 |
+
+CI by cluster bootstrap over source images, 10,000 resamples (§8.14's argument).
+Figure: `figures/paper/caries_gate_calibration_test.png`.
+
+**The finding is that the model is systematically OVERCONFIDENT, not merely imprecise.** Every
+reliability bin lies **below** the diagonal: at a predicted P(caries) of 0.85, the observed
+frequency is **0.26**. That is a stronger and more useful statement than "precision 0.40" — it says
+the *scores* are broken rather than only the *decisions*, and it implies a fix that needs no
+retraining (temperature scaling or Platt on the validation split).
+
+**State the AP alongside the precision.** 0.550 against a 0.147 chance line is **3.7x chance** —
+the ranking the model produces is genuinely informative, and quoting "precision 0.40" alone
+understates it. What fails is calibration and the operating point, not discrimination.
+
+**Report the threshold sweep, not one operating point.** The pipeline uses `argmax` (threshold
+0.50), which the sweep shows is near F1-optimal — previously an inherited default, now a defended
+choice:
+
+| Threshold | Flagged | Precision | Recall | F1 |
+|---|---|---|---|---|
+| 0.30 | 319 | 0.339 | 0.850 | 0.484 |
+| 0.40 | 266 | 0.376 | 0.787 | 0.509 |
+| **0.50 — pipeline default (argmax)** | **236** | **0.398** | **0.740** | **0.518** |
+| 0.60 | 195 | 0.420 | 0.646 | 0.509 |
+| 0.75 | 116 | 0.534 | 0.488 | 0.510 |
+| 0.90 | 65 | 0.692 | 0.354 | 0.469 |
+| 0.95 | 27 | 0.778 | 0.165 | 0.273 |
+
+Moving to 0.90 buys **precision 0.40 → 0.69** for **recall 0.74 → 0.35**. For a screening aid
+that is a design decision the paper should show rather than pre-empt.
+
+⚠️ **The bone-loss classifier has no calibration analysis**, which §9's checklist specifically
+asks for. Its metadata carries `filename,label,stem` and **no bounding boxes**, so the 1.5x/2.0x
+crops would need reconstructing by hand from tooth ids against `teeth_bbox.json`; a silent
+crop-geometry mismatch is exactly what voided the R1 run (§7.1) and would corrupt a calibration
+curve while looking plausible. It needs a geometry-verified rebuild first.
+
+---
+
 ## 9. What's not yet written — checklist
 
 For whoever drafts the actual paper. Tick items off here as they land.
@@ -1361,6 +1413,13 @@ For whoever drafts the actual paper. Tick items off here as they land.
 
 - [ ] Reader study or comparison against a junior clinician baseline (the motivating claim
       of the paper is currently unquantified).
-- [ ] Calibration analysis (reliability diagram) for the bone-loss classifier.
+- [x] Calibration analysis (reliability diagram) **for the caries gate** — **Done 27 Aug 2026**,
+      §8.15: ECE 0.136, MCE 0.596, Brier 0.137, AP 0.550 [0.445, 0.660] against 0.147 chance;
+      systematically overconfident at every confidence level.
+- [ ] Calibration analysis (reliability diagram) for the **bone-loss** classifier. **Still open** —
+      blocked on a geometry-verified crop rebuild (its metadata has no bounding boxes; see §8.15).
+- [x] Threshold sweep **for the caries gate**, reported as a PR curve — **Done 27 Aug 2026**,
+      §8.15. argmax/0.50 confirmed near F1-optimal; precision 0.40 → 0.69 purchasable at
+      recall 0.74 → 0.35.
 - [ ] Threshold sweep for the bone-loss decision boundary, reported as a PR curve rather
       than a single operating point.

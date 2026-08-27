@@ -4017,3 +4017,70 @@ angxia_dataset`, so the blocker recorded earlier today is lifted.
 - **Source:** `scripts/eval/bootstrap_ci.py`, `outputs/bootstrap_ci/bootstrap_ci.json`.
 - **Follow-ups:** add per-image prediction dumps to the classifier and detector eval paths so the
   remaining intervals can be computed without re-touching locked data.
+
+---
+
+## 2026-08-27q — Caries gate calibration measured: systematically overconfident, ECE 0.136
+
+- **What was done:** first calibration and precision-recall analysis in the project, on the frozen
+  `caries-gate-resnet18-v3.0` over its **held-out test split (863 crops, 14.7% prevalence)**.
+  `scripts/eval/calibration_pr.py`. Every inference this pipeline emits carries a
+  `caries_uncalibrated` flag; that flag was an assertion until today and is now a measurement.
+- **Prerequisite, and it reproduced exactly:** `crops_v3_phase1` was rebuilt from the freshly
+  fetched DENTEX with the committed `build_caries_phase1_v3.py` — the same script that produced
+  the shipped gate's data. Composition matched the record to the crop: MD5-join agreement
+  **98.28%**, train 723/4,027, val 199/804, **test 863**, 5,366 healthy negatives, 6,616 total.
+  `verify_invariants.py`'s **caries v3 dataset hygiene** check consequently now RUNS rather than
+  SKIPs — the third invariant activated by having DENTEX local.
+
+  | | |
+  |---|---|
+  | Average precision | **0.550**, 95% CI **[0.445, 0.660]** |
+  | Chance (= prevalence) | 0.147 |
+  | **ECE** | **0.136** |
+  | MCE | 0.596 |
+  | Brier | 0.137 |
+
+  CI is a **cluster bootstrap over source images** (not crops), 10,000 resamples, seed 42 — same
+  independence argument as 2026-08-27p.
+
+- **THE FINDING: the gate is systematically OVERCONFIDENT, not merely imprecise.** Every
+  reliability bin sits **below** the diagonal — at a predicted P(caries) of 0.85 the observed
+  frequency is **0.26**. The model's probabilities cannot be read as probabilities at all, in
+  either direction, across the whole range. This is a different and more actionable statement
+  than "precision is 0.40": it says the *scores* are broken, not just the *decisions*, and it
+  points at a cheap fix (temperature scaling or Platt on the val split) that no retraining
+  requires.
+- **AP 0.550 against a 0.147 chance line is genuinely informative — 3.7x chance.** Worth stating,
+  because "precision 0.40" alone reads as a coin-flip and understates what the model knows. The
+  ranking is decent; the calibration and the operating point are what fail.
+- **The operating point is now a defended choice rather than an inherited default.** The pipeline
+  uses `argmax`, i.e. threshold 0.50. The sweep shows that is very close to **F1-optimal**:
+
+| Threshold | Flagged | Precision | Recall | F1 |
+|---|---|---|---|---|
+| 0.30 | 319 | 0.339 | 0.850 | 0.484 |
+| 0.40 | 266 | 0.376 | 0.787 | 0.509 |
+| **0.50 — pipeline default (argmax)** | **236** | **0.398** | **0.740** | **0.518** |
+| 0.60 | 195 | 0.420 | 0.646 | 0.509 |
+| 0.75 | 116 | 0.534 | 0.488 | 0.510 |
+| 0.90 | 65 | 0.692 | 0.354 | 0.469 |
+| 0.95 | 27 | 0.778 | 0.165 | 0.273 |
+
+  So the inherited default happens to be the right F1 choice — but that was never verified before,
+  and the sweep also shows what is purchasable: **precision 0.40 -> 0.69 by moving to 0.90**, at
+  the cost of recall 0.74 -> 0.35. For a screening aid that is a real design lever, and the paper
+  should present the curve rather than a single operating point.
+- **Why the caries gate and not the bone-loss classifier, which is what §9's checklist names.**
+  Both need per-item probabilities that were never saved; only caries rebuilds *exactly*. The
+  bone-loss metadata carries `filename,label,stem` and **no bounding boxes**, so its 1.5x/2.0x
+  crops would have to be reconstructed by hand from tooth ids against `teeth_bbox.json`. A silent
+  crop-geometry mismatch is precisely what voided the R1 run (2026-08-27a) and here it would
+  corrupt a calibration curve while looking entirely plausible. **Bone-loss calibration therefore
+  needs a geometry-verified crop rebuild first, and was deliberately not attempted.**
+- **Source:** `scripts/eval/calibration_pr.py`,
+  `outputs/calibration/caries_gate_calibration_test.json`,
+  `docs/results/figures/paper/caries_gate_calibration_test.png`.
+- **Follow-ups:** (1) temperature-scale the gate on val and re-measure ECE — cheap, no retraining,
+  and would let the pipeline report meaningful confidences. (2) Bone-loss calibration, after a
+  verified crop rebuild. (3) §9's two calibration items remain open because they name bone loss.
