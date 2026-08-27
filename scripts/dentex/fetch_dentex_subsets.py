@@ -147,6 +147,7 @@ def main():
         dpath, fid, local = job
         local.parent.mkdir(parents=True, exist_ok=True)
         tmp = local.with_suffix(local.suffix + ".part")
+        why = "no attempt made"          # always carries a reason by the time we report
         for attempt in (1, 2, 3, 4):
             try:
                 r = session().get(
@@ -156,22 +157,31 @@ def main():
                 )
                 r.raise_for_status()
                 tmp.write_bytes(r.content)
-                # Write to .part and only rename once verified, so an interrupted run can
+                # Write to .part and rename only once verified, so an interrupted run can
                 # never leave a truncated file that looks complete to the next run.
                 if verify(tmp):
                     tmp.replace(local)
                     with lock:
                         counts["ok"] += 1
                     return
+                # Downloaded but unreadable. Record WHAT arrived -- Drive serves an HTML
+                # interstitial or an error page with HTTP 200 for some files, and a bare
+                # "failed" makes that indistinguishable from a network error.
+                why = ("downloaded {:,}B but failed verification; content-type={}; "
+                       "starts with {!r}").format(
+                           len(r.content), r.headers.get("content-type", "?"), r.content[:80])
                 tmp.unlink(missing_ok=True)
             except Exception as exc:
                 tmp.unlink(missing_ok=True)
-                if attempt == 4:
-                    with lock:
-                        print(f"  FAILED {dpath}: {exc}", flush=True)
+                why = "{}: {}".format(type(exc).__name__, exc)
             time.sleep(2.0 * attempt)          # back off; Drive throttles
+        # Report EVERY failure, not only those that raised. The first version printed only
+        # from the exception branch, so three annotation JSONs that downloaded-but-did-not-
+        # verify failed SILENTLY: the summary said "3 failed" and the log named neither the
+        # files nor a reason. A failure counter without a reason is not a diagnostic.
         with lock:
             counts["failed"] += 1
+            print("  FAILED {}: {}".format(dpath, why), flush=True)
 
     def wrapped(job):
         fetch_one(job)
@@ -192,8 +202,14 @@ def main():
         d = args.dest / pref
         n = len(list(d.glob("*"))) if d.exists() else 0
         print(f"  {pref:52s} {n} files")
-    print(f"  {'data/dentex/raw/':52s} "
-          f"{len(list(RAW_DIR.glob('*.json'))) if RAW_DIR.exists() else 0} annotations")
+    have_json = sorted(q.name for q in RAW_DIR.glob("*.json")) if RAW_DIR.exists() else []
+    print("  {:52s} {}/{} annotations".format("data/dentex/raw/", len(have_json), len(WANTED_JSON)))
+    missing = [v for v in WANTED_JSON.values() if v not in have_json]
+    if missing:
+        # These three gate build_dentex_crops.py entirely, so a bare "0" here would read as a
+        # cosmetic shortfall rather than a hard blocker on the whole caries re-run block.
+        print("  !! MISSING ANNOTATIONS -- build_dentex_crops.py cannot run: "
+              + ", ".join(missing), flush=True)
     return 1 if failed else 0
 
 
