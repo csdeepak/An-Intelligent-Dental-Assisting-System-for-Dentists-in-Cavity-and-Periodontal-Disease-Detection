@@ -1,0 +1,93 @@
+BONE LOSS — BINARY (Stage 4a)
+Version tag: bone-loss-binary-resnet18-v1.0
+Frozen: 27 August 2026
+
+WHAT THIS IS
+--------------------------------------------------------------------------------
+Stage 4a of the pipeline. ResNet18 (ImageNet-pretrained, fc 512 -> 2) over a
+1.5x width / 2.0x height expanded tooth crop at 224x224, predicting bone loss
+present / absent. It is DEF_BONE_LOSS in scripts/run_inference.py.
+
+Trained April 2026 from notebooks/bone_loss/. This file was written on 27 Aug
+2026 to freeze and tag weights that had been in use, and depended on, for months
+without a version tag or a recorded hash -- the last untagged models in the
+project (models/README.md "One gap remains"). Nothing was retrained; the bytes
+are the April artifacts, now pinned.
+
+WEIGHTS
+--------------------------------------------------------------------------------
+bone_loss_resnet18_best.pth    44,791,499 B   (DEF_BONE_LOSS, the pipeline default)
+  sha256 c52f7f484076a2a2c3c144c3351912b118b6b0d56fc51ba1b4296e6ce6213db1
+bone_loss_resnet18_final.pth   44,791,627 B   (last epoch, NOT used by the pipeline)
+  sha256 5f58ba69d70bd45c19865d5e582a2fa151679428a4d4284d1c3e3543c3c13347
+
+Both are raw state_dicts. They carry NO class_to_idx, NO epoch and NO metrics --
+see the class-order section below, which is the operational consequence.
+
+DATASET (Tufts)
+--------------------------------------------------------------------------------
+  Source crops:        22,806, original imbalance 23.84x (96% normal / 4% diseased)
+  Train normal:        2,500  (undersampled from 17,473)
+  Train diseased:        711  (originals + 2x augmented)
+  Train total:         3,211  (ratio 3.52x)
+  Val normal:          1,499  (untouched, real prevalence)
+  Val diseased:           59  (untouched, real prevalence)
+  Val total:           1,558
+
+CONFIG
+--------------------------------------------------------------------------------
+  Architecture:   ResNet18 (pretrained ImageNet), fc 512 -> 2
+  Loss:           FocalLoss(gamma=2.0, alpha=[0.642, 2.258])
+  Optimizer:      Adam (lr=1e-4, wd=1e-4)
+  Scheduler:      ReduceLROnPlateau (patience=5)
+  Batch size:     32
+  Epochs:         32 / 50, best epoch 22, early stopping patience 10
+  Normalization:  ImageNet mean/std
+  Training time:  14.8 min
+
+RESULTS — validation (1,558 crops at real prevalence), best epoch 22
+--------------------------------------------------------------------------------
+  F1 normal (cls 0)     0.9943
+  F1 diseased (cls 1)   0.8522
+  F1 macro              0.9233
+  Confusion:  TN=1492  FP=7  FN=10  TP=49
+  Sensitivity (bone-loss recall)  0.8305
+  Specificity (normal recall)     0.9953
+
+  These are VALIDATION numbers, not test. model_metrics.md labels them correctly.
+
+CLASS ORDER — the one thing to get right, now confirmed rather than assumed
+--------------------------------------------------------------------------------
+src/classifiers.py declares BONE_LOSS_CLASSES = ["normal", "bone_loss"], i.e.
+index 0 = normal, index 1 = bone_loss. The checkpoint carries no class_to_idx, so
+until 27 Aug 2026 run_inference.py's meta block described this order as
+"Inferred, not read."
+
+It is now CONFIRMED, two independent ways that agree:
+
+  1. FocalLoss alpha is inversely proportional to class frequency.
+       alpha ratio  2.258 / 0.642 = 3.5171
+       count ratio  2,500 /   711 = 3.5162
+     These agree to 0.03%, so index 0 is the MAJORITY class = normal.
+
+  2. training_summary.txt, written by the training run itself, labels its own
+     per-class scores "F1 Normal (cls 0)" and "F1 Diseased (cls 1)".
+
+Evidence (1) is an arithmetic property of the config; evidence (2) is a direct
+statement from the run. If the order were flipped, the pipeline would report bone
+loss on ~99% of teeth rather than the 0.7% observed on DENTEX -- a third, weaker
+corroboration from in-situ behaviour.
+
+KNOWN LIMITATION — this model does not generalise, and that is measured
+--------------------------------------------------------------------------------
+0.9233 macro-F1 in domain (Tufts) collapses outside it:
+  - DENTEX:   fires on 0.7% of detected teeth
+  - Ningxia:  0.8-5.4% affected-tooth sensitivity, across 4 hospitals
+Two independent external datasets agree. This is the project's one open technical
+failure (transfer.md 1). Do not quote 0.9233 without the out-of-domain figures.
+
+SOURCE
+--------------------------------------------------------------------------------
+  training_summary.txt, training_history.json (this directory)
+  notebooks/bone_loss/
+  RESULTS_LOG.md 2026-08-25d (Ningxia), 2026-08-24f (DENTEX in-pipeline)

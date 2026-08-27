@@ -56,6 +56,32 @@ def hashes(d):
 
 
 # ---------------------------------------------------------------- frozen weights
+def hash_from_summary(text, weight_name):
+    """Pull the sha256 a run_summary records FOR ONE named weight file.
+
+    A summary may document several checkpoints -- models/03 records both `best` and
+    `final`. Each sha256 is attributed to the most recent weight filename mentioned
+    above it, and the one belonging to `weight_name` wins.
+
+    Until 27 Aug 2026 this was simply "the last 64-hex token in the file", which
+    checked models/03's `best.pth` against `final.pth`'s hash and failed. Kept as a
+    fallback for summaries that name only one checkpoint. Covered by
+    tests/test_verify_invariants.py.
+    """
+    current, attributed, last = None, {}, None
+    for line in text.splitlines():
+        for tok in line.split():
+            if tok.endswith((".pth", ".pt")):
+                current = tok.strip("`'\",()")
+        if "sha256" in line.lower():
+            for tok in line.split():
+                if len(tok) == 64 and all(c in "0123456789abcdef" for c in tok):
+                    last = tok
+                    if current is not None:
+                        attributed.setdefault(current, tok)
+    return attributed.get(weight_name, last)
+
+
 def inv_weight_hashes():
     """A frozen model's bytes must still match the hash its run_summary records."""
     pairs = [
@@ -71,6 +97,13 @@ def inv_weight_hashes():
         # adopted for its box gain despite missing §2's mask bar (RESULTS_LOG 2026-08-27d).
         ("models/11_yolo_seg_tufts_r1/best.pt",
          "models/11_yolo_seg_tufts_r1/run_summary.txt"),
+        # Stages 4a/4b, tagged 27 Aug 2026 -- the last untagged models in the project.
+        # They were in use as pipeline defaults for months with no hash on record, so
+        # nothing would have caught a silent swap or a partial copy.
+        ("models/03_bone_loss_model_training_notebook_models/bone_loss_resnet18_best.pth",
+         "models/03_bone_loss_model_training_notebook_models/run_summary.txt"),
+        ("models/04_bone_loss_severity_notebook_models/bone_loss_severity_resnet18_best.pth",
+         "models/04_bone_loss_severity_notebook_models/run_summary.txt"),
     ]
     out = []
     for w, s in pairs:
@@ -79,14 +112,15 @@ def inv_weight_hashes():
             out.append(f"SKIP {Path(w).name} (not on this machine)")
             continue
         want = None
+        # A summary may document SEVERAL checkpoints (models/03 records both `best` and
+        # `final`). Attribute each sha256 to the most recent weight filename mentioned
+        # above it, and prefer the one belonging to the file under test. Falling back to
+        # "last hash in the file" -- which is all this did until 27 Aug 2026 -- silently
+        # checked models/03's `best` against `final`'s hash. Caught by this very check.
         # encoding is explicit: Windows defaults to cp1252 and dies on the em-dashes
         # and warning glyphs these summaries contain, while macOS defaults to utf-8 and
         # passes. That asymmetry is exactly the class of bug this repo keeps hitting.
-        for line in sp.read_text(encoding="utf-8").splitlines():
-            if "sha256" in line.lower():
-                for tok in line.split():
-                    if len(tok) == 64 and all(c in "0123456789abcdef" for c in tok):
-                        want = tok
+        want = hash_from_summary(sp.read_text(encoding="utf-8"), Path(w).name)
         got = hashlib.sha256(wp.read_bytes()).hexdigest()
         if want is None:
             out.append(f"NO HASH RECORDED for {Path(w).name}")

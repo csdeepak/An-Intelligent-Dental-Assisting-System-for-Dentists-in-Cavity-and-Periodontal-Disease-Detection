@@ -321,10 +321,16 @@ def run_pipeline(img_bgr, models, device, paths, image_label="image", imgsz=1024
                    "tag": "caries-cascade-resnet18-v1.0", "crop_expand": [1.0, 1.0]},
         "bone_loss": {"binary": str(paths["bone_loss"]), "severity": str(paths["bone_severity"]),
                       "crop_expand": [1.5, 2.0], "severity_classes": BONE_LOSS_SEVERITY_CLASSES,
+                      "tag_binary": "bone-loss-binary-resnet18-v1.0",
+                      "tag_severity": "bone-loss-severity-resnet18-v1.0",
                       "class_order_note": (
-                          "binary class order derived from the FocalLoss alpha [0.642, 2.258] "
-                          "against counts (2500 normal / 711 diseased); the checkpoint carries "
-                          "no class_to_idx. Inferred, not read.")},
+                          "binary class order [normal, bone_loss] confirmed two independent "
+                          "ways (27 Aug 2026): FocalLoss alpha ratio 2.258/0.642 = 3.5171 "
+                          "matches the class-count ratio 2500/711 = 3.5162 to 0.03%, so index "
+                          "0 is the majority class; and training_summary.txt labels its own "
+                          "scores 'F1 Normal (cls 0)' / 'F1 Diseased (cls 1)'. The checkpoint "
+                          "still carries no class_to_idx -- the order is corroborated, not "
+                          "stored. See models/03_.../run_summary.txt.")},
     }
 
     log("stage 5–6 — fusion and report …")

@@ -39,8 +39,21 @@ One numbered directory per trained stage, each with a `*summary*.txt` beside the
 | `caries-gate-resnet18-v3.0` | Stage 3 gate (**pipeline default**) | 25 Aug 2026 — `09_caries_gate_v3/run_summary.txt` |
 | `fdi-enumeration-head-resnet18-v1.0` | Stage 2 numbering (DENTEX only) | 22 Aug 2026 — `08_fdi_enumeration_head/run_summary.txt` |
 | `fdi-enumeration-head-resnet18-v2.0` | Stage 2 numbering (DENTEX + Tufts, **pipeline default**) | 26 Aug 2026 — `10_fdi_head_dentex_tufts_v2/run_summary.txt` |
+| `bone-loss-binary-resnet18-v1.0` | Stage 4a bone loss present/absent (**pipeline default**) | 27 Aug 2026 — `03_bone_loss_model_training_notebook_models/run_summary.txt` |
+| `bone-loss-severity-resnet18-v1.0` | Stage 4b severity Mild/Moderate/Severe (**pipeline default**) | 27 Aug 2026 — `04_bone_loss_severity_notebook_models/run_summary.txt` |
 
-**One gap remains:** bone-loss weights (Stages 4a/4b) are still not version-tagged.
+**No gaps remain — every trained model in this project is now tagged and hash-pinned**
+(closed 27 Aug 2026). Stages 4a/4b were the last, and had been serving as pipeline defaults
+for months with no version tag and no recorded hash, so a silent swap or a truncated copy
+would not have been caught. Both are now checked by `scripts/eval/verify_invariants.py`.
+
+Their tagging also upgraded the **bone-loss binary class order** from an inference to a
+confirmed fact: the checkpoints are raw `state_dict`s carrying no `class_to_idx`, and
+`run_inference.py` previously noted the order as "Inferred, not read". It is now corroborated
+by the FocalLoss alpha ratio (2.258/0.642 = 3.5171) matching the class-count ratio
+(2,500/711 = 3.5162) to 0.03%, **and** by `training_summary.txt` labelling its own scores
+"F1 Normal (cls 0)" / "F1 Diseased (cls 1)". See
+`03_bone_loss_model_training_notebook_models/run_summary.txt`.
 
 ## Which FDI head to use — v1.0 vs v2.0
 

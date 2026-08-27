@@ -6,7 +6,8 @@ It is **rewritten, not appended to** — unlike `docs/results/RESULTS_LOG.md` (a
 history) and `docs/session-memory/` (one file per session, never edited). Those two are the
 record; this is the snapshot.
 
-**Last updated: 27 August 2026** (later the same day: a cold-start orientation pass found R1's
+**Last updated: 27 August 2026** (later still: **bone-loss weights tagged — every trained model in the project is now frozen, tagged and hash-pinned**, and doing it surfaced a positional-attribution bug in `verify_invariants.py`; tests 65 → 73. §3 item 6 closed. Next: Ningxia C2 re-run on the seg detector, data now reachable at `D:
+angxia_dataset`. Earlier: a cold-start orientation pass found R1's
 results had never reached `PAPER_MATERIAL.md` or the root `README.md` — rule 1 item 3 — and
 propagated them. That sweep turned up a **fresh-clone break**: the README told you to fetch the
 *superseded* detector while `run_inference.py` defaults to the seg one. Fixed, with a documented
@@ -197,7 +198,7 @@ vs bbox's 3,924 (+0.15%), so near-, not exactly, like-for-like.
 | **Deployment** — Streamlit app + Dockerfile, wrapping the pipeline unchanged | `app.py`, `Dockerfile`, `RESULTS_LOG.md` 2026-08-25f |
 | **6 paper/review figures**, generated from saved artefacts only | `scripts/figures/make_paper_figures.py`, `docs/results/figures/paper/`, `RESULTS_LOG.md` 2026-08-25e |
 | **Literature check on two comparison papers** (DPML, DentFound) — what they used, whether public, and independent confirmation that DPML also collapses out-of-domain (95.06 mAP own data → 61.83 on public DENTEX) | `RESULTS_LOG.md` 2026-08-26a |
-| **Bone-loss binary + severity** trained (Tufts) | `models/03_.../run_summary.txt`, `models/04_.../severity_summary.txt` — **still untagged**, see §4 |
+| **Bone-loss binary + severity** trained (Tufts), **now frozen and tagged** `bone-loss-binary-resnet18-v1.0` / `bone-loss-severity-resnet18-v1.0` (27 Aug) | `models/03_.../run_summary.txt`, `models/04_.../run_summary.txt`; hash-pinned in `verify_invariants.py`. **Every trained model in the project is now tagged — no gaps left.** `RESULTS_LOG.md` 2026-08-27g |
 | **R1 seg dataset** built on the frozen split, ready to train | `data/tufts/dataset_seg/` — 26,005 instances, 700/150/150. Rebuilt independently on the Windows machine 26 Aug and reproduces exactly (18,268/3,807/3,930) |
 | **The frozen Tufts split is now derived from code**, not a file carried between laptops — reproduces byte-for-byte (SHA-256 verified) | `scripts/tufts/regenerate_split_v1.py`; `RESULTS_LOG.md` 2026-08-26c |
 | **R2 mask-aware cropping** implemented + unit-tested (**unwired** — needs R1's masks) | `src/crop_generator.py`, `tests/test_crop_generator.py` |
@@ -270,8 +271,13 @@ the next one.** Ordered by what actually blocks something else:
    measured) but has never been trained on more than one.
 5. **T0.5 — the Mild severity class (n=6) decision.** Zero compute, zero blocker, untouched
    for two weeks. The cheapest open item in the project; there is no reason this stays open.
-6. **Version-tag the bone-loss weights.** Stages 4a/4b are the only trained models without a
-   tag now that both enumeration heads and the caries gate v3 are frozen. Trivial, just undone.
+6. **Version-tag the bone-loss weights. ✅ DONE 27 Aug.** `bone-loss-binary-resnet18-v1.0` and
+   `bone-loss-severity-resnet18-v1.0`, both hash-pinned. It was not quite trivial: writing the
+   summaries exposed that `verify_invariants.py` attributed a sha256 by *position* (last hash
+   in the file) rather than by filename, so a summary documenting two checkpoints checked the
+   wrong one. Fixed, extracted into `hash_from_summary()`, covered by 8 new tests (65 → 73).
+   It also upgraded the bone-loss **class order** from "inferred" to confirmed two ways.
+   `RESULTS_LOG.md` 2026-08-27g.
 7. **Verify `docker build` actually completes. ⭐ Now the cheapest unblockable item on this
    machine.** Never run (daemon unavailable every session so far) — **but the Windows machine
    has the Docker CLI installed and only the engine is stopped** (`docker version` reaches the
@@ -308,7 +314,6 @@ starts.
 | **A third public FDI corpus exists, unused.** DentFound trains tooth-ID on the Kaggle *Dual-labeled Panoramic Radiographs* set — 2,000 images, native FDI 11–48, larger than DENTEX or Tufts, no mirror to correct. | Whether to add it before or after R1 |
 | **What else to use `DENTEX/disease/` for**, beyond the Stage-2 eval set (164 leak-free of 250) and the lesion-localisation source. The 91 `saglam` (healthy) teeth as a small real healthy class is still an open candidate use. | Scoping call |
 | **Clinic data governance.** `index.csv` sits beside `images/` on a shared Drive, voiding the de-identification. Five actions in `clinical_dataset_provenance.md` §4a, all needing the Drive owner. | Not this repo's account |
-| **Bone-loss weights have no version tag** — trivial to fix, listed here only so it doesn't get silently skipped again. | Just needs doing |
 | **`split_v1` has a train/test leak** — `590.JPG` (test) and `591.JPG` (train) are byte-identical, so the frozen detector trained on one of its own test images (1 of 150). The Tufts crop builder works around it; the detector's reported test metrics have **not** been re-measured. | Whether to re-measure the detector, or document and move on |
 
 **RESOLVED and kept for the reasoning, not because still open:**

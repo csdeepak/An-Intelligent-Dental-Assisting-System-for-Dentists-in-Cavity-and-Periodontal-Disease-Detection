@@ -1,0 +1,79 @@
+BONE LOSS — SEVERITY, 3-CLASS (Stage 4b)
+Version tag: bone-loss-severity-resnet18-v1.0
+Frozen: 27 August 2026
+
+WHAT THIS IS
+--------------------------------------------------------------------------------
+Stage 4b. ResNet18 (ImageNet-pretrained, fc 512 -> 3) over the same 1.5x/2.0x
+expanded crop, predicting Mild / Moderate / Severe. It runs ONLY on teeth that
+Stage 4a called bone_loss (see run_bone_loss() in src/classifiers.py), so its
+support is whatever 4a passes through. DEF_BONE_SEVERITY in run_inference.py.
+
+Trained April 2026. Tagged 27 Aug 2026 alongside Stage 4a; not retrained.
+
+WEIGHTS
+--------------------------------------------------------------------------------
+bone_loss_severity_resnet18_best.pth   44,794,699 B
+  sha256 fa93a5201833d8137bd2ae328d3afd63c2c1f9e4ac82a621d1b430a51eba8a4a
+
+Raw state_dict. No class_to_idx, no epoch, no metrics stored in the file.
+
+SEVERITY DEFINITION — a proxy, and it must be described as one
+--------------------------------------------------------------------------------
+Labels come from the overlap ratio between the expert per-image bone-loss mask
+and the per-tooth crop, NOT from a clinical severity grading:
+    Mild      overlap <= 0.05
+    Moderate  overlap 0.05 - 0.15
+    Severe    overlap  > 0.15
+The 0.05 / 0.15 cut points are undocumented as to provenance -- whether tuned or
+chosen by eye is not recorded, and PAPER_MATERIAL.md 9 lists writing that up as
+an open item. Treat the class as "extent of annotated involvement", not as a
+clinical stage.
+
+CONFIG
+--------------------------------------------------------------------------------
+  Architecture:   ResNet18 (pretrained ImageNet), fc 512 -> 3
+  Loss:           FocalLoss(gamma=2.0, per-class alpha)
+  Best epoch:     2
+  Training time:  1.6 min
+
+RESULTS — validation
+--------------------------------------------------------------------------------
+  F1 Mild       0.8000
+  F1 Moderate   0.6667
+  F1 Severe     0.6957
+  F1 macro      0.7208
+
+  SUPPORT IS 52 VALIDATION CROPS TOTAL. Every figure above is computed on tens of
+  samples, and the Mild class has n=6. These numbers carry no useful precision and
+  must never be reported without their support count.
+
+CLASS ORDER
+--------------------------------------------------------------------------------
+src/classifiers.py declares BONE_LOSS_SEVERITY_CLASSES = ["Mild","Moderate",
+"Severe"]. The checkpoint stores no class_to_idx. Two things agree with that order:
+  1. severity_summary.txt reports its per-class scores in exactly this order.
+  2. It is the ImageFolder alphabetical order of {Mild, Moderate, Severe}, which
+     is how the training notebook built its loaders.
+Weaker than Stage 4a's confirmation -- there is no arithmetic cross-check here,
+because the per-class alphas were not recorded numerically. Flagged, not hidden.
+
+OPEN ITEM — T0.5, still undecided
+--------------------------------------------------------------------------------
+The Mild class has n=6. PUBLICATION_TODO.md T0.5 asks whether to merge it, report
+3-class with explicit support, or drop severity reporting; the decision has not
+been made and no bootstrap CIs exist anywhere. This is a reporting decision, not a
+retrain. Tagging these weights does not close T0.5.
+
+INHERITS Stage 4a's DOMAIN-SHIFT FAILURE
+--------------------------------------------------------------------------------
+4b only sees teeth 4a flagged. Since 4a fires on 0.7% of DENTEX teeth and has
+0.8-5.4% affected-tooth sensitivity on Ningxia, out of domain this stage is
+effectively never exercised. Its in-domain 0.7208 says nothing about external
+behaviour.
+
+SOURCE
+--------------------------------------------------------------------------------
+  severity_summary.txt (this directory)
+  notebooks/bone_loss/
+  PAPER_MATERIAL.md 5.5, 7.4; PUBLICATION_TODO.md T0.5

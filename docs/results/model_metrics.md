@@ -254,6 +254,12 @@ severity head. Validation-only; no held-out test split for Phase 2 exists yet.
 
 ## Stage 4a — Bone loss binary · ResNet18 + Focal Loss · Tufts
 
+Frozen and tagged 27 Aug 2026 as `bone-loss-binary-resnet18-v1.0`, SHA-256
+`c52f7f484076a2a2c3c144c3351912b118b6b0d56fc51ba1b4296e6ce6213db1`
+(`bone_loss_resnet18_best.pth`, the pipeline default — `bone_loss_resnet18_final.pth` is a
+different file and is **not** used). Class order is `[normal, bone_loss]`, confirmed two
+independent ways — `models/03_.../run_summary.txt`.
+
 Validation, 1,558 crops at real-world prevalence (1,499 normal / 59 diseased).
 
 | Metric | Value | Target | Status |
@@ -271,6 +277,10 @@ Confusion matrix: TN 1,492 · FP 7 · FN 10 · TP 49.
 ---
 
 ## Stage 4b — Bone loss severity 3-class · ResNet18 + Focal Loss · Tufts
+
+Frozen and tagged 27 Aug 2026 as `bone-loss-severity-resnet18-v1.0`, SHA-256
+`fa93a5201833d8137bd2ae328d3afd63c2c1f9e4ac82a621d1b430a51eba8a4a`. Class order
+`[Mild, Moderate, Severe]` — `models/04_.../run_summary.txt`.
 
 Validation, 52 crops. **Low support — treat as provisional.**
 

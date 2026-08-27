@@ -3448,3 +3448,50 @@ pending decision in `transfer.md` §4.
   detector and v1.0 head. Newly noted: Docker Desktop **is installed on the Windows machine**
   but its engine is not running — `docker build` has never once been executed
   (`transfer.md` §3 item 7) and is now one `Start Docker Desktop` away from being testable.
+
+---
+
+## 2026-08-27g — Bone-loss weights tagged (the last untagged models), and the hash check itself was wrong
+
+- **What was done:** Froze and tagged Stages 4a/4b — `bone-loss-binary-resnet18-v1.0` and
+  `bone-loss-severity-resnet18-v1.0` — the last trained models in the project without a version
+  tag or a recorded hash (`models/README.md` had carried "One gap remains" for weeks; `transfer.md`
+  §3 item 6). **Nothing was retrained**; these are the April 2026 artifacts, now pinned. Both are
+  added to `verify_invariants.py`, taking it from 4 pinned checkpoints to 6.
+- **Dataset / config:** n/a — freezing existing weights. Provenance recorded in the new
+  `run_summary.txt` files from `training_summary.txt` / `severity_summary.txt`.
+- **Metrics:** unchanged, and re-stated with their support counts. 4a validation macro-F1
+  **0.9233** (1,558 crops at real prevalence, 1,499 normal / 59 diseased). 4b validation macro-F1
+  **0.7208** on **52 crops total**, Mild n=6. SHA-256:
+  `c52f7f48…` (4a `best`), `fa93a520…` (4b).
+- **The check that was supposed to catch problems had one of its own.** Writing 4a's summary —
+  which documents **two** checkpoints, `best` (the pipeline default) and `final` (unused) — made
+  `verify_invariants.py` fail. Cause: it took the sha256 as "the last 64-hex token anywhere in the
+  file", so `best.pth` was checked against `final.pth`'s hash. That heuristic was correct only
+  while every summary named exactly one checkpoint, which had been true until now by accident.
+  **Fixed properly rather than by reordering the file:** each hash is attributed to the most
+  recent weight filename above it, `hash_from_summary()` was extracted to be testable, and the
+  behaviour is covered by 8 new tests including the historical failure. **Tests 65 → 73.**
+  Reordering the summary would have made the symptom go away and left the trap armed.
+- **Key insight — the bone-loss class order is no longer an assumption.** Both checkpoints are
+  raw `state_dict`s carrying no `class_to_idx`, and `run_inference.py` honestly described the
+  order as "Inferred, not read". It is now confirmed two independent ways that agree:
+  **(1)** FocalLoss alpha is inversely proportional to class frequency, and the alpha ratio
+  **2.258/0.642 = 3.5171** matches the class-count ratio **2,500/711 = 3.5162** to 0.03%, so
+  index 0 is the majority class = normal; **(2)** `training_summary.txt` labels its own scores
+  **"F1 Normal (cls 0)" / "F1 Diseased (cls 1)"**. A flipped order would have the pipeline
+  reporting bone loss on ~99% of teeth instead of the observed 0.7% on DENTEX — a third, weaker
+  corroboration. `run_inference.py`'s note was upgraded accordingly.
+- **What did NOT change:** the domain-shift failure. 0.9233 in-domain still collapses to 0.7%
+  firing on DENTEX and 0.8–5.4% affected-tooth sensitivity on Ningxia. Tagging a model does not
+  improve it, and both new summaries say so explicitly so the tag cannot be mistaken for
+  validation. **T0.5 (the n=6 Mild class) is also NOT closed by this** — it is a reporting
+  decision, and it remains open.
+- **Source:** `models/03_bone_loss_model_training_notebook_models/run_summary.txt`,
+  `models/04_bone_loss_severity_notebook_models/run_summary.txt`,
+  `scripts/eval/verify_invariants.py`, `tests/test_verify_invariants.py`. 73/73 tests pass,
+  all invariants hold.
+- **Follow-ups:** every trained model is now tagged, so this class of gap is closed. Next in
+  this session: re-run C2 external validation on Ningxia against the seg detector — the data is
+  reachable at `D:
+angxia_dataset`, so the blocker recorded earlier today is lifted.
