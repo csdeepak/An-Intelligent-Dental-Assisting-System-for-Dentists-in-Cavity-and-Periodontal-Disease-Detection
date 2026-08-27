@@ -152,8 +152,8 @@ bounding box.
 
 | Stage | Component | Input | Output | Status |
 |-------|-----------|-------|--------|--------|
-| 1 | Tooth Detection (YOLOv11l) | Full OPG | Tooth bboxes | ✅ **Complete** — test mAP@0.5 **0.782**; canonical run **frozen** as `tooth-detector-a100-1024-v1.0` (T0.6, 20 Aug 2026) |
-| 2 | Sorting + FDI assignment | Tooth bboxes | FDI-keyed tooth list | ✅ **Complete — learned enumeration head** ([validated](scripts/eval/README.md) on 164 leak-free images): quadrant 94.7%, FDI exact **46.5% end-to-end**, up from 22.9% for the positional method it replaced. Universal→FDI table correct (`f8b31f8`). **Pipeline default is now v2.0** (DENTEX+Tufts, adopted for cross-domain robustness — +21.5pp on a second machine population, same 46.5% in-domain). See [`models/README.md`](models/README.md) "Which FDI head to use". |
+| 1 | Tooth Detection (YOLOv11l-seg) | Full OPG | Tooth bboxes | ✅ **Complete** — test mAP@0.5 (box) **0.810**; pipeline default **frozen** as `tooth-detector-seg-tufts-1024-v1.0` (R1, 27 Aug 2026). Adopted for a **+2.76-point box gain** over the superseded bbox detector (0.782), which stays frozen and hash-pinned. **Masks scored 0.638 against a pre-registered 0.65 bar — the bar was NOT met**; the model is used for its **boxes only** and mask-aware cropping (R2) stays unwired. |
+| 2 | Sorting + FDI assignment | Tooth bboxes | FDI-keyed tooth list | ✅ **Complete — learned enumeration head** ([validated](scripts/eval/README.md) on 164 leak-free images): quadrant 94.7%, FDI exact **58.3% end-to-end** (up from 46.3% on the superseded detector, and from 22.9% for the positional method it replaced). Universal→FDI table correct (`f8b31f8`). **Pipeline default is now v2.0** (DENTEX+Tufts, adopted for cross-domain robustness — +21.5pp on a second machine population, same 46.5% in-domain). See [`models/README.md`](models/README.md) "Which FDI head to use". |
 | 3 | Caries cascade (ResNet18 ×2) | Tight 1.0× crop | caries / deep_caries | ✅ **Complete, gate rebuilt 25 Aug** — `caries-gate-resnet18-v3.0` is the pipeline default, trained on a repaired negative class (5,366 real healthy teeth). In-pipeline caries rate **84.9% → 19.1%**. Held-out precision **0.40** — improved, not solved. |
 | 4a | Bone Loss binary (ResNet18) | Expanded 1.5×W/2.0×H crop | Present / Absent | ✅ **Complete** — macro F1 **0.9233** |
 | 4b | Bone Loss severity (ResNet18) | Expanded crop | Mild / Moderate / Severe | ✅ **Complete** — macro F1 0.7208 (only 52 val crops) |
@@ -166,7 +166,7 @@ bounding box.
 > Tier-0 (T0.1–T0.4) closed 25 Aug. What is still honestly weak, and is written into every
 > generated report under `["limitations"]`: caries precision is **0.40**; the bone-loss branch
 > **collapses outside Tufts** (fires on 0.7% of DENTEX teeth, 0.8–5.4% affected-tooth
-> sensitivity on Ningxia); detector recall **67.0%** caps Stage-2 end-to-end at 46.5%.
+> sensitivity on Ningxia); detector recall **70.6%** caps Stage-2 end-to-end at 58.3%.
 > Current state: [`transfer.md`](transfer.md), then
 > `docs/research/PUBLICATION_TODO.md` status block.
 
@@ -178,9 +178,10 @@ Full tables and provenance: [`docs/results/model_metrics.md`](docs/results/model
 
 | Model | Dataset | Split | Headline metric |
 |-------|---------|-------|-----------------|
-| YOLOv11l tooth detection (A100, imgsz 1024, 150 ep) | Tufts | val / **test** | mAP@0.5 0.834 / **0.782** |
+| YOLOv11l-**seg** tooth detection (**pipeline default**, imgsz 1024, 135 ep) | Tufts | **test** | mAP@0.5 box **0.810** / mask 0.638 |
+| YOLOv11l tooth detection (A100, imgsz 1024, 150 ep) — superseded 27 Aug, retained + hash-pinned | Tufts | val / **test** | mAP@0.5 0.834 / **0.782** |
 | YOLOv11l tooth detection (H200, imgsz 768, 50 ep) — superseded | Tufts | val | mAP@0.5 0.678 |
-| FDI enumeration head v2.0 (DENTEX+Tufts, **pipeline default**) | DENTEX / Tufts | 164 leak-free / held-out | end-to-end **46.6%** DENTEX, **71.5%** Tufts (v1.0 DENTEX-only: 46.5% / 50.0%) |
+| FDI enumeration head v2.0 (DENTEX+Tufts, **pipeline default**) | DENTEX / Tufts | 164 leak-free / held-out | end-to-end **58.3%** DENTEX on the seg detector (46.3% on the superseded one, same head), **71.5%** Tufts |
 | Caries cascade Phase 2 (caries vs deep_caries) | DENTEX | val (133) | acc **0.81**, macro F1 **0.77** |
 | Bone loss binary | Tufts | val (1,558, real prevalence) | macro F1 **0.9233**, sens 83.05%, spec 99.53% |
 | Bone loss severity (3-class) | Tufts | val (52) | macro F1 **0.7208** |
@@ -372,15 +373,25 @@ Google Drive/
 ### Setting up on a new machine (checkpoints only)
 
 To just **run the pipeline** — `run_inference.py`, `app.py`, or the Docker demo — none of the
-raw datasets above are needed. Only two model checkpoints are not in git (everything else,
-including the current Stage-2 head, is committed):
+raw datasets above are needed. Everything else, including the current Stage-2 head, is
+committed; the checkpoints below are >50 MB and gitignored (`CLAUDE.md` rule 4).
+
+> ⚠️ **As of 27 Aug 2026 a fresh clone cannot run the pipeline yet.** The Stage-1 default
+> changed to the seg detector (`run_inference.py` → `DEF_DETECTOR`), and **that checkpoint has
+> not been uploaded to Drive**. It is a manual, account-owner action — see
+> [`docs/EXTERNAL_DRIVE.md`](docs/EXTERNAL_DRIVE.md) for the exact upload + `sha256`
+> verification recipe and why a Claude Code session cannot do it. Until then, clone-and-run
+> works only on a machine that already holds `models/11_yolo_seg_tufts_r1/best.pt`, or by
+> passing `--detector models/06_yolo_detection_a100_run/best.pt` to fall back to the
+> superseded bbox detector (which scores 46.3% end-to-end at Stage 2, not 58.3%).
 
 ```bash
 git clone <this repo>
 pip install -r requirements.txt
-# fetch these two from docs/EXTERNAL_DRIVE.md's links — everything else is already in git:
-#   models/06_yolo_detection_a100_run/best.pt        (Tufts drive)
+# fetch from docs/EXTERNAL_DRIVE.md's links — everything else is already in git:
+#   models/11_yolo_seg_tufts_r1/best.pt              (Stage-1 DEFAULT — not on Drive yet, see above)
 #   models/09_caries_gate_v3/caries_gate_v3.pth      (DENTEX drive)
+#   models/06_yolo_detection_a100_run/best.pt        (Tufts drive — superseded, only for the fallback above)
 python scripts/eval/verify_invariants.py   # should print "all invariants hold"
 python scripts/run_inference.py --image path/to/opg.png --output report.json
 ```
@@ -630,9 +641,11 @@ submission window.
 swap, but on cross-corpus generalisation measured with paired significance tests (something
 comparable published work in this space does not do), external validation on four hospitals
 never trained on, and a visibly-corrected result (a leaked evaluation set found and fixed
-before publication, not after). The current weak point — Stage-2 end-to-end at 46.5%,
-capped by detector recall — is the reason R1 (detector retrain) is the top implementation
-priority; a second published paper's own numbers independently show the same in-domain/
+before publication, not after). **R1 (the detector retrain) landed on 27 Aug and moved the
+headline: Stage-2 end-to-end 46.3% → 58.3%, detector recall 67.3% → 70.6%** — confirming, by
+measurement, this project's standing prediction that Stage 1 was the binding constraint. It is
+still the binding constraint, just a looser one; a second published paper's own numbers
+independently show the same in-domain/
 out-of-domain gap this project measured, which supports the framing rather than undermining it.
 
 **Full assessment, kept current, not duplicated here:** [`transfer.md`](transfer.md) §5.

@@ -433,13 +433,44 @@ already-planned fix, scheduled for Week 6, not Week 2. Report the current thresh
 All figures for Stage 1 are in `docs/results/figures/yolo_detection_a100/`
 (`val_*` = training/validation run, `test_*` = held-out test evaluation).
 
-### 7.1 Stage 1 — YOLOv11l tooth detection (reconciled and frozen, A100 run canonical)
+### 7.1 Stage 1 — tooth detection (two frozen detectors; the **seg** model is the pipeline default since 27 Aug 2026)
 
 | Run | GPU | imgsz | Epochs | Split | Precision | Recall | mAP@0.5 | mAP@0.5:0.95 |
 |-----|-----|-------|--------|-------|-----------|--------|---------|--------------|
 | **A100** | A100 80GB PCIe | 1024 | 150 req. / 128 run / best ep. 98 | val (150 img, 3,794 inst) | 0.788 | 0.772 | **0.834** | 0.367 |
 | **A100** | A100 80GB PCIe | 1024 | " | **test** (150 img, 3,924 inst) | 0.7643 | 0.7421 | **0.7824** | 0.3351 |
 | H200 | H200 143GB | 768 | 50 | val (150 img, 3,794 inst) | 0.609 | 0.678 | 0.678 | 0.282 |
+
+**Superseded as the default on 27 August 2026 by a YOLOv11l-*seg* retrain (R1).** Same frozen
+700/150/150 Tufts split, same imgsz 1024 / batch 32, only the model and the label geometry
+changed — the comparison was pre-registered in `T0.6_detector_reconciliation.md` §2 before any
+number was seen.
+
+| Run | Task | Split | Precision | Recall | mAP@0.5 | mAP@0.5:0.95 |
+|-----|------|-------|-----------|--------|---------|--------------|
+| **YOLOv11l-seg** (135 ep, best ep. 105) | **Box** | **test** (150 img, 3,930 inst) | 0.7666 | 0.7751 | **0.8100** | 0.3411 |
+| **YOLOv11l-seg** | Mask | **test** | 0.6270 | 0.6339 | **0.6383** | — |
+
+- **Box detection improved +2.76 points** over the bbox detector (0.8100 vs 0.7824) on the same
+  split. Training with mask supervision produced a *better box detector*, which is the number
+  that matters downstream — Stage 2 is capped by detector recall, not mask quality.
+- **The pre-registered mask bar (≥0.65) was NOT met** (0.6383, short by 0.0117). Per the
+  pre-registration the bar was **not moved after seeing the number**. The model was adopted
+  anyway on 27 Aug **by explicit human decision, for the box gain alone** — adoption is a dated
+  judgement call, not the bar being satisfied. Both facts are on the record.
+- **Consequence: the model is used for its BOXES ONLY, and R2 (mask-aware cropping, §6.6)
+  stays unwired**, because the masks are not validated to the standard §2 set for them.
+- Caveat, pre-registered: the seg test GT has 3,930 instances vs the bbox run's 3,924 (+0.15%),
+  so this is near-, not exactly, like-for-like.
+- Version tag `tooth-detector-seg-tufts-1024-v1.0`; SHA-256 in `model_metrics.md`.
+  Source: `models/11_yolo_seg_tufts_r1/run_summary.txt`, RESULTS_LOG 2026-08-27b/d.
+- **A first R1 run was withdrawn, not reported** — it trained 90 clean epochs on masks that were
+  spatially misaligned by two independent data defects (`teeth_polygon.json` stores `[y,x]`; the
+  Windows `Radiographs_rotated/` was 180° out). Caught by comparing val mAP 0.258 against the
+  bbox detector's 0.834 and treating the gap as a defect to explain rather than a number to
+  report. Median label IoU against the independent `teeth_bbox.json` ground truth went
+  **0.000 → 0.837** after the fix. Worth one methods sentence: *a falling loss curve is not
+  evidence of correct data.* RESULTS_LOG 2026-08-27a/c.
 
 - Training wall-clock: A100 0.592 h; H200 0.093 h. Inference ~3.1 ms/image on A100.
 - The val→test drop is ~5 mAP@0.5 points — modest, consistent with an honestly held-out split.
@@ -457,8 +488,8 @@ All figures for Stage 1 are in `docs/results/figures/yolo_detection_a100/`
   count), and copied into `models/06_yolo_detection_a100_run/`. Version tag
   `tooth-detector-a100-1024-v1.0`, SHA-256 in `docs/research/T0.6_detector_reconciliation.md`
   §1 and `model_metrics.md`. This table's heading can drop "unreconciled" now — updated below.
-  A YOLOv11l-seg retrain (R1) is still planned with a pre-registered acceptance criterion
-  (same document). **Update, later on 20 Aug 2026:** `teeth_polygon.json` and all 1,000 raw
+  A YOLOv11l-seg retrain (R1) was pre-registered in the same document and **has since been run
+  and adopted — see the seg table above** (27 Aug 2026). **Update, later on 20 Aug 2026:** `teeth_polygon.json` and all 1,000 raw
   Tufts radiographs were located (Google Drive) and the conversion pipeline
   (`scripts/yolo/convert_tufts_to_yolo_seg.py`) was run end-to-end against them successfully
   — see `docs/research/T0.6_detector_reconciliation.md` §3. **Update, 21 Aug 2026:** the
@@ -661,9 +692,15 @@ Stages 5 and 6 do not exist as code. Consequently:
 
 ### 8.5 Detection is below the published benchmark
 
-Test mAP@0.5 = 0.782 vs ≥ 0.90 reported for Tufts in the surveyed literature. Two competing
-runs exist and no canonical detector has been frozen. The 768 px run should be retired
-explicitly rather than left as an ambiguous alternative.
+Test mAP@0.5 = **0.8100** (the seg detector, pipeline default since 27 Aug 2026; the superseded
+bbox detector scored 0.7824) vs ≥ 0.90 reported for Tufts in the surveyed literature. The gap
+has narrowed but has not closed, and it should be stated rather than elided.
+
+> *Corrected 27 Aug 2026:* this section previously read "0.782 … two competing runs exist and no
+> canonical detector has been frozen", which was stale in both halves. Two detectors are now
+> frozen, tagged and hash-pinned (`tooth-detector-a100-1024-v1.0`,
+> `tooth-detector-seg-tufts-1024-v1.0`); the 768 px H200 run was retired in writing on
+> 20 Aug 2026. RESULTS_LOG 2026-08-27b/d.
 
 ### 8.6 Label noise from image-level supervision
 
@@ -812,6 +849,28 @@ and the head achieves 69.4% of it.
 > *Corrected 24 Aug 2026:* earlier drafts quoted a 67.0% ceiling and a +2.4-point margin.
 > 67.0% is the detector's **recall**; the ceiling is 66.3%, and the +2.4 compared two different
 > populations. RESULTS_LOG 2026-08-24a.
+
+> **Updated 27 Aug 2026 — the prediction in this section was tested, and it held.** This
+> section argued Stage 1 was the binding constraint. Replacing the detector with the seg model
+> (§7.1) and re-measuring Stage 2 on the identical 164-image leak-free DENTEX set moved
+> **end-to-end FDI exact from 46.3% to 58.3% (+12.0 points)** — the largest single jump this
+> project has recorded, and the head itself was not retrained.
+>
+> | | bbox (control) | **seg (adopted)** | Δ |
+> |---|---|---|---|
+> | Detection recall | 67.3% | **70.6%** | +3.3 pp |
+> | FDI exact (of detected) | 68.7% | **82.6%** | +13.9 pp |
+> | **FDI exact, end-to-end** | 46.3% | **58.3%** | **+12.0 pp** |
+>
+> **Recall rose 3.3 points but end-to-end rose 12.0**, and that asymmetry is the interesting
+> result. Detections per image *fell* (23.7 → 22.0) while recall *rose*: the seg detector emits
+> fewer spurious boxes, and every spurious box perturbs the Hungarian assignment across a whole
+> quadrant. Off-by-one errors nearly halved (22.7% → 13.5%). **Precision in the detector is
+> worth more to Stage 2 than recall is** — a claim about pipeline coupling, not about either
+> model, and one most stage-wise evaluations cannot see. A control on the old detector was run
+> first so the delta is attributable to the detector alone. RESULTS_LOG 2026-08-27e.
+>
+> The bottleneck is still Stage 1 (70.6% recall caps end-to-end), but it is a looser one.
 
 **Prior art and framing (added 22 Aug 2026, after reading both papers directly).**
 DPML (Cao et al., *Expert Systems With Applications* 254:124446, 2024) §3.4 independently
@@ -1029,8 +1088,18 @@ For whoever drafts the actual paper. Tick items off here as they land.
       other and the correct table, and the tests name the historical bug (shifted lower arch,
       duplicated FDI 33/34) explicitly. This item, and the matching warnings in the root
       `README.md`, had stayed open in writing after the fix landed.
-- [ ] Build Stages 5–6 (integration) and report at least one end-to-end example, or state
+- [x] Build Stages 5–6 (integration) and report at least one end-to-end example, or state
       unambiguously in the abstract that the system is evaluated stage-wise only.
+      **Done 24 Aug 2026** — `scripts/run_inference.py` runs all six stages, image → per-tooth
+      JSON + overlay (R4, paper claim C3); `app.py` + `Dockerfile` wrap it unchanged for a
+      browser demo (25 Aug). RESULTS_LOG 2026-08-24f, 2026-08-25f. *(This item stayed unticked
+      in writing for three days after it landed — noted because it is this repo's recurring
+      failure mode, not because the work was late.)*
+- [x] Run and report the pre-registered YOLOv11l-seg retrain (R1). **Done 27 Aug 2026** — box
+      bar passed (0.8100 ≥ 0.75), **mask bar missed** (0.6383 < 0.65), adopted as the Stage-1
+      default by explicit human decision for the box gain; Stage 2 re-measured end-to-end
+      46.3% → 58.3%. §7.1 and §8.10 above. **Write both halves — the missed bar is part of
+      the result, and the adoption was a judgement call, not a pass.**
 
 **Content still to write**
 

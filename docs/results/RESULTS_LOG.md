@@ -3404,3 +3404,47 @@ pending decision in `transfer.md` §4.
   invocation must pass explicit weights. Worth aligning deliberately. (2) C2's Ningxia external
   validation still used the old detector and remains stale. (3) The seg checkpoint is still not
   uploaded to Drive — a fresh clone still cannot run the pipeline.
+
+---
+
+## 2026-08-27f — R1's results propagated into the paper doc and the READMEs; a fresh-clone break found
+
+- **What was done:** Cold-start orientation pass found that 2026-08-27b/d/e were written into
+  `RESULTS_LOG.md`, `model_metrics.md` and `transfer.md` but **never into
+  `PAPER_MATERIAL.md` or the root `README.md`** — `CLAUDE.md` rule 1 item 3, unfulfilled. The
+  largest result this project has recorded (+12.0 points end-to-end) and a changed Stage-1
+  default were absent from the document the paper is written from. Propagated, and found one
+  genuine correctness break while doing it.
+- **Dataset / config:** n/a — documentation only. No number was recomputed; every figure
+  written was copied from 2026-08-27b/d/e and `models/11_yolo_seg_tufts_r1/run_summary.txt`.
+- **Metrics:** no new metrics. Verified unchanged before and after: **65/65 tests pass**,
+  `verify_invariants.py` **all invariants hold** (with the expected Windows SKIPs for absent
+  DENTEX/caries-gate artefacts).
+- **The correctness break — this is the part that mattered.** `README.md`'s fresh-clone recipe
+  told the reader to fetch `models/06_yolo_detection_a100_run/best.pt`, but
+  `run_inference.py:94` has pointed `DEF_DETECTOR` at `models/11_yolo_seg_tufts_r1/best.pt`
+  since the 27 Aug adoption. **A reader following the README exactly would fetch the superseded
+  detector and then fail on a missing file** — with no hint as to why, since the file the
+  pipeline actually wants is not on Drive at all. Now documented with the `--detector` fallback
+  (and its honest cost: 46.3% end-to-end, not 58.3%).
+- **Key decision or insight:** the adoption of a new default checkpoint has a **documentation
+  blast radius**, and it is not the same as the blast radius of a new number. 2026-08-27c
+  traced the *data* blast radius of the mask defects carefully and correctly; nobody traced the
+  *default-changed* blast radius, which is why a stale fetch instruction survived. Changing a
+  `DEF_*` constant should trigger a grep for every path that names the old one.
+- **What was changed:** `PAPER_MATERIAL.md` §7.1 (seg results table, the missed mask bar, the
+  withdrawn run as a methods note), §8.5 (was stale in both halves — "0.782" and "no canonical
+  detector has been frozen"), §8.10 (the Stage-1-is-the-bottleneck prediction, now tested and
+  held, with the recall-vs-precision asymmetry), §9 checklist (R1 ticked; Stages 5–6 ticked —
+  it had sat unticked for three days after landing). `README.md` stage table, metrics table,
+  limitations blurb, publication assessment, fresh-clone recipe. Scoping pointers added to
+  `src/README.md` and `models/README.md`, whose 46.5%/46.58% tables are correctly-scoped
+  historical comparisons but were newly easy to misread as current.
+- **Source:** no new artefact. Traceability is to 2026-08-27b (`models/11_yolo_seg_tufts_r1/`),
+  2026-08-27d (adoption) and 2026-08-27e (`outputs/stage2_segdet/`).
+- **Follow-ups:** unchanged and still open — (1) upload the seg checkpoint to Drive, which is
+  the only thing standing between this repo and a working fresh clone; (2) C2's Ningxia numbers
+  are still on the old detector; (3) `validate_fdi_assignment.py`'s defaults still name the old
+  detector and v1.0 head. Newly noted: Docker Desktop **is installed on the Windows machine**
+  but its engine is not running — `docker build` has never once been executed
+  (`transfer.md` §3 item 7) and is now one `Start Docker Desktop` away from being testable.

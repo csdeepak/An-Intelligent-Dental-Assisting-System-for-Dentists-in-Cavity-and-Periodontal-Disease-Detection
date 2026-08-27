@@ -58,6 +58,11 @@ images** (936 teeth), same detector, same matching rule:
 | Quadrant correct | 92.3% | **94.7%** |
 | FDI exact (of detected) | 34.1% | **69.4%** |
 | **FDI exact, end-to-end** | 22.9% | **46.5%** |
+
+> **These are bbox-detector numbers and are kept as the positional-vs-learned comparison they
+> have always been.** The Stage-1 default changed to the seg detector on 27 Aug 2026 and
+> **end-to-end is now 58.3%** (same head, better boxes) — `docs/results/model_metrics.md`,
+> RESULTS_LOG 2026-08-27e. Do not quote 46.5% as the current pipeline number.
 | Duplicate FDI codes | 0 (by construction) | **0** (via Hungarian) |
 
 **A 2.0× improvement on both measures.** Positional assignment has a hard ceiling — it reaches

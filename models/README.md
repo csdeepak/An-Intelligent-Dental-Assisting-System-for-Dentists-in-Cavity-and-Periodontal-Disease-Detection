@@ -55,6 +55,11 @@ accuracy improvement.** Measured both ways (`RESULTS_LOG.md` 2026-08-25j, 2026-0
 | v1.0 (DENTEX only) | 46.47% | 50.0% |
 | **v2.0 (DENTEX + Tufts)** | 46.58% (+0.11pp — inside the ~1pt noise floor) | **71.5%** (+21.5pp) |
 
+> **Both columns were measured on the superseded bbox detector**, which is what makes them a
+> fair head-vs-head comparison. On the seg detector (Stage-1 default since 27 Aug 2026) the
+> same v2.0 head reaches **58.3% end-to-end on DENTEX**. The head did not change; the boxes
+> did. RESULTS_LOG 2026-08-27e.
+
 A Tufts-only head was also trained and rejected: it loses 9.1 points on DENTEX while its edge
 over v2.0 on Tufts is not statistically significant (McNemar p=0.732). v2.0 strictly dominates
 it. `v1.0` is retained and still hash-pinned by `scripts/eval/verify_invariants.py` — it is the

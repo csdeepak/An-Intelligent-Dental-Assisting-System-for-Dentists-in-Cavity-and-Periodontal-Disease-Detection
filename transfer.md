@@ -6,7 +6,12 @@ It is **rewritten, not appended to** — unlike `docs/results/RESULTS_LOG.md` (a
 history) and `docs/session-memory/` (one file per session, never edited). Those two are the
 record; this is the snapshot.
 
-**Last updated: 27 August 2026** (R1 ran twice — the first attempt was withdrawn, its masks
+**Last updated: 27 August 2026** (later the same day: a cold-start orientation pass found R1's
+results had never reached `PAPER_MATERIAL.md` or the root `README.md` — rule 1 item 3 — and
+propagated them. That sweep turned up a **fresh-clone break**: the README told you to fetch the
+*superseded* detector while `run_inference.py` defaults to the seg one. Fixed, with a documented
+`--detector` fallback. `RESULTS_LOG.md` 2026-08-27f. Also: **Docker Desktop is installed on this
+machine but not running** — §3 item 7 is one click from being testable. Earlier that day: R1 ran twice — the first attempt was withdrawn, its masks
 misaligned by two data defects, both now fixed. The re-run passed the box bar, missed the mask
 bar, and was **adopted anyway by user decision** for its box gain. Stage-2 was then
 **re-measured on DENTEX: end-to-end 46.3% → 58.3%, +12.0 points** — the largest single jump this
@@ -267,8 +272,12 @@ the next one.** Ordered by what actually blocks something else:
    for two weeks. The cheapest open item in the project; there is no reason this stays open.
 6. **Version-tag the bone-loss weights.** Stages 4a/4b are the only trained models without a
    tag now that both enumeration heads and the caries gate v3 are frozen. Trivial, just undone.
-7. **Verify `docker build` actually completes.** Never run (daemon unavailable every session so
-   far). Every static check passed (file paths, package list, CLI flag syntax verified by
+7. **Verify `docker build` actually completes. ⭐ Now the cheapest unblockable item on this
+   machine.** Never run (daemon unavailable every session so far) — **but the Windows machine
+   has the Docker CLI installed and only the engine is stopped** (`docker version` reaches the
+   named pipe and reports it missing, rather than reporting no such command; verified 27 Aug).
+   **Starting Docker Desktop is a one-click user action that unblocks a Review-1 blocker for
+   zero compute.** Every static check passed (file paths, package list, CLI flag syntax verified by
    actually starting the process) but a real build has never happened. Do this before trusting
    the deployment demo for Review 1.
 8. **Consider the third public FDI corpus.** DentFound's tooth-ID training data includes the
