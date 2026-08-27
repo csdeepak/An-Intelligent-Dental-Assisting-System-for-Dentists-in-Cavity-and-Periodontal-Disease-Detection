@@ -297,12 +297,18 @@ the next one.** Ordered by what actually blocks something else:
    needed now that every checkpoint is on local disk). `import cv2` works — the failure mode the
    Dockerfile warns about, which only shows at container start — and `numpy` is 1.26.4 with the
    Hungarian assignment working. **This is no longer a Review-1 blocker.**
-   ⚠️ **But the image is not what the Dockerfile claims.** It says "CPU-only image,
-   deliberately"; pip actually pulled the **CUDA** torch wheel plus ~2 GB of NVIDIA libraries
-   (`torch 2.13.0+cu130`, `cuda_available: False` — a CUDA build that can never use CUDA). And
-   `torch` is unpinned (`>=2.0.0`), so the container runs **2.13.0** while every published number
-   was measured on **2.2.0**. Both are real defects, both need a rebuild to re-verify, and both
-   are left as proposals rather than silently applied. `RESULTS_LOG.md` 2026-08-27j.
+   ✅ **Both image defects found by that first run are now FIXED and re-verified**
+   (`RESULTS_LOG.md` 2026-08-27k). The image really is CPU-only (torch installed first from the
+   CPU wheel index) and torch is pinned to **2.2.0**, the version every published number was
+   measured on — pinned in the Dockerfile rather than `requirements.txt`, since the two machines
+   run different torch versions and both pass the suite. **Image 11.2 GB → 4.69 GB (−58%).**
+   A build-time guard now asserts the torch wheel is not CUDA, numpy is 1.x, and the Hungarian
+   assignment runs, so the **build fails** instead of the defect surfacing in a live container:
+   `OK torch 2.2.0+cpu | numpy 1.26.4 | hungarian works`.
+   ⚠️ **Remaining known bloat, both needing a decision outside the Dockerfile:** `jupyter`
+   is still installed into a Streamlit-only image (removing it means editing the shared
+   `requirements.txt`), and `.dockerignore` still ships `models/*/run/` and `models/06/last.pt`,
+   which inference never reads.
 8. **Consider the third public FDI corpus.** DentFound's tooth-ID training data includes the
    Kaggle *Dual-labeled Panoramic Radiographs* set — 2,000 images, **native FDI 11–48, no
    mirror to correct**, larger than DENTEX (634) or Tufts (1,000). Would turn a 2-corpus

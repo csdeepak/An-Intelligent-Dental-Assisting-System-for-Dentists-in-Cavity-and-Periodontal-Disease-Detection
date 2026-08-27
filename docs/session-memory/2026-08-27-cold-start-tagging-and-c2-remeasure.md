@@ -67,7 +67,15 @@ at container start — and numpy is 1.26.4 with the Hungarian assignment intact.
   was measured on 2.2.0. numpy is pinned; torch is not.
 
 Both change the deployment artefact and need a rebuild to re-verify, so I proposed rather than
-silently applied them.
+silently applied them — **then, on request, applied and re-verified both.** Torch now installs
+first from the CPU wheel index, pinned to 2.2.0 (in the Dockerfile, not `requirements.txt`,
+since the two machines run different torch versions and both pass the suite). **Image
+11.2 GB → 4.69 GB, −58%**, and the rebuilt container was re-verified end to end.
+
+The durable part is not the fix but the **guard**: a build-time assertion that the torch wheel
+is not CUDA, numpy is 1.x, and `linear_sum_assignment` runs — so the *build* fails rather than
+the defect surfacing in a live container. Both failure modes were previously silent. This is the
+same "enforce in code, not documentation" move the Tufts geometry fix made on 27 Aug.
 
 **A self-inflicted detour worth remembering.** The first build's CLI looked hung for ~25 min
 after `naming to … done`. It wasn't — the final `unpacking` step takes **591.8 s** for an image

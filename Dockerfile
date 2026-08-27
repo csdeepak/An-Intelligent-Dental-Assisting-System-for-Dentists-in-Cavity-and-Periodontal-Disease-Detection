@@ -11,8 +11,16 @@
 # Then open http://localhost:8501
 #
 # CPU-only image, deliberately: nothing in this pipeline needs a GPU for inference (~2s/image
-# measured on Apple Silicon MPS; a few seconds on CPU). A CUDA base image would roughly 5x the
-# build size for no inference-time benefit.
+# measured on Apple Silicon MPS; a few seconds on CPU).
+#
+# ENFORCED, not just intended (27 Aug 2026). This comment used to say a CUDA base image "would
+# roughly 5x the build size for no inference-time benefit" -- correct reasoning, but nothing
+# implemented it. The base image is not CUDA, yet `pip install torch` on linux defaults to the
+# CUDA WHEEL, so the first build of this file pulled ~2 GB of NVIDIA libraries (cublas 423MB,
+# cudnn 366MB, cufft 214MB, nccl 206MB, cusolver 201MB, and nine more) and produced
+# `torch 2.13.0+cu130` reporting `cuda_available: False` -- a CUDA build that can never use
+# CUDA. RESULTS_LOG 2026-08-27j. The explicit CPU index below is what actually makes this a
+# CPU-only image, and the assertion further down fails the BUILD if it ever stops being one.
 
 FROM python:3.12-slim
 
@@ -26,11 +34,33 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
+# Torch FIRST, pinned, from the CPU-only wheel index. Order matters: once torch and
+# torchvision are satisfied here, `pip install -r requirements.txt` below (which asks only for
+# `torch>=2.0.0`) leaves them alone instead of resolving the CUDA build from PyPI.
+#
+# WHY 2.2.0 SPECIFICALLY, and not "latest": every published number in this repo was produced on
+# torch 2.2.0 (transfer.md 8). requirements.txt pins numpy<2 precisely to protect that
+# environment, but left torch unbounded at `>=2.0.0` -- so the first build of this image
+# resolved 2.13.0 and the deployment artefact demonstrated results it could not reproduce.
+# Pinning here rather than in requirements.txt on purpose: the two development machines
+# currently run different torch versions (2.2.0 on macOS, 2.13.0+cpu on Windows) and both pass
+# the full suite, so requirements.txt stays the permissive dev spec while the IMAGE -- the thing
+# that has to be reproducible -- is exact. RESULTS_LOG 2026-08-27j.
+RUN pip install --no-cache-dir \
+    --index-url https://download.pytorch.org/whl/cpu \
+    torch==2.2.0 torchvision==0.17.0
+
 # numpy MUST stay below 2 -- see requirements.txt's own comment and RESULTS_LOG 2026-08-24b.
 # Installing requirements.txt as committed already enforces this; restated here because a
 # Docker layer is exactly the kind of place that gets copy-pasted without re-reading why.
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Fail the BUILD, not the container, if either invariant above ever silently regresses. Both
+# failure modes are real and both were silent: a CUDA torch wheel (caught only by reading
+# `torch.__version__` inside a running container) and numpy 2.x (which breaks scipy.optimize's
+# Hungarian assignment at import -- the FDI numbering stage -- rather than erroring loudly).
+RUN python -c "import numpy, torch; assert '+cu' not in torch.__version__, 'torch %s is a CUDA build; this image is meant to be CPU-only -- check the --index-url above' % torch.__version__; assert numpy.__version__.startswith('1.'), 'numpy %s must stay <2 -- it silently breaks scipy.optimize (the Hungarian FDI assignment) at import' % numpy.__version__; from scipy.optimize import linear_sum_assignment; linear_sum_assignment(numpy.array([[1.0, 2.0], [3.0, 4.0]])); print('OK torch %s | numpy %s | hungarian works' % (torch.__version__, numpy.__version__))"
 
 # Code and every checkpoint UNDER models/ that happens to be on the local disk at build time.
 # COPY is not git-aware: on a machine where the two Drive-only checkpoints

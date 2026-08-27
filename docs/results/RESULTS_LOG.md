@@ -3692,3 +3692,62 @@ angxia_dataset`, so the blocker recorded earlier today is lifted.
   (2) Consider excluding `models/*/run/` and `*/last.pt` from the build context.
   (3) `docker system df` reports 17.67 GB of images and 8.67 GB of build cache on this machine;
   a prune is worth discussing separately.
+
+---
+
+## 2026-08-27k — Both Dockerfile defects fixed and re-verified; image 11.2 GB → 4.69 GB
+
+- **What was done:** Applied the two fixes 2026-08-27j proposed, rebuilt, and re-verified the
+  running app. Both defects were things the Dockerfile *claimed* but did not enforce.
+- **Fix 1 — the image is now actually CPU-only.** Torch is installed **first**, pinned, from
+  `--index-url https://download.pytorch.org/whl/cpu`. Order is the mechanism: once torch and
+  torchvision are satisfied, the later `pip install -r requirements.txt` (which asks only for
+  `torch>=2.0.0`) leaves them alone instead of resolving the CUDA build from PyPI. Confirmed in
+  the build log — **no `nvidia_*` CUDA runtime wheels at all** this time. The single remaining
+  `nvidia` hit is `nvidia_ml_py` (53 kB), NVIDIA's management-library bindings pulled by
+  ultralytics for GPU monitoring; it is not a CUDA runtime library.
+- **Fix 2 — torch pinned to 2.2.0**, the version every published number was measured on
+  (`transfer.md` §8). **Pinned in the Dockerfile, not `requirements.txt`, deliberately:** the two
+  development machines currently run different torch versions (2.2.0 on macOS, 2.13.0+cpu on
+  Windows) and both pass the full suite, so `requirements.txt` stays the permissive dev spec
+  while the *image* — the artefact that has to be reproducible against published results — is
+  exact. Verified along the way that torch 2.2.0 has a cp312 wheel (the base image is
+  python:3.12-slim) and that ultralytics does not force a newer torch.
+- **The part that outlasts this fix — the intent is now ENFORCED, not commented.** A build-time
+  guard asserts the torch wheel is not a CUDA build, that numpy is 1.x, and that
+  `scipy.optimize.linear_sum_assignment` actually runs, so the **build fails** rather than the
+  defect surfacing later in a running container. Both failure modes it covers were previously
+  silent: the CUDA wheel was detectable only by reading `torch.__version__` inside a live
+  container, and numpy 2.x breaks the Hungarian FDI assignment at import rather than erroring
+  loudly. It is written as `python -c` rather than a `RUN` heredoc on purpose — heredocs need
+  the BuildKit 1.4+ frontend via a `# syntax` directive this Dockerfile does not carry.
+  Guard output, from the build itself:
+
+      #12 3.376 OK torch 2.2.0+cpu | numpy 1.26.4 | hungarian works
+
+- **RESULT:**
+
+  | | before | after |
+  |---|---|---|
+  | Image size | **11.2 GB** | **4.69 GB** (−58%) |
+  | torch | 2.13.0+**cu130**, `cuda_available: False` | **2.2.0+cpu** |
+  | pip layer (requirements) | 534.7 s | **102.2 s** |
+  | Final unpack step | 591.8 s | **127.2 s** |
+
+  Both sizes are complete builds measured the same way, so the comparison is like-for-like. (The
+  3.9 GB figure quoted in 2026-08-27j was the *interrupted* image and is not a valid baseline.)
+- **Re-verified running, not just built:** container healthy in ~3 s, `cv2` 4.11.0,
+  `torch 2.2.0+cpu`, `numpy 1.26.4`, streamlit 1.62.0; all seven checkpoints loaded inside the
+  container; Streamlit rendered the upload widget ("Upload an OPG … 200MB per file • PNG, JPG");
+  container logs free of any traceback, error or load failure.
+- **NOT done, deliberately:** `jupyter` and `ipykernel` are still installed into an image whose
+  only job is serving Streamlit — the build log shows the full jupyterlab/jupyter-server/
+  argon2-cffi tree being pulled. Removing them means changing `requirements.txt`, which is the
+  shared dev spec for both machines, so it is a separate decision rather than a Dockerfile
+  tweak. Likewise `.dockerignore` still ships `models/*/run/` and `models/06/last.pt`, which
+  inference never reads (~300 MB of the 608 MB models context).
+- **Source:** `Dockerfile`; build log in the session scratchpad; `docker images opg-demo`;
+  `docker exec opg-demo-run python -c "import cv2, torch, numpy, streamlit"`; browser render of
+  `http://localhost:8501`.
+- **Follow-ups:** the two items above (`jupyter` in the image, `models/*/run/` in the build
+  context) are the remaining known bloat, both requiring a decision outside the Dockerfile.
