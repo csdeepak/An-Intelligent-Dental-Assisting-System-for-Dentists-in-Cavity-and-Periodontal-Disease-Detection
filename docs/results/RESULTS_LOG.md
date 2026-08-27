@@ -3751,3 +3751,49 @@ angxia_dataset`, so the blocker recorded earlier today is lifted.
   `http://localhost:8501`.
 - **Follow-ups:** the two items above (`jupyter` in the image, `models/*/run/` in the build
   context) are the remaining known bloat, both requiring a decision outside the Dockerfile.
+
+---
+
+## 2026-08-27l — jupyter removed from the demo image; 4.69 GB → 4.4 GB
+
+- **What was done:** Removed `jupyter` and `ipykernel` from the deployment image. 2026-08-27k
+  had listed this as deliberately not done, because it looked like it required editing
+  `requirements.txt`, which is the shared dev spec. It does not — the image now installs a
+  **derived subset** instead.
+- **Checked before removing, not assumed:** nothing in `app.py`, `src/` or
+  `scripts/run_inference.py` imports `jupyter`, `ipykernel` or `IPython`, and the image's only
+  job is `streamlit run app.py`. Meanwhile the repo tracks **12 notebooks** under `notebooks/`,
+  so `requirements.txt` must keep both packages for development.
+- **How — filtered, not duplicated.** The Dockerfile derives the deploy set at build time:
+
+      RUN grep -vE '^(jupyter|ipykernel)([<>=!~]|$)' requirements.txt > /tmp/requirements-deploy.txt           && pip install --no-cache-dir -r /tmp/requirements-deploy.txt
+
+  **A second `requirements-deploy.txt` was deliberately NOT created.** It would be a second
+  source of truth that drifts from the first — precisely the failure mode this repo keeps
+  finding in its own documentation, and the reason `regenerate_split_v1.py` derives the frozen
+  split from code rather than carrying a copy. Deriving means a new dependency is picked up
+  automatically and only the explicit exclusions need maintaining. The step echoes the filtered
+  list into the build log, so what was installed is always on the record.
+- **Guard extended in the same commit** — it now also asserts `notebook` and `jupyterlab` are
+  unimportable, **and** that every runtime import still resolves (`cv2`, `streamlit`,
+  `ultralytics`, `sklearn`, `pandas`, `yaml`, `PIL`). That second half matters more than the
+  first: if the filter ever over-matches and strips something the app needs, the **build** fails
+  instead of the container. Guard output:
+
+      #12 5.188 OK torch 2.2.0+cpu | numpy 1.26.4 | cv2 4.11.0 | streamlit 1.62.0 | hungarian works | no jupyter
+
+- **RESULT: 4.69 GB → 4.4 GB (−290 MB).** The whole jupyterlab / jupyter-server / argon2-cffi
+  tree is gone from the build log. Modest next to the −6.5 GB from the CUDA fix, but real, and
+  it removes a notebook server from a deployment artefact — a smaller attack surface as much as
+  a smaller image.
+- **Re-verified running, not just built:** healthy in ~3 s; `cv2` 4.11.0, `torch 2.2.0+cpu`,
+  `numpy` 1.26.4, `streamlit` 1.62.0, `ultralytics` 8.4.130; `jupyter present: False`,
+  `ipykernel present: False`; all seven checkpoints loaded; Streamlit rendered the upload widget;
+  logs free of any traceback or load failure.
+- **Cumulative effect of 27j → 27l on the deployment image: 11.2 GB → 4.4 GB (−61%)**, and it
+  now runs the torch version its results were measured on.
+- **Source:** `Dockerfile`; build log in the session scratchpad; `docker images opg-demo`;
+  `docker exec opg-demo-run python -c "…find_spec('notebook')…"`; browser render of
+  `http://localhost:8501`.
+- **Follow-ups:** one known bloat item left — `.dockerignore` still ships `models/*/run/` and
+  `models/06/last.pt`, roughly 300 MB of the 608 MB models context that inference never reads.

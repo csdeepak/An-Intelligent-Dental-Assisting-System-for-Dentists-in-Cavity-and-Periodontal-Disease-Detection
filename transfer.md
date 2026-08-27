@@ -305,10 +305,13 @@ the next one.** Ordered by what actually blocks something else:
    A build-time guard now asserts the torch wheel is not CUDA, numpy is 1.x, and the Hungarian
    assignment runs, so the **build fails** instead of the defect surfacing in a live container:
    `OK torch 2.2.0+cpu | numpy 1.26.4 | hungarian works`.
-   ⚠️ **Remaining known bloat, both needing a decision outside the Dockerfile:** `jupyter`
-   is still installed into a Streamlit-only image (removing it means editing the shared
-   `requirements.txt`), and `.dockerignore` still ships `models/*/run/` and `models/06/last.pt`,
-   which inference never reads.
+   ✅ **`jupyter` removed too** (27 Aug, `RESULTS_LOG.md` 2026-08-27l) — not by editing the
+   shared `requirements.txt`, which must keep it for the 12 tracked notebooks, but by having the
+   Dockerfile install a **derived** subset (`grep -vE '^(jupyter|ipykernel)'`). No second
+   requirements file, so nothing can drift. The guard now also asserts the jupyter stack is
+   absent *and* that every runtime import still resolves. **Cumulative: 11.2 GB → 4.4 GB, −61%.**
+   ⚠️ **One bloat item left:** `.dockerignore` still ships `models/*/run/` and
+   `models/06/last.pt` — ~300 MB of the 608 MB models context that inference never reads.
 8. **Consider the third public FDI corpus.** DentFound's tooth-ID training data includes the
    Kaggle *Dual-labeled Panoramic Radiographs* set — 2,000 images, **native FDI 11–48, no
    mirror to correct**, larger than DENTEX (634) or Tufts (1,000). Would turn a 2-corpus

@@ -53,14 +53,27 @@ RUN pip install --no-cache-dir \
 # numpy MUST stay below 2 -- see requirements.txt's own comment and RESULTS_LOG 2026-08-24b.
 # Installing requirements.txt as committed already enforces this; restated here because a
 # Docker layer is exactly the kind of place that gets copy-pasted without re-reading why.
+#
+# The image installs a DERIVED subset, not the file verbatim: `jupyter` and `ipykernel` are
+# development dependencies (this repo tracks 12 notebooks under notebooks/, so requirements.txt
+# must keep them) and have no place in an image whose only job is `streamlit run app.py`.
+# Verified before removing: nothing in app.py, src/ or scripts/run_inference.py imports jupyter,
+# ipykernel or IPython. Left in, they drag the whole jupyterlab / jupyter-server / argon2-cffi
+# tree into the image.
+#
+# FILTERED rather than duplicated into a second requirements file, on purpose. A
+# requirements-deploy.txt would be a second source of truth that silently drifts from the first
+# -- the exact failure mode this repo keeps finding in its own documentation. Deriving the
+# deploy set from the dev set means a new dependency is picked up automatically, and only the
+# explicit exclusions below ever need maintaining.
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN grep -vE '^(jupyter|ipykernel)([<>=!~]|$)' requirements.txt > /tmp/requirements-deploy.txt     && echo "--- installing (jupyter/ipykernel excluded) ---"     && cat /tmp/requirements-deploy.txt     && pip install --no-cache-dir -r /tmp/requirements-deploy.txt
 
 # Fail the BUILD, not the container, if either invariant above ever silently regresses. Both
 # failure modes are real and both were silent: a CUDA torch wheel (caught only by reading
 # `torch.__version__` inside a running container) and numpy 2.x (which breaks scipy.optimize's
 # Hungarian assignment at import -- the FDI numbering stage -- rather than erroring loudly).
-RUN python -c "import numpy, torch; assert '+cu' not in torch.__version__, 'torch %s is a CUDA build; this image is meant to be CPU-only -- check the --index-url above' % torch.__version__; assert numpy.__version__.startswith('1.'), 'numpy %s must stay <2 -- it silently breaks scipy.optimize (the Hungarian FDI assignment) at import' % numpy.__version__; from scipy.optimize import linear_sum_assignment; linear_sum_assignment(numpy.array([[1.0, 2.0], [3.0, 4.0]])); print('OK torch %s | numpy %s | hungarian works' % (torch.__version__, numpy.__version__))"
+RUN python -c "import importlib.util as u, numpy, torch; assert '+cu' not in torch.__version__, 'torch %s is a CUDA build; this image is meant to be CPU-only -- check the --index-url above' % torch.__version__; assert numpy.__version__.startswith('1.'), 'numpy %s must stay <2 -- it silently breaks scipy.optimize (the Hungarian FDI assignment) at import' % numpy.__version__; from scipy.optimize import linear_sum_assignment; linear_sum_assignment(numpy.array([[1.0, 2.0], [3.0, 4.0]])); assert u.find_spec('notebook') is None and u.find_spec('jupyterlab') is None, 'the jupyter stack leaked into the image -- check the grep filter above'; import cv2, streamlit, ultralytics, sklearn, pandas, yaml, PIL; print('OK torch %s | numpy %s | cv2 %s | streamlit %s | hungarian works | no jupyter' % (torch.__version__, numpy.__version__, cv2.__version__, streamlit.__version__))"
 
 # Code and every checkpoint UNDER models/ that happens to be on the local disk at build time.
 # COPY is not git-aware: on a machine where the two Drive-only checkpoints
