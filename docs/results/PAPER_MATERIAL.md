@@ -1442,6 +1442,39 @@ flag rather than a finding, and it must be reported with that support attached.
 
 ---
 
+### 8.18 Training dynamics — the bone-loss model overfits, and its headline is a noisy maximum
+
+**Regenerated 27 Aug 2026** from committed artifacts (`models/03/training_history.json`, 32
+epochs). Figures: `figures/paper/stage4a_training_curves.png`,
+`figures/paper/stage34_confusion_matrices.png`.
+
+**Train loss falls 0.126 → ~0.002 while validation loss flattens near 0.05 from about epoch 5 and
+never improves again** — a ~25x gap. The Stage-4a model **overfits heavily**. With 711 positive
+training crops, themselves partly augmented duplicates of the same teeth, that is expected; it had
+simply never been shown.
+
+**The 0.9233 is the maximum of a noisy curve, and should be reported as such.** Diseased-class
+validation F1 oscillates between roughly **0.40 and 0.85 from epoch to epoch**. There are only
+**59 validation positives**, so one tooth moves F1 by ~1.7 points and those swings are sampling
+noise rather than learning. Selecting the best of 32 such draws is **optimistically biased** — the
+reported figure is a peak, not a stable estimate, and a bootstrap or repeated-split estimate would
+almost certainly sit lower.
+
+**This is corroborating evidence for §8.13, not a separate complaint.** A model that memorises its
+training positives and is then selected on the peak of a noisy validation curve is precisely the
+model one expects to collapse out of domain — and it does, on two independent external datasets.
+The training dynamics and the domain-shift measurement tell the same story from different ends.
+
+**The caries gate degrades val → test**: precision 0.515 → **0.398**, macro-F1 0.735 → 0.695. The
+test figure is the one to quote.
+
+⚠️ **Two figures cannot be regenerated and are not faked.** Caries training curves —
+`results.json` records `best_epoch` and final metrics but no per-epoch history. Stage-4b severity
+confusion matrix — only per-class F1 was saved, on 52 crops. Both gaps are printed by
+`make_stage34_figures.py` itself.
+
+---
+
 ## 9. What's not yet written — checklist
 
 For whoever drafts the actual paper. Tick items off here as they land.
@@ -1534,9 +1567,12 @@ For whoever drafts the actual paper. Tick items off here as they land.
       (RESULTS_LOG 2026-08-27u). A caries failure panel is buildable from `crops_v3_phase1`.
 - [~] **PARTIALLY DONE 27 Aug 2026** (§8.14) — cluster-bootstrap 95% CIs over images for Stage-2 (recall, FDI exact ×2), DENTEX lesion agreement, and Ningxia caries per hospital, plus paired CIs on the detector-swap deltas. **Still missing: Ningxia periodontitis, detection mAP, and both ResNet18 classifiers**, all of which need per-item prediction dumps first. Original item: Statistical treatment: confidence intervals or k-fold for every headline metric —
       especially the 52-crop severity model.
-- [ ] Figures for Stages 3/4: training curves and confusion matrices are referenced in the
-      training summaries as saved to Google Drive but are **not** in this repo. Recover
-      them into `docs/results/figures/` or regenerate.
+- [x] Figures for Stages 3/4: training curves and confusion matrices. **Done 27 Aug 2026** —
+      **regenerated** from committed artifacts rather than recovered from the archive, so both
+      figure and numbers are reproducible from the repo (§8.18):
+      `stage4a_training_curves.png`, `stage34_confusion_matrices.png`.
+      **Still missing, recorded not faked:** caries training curves (no per-epoch history was
+      ever saved) and the Stage-4b severity confusion matrix (per-class F1 only, 52 crops).
 
 **Nice to have**
 

@@ -4417,3 +4417,50 @@ angxia_dataset`, so the blocker recorded earlier today is lifted.
 - **Follow-ups:** (1) have a clinician check whether the high-confidence false positives are
   restored teeth — if so, the negative class definition, not the model, is the defect worth
   writing up. (2) The `deep_caries` miss rate deserves a look once support allows.
+
+---
+
+## 2026-08-27x — Stage 3/4 figures regenerated from tracked artifacts; the curves show heavy overfitting
+
+- **What was done:** regenerated the Stage-3 and Stage-4a figures §9 has wanted since the
+  beginning. `scripts/figures/make_stage34_figures.py`. **Regenerated, not recovered:** the
+  original PNGs sit in `_repo_archive/pes_capstone_report/figures/`, but copying them in would add
+  pictures whose provenance is an un-rerunnable notebook. Every panel here is drawn from a
+  **committed** artifact — `models/03/training_history.json` (32 epochs),
+  `models/03/training_summary.txt`, `models/09_caries_gate_v3/results.json` — so both the figure
+  and every number in it are traceable and reproducible from the repo alone.
+- **Two figures written:** `stage4a_training_curves.png` (loss, validation F1 with the selection
+  epoch marked, LR schedule) and `stage34_confusion_matrices.png` (bone-loss val, caries gate val
+  and test). Best epoch resolves to **22**, matching `training_summary.txt` exactly.
+- **A cross-check worth recording: the caries test confusion reproduces independently.**
+  `results.json` records `[[94, 33], [142, 594]]` for the test split, and 2026-08-27w computed
+  **TP 94 · FN 33 · FP 142 · TN 594** from crops rebuilt today, scored with the frozen gate.
+  Identical. That is independent confirmation the `crops_v3_phase1` rebuild is faithful — the
+  same class of check the bone-loss rebuild failed (2026-08-27u).
+- **WHAT THE CURVES SHOW, and it is not flattering.** Train loss falls **0.126 → ~0.002** while
+  validation loss flattens around **0.05 from roughly epoch 5 and never improves again** — a
+  ~25x train/val gap. **The bone-loss binary model overfits heavily.** With 711 positive training
+  crops (resampled, partly augmented duplicates of the same teeth) that is unsurprising, but it
+  had never been *shown*, and it belongs in the paper beside the 0.9233.
+- **The selection epoch was picked from a noisy curve, which biases the headline upward.**
+  Diseased-class F1 swings between roughly **0.40 and 0.85 epoch to epoch**. With only **59
+  validation positives** a single tooth moves F1 by ~1.7 points, so those swings are real
+  sampling noise, not learning. Taking the maximum of such a curve is optimistically biased:
+  **0.9233 is the best of 32 noisy draws, not a stable estimate.** Reporting it without that
+  caveat overstates the model.
+- **This connects the two things the project already knew.** A model that memorises its training
+  positives and is selected on the peak of a noisy validation curve is exactly the model one would
+  expect to collapse out of domain — and it does: 0.7% firing on DENTEX, 2.4% affected-tooth
+  sensitivity on Ningxia (§8.13). The training curve is corroborating evidence for the
+  domain-shift finding, not a separate complaint.
+- **Also visible: the caries gate's precision degrades val → test**, 0.515 → 0.398 (macro-F1
+  0.735 → 0.695). The val figure is the optimistic one; the test figure is the one to quote, and
+  the pipeline already does.
+- **NOT regenerated, and recorded rather than faked:** (1) **caries training curves** —
+  `results.json` stores `best_epoch` and final metrics but **no per-epoch history**, so there is
+  nothing to plot without inventing it; (2) **Stage 4b severity confusion matrix** —
+  `severity_summary.txt` carries per-class F1 only (Mild 0.80 / Moderate 0.67 / Severe 0.70) and
+  no matrix, on 52 crops. Both are printed by the script itself so the gap stays visible.
+- **Source:** `scripts/figures/make_stage34_figures.py`,
+  `docs/results/figures/paper/stage4a_training_curves.png`,
+  `docs/results/figures/paper/stage34_confusion_matrices.png`.
