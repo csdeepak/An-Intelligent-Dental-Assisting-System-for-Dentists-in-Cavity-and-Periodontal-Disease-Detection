@@ -456,3 +456,22 @@ domain-shift failure is now measured on **two** independent external datasets.
 **Specificity/AUC are not computable on Ningxia** — it has no healthy controls. They come from
 Tufts. See `PAPER_MATERIAL.md` §8.12 for the withdrawn first-pass periodontitis figures and why
 the metric had to differ by category.
+
+## C4 — abstention / coverage-accuracy (28 Aug 2026)
+
+Accuracy on retained predictions as the least-confident are declined. Threshold **not** tuned here.
+
+| Coverage | Stage 2 - FDI numbering | Caries gate (calibrated) |
+|---|---|---|
+| 100% (no abstention) | 0.826 | 0.797 |
+| 90% | 0.849 | 0.857 |
+| 75% | **0.885** | **0.940** |
+| 50% | 0.918 | 0.970 |
+| gain at 75% coverage | **+5.91 pp [+3.88, +7.68]** | **+14.25 pp [+11.32, +16.63]** |
+| same, confidences shuffled | +0.03 pp | +0.00 pp |
+
+- Stage 2: 661 detected teeth, FDI exact match. Caries gate: 863 crops, isotonic-calibrated confidence.
+- CIs are clustered bootstrap over **images**. "Shuffled" breaks the confidence-correctness link.
+- Pre-registered `ASSESSABILITY_MIN_FDI_CONFIDENCE = 0.30` -> **90.8% coverage at 0.847**.
+- Stage-2 coverage is over *detected* teeth: 75% coverage = **53.0% of teeth actually present**.
+- Source: `outputs/c4_abstention/c4_coverage_accuracy.json`.

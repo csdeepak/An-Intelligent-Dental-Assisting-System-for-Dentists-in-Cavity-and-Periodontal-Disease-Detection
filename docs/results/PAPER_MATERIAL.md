@@ -1671,6 +1671,49 @@ as "slightly worse"; with the control it reads correctly as "not performing the 
 
 ---
 
+### 8.21 C4 — abstention: the system knows when to decline
+
+**Run 28 Aug 2026**, CPU only. `MASTER_PLAN_2026H2.md` R3 asks for an explicit `not_assessable`
+output with a calibrated threshold, reported as a coverage-accuracy curve. The flag has existed
+since R4; **the curve had never been drawn**, so C4 was at zero while appearing complete.
+
+| Coverage | Stage 2 - FDI numbering | Caries gate (calibrated) |
+|---|---|---|
+| 100% (no abstention) | 0.826 | 0.797 |
+| 90% | 0.849 | 0.857 |
+| 75% | **0.885** | **0.940** |
+| 50% | 0.918 | 0.970 |
+| gain at 75% coverage | **+5.91 pp [+3.88, +7.68]** | **+14.25 pp [+11.32, +16.63]** |
+| same, confidences shuffled | +0.03 pp | +0.00 pp |
+
+Stage 2 is scored on 661 detected teeth (FDI exact match); the caries gate on 863 held-out crops
+using **isotonic-calibrated** confidence in the reported class — an abstention rule built on scores
+known to be overconfident would decline the wrong cases.
+
+**The control.** Shuffling the confidences collapses both gains to zero (+0.03 / +0.00 pp). The
+improvement therefore comes from the confidence ranking carrying real information about
+correctness, not from the arithmetic of discarding items. Report it beside the curve, for the same
+reason C1's constant-guess control is reported beside its F1.
+
+**The pre-registered threshold holds up, and was not tuned.** `ASSESSABILITY_MIN_FDI_CONFIDENCE =
+0.30` was fixed a priori. On this curve it retains **90.8% of detected teeth at 0.847** — within
+0.2 pp of the empirical 90%-coverage point. No "optimal" threshold is reported: choosing one on
+the evaluation set is precisely the error the constant was written to prevent.
+
+**Why the caries branch gains 2.4x more.** Stage 2 needs confidence >= 0.962 to reach 75% coverage
+— the numbering head saturates near 1.0 on most teeth, leaving little to rank by. The
+overconfidence measured in 8.15 shows up here as a limit on how much abstention can buy.
+
+**Caveat that must survive into the paper.** Stage-2 coverage is over *detected* teeth. Abstention
+cannot recover the 29.4% Stage 1 never finds: 75% coverage is 75% of 70.6% — **53.0% of teeth
+actually present**. Never write coverage as "share of the mouth reported". Both curves are also
+internal (DENTEX) — there is no external abstention curve — and the caries curve below ~10%
+coverage is small-n noise.
+
+Figure: `docs/results/figures/paper/c4_coverage_accuracy.png`.
+
+---
+
 ## 9. What's not yet written — checklist
 
 For whoever drafts the actual paper. Tick items off here as they land.

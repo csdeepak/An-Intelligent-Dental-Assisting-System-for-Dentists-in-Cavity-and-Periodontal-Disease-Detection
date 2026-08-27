@@ -199,13 +199,14 @@ vs bbox's 3,924 (+0.15%), so near-, not exactly, like-for-like.
 | **R2 mask-aware cropping** implemented + unit-tested (**unwired** — needs R1's masks) | `src/crop_generator.py`, `tests/test_crop_generator.py` |
 | **Environment fixed and pinned** — numpy<2, or `scipy.optimize` (the Hungarian assignment) silently breaks | `requirements.txt`, `RESULTS_LOG.md` 2026-08-24b |
 | **All READMEs + this file** swept for staleness (three passes across two sessions) | `RESULTS_LOG.md` 2026-08-25e/f, 2026-08-26b, this rewrite |
-| Test suite | **84/84 pass**; `verify_invariants.py` all-hold, with **3 checks that used to SKIP now live** (leakage exclusion, caries-v3 MD5 join at 98.28%, caries-v3 dataset hygiene) since DENTEX is local |
+| Test suite | **92/92 pass**; `verify_invariants.py` all-hold, with **3 checks that used to SKIP now live** (leakage exclusion, caries-v3 MD5 join at 98.28%, caries-v3 dataset hygiene) since DENTEX is local |
 | **C1 — VLM baseline** (27 Aug) | Qwen2.5-VL-7B zero-shot F1 **0.143** vs our **0.294**, and **below a constant guess (0.204)**; blank/noise images give the same answer. `RESULTS_LOG.md` 2026-08-27aa, `PAPER_MATERIAL.md` §8.20 |
 | **Confidence intervals** (27 Aug) | Cluster-bootstrap over images for Stage-2, lesion agreement and Ningxia caries, plus paired CIs on the detector-swap deltas. **Two of that day's own claims failed their intervals and were withdrawn.** §8.14 |
 | **Calibration** (27 Aug) | Caries gate ECE **0.136**, systematically overconfident; temperature scaling made it worse (structural, not scale); isotonic fixes it (**0.043**) and is wired **confidence-only**, verdicts byte-identical. §8.15 |
 | **Failure taxonomy** (27 Aug) | Stage-2: 58.3% shown detection-bound (**82.6% of detected**), 77.4% of errors benign off-by-one. Caries panel: gate over-calls healthy teeth (19.2%) at the same rate as impacted (19.0%). §8.16, §8.17 |
 | **Related work + ethics** (27 Aug) | Comparison table from the review sheet; **only 2 of 49 task-relevant papers validate externally**. Ethics statement with a 7-item pre-submission checklist. §2.1, §8.19 |
 | **`docker build` verified** (27 Aug) | Builds, runs, app loads, all 7 checkpoints load in-container; image made genuinely CPU-only and reproducible, **11.2 GB → 4.4 GB**. §3 item 7 |
+| **C4 — abstention** (28 Aug) | Coverage-accuracy curves. Declining the least-confident quarter lifts Stage 2 **0.826 → 0.885** and the caries gate **0.797 → 0.940**; shuffling the confidences collapses both gains to ~0, so the ranking carries real information. The pre-registered 0.30 threshold lands at **90.8% coverage / 0.847**, within 0.2 pp of the empirical 90% point — and was **not** tuned. **C4 had never been produced**: the `assessable` flag existed, the curve did not. `RESULTS_LOG.md` 2026-08-28a, `PAPER_MATERIAL.md` §8.21 |
 
 **The pattern worth remembering, stated once rather than per-entry below:** almost every defect
 found across these sessions was in *documentation* or *methodology* — a stale claim, a metric

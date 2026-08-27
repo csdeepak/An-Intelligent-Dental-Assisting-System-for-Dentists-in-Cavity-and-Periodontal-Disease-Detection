@@ -4602,3 +4602,55 @@ angxia_dataset`, so the blocker recorded earlier today is lifted.
   defined locally in the C1 script **with `tests/test_c1_label_re.py` asserting it never drifts
   from the canonical copy**; and the model download was started detached so it overlapped the
   539 MB data upload.
+
+---
+
+## 2026-08-28a - C4 DONE: abstention buys real accuracy, and the pre-registered threshold lands well
+
+- **What was done:** contribution **C4** - the `not_assessable` abstention output, reported as a
+  coverage-accuracy curve, which `MASTER_PLAN_2026H2.md` R3 specifies and which had **never been
+  produced**. `scripts/eval/c4_coverage_accuracy.py`, CPU only, no GPU, no re-training.
+- **Why it was missing and why that is worth recording:** the pipeline has emitted an `assessable`
+  flag per tooth since R4, and calibration landed 27 Aug, so C4 *looked* done in every status
+  table. It was not - the flag existed, the curve did not. **A contribution can sit at zero while
+  every artefact around it says otherwise**, which is this repo's documented failure mode running
+  in a new direction (see 2026-08-12 and CLAUDE.md rule 4).
+
+| Coverage | Stage 2 - FDI numbering | Caries gate (calibrated) |
+|---|---|---|
+| 100% (no abstention) | 0.826 | 0.797 |
+| 90% | 0.849 | 0.857 |
+| 75% | **0.885** | **0.940** |
+| 50% | 0.918 | 0.970 |
+| gain at 75% coverage | **+5.91 pp [+3.88, +7.68]** | **+14.25 pp [+11.32, +16.63]** |
+| same, confidences shuffled | +0.03 pp | +0.00 pp |
+
+- **Stage 2**, 661 detected teeth: accuracy rises **0.826 -> 0.885** if the least confident quarter
+  is declined. **Caries gate**, 863 held-out crops on isotonic-calibrated confidence: **0.797 ->
+  0.940**. Both gains are clustered-bootstrap significant over **images, not teeth**.
+- **The control that makes those numbers mean something.** Shuffling the confidences - breaking the
+  confidence-correctness link while preserving both marginals - collapses the gain to **+0.03 pp
+  and +0.00 pp**. So the rise comes from the ranking being informative, not from the arithmetic of
+  discarding items. This is the same move as C1's constant-guess control, and for the same reason:
+  *show what the number looks like when the mechanism is removed.*
+- **The pre-registered threshold is vindicated, and was NOT tuned here.**
+  `ASSESSABILITY_MIN_FDI_CONFIDENCE = 0.30` is fixed a priori in `run_inference.py`, whose comment
+  forbids sweeping it against an evaluation set. Located on the curve, it retains **90.8% of
+  detected teeth at 0.847 accuracy** - within **0.2 pp** of the empirical 90%-coverage point
+  (0.849). A number chosen before seeing this data landed essentially where the data says it
+  should. **The script deliberately does not report a "best" threshold**; doing so would be
+  selecting an operating point on the set it is then evaluated on.
+- **The caries branch carries far more abstention value than Stage 2** (+14.25 vs +5.91 pp). Stage
+  2 needs confidence >= **0.962** just to reach 75% coverage: the numbering head is saturated near
+  1.0 on most teeth, so there is little ranking information to exploit. That is the same
+  overconfidence the 27 Aug calibration work measured, now showing up as a *capability* limit
+  rather than a reliability one.
+- **A caveat the paper must carry, because a reviewer will find it.** Stage-2 coverage is over
+  **detected** teeth. Abstention cannot recover the 29.4% of ground-truth teeth Stage 1 never
+  finds, so "75% coverage" means 75% of 70.6% - **53.0% of the teeth actually present**. Coverage
+  here is not "share of the mouth reported on" and must never be written as if it were.
+- **Also honest:** both curves are internal (DENTEX). There is no external abstention curve, and
+  the caries curve below ~10% coverage is small-n noise (86 crops) and should not be read.
+- **Source:** `outputs/c4_abstention/c4_coverage_accuracy.json`,
+  `docs/results/figures/paper/c4_coverage_accuracy.png`, 8 new tests in `tests/test_c4_coverage.py`
+  (**92/92 pass**, up from 84), all invariants hold.
