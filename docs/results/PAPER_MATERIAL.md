@@ -1401,6 +1401,47 @@ attribution contribution [C3] promises.
 
 ---
 
+### 8.17 Caries failure panel — what the 0.40 precision is actually made of
+
+**Added 27 Aug 2026**, held-out test split (863 crops, 127 positive), at the pipeline's own
+operating point. Precision 0.398 / recall 0.740 reproduces the documented figure exactly.
+TP 94 · FP 142 · FN 33 · TN 594. Figure: `figures/paper/caries_failure_panel_test.png`.
+
+**The question this settles.** The negative class is 5,366 healthy + 179 impacted + 22 periapical,
+and it has never been established whether the low precision comes from confusing *other pathology*
+for caries or from over-calling *healthy* teeth:
+
+| Negative subtype | n | false positives | FP rate |
+|---|---|---|---|
+| healthy | 714 | 137 | **19.2%** |
+| impacted | 21 | 4 | **19.0%** |
+| periapical | 1 | 1 | *100% (n=1, meaningless)* |
+
+**19.2% on healthy against 19.0% on impacted is the same number**, and **137 of 142 false
+positives (96.5%) are healthy teeth**. The gate is not confusing pathology-for-pathology. Write
+this explicitly — it rules out the obvious remedy (a third negative label) and redirects the
+problem to what the model treats as caries-like texture.
+
+**An observation for a clinician to confirm before it becomes a claim.** All eight
+highest-confidence false positives are `healthy` teeth at raw 0.95–0.99, and **several visibly
+carry restorations or root-canal fillings**. If that holds, it bears directly on §8.1's
+presumed-negative assumption: DENTEX "healthy" means *no disease annotation*, and **a restored
+tooth has already been treated for caries** — so it is not a clean negative, and the gate may be
+right about the tooth while wrong about the label. **That would make the negative-class
+definition, not the classifier, the defect worth reporting.** It is not yet verified.
+
+**False negatives run counter to intuition:**
+
+| Positive subtype | n | missed | FN rate |
+|---|---|---|---|
+| caries | 108 | 27 | 25.0% |
+| deep_caries | 19 | 6 | **31.6%** |
+
+`deep_caries` is missed **more** often than ordinary caries. Support is 19 crops, so this is a
+flag rather than a finding, and it must be reported with that support attached.
+
+---
+
 ## 9. What's not yet written — checklist
 
 For whoever drafts the actual paper. Tick items off here as they land.
@@ -1484,6 +1525,10 @@ For whoever drafts the actual paper. Tick items off here as they land.
       27 Aug 2026**, §8.16: 58.3% shown to be detection-bound (82.6% correct on detected teeth),
       77.4% of numbering errors are benign off-by-one, only 2.4% of detected teeth suffer a
       category error, and the detector swap cut `wrong_arch` by 75%.
+- [x] **Caries failure panel** — **Done 27 Aug 2026**, §8.17: errors bucketed by negative
+      subtype, showing the gate over-calls healthy teeth (19.2%) at the same rate as impacted
+      ones (19.0%), so it is not confusing pathology-for-pathology; plus a visual panel of the
+      highest-confidence false positives and most-missed false negatives.
 - [ ] Failure-case figure panel: the 10 false negatives and 7 false positives from the
       bone-loss confusion matrix, with Grad-CAM. **Blocked** on the bone-loss crop rebuild
       (RESULTS_LOG 2026-08-27u). A caries failure panel is buildable from `crops_v3_phase1`.

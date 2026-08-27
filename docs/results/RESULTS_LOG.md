@@ -4361,3 +4361,59 @@ angxia_dataset`, so the blocker recorded earlier today is lifted.
 - **Follow-ups:** the §9 failure-case *panel* item asks specifically for the bone-loss FN/FP crops
   with Grad-CAM, and remains blocked on the crop rebuild (2026-08-27u). A caries failure panel is
   buildable from `crops_v3_phase1` whenever wanted.
+
+---
+
+## 2026-08-27w — Caries failure panel: the gate is not confusing pathology, it is over-calling restorations
+
+- **What was done:** scored the held-out caries test split (863 crops, 127 positive) with the
+  frozen gate and bucketed every error by the `subtype` recorded in `crops_v3_phase1` — a
+  confounder the manifest has always carried and nothing had used.
+  `scripts/eval/caries_failure_panel.py`. Operating point is the pipeline's own
+  (argmax == 0.50); **precision 0.398 / recall 0.740 reproduces the documented 0.40 exactly.**
+  TP 94 · FP 142 · FN 33 · TN 594.
+- **THE QUESTION THIS SETTLES.** The gate's negative class is 5,366 healthy + 179 impacted +
+  22 periapical. The standing open question was whether its 0.40 precision comes from confusing
+  *other pathology* for caries — which would mean the negative class needs a third label — or
+  from over-calling *ordinary healthy teeth*. Answer:
+
+| Negative subtype | n | false positives | FP rate |
+|---|---|---|---|
+| healthy | 714 | 137 | **19.2%** |
+| impacted | 21 | 4 | **19.0%** |
+| periapical | 1 | 1 | *100% (n=1, meaningless)* |
+
+  **19.2% on healthy against 19.0% on impacted is the same number.** The gate is **not**
+  confusing pathology-for-pathology; it is uniformly over-sensitive, and **137 of its 142 false
+  positives (96.5%) are teeth labelled healthy.** That rules out "add a third class" as the fix
+  and points the problem back at what the model considers caries-like texture.
+- **What the panel shows, offered as an observation for a clinician to confirm rather than a
+  finding I can certify.** Every one of the eight highest-confidence false positives is a
+  `healthy` tooth at raw 0.95–0.99, and **several visibly carry restorations or root-canal
+  fillings** — bright radiopaque material in the crown. If that reading holds, it connects
+  directly to the documented presumed-negative assumption: DENTEX's "healthy" means *no disease
+  annotation*, and **a restored tooth has already been treated for caries**, so it is not a clean
+  negative at all. The gate may be right about the tooth's history and wrong about its label.
+  **This needs a dentist's eye before it goes in the paper as a claim.**
+  Figure: `docs/results/figures/paper/caries_failure_panel_test.png`.
+- **False negatives run the other way, and that is worth reporting too:**
+
+| Positive subtype | n | missed | FN rate |
+|---|---|---|---|
+| caries | 108 | 27 | 25.0% |
+| deep_caries | 19 | 6 | **31.6%** |
+
+  **`deep_caries` is missed MORE often than ordinary caries (31.6% vs 25.0%)** — the opposite of
+  the intuition that deeper lesions are easier. Support is only 19 crops, so this is a flag for
+  investigation, not a result. The missed cases in the panel are low-contrast and several appear
+  poorly framed, with the crop catching mostly alveolar bone rather than the crown.
+- **Captions carry raw AND calibrated confidence**, because 2026-08-27s showed the raw scores are
+  systematically overconfident: a panel labelled only "raw 0.99" would overstate how sure the
+  model was. Several false positives sit at calibrated 1.00 even so — those are genuinely
+  confident errors, not borderline ones.
+- **Source:** `scripts/eval/caries_failure_panel.py`,
+  `outputs/caries_failure_panel/caries_failure_test.json`,
+  `docs/results/figures/paper/caries_failure_panel_test.png`.
+- **Follow-ups:** (1) have a clinician check whether the high-confidence false positives are
+  restored teeth — if so, the negative class definition, not the model, is the defect worth
+  writing up. (2) The `deep_caries` miss rate deserves a look once support allows.
