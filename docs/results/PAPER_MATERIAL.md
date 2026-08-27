@@ -1145,6 +1145,80 @@ split carrying burned-in annotation arrows and stars.
 
 ---
 
+### 8.13 The bone-loss branch does not generalise — reported as a measured limitation, not fixed
+
+**This is the project's one open technical failure, and it is deliberately reported rather than
+patched.** Decision taken 27 Aug 2026; the reasoning is below, because a reviewer is entitled to
+ask why a known weakness was not addressed.
+
+**What was measured.** Stage 4a (ResNet18, 1.5×/2.0× expanded crops, Tufts) is strong in domain
+and collapses outside it:
+
+| Domain | Result | Support |
+|---|---|---|
+| **Tufts** (in-domain, validation, real prevalence) | **0.9233 macro-F1**, sens 83.1%, spec 99.5% | 1,558 crops (1,499 normal / 59 diseased) |
+| **DENTEX** (external) | fires on **0.7%** of detected teeth | 164 leak-free images |
+| **Ningxia** (external, 4 hospitals) | **2.4%** affected-tooth sensitivity, pooled | 6,791 affected teeth over 736 images |
+
+Per-Ningxia-centre: 2.4 / 1.4 / 5.6 / 4.6% (test1–test4). The spread is small-n noise, not a
+gradient — test3's 5.6% is 23 teeth of 411 on 50 images and must not be quoted as a better result.
+
+**Two independent external datasets agree**, with different ground-truth formats (LabelMe
+polygons vs raster masks) and different metrics (firing rate vs affected-tooth sensitivity). That
+is what makes this a finding rather than a bug report: a single external failure could be a
+harness artefact, and this project has already withdrawn one number for exactly that reason
+(§8.12, the centroid-containment artefact). Two, measured independently, is a property of the model.
+
+**The causal hypothesis was tested and FALSIFIED — this is the part worth writing up.** The
+standing explanation was that the detector and the bone-loss branch were the project's two
+Tufts-trained stages and misbehaved out-of-domain for a shared reason. On 27 Aug the detector was
+replaced (§7.1) and every downstream stage re-measured against a control:
+
+| Stage | Effect of the same detector swap |
+|---|---|
+| Stage 2, FDI numbering (DENTEX) | **+12.0 pts** end-to-end |
+| Stage 3, caries (Ningxia, ×4 hospitals) | **+7.7 pts** pooled agreement |
+| **Stage 4a, bone loss** (Ningxia, ×4 hospitals) | **no change** |
+
+Bone loss flagged **168 affected teeth before the swap and 165 after**, while the denominator grew
+9% — i.e. the branch flags essentially the same absolute set of teeth regardless of which
+detector feeds it. **The failure is inside the Stage-4a classifier, not upstream of it.** That
+rules out an entire class of explanations (crop quality, detection recall, box geometry) and is a
+stage-wise error-attribution result of the kind contribution [C3] promises.
+
+**Why no fix was attempted, stated plainly.** The obvious lever — the DENTEX+Tufts combined
+training that fixed Stage 2's cross-domain behaviour (§8.8b, +21.5 points out-of-domain) — **does
+not transfer, because DENTEX carries no bone-loss labels.** Stage 2 could be trained on two
+corpora because both label FDI codes; there is no second corpus in this project with periodontal
+bone-loss annotation. The remaining options were all substantial research programmes rather than
+fixes: domain-generalisation training on Tufts alone, weak supervision from DENTEX's `küretaj`
+(periodontal curettage) treatment markers — a noisy proxy, not a label — or acquiring an annotated
+second periodontal corpus. **None fits inside the remaining schedule, and attempting one badly
+would produce a weaker paper than reporting the measurement honestly.**
+
+**Also inherited by Stage 4b.** The severity head only sees teeth 4a flagged, so out of domain it
+is effectively never exercised; its in-domain 0.7208 macro-F1 rests on **52 validation crops with
+Mild at n=6** (§8.2) and says nothing about external behaviour.
+
+**Contributing factors, already documented and not re-argued here:** labels are weak supervision
+derived by intersecting a per-image expert mask with per-tooth boxes (§8.6); training data is a
+single institution, one scanner population, one annotation protocol (§8.7); and the positive class
+was resampled from a 23.8× imbalance down to 2,500 normal / 711 diseased (§6.4), so the model saw
+711 real positive teeth in total.
+
+**How to write this in the paper.** Not as an apology and not buried. The honest framing is that
+an in-domain macro-F1 of 0.92 on a periodontal task is **not evidence of a usable periodontal
+model**, and this work demonstrates that with external measurement on four hospitals plus a
+second public dataset — then localises the cause to the classifier rather than the pipeline
+around it. Published comparators show the same shape: DPML reports 95.06 mAP on its own
+single-centre data and 61.83 on public DENTEX (§8.12). **A reader's takeaway should be that
+single-dataset periodontal results in this literature are not transferable, evidenced rather than
+asserted.** The pipeline correspondingly reports bone-loss findings with the domain-shift caveat
+attached in `report["limitations"]["bone_loss_domain_shift"]` on every single inference, which is
+the operational consequence of taking this seriously.
+
+---
+
 ## 9. What's not yet written — checklist
 
 For whoever drafts the actual paper. Tick items off here as they land.
@@ -1185,6 +1259,11 @@ For whoever drafts the actual paper. Tick items off here as they land.
 - [x] Re-measure C2 (Ningxia external validation) against the adopted detector. **Done 27 Aug
       2026** — §8.12a. Caries +7.7 pts pooled across four hospitals; bone loss unchanged. Control
       on the old detector run first and reproduces 25 Aug.
+- [x] Decide the bone-loss domain-shift disposition. **Done 27 Aug 2026 — reported as a measured
+      limitation (§8.13), not fixed.** The combined-training lever that worked for Stage 2 does
+      not transfer (DENTEX has no bone-loss labels), and the causal hypothesis that it shared a
+      root cause with the detector was falsified by measurement. **Write §8.13 into the paper as a
+      finding, not an apology.**
 - [x] Re-measure §8.11 lesion localisation on the adopted detector, so internal and external are
       comparable. **Done 27 Aug 2026** — 42.0% → 44.3%; internal/external gap 8.9 → 3.5 pp.
       **No pipeline number remains on the superseded detector.**

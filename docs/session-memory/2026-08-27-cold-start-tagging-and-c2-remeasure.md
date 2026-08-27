@@ -86,6 +86,23 @@ to our image; a clean rebuild fixed it. *A silent step is not a hung step, and t
 broken environment from a broken artefact is to try a known-good artefact in the same
 environment.*
 
+## Phase 6 — bone loss: decided, not deferred
+
+The user chose to **report the bone-loss domain-shift failure as a measured limitation** rather
+than attempt a fix before the freeze. Written up as `PAPER_MATERIAL.md` §8.13.
+
+The decisive fact, established while scoping it: **the Stage-2 combined-training lever does not
+transfer, because DENTEX has no bone-loss labels.** Stage 2 worked on two corpora because both
+label FDI codes; checked DENTEX's eight finding types (caries, curettage, root canal, extraction,
+impacted, periapical lesion, fracture, healthy) — none is alveolar bone loss. So the "most
+promising untried lever" recorded in `transfer.md` for days was never actually available. Worth
+catching before it consumed GPU budget.
+
+What makes the limitation defensible rather than an omission: two independent external datasets
+agree, with different GT formats and different metrics, and today's detector swap **localised the
+cause** — Stage 2 +12.0, caries +7.7, bone loss nothing. A limitation backed by a falsified
+causal hypothesis is stronger than a hurried fix.
+
 ## Decisions made
 
 - **Repaired the docs before starting any new work.** The temptation was to pick up a backlog

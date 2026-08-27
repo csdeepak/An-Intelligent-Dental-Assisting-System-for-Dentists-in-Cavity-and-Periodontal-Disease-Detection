@@ -3861,3 +3861,45 @@ angxia_dataset`, so the blocker recorded earlier today is lifted.
   run of `scripts/run_inference.py --image /tmp/test_0.png`; AppTest render probe.
 - **Follow-ups:** unchanged — `.dockerignore` still ships `models/*/run/` and
   `models/06/last.pt` (~300 MB of unused build context).
+
+---
+
+## 2026-08-27n — DECISION: bone-loss domain shift is reported as a limitation, not fixed
+
+- **What was decided:** the bone-loss branch's out-of-domain collapse is written up as a
+  **measured limitation** (`PAPER_MATERIAL.md` §8.13) rather than attacked before the 14 Oct
+  freeze. User decision, 27 Aug 2026. This closes `transfer.md` §3 item 4 as a work item and
+  §4's "what approach?" pending decision.
+- **Metrics:** no new measurement — this decision rests entirely on numbers already in the log.
+  Tufts in-domain **0.9233 macro-F1** (1,558 val crops, 59 diseased, real prevalence); DENTEX
+  fires on **0.7%** of detected teeth; Ningxia **2.4%** affected-tooth sensitivity pooled over
+  6,791 affected teeth across four hospitals (2026-08-27h).
+- **The reason a fix was not attempted, which is the substantive part.** The obvious lever was
+  the DENTEX+Tufts combined training that gave Stage 2 **+21.5 points out-of-domain**
+  (2026-08-25j). **It does not transfer: DENTEX carries no bone-loss labels.** Stage 2 could be
+  trained on two corpora because both label FDI codes; this project has no second corpus with
+  periodontal bone-loss annotation. That was checked against the DENTEX finding taxonomy
+  (`lesion_localization.py`'s docstring: the eight finding types are caries, curettage, root
+  canal, extraction, impacted, periapical lesion, fracture, healthy — none is alveolar bone
+  loss). The remaining options — domain-generalisation training on Tufts alone, weak supervision
+  from `küretaj` (periodontal curettage) treatment markers, or acquiring an annotated
+  periodontal corpus — are research programmes, not fixes, and none fits the remaining schedule.
+- **Why this is defensible rather than an omission.** The failure is measured on **two
+  independent external datasets** with different GT formats and different metrics, and its cause
+  has been **localised by experiment**: the 27 Aug detector swap moved Stage 2 by +12.0 points
+  and caries by +7.7 and bone loss by **nothing** (168 → 165 teeth flagged while the denominator
+  grew 9%), falsifying the standing hypothesis that the detector and bone-loss branch failed
+  out-of-domain for a shared Tufts-trained reason. A reported limitation backed by a falsified
+  causal hypothesis is a stronger contribution than a hurried fix would have been.
+- **Key insight for the paper:** an in-domain 0.92 macro-F1 on a periodontal task is **not
+  evidence of a usable periodontal model**, and this work shows that with external measurement
+  rather than assertion — matching the shape of DPML's published 95.06 → 61.83 mAP gap
+  (2026-08-26a). The takeaway a reader should leave with is that single-dataset periodontal
+  results in this literature are not transferable, evidenced rather than asserted.
+- **Operational consequence, already live:** every inference emits
+  `report["limitations"]["bone_loss_domain_shift"]`, so no report can present a bone-loss finding
+  without the caveat attached. Verified present in the in-container run today (2026-08-27m).
+- **Source:** `PAPER_MATERIAL.md` §8.13 (new); prior measurements 2026-08-25d, 2026-08-27h.
+- **Follow-ups:** none for bone loss — it is now a writing task, not an experiment. The freed
+  capacity goes to the caries re-run block (T0.2/T0.3/T0.4), which is unblocked as soon as the
+  DENTEX fetch completes.
