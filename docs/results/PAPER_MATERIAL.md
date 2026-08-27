@@ -1442,8 +1442,15 @@ For whoever drafts the actual paper. Tick items off here as they land.
 - [x] Calibration analysis (reliability diagram) **for the caries gate** — **Done 27 Aug 2026**,
       §8.15: ECE 0.136, MCE 0.596, Brier 0.137, AP 0.550 [0.445, 0.660] against 0.147 chance;
       systematically overconfident at every confidence level.
-- [ ] Calibration analysis (reliability diagram) for the **bone-loss** classifier. **Still open** —
-      blocked on a geometry-verified crop rebuild (its metadata has no bounding boxes; see §8.15).
+- [ ] Calibration analysis (reliability diagram) for the **bone-loss** classifier. **Still open,
+      and the blocker is now exact (27 Aug, RESULTS_LOG 2026-08-27u):** the crops were built from
+      **`Radiographs/Radiographs/` — the ORIGINAL un-rotated Tufts radiographs** (confirmed by
+      reading `02_bone_loss_dataset_construction.ipynb`), which are **not on this machine**; only
+      the 90°-turned copies are. A rebuild from those reaches sensitivity 0.40 against a
+      documented 0.83 and was **rejected by its own geometry check**. Additionally **49.6% of the
+      val crops carry unsaved jitter offsets and are irreproducible by anyone**, so the reported
+      0.9233 can never be recomputed — any future bone-loss number is on a 785-crop subset and
+      must say so.
 - [x] Threshold sweep **for the caries gate**, reported as a PR curve — **Done 27 Aug 2026**,
       §8.15. argmax/0.50 confirmed near F1-optimal; precision 0.40 → 0.69 purchasable at
       recall 0.74 → 0.35.
