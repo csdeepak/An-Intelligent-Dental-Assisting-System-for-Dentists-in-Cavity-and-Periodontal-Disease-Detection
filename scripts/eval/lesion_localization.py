@@ -18,12 +18,29 @@ SCOPE — DENTEX ONLY, AND WHY
 -----------------------------
 DENTEX `disease/label/*.json` ships real expert lesion polygons (LabelMe format, verified
 directly: `shape_type: "polygon"`, e.g. 12 points for `test_0`'s first shape). Ningxia ships
-raster segmentation masks instead -- a different ground-truth format this project has not yet
-inspected (the drive is disconnected). Guessing that encoding (binary? multi-class? RLE?)
-before seeing a real file would be exactly the kind of imagined-not-verified code this project
-has spent this whole session correcting. `load_lesion_gt` below is deliberately the one
-function that would need a Ningxia-specific sibling; nothing else in this file assumes the
-DENTEX format.
+raster segmentation masks instead.
+
+**CORRECTED 27 Aug 2026 -- the paragraph that used to stand here was wrong, and it is kept
+in corrected form rather than deleted because the error is instructive.** It claimed
+`load_lesion_gt` was "deliberately the one function that would need a Ningxia-specific
+sibling; nothing else in this file assumes the DENTEX format." **Two things assume it, and
+the second is the substantive one:**
+
+  1. the GT format (polygons vs raster masks) -- which is what that sentence anticipated; and
+  2. **the matching criterion**, which it did not. Ningxia caries lesions are tiny focal blobs,
+     89-3,090 px, against a ~25,000 px tooth box: a lesion sitting ENTIRELY inside the correct
+     tooth scores IoU 0.015-0.124, **every one of them below this file's 0.30 threshold**.
+     Reusing this matcher unchanged on Ningxia would have reported ~0% agreement and read as
+     catastrophic domain-shift failure, when it would have been a pure artefact of the
+     criterion.
+
+Ningxia is therefore served by `ningxia_external.py`, which matches caries by **centroid
+containment** and scores periodontitis by affected-tooth sensitivity instead -- a diffuse band
+of ~365,000 px is not the same kind of object as a focal spot and cannot share a metric.
+`RESULTS_LOG.md` 2026-08-25d. The lesson worth carrying: **a claim about what does and does not
+transfer is a hypothesis until a real file from the other dataset has been opened.** That
+correction was written into `ningxia_external.py` on 25 Aug but not back into this file, so the
+disproven sentence survived here for two days.
 
 GROUND-TRUTH SCOPING -- verified against the raw label files, not assumed
 ---------------------------------------------------------------------------
@@ -100,12 +117,18 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
+sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
 from scripts.eval.validate_fdi_assignment import (  # noqa: E402
     LABEL_RE, iou, match_gt_to_detections)
 
 DEF_DISEASE_DIR = Path.home() / "Downloads/Capstone/DENTEX/disease"
-DEF_DETECTOR = REPO_ROOT / "models/06_yolo_detection_a100_run/best.pt"
+# Tracks the live pipeline rather than a frozen snapshot -- same fix as ningxia_external.py
+# (27 Aug 2026). This default was models/06 (the superseded bbox detector), which is why the
+# 42.6% agreement figure quietly became an old-detector number when the Stage-1 default
+# changed. To reproduce the original, pass it explicitly:
+#   --detector models/06_yolo_detection_a100_run/best.pt
+from run_inference import DEF_DETECTOR  # noqa: E402
 DEF_CARIES_GATE = REPO_ROOT / "models/09_caries_gate_v3/caries_gate_v3.pth"
 DEF_CARIES_SEVERITY = REPO_ROOT / "models/07_caries_cascade/phase2_final_bundle.pth"
 DEF_OUT = REPO_ROOT / "outputs/lesion_localization"
