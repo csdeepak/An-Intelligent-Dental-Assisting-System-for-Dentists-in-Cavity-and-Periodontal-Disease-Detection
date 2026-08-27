@@ -4131,3 +4131,55 @@ angxia_dataset`, so the blocker recorded earlier today is lifted.
   `docs/results/figures/paper/caries_gate_temperature_scaling.png`.
 - **Follow-ups:** isotonic regression fitted on val, same discipline. Bone-loss calibration still
   blocked on a geometry-verified crop rebuild (2026-08-27q).
+
+---
+
+## 2026-08-27s — Isotonic calibration works (ECE −68%) but flips 18% of verdicts; adopt for CONFIDENCE only
+
+- **What was done:** isotonic regression on the caries gate's scores, **fitted on val (1,003
+  crops), evaluated once on test (863)** — same discipline as 2026-08-27r.
+  `scripts/eval/isotonic_calibrate.py`. It reuses `temperature_scale.py`'s preprocessing rather
+  than reimplementing it: the transform is the risky part, and a second copy would mean comparing
+  two different models.
+
+  | | raw | isotonic |
+  |---|---|---|
+  | **ECE** | 0.1362 | **0.0430 — 68% better** |
+  | MCE | 0.5958 | **0.3338** |
+  | Brier | 0.1365 | **0.0977** |
+  | Average precision | 0.5500 | **0.4996 — 5.0 points WORSE** |
+
+- **It fixes what temperature scaling could not, and for the predicted reason.** 27r argued the
+  miscalibration was a *shape* error beyond the reach of one scalar. Isotonic fits an arbitrary
+  non-decreasing function, and the reliability curve now tracks the diagonal across the whole
+  range instead of sitting flat at ~0.27. The diagnosis was right, and is now confirmed by a
+  method that had the capacity to act on it.
+- **TWO COSTS, and the second one governs adoption.**
+  1. **AP drops 0.550 → 0.500.** Isotonic is only *weakly* monotonic; its flat regions turn
+     distinct scores into ties, collapsing ranking resolution to **46 distinct values across 863
+     test crops**. A genuine cost of the method, not a bug — unlike temperature scaling, where AP
+     invariance was a correctness check (27r).
+  2. **155 of 863 verdicts flip at threshold 0.5 — 18.0% of all decisions.** Isotonic remaps the
+     score axis, so the 0.5 cut lands elsewhere in raw-score space.
+- **DECISION: adopt for reported CONFIDENCE, not for the verdict. Not yet wired.**
+  Adopting it for decisions would change 18% of caries calls and invalidate **every downstream
+  caries number** — the in-pipeline caries rate (19.1%), the DENTEX lesion agreement (44.3%), and
+  the four Ningxia hospital figures, the last of which would cost another touch on locked external
+  data. The calibration benefit does not justify that. **Applying isotonic only to the reported
+  probability, while the verdict stays `argmax` on the raw logits, keeps every published number
+  exactly as measured and still gives meaningful confidences (ECE 0.043).** One presentational
+  wrinkle to state honestly if wired: a tooth can then be labelled `caries` while carrying a
+  calibrated confidence below 0.5.
+- **Overfitting reported rather than hidden.** In-sample val ECE falls to **0.0016** — essentially
+  perfect, which is what an over-flexible fit looks like in-sample and is *not* evidence of
+  anything. The number that matters is out-of-sample: **test ECE 0.0430**. It generalises, but the
+  27x in-sample/out-of-sample ratio belongs in the record rather than the val figure being quoted.
+- **For the paper:** the calibration story now has a shape — *miscalibrated (ECE 0.136) →
+  temperature scaling insufficient because the error is structural → isotonic recovers it
+  (ECE 0.043) at the cost of 5 AP points and 18% of decisions.* That is a better methods section
+  than any single number, and it documents a real trade-off instead of presenting a fix as free.
+- **Source:** `scripts/eval/isotonic_calibrate.py`,
+  `outputs/calibration/caries_gate_isotonic.json`,
+  `docs/results/figures/paper/caries_gate_isotonic.png`.
+- **Follow-ups:** wire confidence-only isotonic into `run_inference.py` if the presentational
+  wrinkle is acceptable; bone-loss calibration still blocked on a geometry-verified crop rebuild.

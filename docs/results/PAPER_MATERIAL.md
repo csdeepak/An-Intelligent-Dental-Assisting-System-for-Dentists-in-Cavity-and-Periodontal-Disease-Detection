@@ -1324,6 +1324,22 @@ is structural, not a temperature effect"** — evidence against the cheapest fix
 assumption. Isotonic or Platt (both still monotonic, so still decision- and AP-preserving) are the
 honest next candidates. Figure: `figures/paper/caries_gate_temperature_scaling.png`.
 
+**Isotonic regression does fix it, at a price (27 Aug).** Fitted on val, evaluated once on test:
+**ECE 0.136 → 0.043 (−68%)**, MCE 0.596 → 0.334, Brier 0.137 → 0.098 — confirming the diagnosis
+above that the error was structural and needed a method able to fit a shape. But **AP drops
+0.550 → 0.500** (isotonic is only weakly monotonic; ties collapse ranking to 46 distinct values)
+and **155 of 863 verdicts flip at threshold 0.5 — 18% of decisions**.
+
+**The adoption decision, and its reasoning, belong in the paper.** Applying isotonic to the
+*verdict* would invalidate every downstream caries number — the in-pipeline caries rate, the
+DENTEX lesion agreement, and the four Ningxia hospital figures, the last of which would cost
+another touch on locked external data. Applying it only to the *reported confidence*, leaving the
+verdict as `argmax` on raw logits, keeps every published number exactly as measured and still
+delivers ECE 0.043. **The full arc — miscalibrated → temperature insufficient → isotonic recovers
+it at a measurable cost — is a stronger methods section than any single calibration number**,
+because it documents a trade-off rather than presenting a fix as free.
+Figure: `figures/paper/caries_gate_isotonic.png`.
+
 ⚠️ **The bone-loss classifier has no calibration analysis**, which §9's checklist specifically
 asks for. Its metadata carries `filename,label,stem` and **no bounding boxes**, so the 1.5x/2.0x
 crops would need reconstructing by hand from tooth ids against `teeth_bbox.json`; a silent
