@@ -3632,3 +3632,63 @@ angxia_dataset`, so the blocker recorded earlier today is lifted.
 - **Follow-ups:** **no pipeline number is now measured on the superseded detector.** The
   bone-loss domain-shift failure is the one open technical problem, and 2026-08-27h established
   it is *not* upstream — the DENTEX+Tufts combined-training lever remains untried.
+
+---
+
+## 2026-08-27j — `docker build` executed for the first time; the demo runs, and the image is not what it claims
+
+- **What was done:** Started Docker Desktop on the Windows machine and ran `docker build` — the
+  first time it has ever executed in this project (`transfer.md` §3 item 7, open since the
+  deployment work landed on 25 Aug; every prior session found no daemon). Then ran the container
+  and verified the app actually loads, which is a **separate** check the Dockerfile's own comment
+  warns is easy to skip.
+- **RESULT: the build completes and the demo works.** Image `opg-demo`, 12 layers, CMD correct.
+  Container started, `/_stcore/health` healthy, Streamlit rendered the upload widget
+  ("Upload an OPG … 200MB per file • PNG, JPG"), and **all seven checkpoints loaded inside the
+  container** — no `-v` mounts needed, since every one is now on local disk and `COPY models/`
+  bakes them in. Logs clean apart from a benign Ultralytics config-dir warning.
+- **Runtime verification inside the container** (the checks that matter, not just a green build):
+
+  | check | result |
+  |---|---|
+  | `import cv2` | **4.11.0** — so `libgl1`/`libglib2.0-0` are correct |
+  | `import torch` | **2.13.0+cu130**, `cuda_available: False` |
+  | `import numpy` | **1.26.4** — the `<2` pin held |
+  | `scipy.optimize.linear_sum_assignment` | works — the Hungarian FDI assignment numpy 2.x silently breaks |
+
+- **DEFECT 1 — the image is NOT CPU-only, though the Dockerfile says it is.** Its comment reads
+  *"CPU-only image, deliberately … A CUDA base image would roughly 5x the build size for no
+  inference-time benefit."* The reasoning is right and the **base image** is indeed not CUDA —
+  but nothing pins a CPU-only wheel index, so pip resolved the **CUDA** torch build and pulled
+  ~2 GB of NVIDIA libraries: cublas 423 MB, cudnn 366 MB, cufft 214 MB, nccl 206 MB, cusolver
+  201 MB, cusparselt 170 MB, cusparse 146 MB, nvrtc 90 MB, plus six more. **`torch` reports
+  `2.13.0+cu130` with `cuda_available: False`** — a CUDA build that can never use CUDA. The
+  stated intent was never enforced; the fix is an explicit
+  `--index-url https://download.pytorch.org/whl/cpu`.
+- **DEFECT 2 — torch is unpinned, so the container does not run the version any result was
+  measured on.** `requirements.txt` says `torch>=2.0.0` with no upper bound; the image resolved
+  **2.13.0**, while every published number in this repo was produced on **2.2.0**
+  (`transfer.md` §8). `numpy` is correctly pinned `<2`; torch is not. The deployment artefact is
+  therefore not reproducible against the measurements it demonstrates.
+- **Also worth noting:** `jupyter` and `ipykernel` are installed into an image whose only job is
+  to run Streamlit, and `.dockerignore` excludes `data/` and `_repo_archive/` but nothing inside
+  `models/` — so `models/11/run/` and `models/06/last.pt`, which inference never reads, are
+  baked in. Build context is 608 MB of models, of which roughly half is unused run artefacts.
+- **A self-inflicted detour worth recording, because the lesson is general.** The first build's
+  CLI appeared to hang for ~25 minutes after printing `naming to … done`. It was not hung: the
+  final `unpacking to docker.io/library/opg-demo:latest` step takes **591.8 s** for an image this
+  size, and BuildKit prints nothing while it runs. Killing the CLI there left the image config
+  committed but its layer snapshots incomplete — `docker image inspect` succeeded while every
+  `docker run` hung, which looked exactly like a broken daemon. What disproved that: **running an
+  unrelated pre-existing image (`nginx`) worked fine**, isolating the fault to this image. A
+  clean rebuild fixed it. *Lesson: a silent step is not a hung step, and the way to tell a
+  broken environment from a broken artefact is to try a known-good artefact in the same
+  environment.*
+- **Source:** build log in the session scratchpad; `docker images opg-demo`;
+  `docker exec opg-demo-run python -c "import cv2, torch, numpy …"`; browser render of
+  `http://localhost:8501` showing the upload widget.
+- **Follow-ups:** (1) pin torch and switch to the CPU wheel index — both change the deployment
+  artefact and need a rebuild to re-verify, so they are proposed, not silently applied.
+  (2) Consider excluding `models/*/run/` and `*/last.pt` from the build context.
+  (3) `docker system df` reports 17.67 GB of images and 8.67 GB of build cache on this machine;
+  a prune is worth discussing separately.

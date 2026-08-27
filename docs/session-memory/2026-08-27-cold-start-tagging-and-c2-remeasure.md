@@ -52,6 +52,32 @@ machine `docker version` reaches the Docker Desktop named pipe and reports it mi
 **the CLI is installed and only the engine is stopped**, which is a one-click user action, not
 a missing dependency. Re-flagged as the cheapest unblockable item here.
 
+## Phase 5 — `docker build`, executed for the first time
+
+Started Docker Desktop and ran the build. **It completes, and the demo runs**: container up,
+`/_stcore/health` healthy, Streamlit serving the upload widget, and all seven checkpoints
+loading inside the container. `import cv2` works — the failure the Dockerfile warns only shows
+at container start — and numpy is 1.26.4 with the Hungarian assignment intact. §3 item 7 closed.
+
+**Two real defects found by actually running it:**
+- The image is **not CPU-only** despite the Dockerfile saying so. Nothing pins a CPU wheel index,
+  so pip pulled the CUDA torch build plus ~2 GB of NVIDIA libraries. `torch 2.13.0+cu130` with
+  `cuda_available: False` — a CUDA build that can never use CUDA.
+- **torch is unpinned** (`>=2.0.0`), so the container runs 2.13.0 while every published number
+  was measured on 2.2.0. numpy is pinned; torch is not.
+
+Both change the deployment artefact and need a rebuild to re-verify, so I proposed rather than
+silently applied them.
+
+**A self-inflicted detour worth remembering.** The first build's CLI looked hung for ~25 min
+after `naming to … done`. It wasn't — the final `unpacking` step takes **591.8 s** for an image
+this size and prints nothing. I killed it, which left the image config committed but its layer
+snapshots incomplete: `docker image inspect` succeeded while every `docker run` hung, looking
+exactly like a broken daemon. Running an unrelated image (`nginx`) worked and isolated the fault
+to our image; a clean rebuild fixed it. *A silent step is not a hung step, and the way to tell a
+broken environment from a broken artefact is to try a known-good artefact in the same
+environment.*
+
 ## Decisions made
 
 - **Repaired the docs before starting any new work.** The temptation was to pick up a backlog

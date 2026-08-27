@@ -291,14 +291,18 @@ the next one.** Ordered by what actually blocks something else:
    wrong one. Fixed, extracted into `hash_from_summary()`, covered by 8 new tests (65 → 73).
    It also upgraded the bone-loss **class order** from "inferred" to confirmed two ways.
    `RESULTS_LOG.md` 2026-08-27g.
-7. **Verify `docker build` actually completes. ⭐ Now the cheapest unblockable item on this
-   machine.** Never run (daemon unavailable every session so far) — **but the Windows machine
-   has the Docker CLI installed and only the engine is stopped** (`docker version` reaches the
-   named pipe and reports it missing, rather than reporting no such command; verified 27 Aug).
-   **Starting Docker Desktop is a one-click user action that unblocks a Review-1 blocker for
-   zero compute.** Every static check passed (file paths, package list, CLI flag syntax verified by
-   actually starting the process) but a real build has never happened. Do this before trusting
-   the deployment demo for Review 1.
+7. **Verify `docker build` actually completes. ✅ DONE 27 Aug 2026 — and the demo RUNS.**
+   Executed for the first time in this project. Build completes; container starts; Streamlit
+   serves the upload widget; **all seven checkpoints load inside the container** (no `-v` mounts
+   needed now that every checkpoint is on local disk). `import cv2` works — the failure mode the
+   Dockerfile warns about, which only shows at container start — and `numpy` is 1.26.4 with the
+   Hungarian assignment working. **This is no longer a Review-1 blocker.**
+   ⚠️ **But the image is not what the Dockerfile claims.** It says "CPU-only image,
+   deliberately"; pip actually pulled the **CUDA** torch wheel plus ~2 GB of NVIDIA libraries
+   (`torch 2.13.0+cu130`, `cuda_available: False` — a CUDA build that can never use CUDA). And
+   `torch` is unpinned (`>=2.0.0`), so the container runs **2.13.0** while every published number
+   was measured on **2.2.0**. Both are real defects, both need a rebuild to re-verify, and both
+   are left as proposals rather than silently applied. `RESULTS_LOG.md` 2026-08-27j.
 8. **Consider the third public FDI corpus.** DentFound's tooth-ID training data includes the
    Kaggle *Dual-labeled Panoramic Radiographs* set — 2,000 images, **native FDI 11–48, no
    mirror to correct**, larger than DENTEX (634) or Tufts (1,000). Would turn a 2-corpus
