@@ -323,7 +323,10 @@ claim C3). Image in, per-tooth JSON + overlay out, through all six stages.
 
 **Lesion-localisation agreement — 25 Aug 2026** (`scripts/eval/lesion_localization.py`,
 RESULTS_LOG 2026-08-25c), 164 leak-free images: of 479 real çürük (caries) lesions,
-**204 have a predicted-diseased tooth spatially overlapping them — 42.6%**. This is a
+**212 of 479 have a predicted-diseased tooth spatially overlapping them — 44.3%**
+(re-measured 27 Aug 2026 on the seg detector; the old detector scored 42.0% in a same-machine
+control, and 42.6% was the 25 Aug published figure). Predicted-positive teeth *fell* 773 → 755
+while correct localisations *rose* 201 → 212. `RESULTS_LOG.md` 2026-08-27i. This is a
 tooth-level correspondence check (the pipeline has no finer localisation than "which tooth"),
 not a pixel-level segmentation-quality metric. Built against DENTEX first specifically so it
 generalises to Ningxia's masks later without new code under deadline pressure — see
@@ -351,8 +354,18 @@ Both are pure inference; neither needed a GPU rental.
 | test4 | cross-centre | 186 | 22.6% | **41.9%** | +19.9 pp |
 | *(pooled, scale only)* | | 1,013 | 33.3% | **40.8%** | **+7.7 pp** |
 
-Improved on all four hospitals; external agreement now sits just under the 42.6% DENTEX
-*internal* figure rather than well below it. **No caries model changed** — only the detector.
+Improved on all four hospitals. **No caries model changed** — only the detector. With the
+internal figure also re-measured on the seg detector (44.3%, above), **the internal/external gap
+has more than halved:**
+
+| | internal (DENTEX) | external (Ningxia, pooled) | gap |
+|---|---|---|---|
+| old detector (control) | 42.0% | 33.1% | **8.9 pp** |
+| **seg detector** | **44.3%** | **40.8%** | **3.5 pp** |
+
+Much of what read as caries domain shift was a detection problem. **Not** grounds for saying
+caries generalises well: 40.8% is still weak in absolute terms and three of four hospitals sit
+below the internal figure.
 
 **Periodontitis — affected-tooth sensitivity: UNCHANGED by the detector swap.**
 2.7% → 2.4% pooled; the pipeline flagged 168 affected teeth before and 165 after while the

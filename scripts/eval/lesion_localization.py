@@ -136,6 +136,12 @@ DEF_OUT = REPO_ROOT / "outputs/lesion_localization"
 TARGET_FINDING_ID = "1"  # çürük -- see the module docstring for why only this one
 
 
+def _sha256(path):
+    """Hash a weight file so a results JSON can never be confused with another run's."""
+    import hashlib
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
 def _load_leaked():
     """Same exclusion list and key as validate_fdi_assignment.py / compare_caries_gates.py --
     this evaluates the same disease/ images, so the same leakage applies."""
@@ -267,6 +273,14 @@ def main():
         "caveat": "unmatched predicted-positive teeth are NOT confirmed false positives -- "
                  "disease/ annotates only ~6 of ~30 teeth per image (compare_caries_gates.py); "
                  "an unmatched positive may be real, unannotated caries.",
+        # Which weights produced this file. Added 27 Aug 2026: without it, two result
+        # files are structurally identical and distinguishable only by the output
+        # directory someone happened to name -- the same provenance gap that let the
+        # 42.6% figure become a stale old-detector number without anyone noticing.
+        "weights": {"detector": str(args.detector),
+                    "detector_sha256": _sha256(args.detector),
+                    "caries_gate": str(args.caries_gate),
+                    "caries_severity": str(args.caries_severity)},
         "flag_counts": dict(flag_counts),
         "per_image": per_image,
     }

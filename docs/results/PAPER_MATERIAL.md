@@ -965,14 +965,18 @@ proven implementation rather than a second one that could quietly disagree.
 |---|---|
 | Images with ≥1 çürük lesion | 148 / 164 |
 | Lesions (çürük polygons) | 479 |
-| **Lesion-localisation agreement** | **204/479 = 42.6%** |
+| **Lesion-localisation agreement** (seg detector, current) | **212/479 = 44.3%** |
+| Lesion-localisation agreement (old bbox detector, same-machine control) | 201/479 = 42.0% |
+| *(25 Aug published figure, old detector)* | *204/479 = 42.6%* |
 | Predicted-positive teeth | 772 |
 | — of which land on an annotated lesion | 204 (26.4%, diagnostic only, see caveat) |
 
 Sanity-checked against the two known stage recalls rather than trusted on its own: detector
 recall 0.670 × caries test recall 0.74 (arm B, RESULTS_LOG 2026-08-25b) gives a naive compound
 estimate of 0.496 — different population and method, but the right order of magnitude next to
-the measured 42.6%, which is what compounding two ~65–75% stages should look like.
+the measured **44.3%**, which is what compounding two ~65–75% stages should look like. (On the
+seg detector the recall term rises to 0.706, giving 0.522 against a measured 44.3% — the same
+modest over-estimate, so the sanity check still holds after the swap.)
 
 **The one thing this number cannot tell you**: an unmatched predicted-positive tooth is not a
 confirmed false positive. `disease/` annotates only teeth carrying *some* finding — roughly 6
@@ -1083,10 +1087,22 @@ comparison. `RESULTS_LOG.md` 2026-08-27h.
 | *(pooled, scale only)* | 1,013 | 33.1% | **40.8%** | **+7.7 pp** |
 
 This denominator is GT-derived and model-independent, so it is a straight read. External caries
-agreement now sits just below the **42.6%** DENTEX internal figure (§8.11) rather than well
-below it — i.e. much of the apparent internal/external gap was a *detection* gap, not a caries
-model gap. **Caveat for the paper: §8.11's 42.6% is itself still an old-detector number**, so
-that internal/external comparison is not strictly like-for-like until it is re-run.
+agreement now sits just below the DENTEX internal figure (§8.11) rather than well below it —
+i.e. much of the apparent internal/external gap was a *detection* gap, not a caries model gap.
+**RESOLVED 27 Aug 2026** — §8.11 has been re-measured on the seg detector (44.3%, with a
+same-machine control at 42.0%), so the comparison below IS like-for-like:
+
+| | internal (DENTEX) | external (Ningxia, pooled) | gap |
+|---|---|---|---|
+| old detector (control) | 42.0% | 33.1% | **8.9 pp** |
+| **seg detector** | **44.3%** | **40.8%** | **3.5 pp** |
+
+**The internal/external gap more than halved, and the external number moved further than the
+internal one** (+7.7 vs +2.3 pts) — so much of what read as caries domain shift was a detection
+problem. That is the same shape as the head-v2.0 result (§8.8b): a change worth ~0 in-domain was
+worth +21.5 points out-of-domain. **Do not write this up as "caries generalises well."** 40.8%
+pooled is weak in absolute terms, three of four hospitals remain below the internal figure, and
+test2 exceeding it is one centre. `RESULTS_LOG.md` 2026-08-27i.
 
 **Periodontitis — unchanged, and this is the more interesting half.**
 
@@ -1168,9 +1184,10 @@ For whoever drafts the actual paper. Tick items off here as they land.
       failure mode, not because the work was late.)*
 - [x] Re-measure C2 (Ningxia external validation) against the adopted detector. **Done 27 Aug
       2026** — §8.12a. Caries +7.7 pts pooled across four hospitals; bone loss unchanged. Control
-      on the old detector run first and reproduces 25 Aug. **Still open: §8.11's DENTEX 42.6% is
-      the last remaining old-detector external number**, so the internal-vs-external comparison
-      is not yet like-for-like.
+      on the old detector run first and reproduces 25 Aug.
+- [x] Re-measure §8.11 lesion localisation on the adopted detector, so internal and external are
+      comparable. **Done 27 Aug 2026** — 42.0% → 44.3%; internal/external gap 8.9 → 3.5 pp.
+      **No pipeline number remains on the superseded detector.**
 - [x] Run and report the pre-registered YOLOv11l-seg retrain (R1). **Done 27 Aug 2026** — box
       bar passed (0.8100 ≥ 0.75), **mask bar missed** (0.6383 < 0.65), adopted as the Stage-1
       default by explicit human decision for the box gain; Stage 2 re-measured end-to-end

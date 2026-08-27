@@ -11,7 +11,7 @@ Scripts that measure the pipeline rather than build or train it. This is where c
 | `ablate_head_inputs.py` | Which input carries which FDI digit — tests the architecture's stated rationale | ✅ run on the 2,729-crop val split |
 | `compare_caries_gates.py` | Before/after for the caries gate, through the pipeline, same boxes and crops | ✅ 84.9% → 19.1% |
 | **`verify_invariants.py`** | **Re-checks the facts the documentation depends on.** Run after changing data, swapping a checkpoint, or before trusting a number in a draft | ✅ 7/7 hold |
-| **`lesion_localization.py`** | Do predicted-diseased teeth spatially overlap a real expert lesion? §4.3.4's primary EXTERNAL number for C2 (Ningxia-ready — no negatives needed) and the T1.5 XAI metric | ✅ 42.6% on DENTEX |
+| **`lesion_localization.py`** | Do predicted-diseased teeth spatially overlap a real expert lesion? §4.3.4's primary EXTERNAL number for C2 (Ningxia-ready — no negatives needed) and the T1.5 XAI metric | ✅ **44.3%** on DENTEX (seg detector, 27 Aug; old detector 42.0%) |
 | **`ningxia_external.py`** | **C2 external validation** — the three §4.3.4 measurements on Ningxia, stratified by centre. Metric differs by category (focal vs diffuse) | ✅ caries 22.6–43.3%, periodontitis 0.8–5.4% |
 | **`crop_eval.py`** | **Crop-level** Stage-2 evaluation on a held-out manifest split — GT boxes, plain argmax, no detector in the loop. Used to compare Stage-2 heads **across corpora** (e.g. a DENTEX-trained head measured on Tufts), which `validate_fdi_assignment.py` cannot do since it always runs against `DENTEX/disease/`. Imports `ToothSet` from `scripts/dentex/train_enumeration_head.py` rather than reimplementing preprocessing. | ✅ produced the v1.0-vs-v2.0-vs-Tufts-only 2×2, `RESULTS_LOG.md` 2026-08-25j |
 

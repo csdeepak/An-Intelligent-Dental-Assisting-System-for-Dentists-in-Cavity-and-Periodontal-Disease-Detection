@@ -146,11 +146,35 @@ Ran a **control on the old detector first**, on this machine, before the treatme
   instead. They are honest head-vs-head comparisons; overwriting valid history with
   current-best would destroy the comparison they exist to make.
 
-## Open questions
+## Phase 4 — closing the last stale number
 
-- **`lesion_localization.py`'s DENTEX 42.6% is now the last old-detector external number.** The
-  internal-vs-external caries comparison in `PAPER_MATERIAL.md` §8.12a is therefore not strictly
-  like-for-like until it is re-run. Cheap — no GPU, and DENTEX `disease/` is on this machine.
+Re-ran `lesion_localization.py` (DENTEX internal lesion agreement) on the seg detector, control
+first. **42.0% → 44.3%** (201 → 212 of 479 GT polygons; denominator model-independent). The
+control reproduced the published 42.6% to within 0.6 pp.
+
+Third appearance of the same signature: predicted-positive teeth *fell* 773 → 755 while correct
+localisations *rose*. The seg detector finds fewer wrong things, not more things.
+
+**What it unlocks:** internal and external caries are now both on the same detector, so the
+comparison is finally like-for-like — and the gap more than halved.
+
+| | internal (DENTEX) | external (Ningxia, pooled) | gap |
+|---|---|---|---|
+| old detector (control) | 42.0% | 33.1% | 8.9 pp |
+| **seg detector** | **44.3%** | **40.8%** | **3.5 pp** |
+
+Much of what read as caries domain shift was a detection problem. Carefully *not* written up as
+"caries generalises well" — 40.8% is weak absolutely, and 3 of 4 hospitals sit below internal.
+
+Also fixed two things in that file: a **disproven claim** still in its docstring (that only the
+GT loader would need a Ningxia sibling — the *matching criterion* doesn't transfer either;
+corrected in `ningxia_external.py` on 25 Aug but never back here), and a **provenance gap** —
+its JSON recorded no weights, so two result files were distinguishable only by directory name.
+That is exactly the gap that let 42.6% go stale unnoticed.
+
+**No pipeline number is now measured on the superseded detector.**
+
+## Open questions
 - **Bone-loss domain-shift fix — which approach?** Now a sharper question than before: the
   "shared root cause with the detector" hypothesis is falsified, so upstream fixes are ruled
   out. The DENTEX+Tufts combined-training trick is the obvious untried lever, and it needs

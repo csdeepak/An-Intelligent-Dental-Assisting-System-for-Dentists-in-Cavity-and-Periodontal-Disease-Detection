@@ -3578,3 +3578,57 @@ angxia_dataset`, so the blocker recorded earlier today is lifted.
   (2) Bone-loss domain-shift fix is now the clearest open research problem in the project, with
   one specific untried approach. (3) Image-level caries sensitivity is 93–100% and remains
   saturated — still the weak metric, still not to be reported as a strength.
+
+---
+
+## 2026-08-27i — Lesion localisation re-run on the seg detector: the last stale number is closed
+
+- **What was done:** Re-ran `lesion_localization.py` (DENTEX internal lesion agreement) against
+  the seg detector, with a control on the old bbox detector first. This was the **last remaining
+  number in the pipeline still measured on the superseded detector** — 2026-08-27h flagged that
+  §8.12a's internal-vs-external caries comparison was not like-for-like until it was done.
+- **Dataset / config:** DENTEX `disease/`, 164 leak-free images (86 excluded as training
+  duplicates, same exclusion list as `validate_fdi_assignment.py`), 479 çürük polygons across
+  148 images. `min_iou=0.30`, inherited a priori and **not** swept against this set. Caries gate
+  v3 and severity unchanged — the detector is the only difference between arms.
+
+  | | control (old det) | **seg detector** | Δ |
+  |---|---|---|---|
+  | Lesion-localisation agreement | 201/479 = **42.0%** | 212/479 = **44.3%** | **+2.3 pp** |
+  | Predicted-positive teeth | 773 | **755** | −18 |
+  | Of those, landing on a lesion (diagnostic, NOT precision) | 26.0% | **28.1%** | +2.1 pp |
+
+  The control reproduces the published 42.6% (2026-08-25c) to within 0.6 pp on a different
+  machine, so the delta is attributable to the detector. The denominator (479 GT polygons) is
+  model-independent and **identical** across arms — a straight read.
+- **Key insight — the same signature as Stage 2, for the third time: fewer positives, more of
+  them right.** Predicted-positive teeth *fell* (773 → 755) while correctly-localised lesions
+  *rose* (201 → 212). Stage 2 showed it too, gaining +12.0 pts while detections/image fell
+  23.7 → 22.0 (2026-08-27e). The seg detector is not finding *more* things; it is finding
+  *fewer wrong* things, and every stage consuming its boxes benefits.
+- **THE COMPARISON THIS UNLOCKS — the internal/external gap has more than halved**, with both
+  halves now on the same detector and controls run on the same machine:
+
+  | | internal (DENTEX) | external (Ningxia, pooled) | gap |
+  |---|---|---|---|
+  | old detector (control) | 42.0% | 33.1% | **8.9 pp** |
+  | **seg detector** | **44.3%** | **40.8%** | **3.5 pp** |
+
+  **Much of what looked like a caries domain-shift problem was a detection problem.** The
+  external number rose 7.7 points against the internal number's 2.3, so the swap helped
+  out-of-domain data disproportionately — the same shape as the head-v2.0 result (2026-08-25j),
+  where a change worth ~0 in-domain was worth +21.5 points out-of-domain. **Do not restate this
+  as "caries generalises well":** 40.8% pooled external is still a weak absolute number, three of
+  four hospitals sit below the internal figure, and Ningxia test2 exceeding it (51.3%) is one
+  centre, not a trend.
+- **Provenance gap found and closed.** This script's JSON recorded no weights, so its two result
+  files were structurally identical and told apart only by the output directory name someone
+  chose — exactly the gap that let 42.6% become a stale old-detector number unnoticed. It now
+  writes detector/gate/severity paths plus the detector SHA-256, as `ningxia_external.py` does.
+  **The two files reported above predate that change** and are identified by directory name;
+  verified on a 3-image re-run that the field now appears.
+- **Source:** `outputs/lesion_localization_control_olddet/lesion_localization.json`,
+  `outputs/lesion_localization_segdet/lesion_localization.json`.
+- **Follow-ups:** **no pipeline number is now measured on the superseded detector.** The
+  bone-loss domain-shift failure is the one open technical problem, and 2026-08-27h established
+  it is *not* upstream — the DENTEX+Tufts combined-training lever remains untried.

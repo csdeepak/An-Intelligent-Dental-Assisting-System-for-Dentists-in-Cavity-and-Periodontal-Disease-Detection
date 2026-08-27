@@ -6,7 +6,10 @@ It is **rewritten, not appended to** — unlike `docs/results/RESULTS_LOG.md` (a
 history) and `docs/session-memory/` (one file per session, never edited). Those two are the
 record; this is the snapshot.
 
-**Last updated: 27 August 2026** (**C2 re-measured on the seg detector: caries +7.7 pts pooled
+**Last updated: 27 August 2026** (**Lesion localisation re-run too — 42.0% → 44.3% on DENTEX,
+which means NO pipeline number is still measured on the superseded detector. Internal vs
+external caries gap more than halved, 8.9 → 3.5 pp: much of what read as domain shift was a
+detection problem.** `RESULTS_LOG.md` 2026-08-27i. Earlier: **C2 re-measured on the seg detector: caries +7.7 pts pooled
 across all four Ningxia hospitals, bone loss completely unmoved (168 → 165 teeth flagged) — the
 same intervention that gave Stage 2 +12.0 pts. That falsifies the standing guess that the
 detector and bone-loss branch failed out-of-domain for a shared Tufts-trained reason.**
@@ -64,7 +67,9 @@ Stage 1 was the binding constraint — now measured rather than asserted. Detect
 **70.6%** (was 67.3%).
 
 **C2 (external validation) has real numbers**: zero leakage against all internal corpora,
-caries lesion agreement 22.6–43.3% across four Ningxia hospitals (DENTEX internal was 42.6%).
+caries lesion agreement **28.8–51.3% across four Ningxia hospitals (40.8% pooled), against
+44.3% DENTEX internal — both re-measured on the seg detector 27 Aug, both with same-machine
+controls. The internal/external gap more than halved (8.9 → 3.5 pp).**
 **C1 (VLM baseline) is the only headline paper contribution still at 0%** — deliberately
 deferred to W5 by the plan, not forgotten. **65/65 tests pass, `verify_invariants.py` is 7/7**
 (now checking both Stage-2 heads). We are on **W2 of the 8-week plan**
@@ -198,7 +203,7 @@ vs bbox's 3,924 (+0.15%), so near-, not exactly, like-for-like.
 | **Caries gate rebuilt** — 5,366 real healthy teeth (MD5-joined, 98.28% FDI agreement), frozen `caries-gate-resnet18-v3.0` | `models/09_caries_gate_v3/run_summary.txt`; 84.9% → 19.1% in-pipeline, precision 0.40 |
 | **T0.1–T0.4 caries re-run closed** — both arms run, gap is noise (0.01–0.03 vs 0.27 epoch-to-epoch swing) | `RESULTS_LOG.md` 2026-08-25b |
 | **Stages 5–6 built** — `run_inference.py` runs all six stages, image → per-tooth JSON + overlay | `RESULTS_LOG.md` 2026-08-24f (R4, paper claim C3); refactored into `load_models()`/`run_pipeline()`, verified byte-identical |
-| **Lesion-localisation evaluator** — 42.6% agreement on DENTEX, no GPU | `scripts/eval/lesion_localization.py`, `RESULTS_LOG.md` 2026-08-25c |
+| **Lesion-localisation evaluator** — **44.3%** agreement on DENTEX (seg detector, 27 Aug; 42.0% control on the old one) | `scripts/eval/lesion_localization.py`, `RESULTS_LOG.md` 2026-08-25c |
 | **C2 external validation on Ningxia** — 4 hospitals, zero leakage, first external numbers | `scripts/eval/ningxia_external.py`, `RESULTS_LOG.md` 2026-08-25d |
 | **Deployment** — Streamlit app + Dockerfile, wrapping the pipeline unchanged | `app.py`, `Dockerfile`, `RESULTS_LOG.md` 2026-08-25f |
 | **6 paper/review figures**, generated from saved artefacts only | `scripts/figures/make_paper_figures.py`, `docs/results/figures/paper/`, `RESULTS_LOG.md` 2026-08-25e |
