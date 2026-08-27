@@ -141,12 +141,50 @@ that alone; the extension was also not connected in this session. This is a manu
 
 ### To restore on a fresh clone (a friend's laptop, or after re-cloning)
 
+**Downloading is scriptable — only *uploading* needs a human.** `gdown` fetches a public
+Drive file by id with no OAuth, so a Claude Code session can restore a checkpoint unattended.
+The ids below were resolved on 27 Aug 2026 and the caries gate was fetched and hash-verified
+this way; record any new id here so nobody has to enumerate a folder again (finding this one
+meant listing **10,781** entries in the DENTEX drive).
+
+| File | Drive | `gdown` id | Verified |
+|---|---|---|---|
+| `models/09_caries_gate_v3/caries_gate_v3.pth` | DENTEX | `1pBI1oeIoMF8d-k0o7ETUyWnjtyfOT_pL` | ✅ 27 Aug 2026 — 44,787,894 B, sha256 `8f4a99ba412c…`, matches the pin |
+| `models/06_yolo_detection_a100_run/best.pt` | Tufts | *not yet resolved* | — |
+| `models/11_yolo_seg_tufts_r1/best.pt` | Tufts | **not uploaded yet** — see the warning above | — |
+
 ```bash
 # after git clone, from the repo root:
-mkdir -p models/06_yolo_detection_a100_run models/09_caries_gate_v3
-# download best.pt from the Tufts drive -> models/06_yolo_detection_a100_run/best.pt
-# download caries_gate_v3.pth from the DENTEX drive -> models/09_caries_gate_v3/caries_gate_v3.pth
-python scripts/run_inference.py --image <any_opg.png> --output report.json   # should now run
+mkdir -p models/06_yolo_detection_a100_run models/09_caries_gate_v3 models/11_yolo_seg_tufts_r1
+
+# caries gate -- scripted, id resolved above:
+python -c "import gdown; gdown.download(id='1pBI1oeIoMF8d-k0o7ETUyWnjtyfOT_pL', \
+  output='models/09_caries_gate_v3/caries_gate_v3.pth', quiet=False)"
+
+# the two detectors: still manual from the drive links above
+#   Tufts drive -> models/06_yolo_detection_a100_run/best.pt   (superseded; needed only to
+#                                                               reproduce pre-27-Aug numbers)
+#   Tufts drive -> models/11_yolo_seg_tufts_r1/best.pt         (DEF_DETECTOR -- NOT UPLOADED YET)
+
+# ALWAYS verify before trusting a download -- this is not optional:
+python scripts/eval/verify_invariants.py   # checks every present checkpoint against its pin
+python scripts/run_inference.py --image <any_opg.png> --output report.json
+```
+
+> **A size check is not an integrity check.** On 27 Aug a DENTEX image truncated at 2,428 bytes
+> passed a `size > 0` test and silently cost an evaluation run. `verify_invariants.py` compares
+> the SHA-256 recorded in each `run_summary.txt` against the bytes on disk, which is why the
+> step above is listed as mandatory rather than advisory.
+
+To resolve an id for a file whose folder you can reach:
+
+```bash
+python -c "
+import gdown
+files = gdown.download_folder(url='<folder-url>', skip_download=True, quiet=True)
+for f in files:
+    if f.path.lower().endswith(('.pth','.pt')): print(f.path, f.id)
+"
 ```
 
 If `run_inference.py` raises `missing model weights`, it names the exact missing path — cross-
