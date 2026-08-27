@@ -6,7 +6,7 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-red.svg)](https://pytorch.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-6%2F6%20Stages%20Running-brightgreen.svg)]()
-[![Tests](https://img.shields.io/badge/tests-65%20passing-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/tests-84%20passing-brightgreen.svg)]()
 [![External](https://img.shields.io/badge/external%20validation-4%20hospitals-blue.svg)]()
 
 ---
@@ -185,6 +185,7 @@ Full tables and provenance: [`docs/results/model_metrics.md`](docs/results/model
 | Caries cascade Phase 2 (caries vs deep_caries) | DENTEX | val (133) | acc **0.81**, macro F1 **0.77** |
 | Bone loss binary | Tufts | val (1,558, real prevalence) | macro F1 **0.9233**, sens 83.05%, spec 99.53% |
 | Bone loss severity (3-class) | Tufts | val (52) | macro F1 **0.7208** |
+| **C1 — VLM baseline** (tooth-level caries FDI sets) | DENTEX | 164 leak-free | **ours F1 0.294** vs Qwen2.5-VL-7B **0.143**, and vs a constant guess **0.204** which the VLM does *not* beat |
 | CEJ estimation (exploratory) | Tufts | 296 crops | 15.1% agreement with primary label |
 
 ---
@@ -471,7 +472,7 @@ annotated image). Two checkpoints are not in git — see
 | Phase 5a | Stage-2 head v2.0 — Tufts FDI corpus | Gunadeep | ✅ Complete — found + corrected Tufts' mirrored numbering, built a second FDI corpus, ran the A/B/C head comparison, adopted v2.0 (+21.5pp cross-domain, `RESULTS_LOG.md` 2026-08-25h/j) |
 | Phase 5b | Deployment — Streamlit app + Docker | Gunadeep | ✅ Complete — `app.py`, `Dockerfile`, wraps `run_inference.py` unchanged |
 | Phase 5c | C2 external validation — Ningxia | Gunadeep | ✅ Complete — 4 hospitals, zero leakage verified, `RESULTS_LOG.md` 2026-08-25d |
-| Phase 6 | Paper writing | Deepak & Gunadeep | ⬜ **Deliberately last** — `PAPER_MATERIAL.md` is structured and ready, but drafting has not started per explicit project sequencing |
+| Phase 6 | Paper writing | Deepak & Gunadeep | **NOW THE CRITICAL PATH (27 Aug 2026).** All contributions are measured — C1, C2, confidence intervals, calibration, failure taxonomy, related work and ethics live in `PAPER_MATERIAL.md` §2.1 / §8.13–§8.20 with 8 figures. Drafting itself has not started. |
 
 ---
 

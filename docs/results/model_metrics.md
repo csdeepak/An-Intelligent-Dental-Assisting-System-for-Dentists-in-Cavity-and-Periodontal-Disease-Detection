@@ -336,6 +336,24 @@ Both are pure inference; neither needed a GPU rental.
 
 ---
 
+## C1 — VLM baseline (27 Aug 2026)
+
+Tooth-level caries: predict the set of carious FDI codes per image, 164 leak-free DENTEX images,
+one scorer for both arms. Image-level yes/no was rejected as degenerate (90.2% of images contain
+caries).
+
+| Arm | P | R | **F1** | latency |
+|---|---|---|---|---|
+| **Our six-stage pipeline** | 0.235 | 0.390 | **0.294** | 2.39 s/img (CPU) |
+| Constant `{26,36}` — image ignored | 0.250 | 0.172 | **0.204** | 0 |
+| Qwen2.5-VL-7B-Instruct, zero-shot | 0.236 | 0.103 | **0.143** | 1.08 s/img (A100) |
+
+**The VLM scores below a constant guess.** Blank and random-noise images elicit the same confident
+answer; only 6 distinct answers across 164 radiographs. **Never quote 0.143 without that control.**
+Efficiency: 8.29 B params / 18.01 GB VRAM vs ~25 M params on CPU. `RESULTS_LOG.md` 2026-08-27aa.
+
+---
+
 ## Confidence intervals (added 27 Aug 2026)
 
 **Cluster bootstrap over images**, 10,000 resamples, seed 42 — `scripts/eval/bootstrap_ci.py`.

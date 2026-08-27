@@ -8,6 +8,15 @@ never maintained; trust the block.
 
 ---
 
+> ## ✅ SUPERSEDED FOR MOST ITEMS — read `transfer.md` §1 and §3 first (27 Aug 2026)
+>
+> As of 27 Aug the **implementation is essentially complete and the paper draft is the critical
+> path**. C1, C2, confidence intervals, calibration, the failure taxonomy, related work and the
+> ethics statement are all done and live in `PAPER_MATERIAL.md`. The Tier-0 block below is closed
+> apart from T0.5. **This file's status block is dated 21 August and has already caused one
+> near-miss** (a GPU session was nearly spent re-running caries work that had landed on 25 Aug).
+> Treat `transfer.md` as authoritative for what is open.
+
 ## STATUS AS OF 21 AUGUST 2026
 
 > ⚠️ **DATED 21 AUGUST AND STALE FOR THE CARIES ITEMS. Corrected 27 Aug 2026.**

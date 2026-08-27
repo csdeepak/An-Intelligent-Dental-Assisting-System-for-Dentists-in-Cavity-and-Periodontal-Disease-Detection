@@ -135,150 +135,33 @@ without a reason is not a diagnostic.*
 Also added `pytest` to `requirements.txt`: §8's fresh-clone checklist said to run the suite, but a
 clean install could not.
 
-## Decisions made
+## Phases 8-12 — the rigor block, C1, and the paper sections
 
-- **Repaired the docs before starting any new work.** The temptation was to pick up a backlog
-  item; but an unpropagated result is exactly the failure mode `CLAUDE.md` was written against,
-  and it was actively costing a fresh clone.
-- **Did not rewrite the correctly-scoped historical tables** in `src/README.md` and
-  `models/README.md`. Their 46.5% / 46.58% figures are real measurements on the bbox detector
-  and are the honest basis for a head-vs-head comparison. Added a pointer saying so and naming
-  the current number, instead of overwriting valid history with current-best.
-- **Recomputed nothing.** Every figure written was copied from the 27 Aug entries and
-  `run_summary.txt`. A propagation pass that quietly re-derives numbers is a second result, not
-  a propagation.
-- **Logged it as a milestone** (`RESULTS_LOG.md` 2026-08-27f) even though it produced no new
-  number, because rule 1 counts a significant bug fix, and the fresh-clone break was one.
+After DENTEX landed, the remaining CPU work went quickly:
 
-## Open questions
-
-- **Does `docker build` actually pass?** Still unknown. Now blocked only on the user starting
-  Docker Desktop.
-- **Should `validate_fdi_assignment.py`'s defaults be realigned** to the current detector and
-  head? 2026-08-27e deliberately left them on the old pair so historical numbers stay
-  reproducible, at the cost of defaults that no longer describe the pipeline. That trade was
-  never explicitly decided — it was inherited.
-- **Is there a systematic check for "a `DEF_*` constant changed"?** This session's break came
-  from a default moving without a grep for paths naming the old one. `verify_invariants.py`
-  pins weight *hashes*; nothing pins the *documentation* that tells a human which file to fetch.
-
-## Phase 2 — the last untagged models, and the check that was wrong
-
-Tagged Stages 4a/4b (`bone-loss-binary-resnet18-v1.0`, `bone-loss-severity-resnet18-v1.0`) —
-the last trained models with no version tag and no recorded hash, despite being pipeline
-defaults for months. Nothing retrained; the April artifacts, now pinned. `verify_invariants.py`
-went 4 → 6 pinned checkpoints.
-
-**Writing the summary broke the invariant check, which is how a bug in the check surfaced.**
-It read the sha256 as "the last 64-hex token anywhere in the file", so models/03's summary —
-which documents both `best` (the default) and `final` (unused) — verified the default against
-the wrong file's hash. Correct only while every summary happened to name one checkpoint.
-Fixed by attributing each hash to the nearest preceding weight filename, extracted as
-`hash_from_summary()`, covered by 8 tests.
-
-**Bone-loss class order upgraded from inferred to confirmed.** The checkpoints are raw
-`state_dict`s with no `class_to_idx`; `run_inference.py` honestly said "Inferred, not read".
-Two independent confirmations agree: the FocalLoss alpha ratio 2.258/0.642 = 3.5171 matches
-the class-count ratio 2500/711 = 3.5162 to 0.03% (so index 0 is the majority class, normal),
-and `training_summary.txt` labels its own scores "F1 Normal (cls 0)" / "F1 Diseased (cls 1)".
-
-## Phase 3 — C2 re-measured on Ningxia
-
-Data was reachable at `D:
-angxia_dataset` (the user supplied it). Two blockers first:
-
-1. **`ningxia_external.py` hardcoded its weights** — old detector *and* old v1.0 head, no
-   override, and nothing in its output recording what it loaded. That is precisely why the
-   25 Aug C2 numbers went stale invisibly on 27 Aug. Now CLI flags defaulting to
-   `run_inference`'s `DEF_*`, with resolved paths + SHA-256 written into every results file.
-2. **`import ultralytics` monkeypatches `cv2.imread` globally.** Its replacement ends
-   `return im[..., None] if im.ndim == 2 else im`, so `IMREAD_GRAYSCALE` yields (H, W, 1).
-   Measured: (1480, 2893) before the import, (1480, 2893, 1) after, ultralytics 8.4.123.
-   The mask reader died on the first image. Version-dependent (macOS runs 8.4.127), applied by
-   an unrelated import, and **silent** for code that doesn't unpack the shape. One
-   `read_mask_2d()` helper, 6 tests asserting patched and unpatched readers agree.
-
-Also restored `caries_gate_v3.pth` from the DENTEX Drive via `gdown` (id resolved by listing
-10,781 entries; now recorded in `EXTERNAL_DRIVE.md`), hash-verified against its pin. **All 7
-checkpoints are now present on this machine — `run_inference.py` can complete here for the
-first time.**
-
-Ran a **control on the old detector first**, on this machine, before the treatment — the
-27 Aug Stage-2 precedent. It reproduced 25 Aug, which is what licensed the comparison.
-
-**Result: the same intervention, opposite outcomes.**
-
-| Stage | Effect of the detector swap |
-|---|---|
-| Stage 2 FDI (DENTEX, internal) | +12.0 pts (measured 27 Aug, earlier session) |
-| Stage 3 caries (Ningxia, 4 hospitals) | **+7.7 pts** pooled, improved on all four |
-| Stage 4a bone loss (Ningxia, 4 hospitals) | **nothing** — 168 → 165 teeth flagged |
+- **Confidence intervals** (§8.14) — cluster-bootstrap over IMAGES, not teeth, because 936 teeth
+  come from 164 radiographs and errors cluster within an image. **Two of the day's own claims
+  failed their intervals** (detection-recall +3.3 pp and internal lesion agreement +2.3 pp) and
+  were withdrawn in place. That sharpened the central claim rather than weakening it: the
+  end-to-end gain is real and the recall gain is not, so the mechanism is precision, not recall.
+- **Calibration** (§8.15) — caries gate ECE 0.136, systematically overconfident. Temperature
+  scaling made ECE *worse* (0.152): the error is a shape, not a scale. Isotonic fixes it (0.043)
+  but flips 18% of verdicts, so it was wired **confidence-only** and verdicts verified
+  byte-identical against the pre-patch container report.
+- **Bone-loss crop rebuild — attempted and REJECTED by its own geometry check.** Reading
+  `02_bone_loss_dataset_construction.ipynb` settled why: the crops came from
+  `Radiographs/Radiographs/`, the ORIGINAL un-rotated radiographs, which are not on this machine.
+  Best reconstruction reached sensitivity 0.40 against a documented 0.83. Skipping the check would
+  have produced a clean-looking ECE 0.039 from crops the model cannot classify.
+- **Failure taxonomy** (§8.16, §8.17) — Stage-2's 58.3% shown to be detection-bound; the caries
+  gate over-calls healthy teeth at the same rate as impacted ones, ruling out
+  pathology-for-pathology confusion.
+- **Stage 3/4 figures** (§8.18) — regenerated from committed artefacts, not recovered from the
+  archive. The curves show heavy overfitting and that 0.9233 is the max of a noisy 32-epoch curve.
+- **Related work + ethics** (§2.1, §8.19) — only **2 of 49** task-relevant papers validate
+  externally; a keyword count would have said 13, because most say "no external validation".
+- **C1** (§8.20) — the one GPU job. Qwen2.5-VL-7B scores **below a constant guess**. My own
+  control script's verdict logic was wrong and printed the opposite conclusion; caught only by
+  reading raw responses. Instance destroyed, ₹37.93 spent.
 
 ## Decisions made
-
-- **Repaired the docs before starting new work.** An unpropagated result is the exact failure
-  mode `CLAUDE.md` exists to prevent, and it was actively breaking clone-and-run.
-- **Fixed the hash parser rather than reordering the summary.** Reordering would have silenced
-  the symptom and left the trap armed for the next multi-checkpoint summary.
-- **Ran a control instead of comparing against the published 25 Aug numbers.** Different
-  machine, different cv2/ultralytics/numpy. The 27 Aug Stage-2 work had already found exactly
-  that drift. The control cost 20 minutes of CPU and made the whole comparison interpretable.
-- **Did not present test3's periodontitis 1.1% → 5.6% as improvement.** It is 4 → 23 teeth on
-  50 images. Flagged as noise in every place it is written down.
-- **Left `src/README.md` and `models/README.md`'s bbox-detector tables intact**, adding pointers
-  instead. They are honest head-vs-head comparisons; overwriting valid history with
-  current-best would destroy the comparison they exist to make.
-
-## Phase 4 — closing the last stale number
-
-Re-ran `lesion_localization.py` (DENTEX internal lesion agreement) on the seg detector, control
-first. **42.0% → 44.3%** (201 → 212 of 479 GT polygons; denominator model-independent). The
-control reproduced the published 42.6% to within 0.6 pp.
-
-Third appearance of the same signature: predicted-positive teeth *fell* 773 → 755 while correct
-localisations *rose*. The seg detector finds fewer wrong things, not more things.
-
-**What it unlocks:** internal and external caries are now both on the same detector, so the
-comparison is finally like-for-like — and the gap more than halved.
-
-| | internal (DENTEX) | external (Ningxia, pooled) | gap |
-|---|---|---|---|
-| old detector (control) | 42.0% | 33.1% | 8.9 pp |
-| **seg detector** | **44.3%** | **40.8%** | **3.5 pp** |
-
-Much of what read as caries domain shift was a detection problem. Carefully *not* written up as
-"caries generalises well" — 40.8% is weak absolutely, and 3 of 4 hospitals sit below internal.
-
-Also fixed two things in that file: a **disproven claim** still in its docstring (that only the
-GT loader would need a Ningxia sibling — the *matching criterion* doesn't transfer either;
-corrected in `ningxia_external.py` on 25 Aug but never back here), and a **provenance gap** —
-its JSON recorded no weights, so two result files were distinguishable only by directory name.
-That is exactly the gap that let 42.6% go stale unnoticed.
-
-**No pipeline number is now measured on the superseded detector.**
-
-## Open questions
-- **Bone-loss domain-shift fix — which approach?** Now a sharper question than before: the
-  "shared root cause with the detector" hypothesis is falsified, so upstream fixes are ruled
-  out. The DENTEX+Tufts combined-training trick is the obvious untried lever, and it needs
-  DENTEX's ~13 GB training data, which is not on this machine.
-- **Does `docker build` pass?** Docker Desktop is installed here but its engine is stopped —
-  one user click from being testable, never once attempted.
-- **Should `verify_invariants.py` also pin documentation?** Nothing catches a README naming a
-  checkpoint path that is no longer the default; that is what broke clone-and-run this morning.
-
-## Next steps
-
-1. **Upload `models/11_yolo_seg_tufts_r1/best.pt` to Drive** — still the only thing between this
-   repo and a working fresh clone. User-only action.
-2. **Re-run `lesion_localization.py` on the seg detector** to close the last stale external
-   number. Zero GPU, data present.
-3. **Start Docker Desktop**, then run the build — closes a Review-1 blocker for zero compute.
-4. Scope the bone-loss combined-training experiment; needs DENTEX fetched.
-5. Unchanged zero-compute items: T0.5, the Tufts Drive permissions fix, IRB paperwork.
-
-## Cost
-
-**Zero.** No GPU rented; JarvisLabs balance unchanged at ₹650.81, 0 running, 0 paused. This
-machine has no GPU (`torch 2.13.0+cpu`, no CUDA), so all 2,146 image-evaluations ran on CPU at
-~1.7 s/image. Tests 65 → 79.
