@@ -3949,3 +3949,71 @@ angxia_dataset`, so the blocker recorded earlier today is lifted.
   fresh-clone checklist told you to run the suite, but a clean install could not.
 - **Source:** `scripts/dentex/fetch_dentex_subsets.py`; `verify_invariants.py` output above.
 - **Follow-ups:** the caries re-run block (T0.2/T0.3/T0.4) is now unblocked on this machine.
+
+---
+
+## 2026-08-27p — First confidence intervals in this project; two of today's claims do not survive them
+
+- **What was done:** cluster-bootstrap 95% CIs for every headline metric that has saved per-item
+  outputs. `scripts/eval/bootstrap_ci.py`, 10,000 resamples, seed 42. Closes the first half of
+  `PAPER_MATERIAL.md` §9's "confidence intervals for every headline metric", which was **blocking**
+  and had **no** coverage at all: until today not one number in this project carried an interval.
+- **The methodological choice that matters: resample IMAGES, not teeth.** The 936 Stage-2 teeth
+  come from 164 radiographs and are **not independent** — teeth in one image share a patient,
+  scanner, exposure and operator, and errors cluster within an image (off-by-one FDI errors
+  propagate across a quadrant, 2026-08-27e). A tooth-level bootstrap would treat 936 correlated
+  observations as 936 independent ones and report intervals far too narrow. n is 164, not 936.
+
+| Metric | Point | 95% CI | n (images) |
+|---|---|---|---|
+| Detection recall | 70.6% | **[66.5, 74.6]** | 164 |
+| **FDI exact, end-to-end** | **58.3%** | **[53.9, 62.8]** | 164 |
+| FDI exact, of detected | 82.6% | **[79.1, 85.8]** | 164 |
+| Lesion agreement (DENTEX internal) | 44.3% | **[39.0, 49.3]** | 148 |
+| Caries agreement — Ningxia test1 | 28.8% | **[23.3, 34.6]** | 134 |
+| Caries agreement — Ningxia test2 | 51.3% | **[44.0, 58.5]** | 110 |
+| Caries agreement — Ningxia test3 | 40.1% | **[31.9, 48.3]** | 40 |
+| Caries agreement — Ningxia test4 | 41.9% | **[33.1, 50.8]** | 53 |
+| Caries agreement — pooled *(scale only)* | 40.8% | **[37.0, 44.8]** | 337 |
+
+- **PAIRED DELTAS — and this is where two of today's claims fail.** Same resampled image set for
+  both arms, bootstrapping the difference:
+
+| Paired delta (seg − bbox detector) | Point | 95% CI | Verdict |
+|---|---|---|---|
+| **FDI exact, end-to-end** | **+12.1 pp** | **[+6.8, +17.2]** | **excludes 0 — real** |
+| **Caries agreement, Ningxia pooled** | **+7.7 pp** | **[+3.3, +12.0]** | **excludes 0 — real** |
+| Detection recall | +3.3 pp | [−1.5, +8.0] | **INCLUDES 0 — not significant** |
+| Lesion agreement (DENTEX internal) | +2.3 pp | [−3.4, +7.9] | **INCLUDES 0 — not significant** |
+
+- **⚠️ CORRECTION to 2026-08-27e and 2026-08-27i.** Both were reported earlier today as gains:
+  - *"Detection recall 67.3% → 70.6% (+3.3 pp)"* — the CI is **[−1.5, +8.0]**. **Not
+    distinguishable from zero.** It should not be stated as an improvement.
+  - *"Lesion localisation 42.0% → 44.3% (+2.3 pp)"* — the CI is **[−3.4, +7.9]**. **Also not
+    significant.** 2026-08-27i's framing of it as the swap "paying off" internally is withdrawn.
+  Neither point estimate changes; what changes is that neither supports a claim.
+- **What this does to the story — it sharpens it rather than weakening it.** The interesting
+  result was always that end-to-end FDI moved 12 points while detections/image *fell*. That is now
+  statistically supported from both sides: **the end-to-end gain is real (+12.1 pp, excludes 0)
+  while the recall gain is not (+3.3 pp, includes 0)**. The improvement therefore cannot be
+  attributed to finding more teeth — it comes from finding *fewer wrong* ones. A precision effect,
+  not a recall effect, now with evidence rather than inference.
+- **And it sharpens §8.12a's internal/external claim.** Internal lesion agreement moved +2.3 pp
+  (**not** significant); external Ningxia caries moved +7.7 pp (**significant**). The detector swap
+  demonstrably helped out-of-domain data and demonstrably did not help in-domain — the same
+  asymmetry as the head-v2.0 result (2026-08-25j), now with intervals.
+- **A bug caught by disagreeing with a known number.** The first run reported the pooled Ningxia
+  delta as **+10.9 pp** against a measured **+7.7** (2026-08-27h). Cause: the paired arms were
+  keyed on image *name*, and Ningxia filenames **repeat across splits** — `test1/1.png` and
+  `test2/1.png` are both `1.png` — so four hospitals collapsed into one and the arms mis-paired.
+  Re-keyed on `(category, split, image)`; the delta then reproduced +7.7 exactly. *A number that
+  disagrees with a reference is a bug until proven otherwise.*
+- **NOT covered, stated so it is not mistaken for complete:** (1) **Ningxia periodontitis** —
+  `ningxia_external.py` stores affected-tooth counts per split only, never per image, so there is
+  no cluster to resample; not recomputed, because that would spend a touch on locked external data
+  for a logging omission. (2) **Detection mAP@0.5 and both ResNet18 classifiers** — no per-item
+  prediction dumps exist, so their intervals need a re-evaluation pass that writes per-image
+  scores. §9's checklist item is therefore **partially** closed, not fully.
+- **Source:** `scripts/eval/bootstrap_ci.py`, `outputs/bootstrap_ci/bootstrap_ci.json`.
+- **Follow-ups:** add per-image prediction dumps to the classifier and detector eval paths so the
+  remaining intervals can be computed without re-touching locked data.

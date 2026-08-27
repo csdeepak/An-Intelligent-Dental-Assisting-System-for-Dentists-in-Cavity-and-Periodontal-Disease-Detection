@@ -1098,7 +1098,8 @@ same-machine control at 42.0%), so the comparison below IS like-for-like:
 | **seg detector** | **44.3%** | **40.8%** | **3.5 pp** |
 
 **The internal/external gap more than halved, and the external number moved further than the
-internal one** (+7.7 vs +2.3 pts) — so much of what read as caries domain shift was a detection
+internal one** (+7.7 vs +2.3 pts — and with intervals added 27 Aug, only the external gain is
+statistically real: **+7.7 pp [+3.3, +12.0]** vs internal **+2.3 pp [−3.4, +7.9]**, §8.14) — so much of what read as caries domain shift was a detection
 problem. That is the same shape as the head-v2.0 result (§8.8b): a change worth ~0 in-domain was
 worth +21.5 points out-of-domain. **Do not write this up as "caries generalises well."** 40.8%
 pooled is weak in absolute terms, three of four hospitals remain below the internal figure, and
@@ -1219,6 +1220,56 @@ the operational consequence of taking this seriously.
 
 ---
 
+### 8.14 Confidence intervals — and the two claims that do not survive them
+
+**Added 27 Aug 2026.** Every headline metric with saved per-item outputs now carries a
+**cluster-bootstrap 95% CI** (10,000 resamples, seed 42, `scripts/eval/bootstrap_ci.py`).
+
+**Resampling is over IMAGES, not teeth, and this is the choice to defend in the methods.** The
+936 Stage-2 teeth come from 164 radiographs. Teeth within one image share a patient, a scanner,
+an exposure and an operator, and the pipeline's errors are correlated within an image — a
+mis-numbered quadrant mis-numbers several teeth at once, which §8.10 measured directly. Treating
+936 correlated teeth as 936 independent observations would produce intervals that are far too
+narrow. **n = 164 images, not 936 teeth.**
+
+| Metric | Point | 95% CI | n (images) |
+|---|---|---|---|
+| Detection recall | 70.6% | [66.5, 74.6] | 164 |
+| **FDI exact, end-to-end** | **58.3%** | **[53.9, 62.8]** | 164 |
+| FDI exact, of detected | 82.6% | [79.1, 85.8] | 164 |
+| Lesion agreement (DENTEX internal) | 44.3% | [39.0, 49.3] | 148 |
+| Caries agreement — Ningxia test1 / 2 / 3 / 4 | 28.8 / 51.3 / 40.1 / 41.9% | [23.3, 34.6] / [44.0, 58.5] / [31.9, 48.3] / [33.1, 50.8] | 134 / 110 / 40 / 53 |
+
+**Paired deltas for the detector swap** — same resampled images, both arms:
+
+| Delta (seg − bbox) | Point | 95% CI | Verdict |
+|---|---|---|---|
+| **FDI exact, end-to-end** | **+12.1 pp** | **[+6.8, +17.2]** | **real** |
+| **Caries agreement, Ningxia pooled** | **+7.7 pp** | **[+3.3, +12.0]** | **real** |
+| Detection recall | +3.3 pp | [−1.5, +8.0] | **not significant** |
+| Lesion agreement (DENTEX internal) | +2.3 pp | [−3.4, +7.9] | **not significant** |
+
+**Two numbers reported earlier the same day do not survive their intervals, and the paper must
+not claim them:** the +3.3 pp detection-recall gain and the +2.3 pp internal lesion-agreement
+gain. Both point estimates stand; neither supports an inference.
+
+**This strengthens the central claim rather than weakening it.** §8.10 argued the end-to-end
+improvement came from *fewer spurious boxes* rather than *more teeth found* — inferred at the
+time from detections/image falling while recall rose. The intervals now support it from both
+sides: **the end-to-end gain is real and the recall gain is not.** The mechanism is a precision
+effect, evidenced rather than reasoned. The same asymmetry appears across domains: the swap
+demonstrably helped **out-of-domain** caries (+7.7 pp, real) and demonstrably did **not** help
+in-domain lesion agreement (+2.3 pp, n.s.) — echoing §8.8b, where a change worth ~0 in-domain was
+worth +21.5 points out-of-domain.
+
+⚠️ **Coverage is partial, and the paper should say which numbers lack intervals.** Ningxia
+**periodontitis** has none — `ningxia_external.py` stores affected-tooth counts per split, not per
+image, so no cluster exists to resample, and recomputing would spend a touch on locked external
+data for a logging omission. **Detection mAP@0.5 and both ResNet18 classifiers** have none — no
+per-item prediction dumps are saved. Those need an evaluation pass that writes per-image scores.
+
+---
+
 ## 9. What's not yet written — checklist
 
 For whoever drafts the actual paper. Tick items off here as they land.
@@ -1300,7 +1351,7 @@ For whoever drafts the actual paper. Tick items off here as they land.
 - [ ] Runtime/efficiency table for the full pipeline (per-OPG latency, per stage).
 - [ ] Failure-case figure panel: the 10 false negatives and 7 false positives from the
       bone-loss confusion matrix, with Grad-CAM.
-- [ ] Statistical treatment: confidence intervals or k-fold for every headline metric —
+- [~] **PARTIALLY DONE 27 Aug 2026** (§8.14) — cluster-bootstrap 95% CIs over images for Stage-2 (recall, FDI exact ×2), DENTEX lesion agreement, and Ningxia caries per hospital, plus paired CIs on the detector-swap deltas. **Still missing: Ningxia periodontitis, detection mAP, and both ResNet18 classifiers**, all of which need per-item prediction dumps first. Original item: Statistical treatment: confidence intervals or k-fold for every headline metric —
       especially the 52-crop severity model.
 - [ ] Figures for Stages 3/4: training curves and confusion matrices are referenced in the
       training summaries as saved to Google Drive but are **not** in this repo. Recover

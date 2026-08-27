@@ -336,6 +336,41 @@ Both are pure inference; neither needed a GPU rental.
 
 ---
 
+## Confidence intervals (added 27 Aug 2026)
+
+**Cluster bootstrap over images**, 10,000 resamples, seed 42 — `scripts/eval/bootstrap_ci.py`.
+Resampling images rather than teeth because teeth within a radiograph are not independent; a
+tooth-level bootstrap would report intervals far too narrow.
+
+| Metric | Point | 95% CI | n (images) |
+|---|---|---|---|
+| Detection recall | 70.6% | **[66.5, 74.6]** | 164 |
+| **FDI exact, end-to-end** | **58.3%** | **[53.9, 62.8]** | 164 |
+| FDI exact, of detected | 82.6% | **[79.1, 85.8]** | 164 |
+| Lesion agreement (DENTEX internal) | 44.3% | **[39.0, 49.3]** | 148 |
+| Caries agreement — Ningxia test1 | 28.8% | **[23.3, 34.6]** | 134 |
+| Caries agreement — Ningxia test2 | 51.3% | **[44.0, 58.5]** | 110 |
+| Caries agreement — Ningxia test3 | 40.1% | **[31.9, 48.3]** | 40 |
+| Caries agreement — Ningxia test4 | 41.9% | **[33.1, 50.8]** | 53 |
+| Caries agreement — pooled *(scale only)* | 40.8% | **[37.0, 44.8]** | 337 |
+
+**Paired deltas for the 27 Aug detector swap** (same resampled images, both arms):
+
+| Paired delta (seg − bbox detector) | Point | 95% CI | Verdict |
+|---|---|---|---|
+| **FDI exact, end-to-end** | **+12.1 pp** | **[+6.8, +17.2]** | **excludes 0 — real** |
+| **Caries agreement, Ningxia pooled** | **+7.7 pp** | **[+3.3, +12.0]** | **excludes 0 — real** |
+| Detection recall | +3.3 pp | [−1.5, +8.0] | **INCLUDES 0 — not significant** |
+| Lesion agreement (DENTEX internal) | +2.3 pp | [−3.4, +7.9] | **INCLUDES 0 — not significant** |
+
+⚠️ **Two deltas reported earlier on 27 Aug do not survive their intervals** — detection recall
+(+3.3 pp) and DENTEX-internal lesion agreement (+2.3 pp) both have CIs spanning zero and must not
+be quoted as improvements. The end-to-end and external-caries gains do survive.
+**Not yet covered:** Ningxia periodontitis (no per-image counts stored) and detection mAP / the two
+ResNet18 classifiers (no per-item dumps). `RESULTS_LOG.md` 2026-08-27p.
+
+---
+
 ## External validation (C2) — Ningxia, 4 hospitals · re-measured 27 Aug 2026
 
 > **Current numbers are the 27 Aug re-run on the seg detector + FDI head v2.0**
