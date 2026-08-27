@@ -10,14 +10,22 @@ never maintained; trust the block.
 
 ## STATUS AS OF 21 AUGUST 2026
 
+> ⚠️ **DATED 21 AUGUST AND STALE FOR THE CARIES ITEMS. Corrected 27 Aug 2026.**
+> **T0.2, T0.3 and T0.4 are CLOSED**, not open — the caries re-run landed **25 Aug**
+> (`RESULTS_LOG.md` 2026-08-25b): checkpoint selection on val macro-F1, cosine schedule, and the
+> held-out test split reported separately and touched once after selection. The shipped
+> `caries-gate-resnet18-v3.0` is that run's arm B (`models/09_caries_gate_v3/run_summary.txt`).
+> **`transfer.md` §2 is the accurate record.** Reading this block as current on 27 Aug nearly
+> cost a GPU session re-running work that was already done.
+
 Verified against the repo, not asserted. Every "done" here traces to a committed artifact.
 
 | Item | State | What is actually true |
 |---|---|---|
 | **T0.1** augmentation | **CLOSED 25 Aug** | Both arms run on `crops_v3_phase1` (re-scoped from `phase1_legacy`, which is superseded). Val macro-F1: A 0.7210, B 0.7350; test: A 0.7212, B 0.6948. **Gap is within this run's own epoch-to-epoch noise (~0.27 swing per arm vs a 0.01-0.03 gap between arms)** — reported as inconclusive at this seed, not modelled as a win either way. Frozen pipeline default (arm B) unchanged. `RESULTS_LOG.md` 2026-08-25b. |
-| **T0.2** held-out test set | **Split DONE (better than specified); re-run OPEN** | Not a carve from val — rebuilt from the raw 705-image source as an independent image-level 70/15/15 split, stratified on the disease presence-vector, verified disjoint and reproducible. `scripts/dentex/build_dentex_split_from_raw.py` → `data/dentex/splits_v2.json` (train 495 / val 103 / test 107). **No model has been trained or evaluated on it.** Bone-loss audit sub-item: `model_metrics.md` labels 0.9233 as validation — correct, nothing to fix. |
-| **T0.3** model selection | **Caries code fixed, re-run OPEN; bone-loss already compliant** | The caries notebook now checkpoints on macro-F1, but the weights in `models/07_caries_cascade/` predate that fix and are accuracy-selected. Both bone-loss notebooks already select on macro-F1 and have full saved outputs — **no bone-loss re-run is needed for T0.3**, which is a real scope reduction against this item's "re-run all four classifiers". |
-| **T0.4** LR scheduling | **OPEN for caries only** | Both bone-loss notebooks already have a scheduler. The caries track has none — LR was hand-dropped 1e-3 → 3e-5. The training-config table for all models is also still unwritten. |
+| **T0.2** held-out test set | **CLOSED 25 Aug** (see warning above) | Not a carve from val — rebuilt from the raw 705-image source as an independent image-level 70/15/15 split, stratified on the disease presence-vector, verified disjoint and reproducible. `scripts/dentex/build_dentex_split_from_raw.py` → `data/dentex/splits_v2.json` (train 495 / val 103 / test 107). **No model has been trained or evaluated on it.** Bone-loss audit sub-item: `model_metrics.md` labels 0.9233 as validation — correct, nothing to fix. |
+| **T0.3** model selection | **CLOSED 25 Aug** (see warning above) | The caries notebook now checkpoints on macro-F1, but the weights in `models/07_caries_cascade/` predate that fix and are accuracy-selected. Both bone-loss notebooks already select on macro-F1 and have full saved outputs — **no bone-loss re-run is needed for T0.3**, which is a real scope reduction against this item's "re-run all four classifiers". |
+| **T0.4** LR scheduling | **CLOSED 25 Aug** (see warning above) | Both bone-loss notebooks already have a scheduler. The caries track has none — LR was hand-dropped 1e-3 → 3e-5. The training-config table for all models is also still unwritten. |
 | **T0.5** Mild class (n=6) | **OPEN, untouched** | No bootstrap CIs anywhere. The merge-vs-report-3-class decision has not been made. This is the cheapest Tier-0 item — it is a decision plus a re-report, not a re-train. |
 | **T0.6** canonical detector | **DONE** | Frozen and tagged `tooth-detector-a100-1024-v1.0`, SHA-256 recorded, H200 run documented as superseded. Full record in `T0.6_detector_reconciliation.md`. **One sub-item remains open:** "re-derive every downstream crop and reported number from the canonical detector" — that has not happened and folds naturally into T1.1. |
 | **T0.7** CEJ labelling | **DONE** | Documented as an exploratory negative result in `PAPER_MATERIAL.md` §5.6/§7.5 and excluded from the pipeline. |

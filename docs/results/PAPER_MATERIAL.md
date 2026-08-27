@@ -1225,18 +1225,24 @@ For whoever drafts the actual paper. Tick items off here as they land.
 
 **Blocking — must be done before submission**
 
-- [ ] Re-run the caries notebook and **save** the Phase 1 gate classification report
+- [x] Re-run the caries notebook and **save** the Phase 1 gate classification report
       (`caries` vs `no_caries`), plus the `Counter` cell confirming DENTEX class counts.
-- [ ] Carve a held-out **test** split for caries and re-report on it (current numbers are
-      validation-only and tuned-on). *(19 Aug 2026: split script written and tested against
-      a synthetic fixture — `scripts/dentex/split_dentex_holdout.py` — but not yet run
-      against the real DENTEX data or followed by a re-run + re-report. Not done.)*
-      **21 Aug 2026: the split half is done and done better** — rebuilt from the raw 705-image
-      source as an independent image-level 70/15/15 split
-      (`scripts/dentex/build_dentex_split_from_raw.py`, manifest
+      **Done 25 Aug 2026** — `scripts/dentex/train_caries_cascade.py` replaced the notebook and
+      writes the report to disk; it is in `models/09_caries_gate_v3/run_summary.txt` (held-out
+      test, 863 teeth, accuracy 0.80, macro-F1 0.69). RESULTS_LOG 2026-08-25a/b.
+      *(Ticked 27 Aug — the work landed on the 25th and this box was never updated.)*
+- [x] Carve a held-out **test** split for caries and re-report on it. **CLOSED 25 Aug 2026 —
+      both halves.** The split was rebuilt 21 Aug from the raw 705-image source as an
+      independent image-level 70/15/15 split (`build_dentex_split_from_raw.py`,
       `data/dentex/splits_v2.json`, train 495 / val 103 / test 107, verified disjoint and
-      reproducible). The **re-run and re-report half is still open** and needs GPU access —
-      that is what keeps this item unticked.
+      reproducible). The **re-run and re-report half landed 25 Aug**: both T0.1 arms ran on
+      `crops_v3_phase1` with checkpoint selection on **val macro-F1** (T0.3) and a cosine
+      schedule (T0.4), and the **test split is reported separately, touched once, after
+      checkpoint selection** (T0.2) — arm A test macro-F1 0.7212, arm B 0.6948; the shipped
+      `caries-gate-resnet18-v3.0` is arm B. RESULTS_LOG 2026-08-25b.
+      *(Ticked 27 Aug. `PUBLICATION_TODO.md`'s status block still called this open because it is
+      dated 21 Aug — four days before the work landed — and reading it as current nearly cost a
+      GPU session.)*
 - [x] Freeze one canonical detector (A100/1024) and record its weight hash + exact config;
       retire the H200/768 run in writing. **Done 20 Aug 2026** — version tag
       `tooth-detector-a100-1024-v1.0`, SHA-256 recorded in
