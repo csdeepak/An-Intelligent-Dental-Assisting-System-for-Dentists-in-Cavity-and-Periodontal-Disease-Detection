@@ -3903,3 +3903,49 @@ angxia_dataset`, so the blocker recorded earlier today is lifted.
 - **Follow-ups:** none for bone loss — it is now a writing task, not an experiment. The freed
   capacity goes to the caries re-run block (T0.2/T0.3/T0.4), which is unblocked as soon as the
   DENTEX fetch completes.
+
+---
+
+## 2026-08-27o — DENTEX fetched (1,393 files); environment rebuilt; two invariants now run
+
+- **What was done:** fetched the DENTEX subsets this repo actually uses, and rebuilt the local
+  Python environment after the 3.11 install lost its interpreter mid-session.
+- **Data:** **1,390 images + 3 annotation JSONs, 6.0 GB**, every file integrity-checked on
+  download — 705 `quadrant-enumeration-disease/xrays` (caries cascade source),
+  634 `quadrant_enumeration/xrays` (Stage-2 head), 51 `validation_data/.../xrays` (extern50).
+  `quadrant/xrays` (693) and `unlabelled/xrays` (1,571) deliberately skipped: `data/README.md`
+  records both as unused, so ~8,875 of the drive's 10,781 entries were never transferred.
+- **THE RESULT THAT MATTERS — two invariants that had always SKIPped now RUN, and one of them
+  reproduces a published number:**
+
+      leakage exclusion list   OK   85 enumeration + 1 detector, 86 excluded total — matches disk
+      caries v3 MD5 join       OK   260 shared images, FDI agreement 98.28%
+
+  **98.28% is the exact figure recorded on 2026-08-25a**, now reproduced from a freshly
+  downloaded copy of the dataset, on a different Python version, in a rebuilt environment. That
+  is stronger evidence for the MD5-join method than the original measurement was: it rules out
+  local state as the explanation.
+- **Environment, rebuilt:** Python **3.13.7**, numpy **2.5.2**, scipy 1.18.1, torch **2.8.0+cpu**,
+  ultralytics 8.4.130, opencv 4.11.0, streamlit 1.62.0. **79/79 tests pass, all invariants hold.**
+- **A trap worth recording: Python 3.13 cannot satisfy `requirements.txt`'s `numpy<2` pin.**
+  There is no numpy 1.x wheel for cp313 (`pip download "numpy<2" --only-binary=:all:` →
+  *No matching distribution found*), so pip silently builds it **from source** with MSYS2's
+  MinGW-W64 toolchain. The result imports with *"CRASHES ARE TO BE EXPECTED - PLEASE REPORT
+  THEM TO NUMPY DEVELOPERS"* and emits `invalid value encountered in exp2 / nextafter / log10`
+  from `getlimits`. Replaced with a numpy 2.x binary wheel per `transfer.md` §8's own note that
+  the real constraint is ABI-matching torch/scipy/sklearn, not the number 2. **On 3.11/3.12 the
+  literal pin is satisfiable; on 3.13 it is not.**
+- **Two bugs of mine, both in the fetcher, both found by improving its error reporting first.**
+  (1) It failed 3 files while naming neither the files nor a reason, because `FAILED` was printed
+  only from the exception branch and these took the non-raising path. (2) With reporting fixed,
+  the cause was immediate: downloads land in a `.part` temp file and `verify()` chose its check
+  by **file suffix**, so `train_quadrant_enumeration.json.part` went down the image branch and
+  was opened with PIL. The 1,390 images were unaffected only because PIL ignores extensions —
+  which is exactly why precisely the 3 JSONs failed. *A failure counter without a reason is not a
+  diagnostic; fixing the logging found the bug in one run.*
+- **Also fixed:** the JSONs are mirrored to both locations their two consumers expect
+  (`data/dentex/raw/` for `build_dentex_crops.py`, the DENTEX tree for `verify_invariants.py`),
+  from a single download; and **`pytest` was added to `requirements.txt`** — `transfer.md` §8's
+  fresh-clone checklist told you to run the suite, but a clean install could not.
+- **Source:** `scripts/dentex/fetch_dentex_subsets.py`; `verify_invariants.py` output above.
+- **Follow-ups:** the caries re-run block (T0.2/T0.3/T0.4) is now unblocked on this machine.

@@ -103,6 +103,38 @@ agree, with different GT formats and different metrics, and today's detector swa
 cause** — Stage 2 +12.0, caries +7.7, bone loss nothing. A limitation backed by a falsified
 causal hypothesis is stronger than a hurried fix.
 
+## Phase 7 — DENTEX fetched, environment rebuilt under us
+
+Fetched the DENTEX subsets the repo actually uses: **1,390 images + 3 JSONs, 6.0 GB**, skipping
+~8,875 drive entries that `data/README.md` records as unused or derived. Wrote it as a committed,
+resumable, integrity-checking script rather than an ad-hoc command.
+
+**Mid-fetch, the machine's Python 3.11 install lost its interpreter** — `python.exe` and the DLLs
+vanished while `Lib/site-packages` remained. Not caused by anything I ran. Rebuilt on 3.13 at the
+user's direction.
+
+**A trap worth carrying: Python 3.13 cannot satisfy this repo's `numpy<2` pin.** No numpy 1.x
+wheel exists for cp313, so pip silently builds it from source with MSYS2's MinGW toolchain,
+producing a numpy that prints "CRASHES ARE TO BE EXPECTED" and emits invalid-value warnings at
+import. I recommended 3.13 without checking wheel availability against the pin — my error.
+Resolved with a numpy 2.x binary wheel, which `transfer.md` §8 already documented as the real
+constraint (ABI-match, not the number 2).
+
+**The payoff:** two invariants that had *always* SKIPped now run — and the caries v3 MD5 join
+reproduces the documented **98.28%** FDI agreement over 260 shared images, from freshly downloaded
+data on a different Python version. That is better evidence than the original measurement, because
+it rules out local state.
+
+**Two bugs of mine in the fetcher, found in the right order.** It failed 3 files while naming
+neither file nor reason (FAILED printed only from the exception branch). Fixing the *logging*
+first exposed the actual bug in one run: downloads land in `.part`, and `verify()` picked its
+check by file suffix, so every JSON was opened with PIL. The images were unaffected only because
+PIL ignores extensions — which is exactly why precisely the 3 JSONs failed. *A failure counter
+without a reason is not a diagnostic.*
+
+Also added `pytest` to `requirements.txt`: §8's fresh-clone checklist said to run the suite, but a
+clean install could not.
+
 ## Decisions made
 
 - **Repaired the docs before starting any new work.** The temptation was to pick up a backlog

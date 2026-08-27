@@ -542,19 +542,25 @@ holds a strictly smaller set. Check this before concluding anything is lost:
 | `models/06_yolo_detection_a100_run/best.pt` | ✅ | 51 MB, present |
 | `models/09_caries_gate_v3/caries_gate_v3.pth` | ❌ | Drive-only; **`run_inference.py` will not complete here until fetched** |
 | DENTEX `disease/` (250 img + 250 labels, 1,023 MB) | ✅ | At `~/Downloads/Capstone/DENTEX/disease/` — fetched 27 Aug for the Stage-2 re-measurement. All 500 files integrity-checked (every PNG opened, every JSON parsed). **This is the subset the Stage-2 eval needs**, and it is enough to re-run `validate_fdi_assignment.py` here. |
-| DENTEX — everything else (~13 GB: `training_data/`, `validation_data/`) | ❌ | Not fetched. Its absence makes `verify_invariants.py`'s leakage check SKIP (it needs the enumeration corpus too) and blocks the caries work. |
+| DENTEX `training_data/` + `validation_data/` — **the subsets this repo uses** | ✅ **fetched 27 Aug** | **1,390 images + 3 annotation JSONs, 6.0 GB**, every file integrity-checked on download (`scripts/dentex/fetch_dentex_subsets.py`). 705 `quadrant-enumeration-disease/xrays` (caries cascade) + 634 `quadrant_enumeration/xrays` (Stage-2 head) + 51 `validation_data/.../xrays` (extern50). **`verify_invariants.py`'s leakage check and caries v3 MD5 join now RUN rather than SKIP** — the join reproduces the documented 98.28% FDI agreement over 260 shared images. `quadrant/xrays` (693) and `unlabelled/xrays` (1,571) deliberately NOT fetched: `data/README.md` records both as unused. |
 | Ningxia | ❌ | `data/ningxia/` holds `manifest.csv` only |
 | Tufts bone-loss crops | ❌ | metadata CSVs only, no images |
 | `_repo_archive/datasets_workspace/` | ⚠️ partial | Has the EDA/conversion notebooks (incl. `week1_tufts_eda_v2.ipynb`), **not** `Radiographs_rotated/`, `dataset/` or `outputs/` |
-| Python env | ✅ | Python 3.11.9, **numpy 2.4.6**, scipy 1.17.1, sklearn 1.9.0, torch **2.13.0+cpu**, ultralytics 8.4.123. **65/65 tests pass, invariants clean** (some checks SKIP for want of DENTEX). CPU-only torch — no local GPU, and no MPS either, so even ResNet18 jobs are slow here. |
+| Python env | ✅ **REBUILT 27 Aug 2026** | **Python 3.13.7**, numpy **2.5.2**, scipy 1.18.1, sklearn 1.7.1, torch **2.8.0+cpu**, ultralytics 8.4.130, streamlit 1.62.0, opencv 4.11.0. **79/79 tests pass, all invariants hold** — including the two that used to SKIP for want of DENTEX. CPU-only torch — no local GPU, no CUDA, no MPS, so even ResNet18 jobs are slow here. **The previous 3.11.9 install lost its interpreter mid-session** (`python.exe` and the DLLs vanished while `Lib/site-packages` remained); rebuilt on 3.13. ⚠️ **Python 3.13 cannot satisfy `requirements.txt`'s `numpy<2` pin** — there is no numpy 1.x wheel for cp313, and pip silently builds it from source with MSYS2's MinGW toolchain, producing a numpy that prints "CRASHES ARE TO BE EXPECTED" and emits invalid-value warnings at import. Use numpy 2.x on 3.13 (verified working, below), or install 3.11/3.12 if you want the pin honoured literally. |
 
-**Consequence for planning: R1 is the only GPU job this machine can currently feed.** Anything
-touching caries, or the DENTEX+Tufts bone-loss experiment, needs DENTEX fetched first.
+**Consequence for planning — UPDATED 27 Aug: DENTEX is now local, so the caries re-run block
+(T0.2/T0.3/T0.4) is unblocked on this machine.** The bone-loss cross-corpus experiment is no
+longer pending either, but for a different reason: it was **decided against** and written up as a
+measured limitation (`PAPER_MATERIAL.md` §8.13) after establishing that DENTEX carries no
+bone-loss labels, so the Stage-2 combined-training lever never transferred.
 
 **On the `numpy<2` pin:** `requirements.txt` says numpy 2.x silently breaks `scipy.optimize`,
 torch↔numpy and sklearn. That is true of the stack it was written against (torch 2.2.0 / scipy
 1.12 / sklearn 1.4, built against numpy 1.x) — it is **not** true in general. Verified on
-Windows: numpy 2.4.6 with scipy 1.17.1 / torch 2.13.0 runs `linear_sum_assignment` and
+Windows (re-verified 27 Aug 2026 on the rebuilt env: **numpy 2.5.2 / scipy 1.18.1 /
+torch 2.8.0+cpu**, `linear_sum_assignment` and torch↔numpy both correct, 79/79 green, all
+invariants hold). Previously verified on numpy 2.4.6 with scipy 1.17.1 / torch 2.13.0, which runs
+`linear_sum_assignment` and
 torch↔numpy conversion correctly, 65/65 green. The real constraint is that numpy match what
 torch/scipy/sklearn were built against, not the number 2. The pin was left unchanged, since it
 still protects the environment every published number was produced in. `GPU_SETUP.md` §6.
