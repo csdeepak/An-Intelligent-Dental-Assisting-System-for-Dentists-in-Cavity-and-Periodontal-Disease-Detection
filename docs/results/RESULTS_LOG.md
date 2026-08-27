@@ -4084,3 +4084,50 @@ angxia_dataset`, so the blocker recorded earlier today is lifted.
 - **Follow-ups:** (1) temperature-scale the gate on val and re-measure ECE — cheap, no retraining,
   and would let the pipeline report meaningful confidences. (2) Bone-loss calibration, after a
   verified crop rebuild. (3) §9's two calibration items remain open because they name bone loss.
+
+---
+
+## 2026-08-27r — Temperature scaling does NOT fix the caries gate; NOT adopted
+
+- **What was done:** fitted a single temperature T on the caries gate's logits (Guo et al. 2017),
+  **fitted on val (1,003 crops), evaluated once on test (863)** — never the reverse; fitting on
+  test would be tuning on the test set, the same error this project refuses to make with Ningxia
+  at a larger scale. `scripts/eval/temperature_scale.py`.
+- **RESULT — it does not work, and it is NOT adopted:**
+
+  | | before (T=1) | after (T=1.377) |
+  |---|---|---|
+  | **ECE** | **0.1362** | **0.1521 — WORSE by 12%** |
+  | MCE | 0.5958 | 0.4329 — better |
+  | Brier | 0.1365 | 0.1319 — better |
+  | Average precision | 0.5500 | **0.5500 — identical, as required** |
+
+  Val NLL did improve (0.4300 → 0.4147), so T was fitted correctly; **T = 1.377 > 1 confirms the
+  overconfidence 2026-08-27q diagnosed.** It simply is not the right correction.
+- **WHY it fails, which is the useful part.** Temperature scaling assumes the miscalibration is a
+  uniform *scale* error — one knob softening every score. The reliability curve shows a *shape*
+  error instead: across predicted 0.50–0.85 the observed frequency is essentially **flat at
+  ~0.27**, then jumps to 0.69 in the top bin. A single scalar cannot flatten and re-bend a curve;
+  softening merely slides every point left, which is why MCE and Brier improve while **ECE gets
+  worse** — the already-decent low bins are dragged off the diagonal to buy improvement in the
+  high ones.
+- **Two correctness checks passed**, and they are why this negative result can be trusted:
+  **AP is unchanged to four decimals** (0.5500 → 0.5500) — temperature scaling is a monotonic
+  transform and *cannot* change ranking, so any movement would have meant a bug; and **every
+  decision at threshold 0.5 is identical**, since `argmax(z/T) == argmax(z)` for T > 0.
+- **Decision: not adopted.** The pipeline keeps T=1 and keeps stamping `caries_uncalibrated` on
+  every tooth. Adopting a transform that worsens the headline calibration metric to improve two
+  secondary ones would be choosing the metric to fit the result.
+- **What this says for the paper.** *"The gate's miscalibration is structural, not a temperature
+  effect."* That is a more informative statement than an unqualified "poorly calibrated", and it
+  is evidence against the cheapest available fix rather than an untested assumption. The next
+  candidates — isotonic regression or Platt scaling, both still monotonic and therefore still
+  decision- and AP-preserving — have the capacity to fit a shape and are the honest next step.
+  A plausible underlying cause worth stating: the negative class is 84.8% healthy teeth recovered
+  by MD5 join from a *different* DENTEX subset, so the score distribution the gate learned may not
+  be one a single scalar can repair.
+- **Source:** `scripts/eval/temperature_scale.py`,
+  `outputs/calibration/caries_gate_temperature.json`,
+  `docs/results/figures/paper/caries_gate_temperature_scaling.png`.
+- **Follow-ups:** isotonic regression fitted on val, same discipline. Bone-loss calibration still
+  blocked on a geometry-verified crop rebuild (2026-08-27q).

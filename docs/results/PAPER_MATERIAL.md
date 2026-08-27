@@ -1314,6 +1314,16 @@ choice:
 Moving to 0.90 buys **precision 0.40 → 0.69** for **recall 0.74 → 0.35**. For a screening aid
 that is a design decision the paper should show rather than pre-empt.
 
+**Temperature scaling was tried and does NOT fix it (27 Aug).** T = 1.377 fitted on val,
+evaluated once on test: **ECE 0.136 → 0.152 (worse)**, MCE 0.596 → 0.433, Brier 0.137 → 0.132,
+AP unchanged at 0.550. **Not adopted.** The failure is informative: temperature scaling assumes a
+uniform *scale* error, but the reliability curve is a *shape* error — observed frequency is flat
+at ~0.27 across predicted 0.50–0.85, then jumps to 0.69. One scalar cannot re-bend that, and
+softening drags the already-decent low bins off the diagonal. **Write this as "the miscalibration
+is structural, not a temperature effect"** — evidence against the cheapest fix, not an untested
+assumption. Isotonic or Platt (both still monotonic, so still decision- and AP-preserving) are the
+honest next candidates. Figure: `figures/paper/caries_gate_temperature_scaling.png`.
+
 ⚠️ **The bone-loss classifier has no calibration analysis**, which §9's checklist specifically
 asks for. Its metadata carries `filename,label,stem` and **no bounding boxes**, so the 1.5x/2.0x
 crops would need reconstructing by hand from tooth ids against `teeth_bbox.json`; a silent
