@@ -147,3 +147,10 @@ yolo11l-seg.pt
 # v3 caries gate weights (43 MB) — summary and reports are tracked
 models/09_caries_gate_v3/*.pth
 data/dentex/crops_v3_phase1/
+
+# Bone-loss crops rebuilt on 27 Aug 2026 (103 MB, 785 PNGs x3 rotation arms). Regenerable
+# with scripts/tufts/rebuild_bone_loss_crops.py -- but note they are NOT faithful to the
+# published bone-loss numbers: the originals came from Radiographs/Radiographs/, which is not
+# on this machine, and the rebuild fails its own geometry check (RESULTS_LOG 2026-08-27u).
+# Kept locally as the evidence for that finding; never commit.
+data/tufts/bone_loss_crops_rebuilt/
