@@ -998,7 +998,13 @@ RESULTS_LOG 2026-08-25c.
 
 ### 8.12 C2 external validation — Ningxia, and a metric that had to differ by disease
 
-**The headline C2 result.** 25 Aug 2026, four hospitals, `scripts/eval/ningxia_external.py`.
+> **RE-MEASURED 27 Aug 2026 on the seg detector — read §8.12a below before quoting anything in
+> this section.** Caries agreement improved on all four hospitals (+7.7 points pooled); the
+> bone-loss branch did not move at all. The 25 Aug numbers in the rest of this section were
+> measured on the superseded bbox detector + FDI head v1.0 and are kept as the comparison
+> baseline, not as current figures.
+
+**The original C2 result.** 25 Aug 2026, four hospitals, `scripts/eval/ningxia_external.py`.
 Ningxia is LOCKED external test data (§4.2): evaluated once, no tuning of any kind against it.
 **Zero leakage** against Tufts, DENTEX `disease/`, `quadrant_enumeration`,
 `quadrant-enumeration-disease` and `quadrant`, each checked separately (0 / 2,912 unique test
@@ -1058,6 +1064,71 @@ RESULTS_LOG 2026-08-25d.
 
 ---
 
+### 8.12a The detector swap, re-measured externally — and the stage it did not help
+
+**27 Aug 2026.** After adopting the seg detector (§7.1) the whole of C2 was re-run against it,
+with a **control on the old detector + head v1.0 executed first on the same machine** so the
+delta is attributable to the models rather than to library drift. The control reproduced 25 Aug
+(caries 27.2 / 43.3 / 35.2 / 22.0% vs 26.6 / 43.3 / 37.0 / 22.6%), which is what licenses the
+comparison. `RESULTS_LOG.md` 2026-08-27h.
+
+**Caries — improved on all four hospitals. No caries model changed; only the detector.**
+
+| Split | Lesions | old detector | **seg detector** | Δ |
+|---|---|---|---|---|
+| test1 | 316 | 27.2% | **28.8%** | +1.6 pp |
+| test2 | 349 | 43.3% | **51.3%** | +8.0 pp |
+| test3 | 162 | 35.2% | **40.1%** | +4.9 pp |
+| test4 | 186 | 22.0% | **41.9%** | +19.9 pp |
+| *(pooled, scale only)* | 1,013 | 33.1% | **40.8%** | **+7.7 pp** |
+
+This denominator is GT-derived and model-independent, so it is a straight read. External caries
+agreement now sits just below the **42.6%** DENTEX internal figure (§8.11) rather than well
+below it — i.e. much of the apparent internal/external gap was a *detection* gap, not a caries
+model gap. **Caveat for the paper: §8.11's 42.6% is itself still an old-detector number**, so
+that internal/external comparison is not strictly like-for-like until it is re-run.
+
+**Periodontitis — unchanged, and this is the more interesting half.**
+
+| Split | Affected (ctl → seg) | Flagged (ctl → seg) | Sensitivity |
+|---|---|---|---|
+| test1 | 3,278 → 3,285 | 121 → 79 | 3.7% → **2.4%** |
+| test2 | 2,068 → 2,462 | 16 → 34 | 0.8% → **1.4%** |
+| test3 | 349 → 411 | 4 → 23 | 1.1% → **5.6%** |
+| test4 | 534 → 633 | 27 → 29 | 5.1% → **4.6%** |
+| *(pooled)* | 6,229 → 6,791 (+9.0%) | **168 → 165** | 2.7% → **2.4%** |
+
+Across 736 images the pipeline flagged **168 affected teeth before and 165 after** while the
+denominator grew 9%. Movement is in both directions and test3's 1.1% → 5.6% is 4 → 23 teeth on
+50 images — noise, and it must not be written up as a win.
+
+**The claim worth making in the paper, because it needs three measurements and we now have all
+three.** One intervention — replacing the detector — was applied and measured across three
+downstream stages:
+
+| Stage | Effect of the detector swap |
+|---|---|
+| Stage 2, FDI numbering (DENTEX, internal) | **+12.0 pts** end-to-end (§8.10) |
+| Stage 3, caries (Ningxia, external ×4) | **+7.7 pts** pooled agreement |
+| Stage 4a, bone loss (Ningxia, external ×4) | **no change** (168 → 165 teeth flagged) |
+
+Stages whose errors were dominated by *which teeth got cropped* improved substantially. The
+bone-loss branch did not, because its failure is domain shift **inside the Stage-4a classifier**
+— it flags essentially the same absolute set of teeth no matter what feeds it. This is a
+stage-wise error-attribution result of the kind [C3] promises, and it **falsifies** the standing
+hypothesis that the detector and the bone-loss branch misbehaved out-of-domain for a shared
+reason because both were Tufts-trained. They do not. The untried lever for bone loss remains the
+DENTEX+Tufts combined-training trick that fixed Stage 2's generalisation (§8.8b).
+
+⚠️ **Methodological caveat that belongs in the text, not a footnote.** Affected-tooth sensitivity
+has a **model-dependent denominator** — affected teeth are counted from *detected* boxes, so a
+detector that finds different teeth moves numerator and denominator together. It is not a plain
+sensitivity and cannot be compared across detectors without the control. Caries agreement has no
+such problem. Detections/image rose 15–20% in test2–4 but *fell* in test1 (25.2 → 22.7), the
+split carrying burned-in annotation arrows and stars.
+
+---
+
 ## 9. What's not yet written — checklist
 
 For whoever drafts the actual paper. Tick items off here as they land.
@@ -1095,6 +1166,11 @@ For whoever drafts the actual paper. Tick items off here as they land.
       browser demo (25 Aug). RESULTS_LOG 2026-08-24f, 2026-08-25f. *(This item stayed unticked
       in writing for three days after it landed — noted because it is this repo's recurring
       failure mode, not because the work was late.)*
+- [x] Re-measure C2 (Ningxia external validation) against the adopted detector. **Done 27 Aug
+      2026** — §8.12a. Caries +7.7 pts pooled across four hospitals; bone loss unchanged. Control
+      on the old detector run first and reproduces 25 Aug. **Still open: §8.11's DENTEX 42.6% is
+      the last remaining old-detector external number**, so the internal-vs-external comparison
+      is not yet like-for-like.
 - [x] Run and report the pre-registered YOLOv11l-seg retrain (R1). **Done 27 Aug 2026** — box
       bar passed (0.8100 ≥ 0.75), **mask bar missed** (0.6383 < 0.65), adopted as the Stage-1
       default by explicit human decision for the box gain; Stage 2 re-measured end-to-end

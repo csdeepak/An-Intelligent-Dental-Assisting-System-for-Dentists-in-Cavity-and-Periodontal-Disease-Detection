@@ -333,7 +333,37 @@ Both are pure inference; neither needed a GPU rental.
 
 ---
 
-## External validation (C2) — Ningxia, 4 hospitals · 25 Aug 2026
+## External validation (C2) — Ningxia, 4 hospitals · re-measured 27 Aug 2026
+
+> **Current numbers are the 27 Aug re-run on the seg detector + FDI head v2.0**
+> (`RESULTS_LOG.md` 2026-08-27h). The 25 Aug figures below the fold were measured on the
+> superseded bbox detector + head v1.0 and are retained for comparison, not as current.
+> A control on the old pair was re-run on the same machine first and reproduced 25 Aug, so the
+> deltas are attributable to the models.
+
+**Caries — focal-lesion centroid containment** (denominator is GT-derived, model-independent):
+
+| Split | Centre | Lesions | 25 Aug (old det) | **Current (seg det)** | Δ |
+|---|---|---|---|---|---|
+| test1 | cross-centre | 316 | 26.6% | **28.8%** | +1.6 pp |
+| test2 | same-centre-as-*Ningxia*-train | 349 | 43.3% | **51.3%** | +8.0 pp |
+| test3 | cross-centre | 162 | 37.0% | **40.1%** | +4.9 pp |
+| test4 | cross-centre | 186 | 22.6% | **41.9%** | +19.9 pp |
+| *(pooled, scale only)* | | 1,013 | 33.3% | **40.8%** | **+7.7 pp** |
+
+Improved on all four hospitals; external agreement now sits just under the 42.6% DENTEX
+*internal* figure rather than well below it. **No caries model changed** — only the detector.
+
+**Periodontitis — affected-tooth sensitivity: UNCHANGED by the detector swap.**
+2.7% → 2.4% pooled; the pipeline flagged 168 affected teeth before and 165 after while the
+denominator grew 9%. Per-split 2.4 / 1.4 / 5.6 / 4.6% (was 3.7 / 0.8 / 1.5 / 5.4%), moving in
+both directions; test3's rise is 4 → 23 teeth on 50 images and is noise. ⚠️ This metric's
+denominator is **model-dependent** (affected teeth are counted from detected boxes), so it is
+not a plain sensitivity delta. The bone-loss branch's domain-shift failure is unmoved.
+
+---
+
+### Superseded — the 25 Aug measurement (old bbox detector + FDI head v1.0)
 
 **Zero leakage** against Tufts, DENTEX `disease/`, `quadrant_enumeration`,
 `quadrant-enumeration-disease` and `quadrant` — each checked separately (0 / 2,912 unique

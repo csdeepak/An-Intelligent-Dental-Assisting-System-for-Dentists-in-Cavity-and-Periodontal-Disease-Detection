@@ -6,7 +6,12 @@ It is **rewritten, not appended to** — unlike `docs/results/RESULTS_LOG.md` (a
 history) and `docs/session-memory/` (one file per session, never edited). Those two are the
 record; this is the snapshot.
 
-**Last updated: 27 August 2026** (later still: **bone-loss weights tagged — every trained model in the project is now frozen, tagged and hash-pinned**, and doing it surfaced a positional-attribution bug in `verify_invariants.py`; tests 65 → 73. §3 item 6 closed. Next: Ningxia C2 re-run on the seg detector, data now reachable at `D:
+**Last updated: 27 August 2026** (**C2 re-measured on the seg detector: caries +7.7 pts pooled
+across all four Ningxia hospitals, bone loss completely unmoved (168 → 165 teeth flagged) — the
+same intervention that gave Stage 2 +12.0 pts. That falsifies the standing guess that the
+detector and bone-loss branch failed out-of-domain for a shared Tufts-trained reason.**
+`RESULTS_LOG.md` 2026-08-27h. The caries gate was restored from Drive and hash-verified, so this
+machine can run the full pipeline for the first time. Earlier: **bone-loss weights tagged — every trained model in the project is now frozen, tagged and hash-pinned**, and doing it surfaced a positional-attribution bug in `verify_invariants.py`; tests 65 → 73. §3 item 6 closed. Next: Ningxia C2 re-run on the seg detector, data now reachable at `D:
 angxia_dataset`. Earlier: a cold-start orientation pass found R1's
 results had never reached `PAPER_MATERIAL.md` or the root `README.md` — rule 1 item 3 — and
 propagated them. That sweep turned up a **fresh-clone break**: the README told you to fetch the
@@ -260,12 +265,15 @@ the next one.** Ordered by what actually blocks something else:
    with access; cannot be done from open sources (tried and failed twice, `RESULTS_LOG.md`
    2026-08-26a). Until answered, the mirror finding is a **candidate** contribution, not a
    claimed one, in every paper draft.
-4. **Bone loss is the standing open research problem, not just an admin item.** In-domain
-   0.92 macro-F1 on Tufts; 0.7% firing on DENTEX; 0.8–5.4% affected-tooth sensitivity on
-   Ningxia. Two independent external datasets now agree it collapses outside its training
-   domain. No fix has been attempted yet. Worth scoping explicitly before or alongside R1 —
-   detector and bone-loss are the two Tufts-trained stages and the two that misbehave
-   elsewhere, likely one root cause. **The DENTEX+Tufts combined-training trick that fixed
+4. **Bone loss is the standing open research problem, and it is now the CLEAREST one.**
+   In-domain 0.92 macro-F1 on Tufts; 0.7% firing on DENTEX; 2.4% affected-tooth sensitivity on
+   Ningxia (re-measured 27 Aug on the seg detector; was 2.7%). Two independent external datasets
+   agree it collapses outside its training domain.
+   ❌ **The "one shared root cause with the detector" guess is now FALSIFIED, not merely
+   untested.** Replacing the detector moved Stage 2 by +12.0 pts and caries by +7.7 pts and moved
+   bone loss by **nothing** — 168 → 165 teeth flagged over 736 images while the denominator grew
+   9% (`RESULTS_LOG.md` 2026-08-27h). The failure is inside the Stage-4a classifier, not upstream
+   of it. That removes an entire class of candidate fixes and leaves one obvious lever. **The DENTEX+Tufts combined-training trick that fixed
    Stage 2's generalisation has not been tried here yet** — it is the most promising untried
    lever, since bone loss already has cross-corpus data available (Tufts trained, DENTEX/Ningxia
    measured) but has never been trained on more than one.
@@ -310,7 +318,7 @@ starts.
 | **⚠️ Tufts licence breach — act before submitting or sharing further.** The release agreement forbids reproducing or posting the database "into any webpage or any other storage means"; `docs/EXTERNAL_DRIVE.md` records a Drive folder with the raw `ZIP/` release that was browsable **without signing in**. Restrict it, keep Tufts local-only, share the release *form* instead of the files. | Account owner's action, and a real submission risk |
 | **⚠️ Real Tufts radiograph pixels are embedded in 7 tracked notebooks, already on `origin/main`** — not references, actual base64 image data in cell outputs (`RESULTS_LOG.md` 2026-08-26b). **The GitHub repo is confirmed private, so this is deferred risk, not an active leak** — the user's explicit call. Must be resolved (strip outputs going forward, or rewrite history — destructive, needs a force-push) **before this repo, or any fork of it, is ever made public.** | Deferred by explicit user decision 26 Aug; revisit before any public release |
 | **Is the Tufts mirror finding novel?** NOT established. The Panetta et al. (IEEE JBHI 2022) full text is IEEE-paywalled and unread — tried the indexed biomedical/arXiv corpora, the DOI, the author's own site, PDF search, and GitHub; all dead ends. If the paper documents the convention, this is a usage note, not a discovery. `RESULTS_LOG.md` 2026-08-25h §2, 2026-08-26a. | Needs someone with IEEE Xplore access — a 5-minute read, not a research task |
-| **Bone-loss domain-shift fix — what approach?** Now backed by two independent external measurements. Options span the DENTEX+Tufts combined-training trick that worked for Stage 2 (untried here), R1 (shared Tufts-side fix), Ningxia-informed fine-tuning (needs care — Ningxia is locked, no tuning against it directly), or documenting it as a limitation rather than a fix. | Research direction, not a fact to look up |
+| **Bone-loss domain-shift fix — what approach?** Now backed by two independent external measurements, **and by a falsified hypothesis: it is not an upstream/detection problem** (27 Aug, `RESULTS_LOG.md` 2026-08-27h). Options span the DENTEX+Tufts combined-training trick that worked for Stage 2 (untried here), R1 (shared Tufts-side fix), Ningxia-informed fine-tuning (needs care — Ningxia is locked, no tuning against it directly), or documenting it as a limitation rather than a fix. | Research direction, not a fact to look up |
 | **A third public FDI corpus exists, unused.** DentFound trains tooth-ID on the Kaggle *Dual-labeled Panoramic Radiographs* set — 2,000 images, native FDI 11–48, larger than DENTEX or Tufts, no mirror to correct. | Whether to add it before or after R1 |
 | **What else to use `DENTEX/disease/` for**, beyond the Stage-2 eval set (164 leak-free of 250) and the lesion-localisation source. The 91 `saglam` (healthy) teeth as a small real healthy class is still an open candidate use. | Scoping call |
 | **Clinic data governance.** `index.csv` sits beside `images/` on a shared Drive, voiding the de-identification. Five actions in `clinical_dataset_provenance.md` §4a, all needing the Drive owner. | Not this repo's account |

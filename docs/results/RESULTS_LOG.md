@@ -3495,3 +3495,86 @@ pending decision in `transfer.md` §4.
   this session: re-run C2 external validation on Ningxia against the seg detector — the data is
   reachable at `D:
 angxia_dataset`, so the blocker recorded earlier today is lifted.
+
+---
+
+## 2026-08-27h — C2 re-measured on the seg detector: caries +7.7 pts, bone loss unmoved
+
+- **What was done:** Re-ran the full Ningxia external validation (contribution C2) against the
+  current pipeline — seg detector + FDI head v2.0 — because 2026-08-27d changed the Stage-1
+  default and left every C2 number measured on the superseded pair. **A control on the old
+  detector + head v1.0 was run first**, on this machine, so the delta is attributable to the
+  models rather than to this box's different library versions. 2,146 image-evaluations in total
+  (736 periodontitis + 337 caries, each twice), ~1.7 s/image on CPU, no GPU rented.
+- **Dataset / config:** Ningxia `segmentation/{dental_caries,periodontitis}/test1–4` from
+  `D:\nangxia_dataset`. LOCKED external data — evaluated, not tuned against. Train split never
+  touched. Metrics unchanged from 25 Aug: focal-lesion centroid containment for caries,
+  affected-tooth sensitivity (≥50% of a tooth box inside the marked region) for periodontitis.
+
+- **The control reproduces 25 Aug**, which is what makes the rest of this entry readable:
+
+  | | 25 Aug published | control today |
+  |---|---|---|
+  | caries test1/2/3/4 | 26.6 / 43.3 / 37.0 / 22.6% | **27.2 / 43.3 / 35.2 / 22.0%** |
+  | periodontitis test1/2/3/4 | 3.7 / 0.8 / 1.5 / 5.4% | **3.7 / 0.8 / 1.1 / 5.1%** |
+
+  Caries lesion counts are **identical** (316/349/162/186) because that denominator comes from
+  the GT masks, not the model. Periodontitis denominators moved by a few teeth — that one is
+  model-dependent, see the caveat below.
+
+- **RESULT — caries lesion agreement improved on ALL FOUR hospitals:**
+
+  | Split | Lesions | Control | **Seg detector** | Δ | strict 1:1 |
+  |---|---|---|---|---|---|
+  | test1 | 316 | 27.2% | **28.8%** | +1.6 pp | 24.7 → 26.9% |
+  | test2 | 349 | 43.3% | **51.3%** | +8.0 pp | 35.8 → 46.1% |
+  | test3 | 162 | 35.2% | **40.1%** | +4.9 pp | 28.4 → 31.5% |
+  | test4 | 186 | 22.0% | **41.9%** | +19.9 pp | 18.3 → 38.2% |
+  | *(pooled, scale only)* | 1,013 | 33.1% | **40.8%** | **+7.7 pp** | 27.9 → 36.3% |
+
+  The denominator is model-independent, so this is a straight read. External caries agreement
+  now sits just under the **42.6%** DENTEX *internal* number (2026-08-25c) instead of well
+  below it — the external/internal gap has largely closed without any caries model changing.
+
+- **RESULT — periodontitis did NOT improve, and the numerator says why:**
+
+  | Split | Affected (ctl → seg) | Flagged (ctl → seg) | Sensitivity |
+  |---|---|---|---|
+  | test1 | 3,278 → 3,285 | 121 → 79 | 3.7% → **2.4%** |
+  | test2 | 2,068 → 2,462 | 16 → 34 | 0.8% → **1.4%** |
+  | test3 | 349 → 411 | 4 → 23 | 1.1% → **5.6%** |
+  | test4 | 534 → 633 | 27 → 29 | 5.1% → **4.6%** |
+  | *(pooled, scale only)* | 6,229 → 6,791 (+9.0%) | **168 → 165** | 2.7% → **2.4%** |
+
+  Across 736 images the pipeline flagged **168 affected teeth before and 165 after** — flat,
+  while the denominator grew 9%. Per-split movement is in both directions and test3's
+  1.1% → 5.6% is 4 → 23 teeth on 50 images; it is noise, not a win, and must not be quoted as one.
+
+- **Key insight — the same intervention, opposite outcomes, and that is the finding.** Swapping
+  the detector bought Stage 2 **+12.0 points** (2026-08-27e) and caries **+7.7 points** here,
+  and bone loss **nothing**. Stages whose errors were dominated by *which teeth got cropped*
+  improved; the bone-loss branch did not, because its failure is domain shift **inside the
+  Stage-4a classifier**, which flags essentially the same absolute set of teeth regardless of
+  what feeds it. `transfer.md` §3 item 4 suspected the detector and bone loss shared a root
+  cause as the two Tufts-trained stages — **this measures that they do not.** The remaining
+  lever is the DENTEX+Tufts combined-training trick that fixed Stage 2's generalisation, still
+  untried for bone loss.
+- **CAVEAT, stated because it limits the periodontitis comparison.** Affected-tooth sensitivity
+  has a **model-dependent denominator**: "affected" teeth are counted from *detected* boxes, so
+  a detector that finds different teeth changes numerator and denominator together. The control
+  is what makes the comparison interpretable at all, and it should never be quoted as a plain
+  sensitivity delta. Caries has no such problem. Detections/image rose in test2–4 (+15–20%) but
+  *fell* in test1 (25.2 → 22.7) — test1 is the split with burned-in annotation arrows and stars.
+- **Arithmetic audited exhaustively**, as on 25 Aug: per-image rows re-aggregated and matched
+  every published total on all four runs (736/736 and 337/337 rows); covered ≤ lesions,
+  strict ≤ covered, flagged ≤ affected, affected ≤ detected everywhere. All four result files
+  record the resolved weight paths and their SHA-256, so none can be confused with the others.
+- **Source:** `scripts/eval/ningxia_external.py`; `outputs/ningxia_external_control_olddet/`,
+  `outputs/ningxia_external_segdet/`, `outputs/ningxia_caries_control_olddet/`,
+  `outputs/ningxia_caries_segdet/`.
+- **Follow-ups:** (1) C2 is no longer stale — but `lesion_localization.py`'s DENTEX 42.6% is
+  still on the old detector and is now the *only* remaining pre-27-Aug external number, so the
+  internal/external comparison above is not strictly like-for-like until it is re-run.
+  (2) Bone-loss domain-shift fix is now the clearest open research problem in the project, with
+  one specific untried approach. (3) Image-level caries sensitivity is 93–100% and remains
+  saturated — still the weak metric, still not to be reported as a strength.
