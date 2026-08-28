@@ -4861,3 +4861,51 @@ poisoned the first.
   metric flatters it. That is a stronger contribution than the pipeline number was.
 - **Source:** `scripts/eval/lesion_localization.py --decision {pipeline,constant-molars,all-teeth}`,
   `outputs/lesion_loc_*/lesion_localization.json`.
+
+---
+
+## 2026-08-28e - The constant arm on Ningxia: externally, pipeline and constant are INDISTINGUISHABLE
+
+**A Ningxia touch (the 4th).** Both arms run in the same session against the same detector, FDI head
+and gate, so no drift is folded into the comparison. Caries only; periodontitis untouched.
+
+- **Why this was run.** 2026-08-28b/d established that an image-blind constant (the eight first and
+  second molars) beats this pipeline on DENTEX on **both** metric families - FDI-set F1 0.320 vs
+  0.294, and lesion-localisation agreement 0.488 vs 0.443 (+4.59 pp [+0.60,+8.89]). Whether that is
+  a property of DENTEX or of the task decides how strongly the paper can state it.
+- **Metric note.** Ningxia uses **centroid containment**, not IoU >= 0.30: its caries lesions are
+  89-3,090 px focal blobs inside ~25,000 px tooth boxes, and the DENTEX matcher would score ~0% by
+  construction (25 Aug). The constant arm reuses Stage 2's codes only to know which detected boxes
+  are molars; the **verdict never reads the pixels**.
+
+| hospital | lesions | pipeline | flagged | constant | flagged | delta |
+|---|---|---|---|---|---|---|
+| test1 | 316 | 0.288 | 637 | **0.446** | 736 | **+15.8 pp** |
+| test2 | 349 | **0.513** | 814 | 0.407 | 662 | -10.6 pp |
+| test3 | 162 | 0.401 | 252 | 0.377 | 247 | -2.5 pp |
+| test4 | 186 | 0.419 | 402 | 0.323 | 306 | -9.7 pp |
+| **POOLED** | **1,013** | **0.408** | 2,105 | **0.399** | 1,951 | **-0.89 pp [-4.88, +3.01]** |
+
+- **THE RESULT: pooled, the two are statistically indistinguishable** - constant minus pipeline
+  **-0.89 pp, 95% CI [-4.88, +3.01]**, paired bootstrap over 337 images, 5,000 resamples. The
+  interval straddles zero in both directions.
+- **This does NOT replicate the DENTEX finding, and that is stated plainly.** On DENTEX the constant
+  *won* significantly. Externally it does not; the pipeline is nominally ahead by 0.9 pp, which is
+  noise. **The defensible claim across all five hospitals is therefore "indistinguishable", not
+  "the constant is better".** That is a weaker sentence than 28 Aug's and a more accurate one.
+- **The per-site spread is the more useful finding.** The delta swings **+15.8 pp at test1 to
+  -10.6 pp at test2** - a 26-point range across four hospitals of one dataset. The pooled -0.89
+  hides that completely. Any single-number external claim, ours included, is uninformative at this
+  variance; report per site.
+- **test1 is the interesting site**: the pipeline's *worst* (0.288) and the constant's *best*
+  (0.446). Whatever makes test1 hard for a trained model does not make it hard for an anatomical
+  prior. Not diagnosed here.
+- **Two bugs of mine in the analysis, both caught before they reached a number.** (1) A first
+  bootstrap keyed per-image rows by filename alone; **Ningxia filenames repeat across splits**, so
+  337 rows collapsed to 134 - the identical defect recorded on 27 Aug. Fixed by keying
+  `(split, image)` and asserting the pairing is total. (2) The same script read
+  `n_lesions_covered` via `.get(key, 0)`; the real field is `n_covered`, so **both arms silently
+  read zero and the delta printed as +0.00 pp [0.00, 0.00]**. A defaulting getter turned a wrong
+  key into a confident null result. Neither was reported.
+- **Source:** `scripts/eval/ningxia_external.py --decision constant-molars`,
+  `outputs/ningxia_{pipeline,constant-molars}/ningxia_external.json`.

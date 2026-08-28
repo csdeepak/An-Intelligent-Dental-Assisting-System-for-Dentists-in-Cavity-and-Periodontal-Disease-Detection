@@ -96,6 +96,18 @@ sys.path.insert(0, str(REPO_ROOT))
 DEF_ROOT = Path.home() / "Downloads/Capstone/ningxia_local"
 DEF_OUT = REPO_ROOT / "outputs/ningxia_external"
 
+# CONSTANT ARM -- added 28 Aug 2026.
+# On DENTEX an image-blind constant (the eight first and second molars) beats this pipeline on
+# BOTH metric families tried: FDI-set F1 0.320 vs 0.294 (RESULTS_LOG 2026-08-28b) and
+# lesion-localisation agreement 0.488 vs 0.443, +4.59 pp [+0.60,+8.89] (2026-08-28d).
+#
+# Whether that holds EXTERNALLY is the open question that decides how strongly the paper can
+# state it. Ningxia is a different population with a different caries distribution, so the
+# constant is not guaranteed to transfer -- which is exactly why this is worth one of this
+# dataset's rationed touches. If the constant also wins here, the finding is cross-dataset
+# rather than a DENTEX quirk; if it loses, that is equally informative and must be reported.
+MOLAR_CONSTANT = {"16", "17", "26", "27", "36", "37", "46", "47"}
+
 # WEIGHTS ARE NO LONGER HARDCODED (changed 27 Aug 2026).
 # They were, and that is exactly why the 25 Aug C2 numbers went stale silently the moment the
 # Stage-1 default changed: this script kept loading models/06 (the bbox detector) and models/08
@@ -259,7 +271,10 @@ def main():
     ap.add_argument("--out", type=Path, default=DEF_OUT)
     ap.add_argument("--limit", type=int, default=None, help="first N images per category/split")
     ap.add_argument("--detector", type=Path, default=DEF_DETECTOR)
-    ap.add_argument("--fdi-head", type=Path, default=DEF_FDI_HEAD)
+    ap.add_argument("--fdi-head", type=Path, default=DEF_FDI_HEAD)
+    ap.add_argument("--decision", choices=["pipeline", "constant-molars"], default="pipeline",
+                    help="constant-molars flags the eight first/second molars on every image, "
+                         "never reading the pixels. See CONSTANT ARM below.")
     ap.add_argument("--caries-gate", type=Path, default=DEF_CARIES_GATE)
     ap.add_argument("--caries-severity", type=Path, default=DEF_CARIES_SEVERITY)
     ap.add_argument("--bone-loss", type=Path, default=DEF_BONE_LOSS)
@@ -356,7 +371,13 @@ def main():
                 fdi = assign_fdi_head(head, img, boxes, device) if boxes else []
                 if branch == "caries":
                     preds = run_caries(gate, csev, img, boxes, device) if boxes else []
-                    pos = [i for i, p in enumerate(preds) if p["finding"] != "no_caries"]
+                    if args.decision == "constant-molars":
+                        # The image is never read for the VERDICT. Codes come from Stage 2,
+                        # already computed above, purely to know which boxes are molars.
+                        pos = [i for i, a in enumerate(fdi)
+                               if str(a.get("fdi")) in MOLAR_CONSTANT]
+                    else:
+                        pos = [i for i, p in enumerate(preds) if p["finding"] != "no_caries"]
                 else:
                     preds = run_bone_loss(bbin, bsev, img, boxes, device) if boxes else []
                     pos = [i for i, p in enumerate(preds) if p["finding"] == "bone_loss"]

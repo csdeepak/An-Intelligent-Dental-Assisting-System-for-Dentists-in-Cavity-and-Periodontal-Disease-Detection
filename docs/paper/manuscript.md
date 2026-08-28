@@ -158,8 +158,15 @@ are empty at 4-shot. Blank and noise images both elicit confident dental answers
 33 B parameters and 70 GB of GPU memory lose to ~25 M parameters on CPU.
 
 **5.4 External validation.** Four hospitals, caries lesion agreement **28.8–51.3% (40.8% pooled)**
-against 44.3% internally. `[NINGXIA-CONST]` — the constant arm on the same four hospitals, which
-determines whether §5.1 is a DENTEX property or a general one.
+against 44.3% internally. The **constant arm on the same four hospitals** does **not** replicate the DENTEX
+result: pooled, constant 0.399 vs pipeline 0.408, a difference of **-0.89 pp with 95% CI
+[-4.88, +3.01]** - statistically indistinguishable. The per-site spread is large and matters more
+than the pooled figure: the constant leads by **+15.8 pp at one hospital** and trails by
+**-10.6 pp at another**, a 26-point range.
+
+The claim the data supports across all five hospitals is therefore that a purpose-built pipeline
+and an image-blind constant are **indistinguishable** on tooth-level caries metrics - not that the
+constant is superior. That is the weaker sentence, and the correct one.
 
 **5.5 Supporting.** Detection box mAP@0.5 0.810. Bone loss 0.923 macro-F1 in-domain, firing on
 0.7% of DENTEX and 2.4% of Ningxia teeth out of domain — a detector swap that moved Stage 2 by
