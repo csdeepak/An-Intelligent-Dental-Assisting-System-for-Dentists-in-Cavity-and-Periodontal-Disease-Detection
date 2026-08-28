@@ -4737,3 +4737,82 @@ framing. H100 80GB (EU1), 59 min, **Rs 285.20**, plus **Rs 14.26 wasted** on a s
   `control_pixels_{7b,32b}.json`, `c1_constant_arm_vlm_*.json`;
   `tests/test_c1_fewshot.py` + `tests/test_c1_constant.py`. **109/109 tests pass** (was 92).
   Instance destroyed; nothing left running.
+
+---
+
+## 2026-08-28c - Stage-2 head v3 on three corpora, and the 90-degree bug found on the way there
+
+L4 (23 GB), 1h30m, **Rs 64.64**. Instance destroyed. Two results, and the second one nearly
+poisoned the first.
+
+### 1. THE GEOMETRY BUG - found before it reached a model
+
+- **Every Tufts radiograph on this machine is 840x1615, rotated 90 degrees** from the 1615x840
+  frame `build_enumeration_crops.py` expects. `data/dentex/enumeration_v1` and
+  `data/tufts/enumeration_v1` were not on this machine at all - only the trained v2 head - so
+  both had to be rebuilt before anything could train, and that is what exposed it.
+- **It does not error.** The first rebuild wrote **28,171 train / 2,249 val** against v2's
+  documented **35,248 / 3,721**, silently rejecting **10,087 crops (23%) as degenerate**.
+- **The repo's own guard passed it.** `_tufts_align.image_orientation_score` scores mean
+  brightness inside the annotation boxes; teeth sit centrally, so **both orientations score above
+  1.0** - 1.040 rotated vs 1.021 upright. It was built to catch a 180-degree flip, where that
+  signal genuinely works. `rebuild_bone_loss_crops.py` already documented this limitation in a
+  comment; the enumeration builder never got the same protection.
+- **Rotating CCW reproduces v2's corpus exactly: 35,248 / 3,721 / 3,786, all three**, with
+  degenerate crops falling to 17. Three independent integers matching is what settled it.
+- **Fix:** `build_enumeration_crops.py` now aborts above a **2% degenerate rate**. That figure
+  separates the two cases by three orders of magnitude (23% vs 0.04%) and is agnostic to the
+  cause - any future geometry mismatch trips the same wire, whatever its origin. The
+  reconstructed upright radiographs are kept at `data/tufts/ZIP/Radiographs_upright`.
+- **This does NOT unblock bone loss.** `rebuild_bone_loss_crops.py` already rotates image and
+  boxes together via `--rotate` and still misses its geometry check by a wide margin
+  (0.400 vs 0.831 sensitivity). That remains a separate, real defect - see 2026-08-27u.
+
+### 2. HEAD v3 - three corpora
+
+- **The third corpus** is the Kaggle *dual-labeled* set. Two corrections to
+  `MASTER_PLAN`/`transfer.md`: it is **500 images, not 2,000** (the dataset publishes 2,066 labels
+  but only 500 images; 2,566 files total, confirmed by full API pagination - the download is
+  complete, the images are simply not all there), and its numbering was **verified, not assumed**.
+  The v2 head as an independent arbiter over 915 teeth: **80.3% agreement read direct vs 1.7%
+  mirrored**. Tufts looked like plain Universal and was mirrored; assuming here would have trained
+  a third of v3 on side-swapped labels. Usable: **499 images / 13,166 teeth / 22,327 crops,
+  0.00% degenerate**.
+- **A control was trained the same day** (`models/12a_fdi_head_v2_control_rebuilt`) on the rebuilt
+  DENTEX+Tufts crops - same code, seed, epochs, machine. Comparing v3 against *published* v2 would
+  have folded the crop rebuild, the geometry fix, torch 2.11 and a different GPU into what is meant
+  to be a single-variable test. The control reproduces published v2 to **within ~1 pp**
+  (FDI exact 0.821 vs 0.810), which is also what clears the geometry fix - a head trained on
+  misaligned crops collapses, it does not reach 98.3% quadrant accuracy.
+
+| corpus (split) | n | v2 control | v3 | delta | 95% CI | verdict |
+|---|---|---|---|---|---|---|
+| **DENTEX** val | 2,729 | 91.4% | **92.5%** | **+1.14 pp** | [+0.33, +1.95] | **significant** (p=0.013) |
+| **Tufts** test | 3,786 | 75.0% | 75.8% | +0.74 pp | [-0.37, +1.89] | **not significant** (p=0.25) |
+| **Kaggle** test | 1,994 | 77.7% | **93.2%** | +15.45 pp | [+12.79, +18.28] | significant, but see below |
+
+- **How to read that table.** The **Kaggle +15.45 pp is not a generalisation result**: v3 trained
+  on that corpus and the control had never seen it, so it says "training on a corpus helps on that
+  corpus". It is reported because omitting the largest number would look like concealment, not
+  because it supports a claim. **The real result is DENTEX +1.14 pp**, which survives its interval
+  - a third corpus improved accuracy on a corpus it added no data to. **Tufts is flat**: +0.74 pp,
+  CI crossing zero, near-balanced churn (294 crops fixed, 266 broken). **Nothing regressed** on any
+  corpus or metric.
+- **Pooled val must never be quoted** (v3 0.855 vs control 0.821). v3's val set contains 1,961
+  Kaggle crops the control's does not, so the two are computed over different mixtures; that
+  comparison inflates the effect roughly threefold.
+- **v3 is a reported ABLATION, not the pipeline default.** Adopting it would require re-measuring
+  the Stage-2 58.3%/82.6% headline, the C4 coverage-accuracy curves, the §8.16 failure taxonomy and
+  the pre-registered 0.30 operating point - all measured against v2. A +1.14 pp in-domain gain does
+  not justify that before the 14 Oct freeze.
+- **Deltas are paired** (same crops, two heads), bootstrapped over **source images** not crops, with
+  an exact McNemar test alongside.
+- **Process notes.** The pytorch template ships without `sklearn`, `matplotlib` or `cv2`; each
+  surfaced as a crash mid-run (the eval failed all six cells on `cv2` before being installed).
+  `jl run` accepted a job, created its directory, then died without starting it - SSH + `nohup` was
+  reliable. A 982 MB upload reported bulk success while silently dropping one 2.6 KB file, which
+  killed the first launch. Verify inputs **on the box** before starting a billed run.
+- **Source:** `models/12_fdi_head_v3_3corpus/run_summary.txt`,
+  `models/12a_fdi_head_v2_control_rebuilt/run_summary.txt`,
+  `scripts/kaggle_dual/{build_enumeration_crops,verify_fdi_convention}.py`.
+  **122/122 tests** (was 109).

@@ -1,0 +1,67 @@
+=================================================================
+ Stage-2 head — v2.0 CONTROL, retrained on rebuilt crops
+ Trained 28 August 2026 · JarvisLabs L4 · part of the 1h30m / Rs 64.64 run
+=================================================================
+
+ STATUS: a CONTROL ARM, not a model anyone should deploy. It exists so
+ models/12_fdi_head_v3_3corpus has a fair comparator. The pipeline default is
+ still models/10_fdi_head_dentex_tufts_v2.
+
+-----------------------------------------------------------------
+ WHY IT WAS TRAINED
+-----------------------------------------------------------------
+ Two independent things changed on 28 Aug before v3 could be trained:
+
+ 1. The DENTEX and Tufts enumeration crops were REBUILT locally — they were
+    not on this machine at all, only the trained v2 head was.
+ 2. Rebuilding exposed a geometry defect: every Tufts radiograph here is
+    840x1615, rotated 90 degrees from the 1615x840 frame the crop builder
+    expects. The first rebuild silently produced 28,171/2,249 train/val with
+    10,087 degenerate crops (23%) instead of the documented 35,248/3,721.
+    See RESULTS_LOG.md 2026-08-28c.
+
+ Comparing v3 against the PUBLISHED v2 numbers would therefore have folded
+ the crop rebuild, the geometry fix, a torch version change (2.11 vs the
+ original) and a different GPU into what is supposed to be a single-variable
+ test of "does a third corpus help". So v2 was retrained from scratch on the
+ rebuilt crops, and v3 is compared against this instead.
+
+-----------------------------------------------------------------
+ DATA — identical to v2.0
+-----------------------------------------------------------------
+  DENTEX  data/dentex/enumeration_v1   30,732 train / 2,729 val
+  Tufts   data/tufts/enumeration_v1    35,248 train / 3,721 val
+  TOTAL                                65,980 train / 6,450 val
+
+  All four counts match v2.0's documented figures EXACTLY. Three independent
+  integers matching is what established that the CCW rotation is the correct
+  reconstruction — see the geometry note above.
+
+-----------------------------------------------------------------
+ METRICS — reproduces v2.0 to within ~1 pp
+-----------------------------------------------------------------
+                        published v2.0     this control     delta
+   val quadrant             0.9811            0.983         +0.2 pp
+   val position             0.8253            0.833         +0.8 pp
+   val FDI exact            0.8101            0.821         +1.1 pp
+
+ Consistent with run-to-run variance across a different torch and GPU, not a
+ systematic difference. This is what clears the geometry fix: a head trained on
+ misaligned crops does not land on 98.3% quadrant accuracy — it collapses.
+
+ Per-corpus crop-level (GT boxes, plain argmax, FDI exact):
+   DENTEX val  (2,729)   quadrant 99.3%  position 91.8%  FDI exact 91.4%
+   Tufts test  (3,786)   quadrant 98.0%  position 76.5%  FDI exact 75.0%
+   Kaggle test (1,994)   quadrant 94.5%  position 82.0%  FDI exact 77.7%
+     ^ Kaggle is entirely UNSEEN by this head — it is the zero-shot cross-corpus
+       reference against which v3's 93.2% is measured.
+
+-----------------------------------------------------------------
+ ARTIFACTS
+-----------------------------------------------------------------
+  enumeration_head_best.pth   44,831,507 bytes   — NOT tracked in git
+    sha256 23fe6ef682d940a4137a45e552035f2fed06969144c0cd5fa02fcd1f2c292367
+    Kept on local disk only: this is a control arm, and its value is the
+    metrics above, not the weights. results.json and the figures ARE tracked.
+
+  RESULTS_LOG.md 2026-08-28c · PAPER_MATERIAL.md §8.23

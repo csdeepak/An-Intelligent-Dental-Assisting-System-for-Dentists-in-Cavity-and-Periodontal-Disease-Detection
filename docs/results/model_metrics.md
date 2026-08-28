@@ -496,3 +496,18 @@ Accuracy on retained predictions as the least-confident are declined. Threshold 
 - Controls: 7B blank/noise both -> `26,36`; 32B blank -> `NONE`, noise -> full molar list.
 - transformers 5.16.1 for all 28 Aug arms; the 27 Aug 7B run (F1 0.143) did not record its version.
 - Source: `outputs/c1_vlm/`, `RESULTS_LOG.md` 2026-08-28b, `PAPER_MATERIAL.md` §8.22.
+
+## Stage-2 head v3 — three corpora (28 Aug 2026, ABLATION not default)
+
+| corpus (split) | n | v2 control | v3 | delta | 95% CI | verdict |
+|---|---|---|---|---|---|---|
+| **DENTEX** val | 2,729 | 91.4% | **92.5%** | **+1.14 pp** | [+0.33, +1.95] | **significant** (p=0.013) |
+| **Tufts** test | 3,786 | 75.0% | 75.8% | +0.74 pp | [-0.37, +1.89] | **not significant** (p=0.25) |
+| **Kaggle** test | 1,994 | 77.7% | **93.2%** | +15.45 pp | [+12.79, +18.28] | significant, but see below |
+
+- Control = `models/12a_fdi_head_v2_control_rebuilt`, trained the same day on the same rebuilt
+  DENTEX+Tufts crops; it reproduces published v2 within ~1 pp (FDI exact 0.821 vs 0.810).
+- The **Kaggle cell is not a generalisation result** — v3 trained on that corpus.
+- Pooled val (v3 0.855 vs control 0.821) is **not comparable**: different val mixtures.
+- Pipeline default remains **v2.0** (`models/10_fdi_head_dentex_tufts_v2`).
+- Source: `models/12_fdi_head_v3_3corpus/run_summary.txt`, `RESULTS_LOG.md` 2026-08-28c.

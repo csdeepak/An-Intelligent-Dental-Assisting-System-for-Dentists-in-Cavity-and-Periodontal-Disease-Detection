@@ -1762,6 +1762,44 @@ identical to its answer for a real radiograph.
 
 ---
 
+### 8.23 A third FDI corpus — what it buys, and what it does not
+
+**Run 28 Aug 2026.** The Stage-2 head trained on DENTEX + Tufts; this adds the Kaggle
+*dual-labeled* corpus (499 images, 13,166 teeth) as a third source. Two corpora make
+"it generalises" an assertion with one degree of freedom; three make it a claim.
+
+Compared against a **control trained the same day** on the same rebuilt DENTEX+Tufts crops — same
+code, seed, epochs, machine — so the corpus is the only variable. Crop-level, GT boxes, plain
+argmax, FDI exact. Deltas paired, bootstrapped over source images, exact McNemar alongside.
+
+| corpus (split) | n | v2 control | v3 | delta | 95% CI | verdict |
+|---|---|---|---|---|---|---|
+| **DENTEX** val | 2,729 | 91.4% | **92.5%** | **+1.14 pp** | [+0.33, +1.95] | **significant** (p=0.013) |
+| **Tufts** test | 3,786 | 75.0% | 75.8% | +0.74 pp | [-0.37, +1.89] | **not significant** (p=0.25) |
+| **Kaggle** test | 1,994 | 77.7% | **93.2%** | +15.45 pp | [+12.79, +18.28] | significant, but see below |
+
+**The honest reading, which the paper must carry:**
+
+* The **Kaggle +15.45 pp is not evidence of generalisation.** v3 trained on that corpus; the
+  control had never seen it. Report it, but never as the headline.
+* The **result is DENTEX +1.14 pp** — a third corpus improved accuracy on a corpus it added no
+  data to, and the gain survives its interval.
+* **Tufts is flat** (+0.74 pp, CI crosses zero). Not a gain.
+* **Nothing regressed**, on any corpus or metric.
+* **Pooled val is not comparable** across the two heads (different val mixtures) and inflates the
+  effect roughly threefold. Use the per-corpus table.
+
+**Adoption:** v3 stays a reported ablation. The pipeline default remains v2, because swapping it
+invalidates the 58.3%/82.6% Stage-2 headline, the §8.21 coverage-accuracy curves and the §8.16
+taxonomy, all measured against v2.
+
+**Two data corrections worth stating in the paper's dataset section:** this corpus is **500
+images, not the 2,000** the plan assumed, and its numbering was **verified as standard FDI by an
+independent arbiter** (80.3% direct vs 1.7% mirrored) rather than taken on trust — Tufts presented
+as plain Universal and was left-right mirrored.
+
+---
+
 ## 9. What's not yet written — checklist
 
 For whoever drafts the actual paper. Tick items off here as they land.

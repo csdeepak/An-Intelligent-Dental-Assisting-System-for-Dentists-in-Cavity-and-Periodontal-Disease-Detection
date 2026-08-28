@@ -1,0 +1,105 @@
+=================================================================
+ Stage-2 FDI enumeration head v3.0 — THREE corpora
+ Trained 28 August 2026 · JarvisLabs L4 (23 GB) · 1h30m total, Rs 64.64
+=================================================================
+
+ STATUS: reported ABLATION, not the pipeline default.
+ The default remains models/10_fdi_head_dentex_tufts_v2 (v2.0). Adopting v3
+ would invalidate every number measured against v2 — the 58.3% / 82.6%
+ Stage-2 headline, the C4 coverage-accuracy curves, and the §8.16 failure
+ taxonomy. See "ADOPTION" below.
+
+-----------------------------------------------------------------
+ DATA
+-----------------------------------------------------------------
+  DENTEX  data/dentex/enumeration_v1        30,732 train / 2,729 val
+  Tufts   data/tufts/enumeration_v1         35,248 train / 3,721 val
+  Kaggle  data/kaggle_dual/enumeration_v1   18,372 train / 1,961 val / 1,994 test
+                                            (499 images, 13,166 teeth)
+  TOTAL                                     84,352 train / 8,411 val / 32 classes
+
+  All three cropped to the SAME contract: 1.5x symmetric expansion, 224x224,
+  +/-15% jitter on train only.
+
+  The Kaggle corpus is the *dual-labeled* set (zwbzwb12341234/a-dual-labeled-dataset).
+  Two things about it were verified rather than assumed:
+    * Numbering is STANDARD FDI, read as written — the v2 head used as an
+      independent arbiter over 915 teeth gave 80.3% agreement direct vs 1.7%
+      mirrored. Tufts looked like plain Universal and was mirrored; assuming
+      here would have trained a third of this head on side-swapped labels.
+    * It is 500 images, NOT the 2,000 transfer.md claimed. The dataset
+      publishes 2,066 labels but only 500 images (2,566 files, confirmed by
+      full API pagination). 1,566 labels have no image.
+
+-----------------------------------------------------------------
+ TRAINING (identical to v2.0 except the added corpus)
+-----------------------------------------------------------------
+  arch        resnet18 + 4 positional feats -> (quadrant 4, position 8)
+  epochs 15   batch 64   lr 1e-3   backbone-lr-mult 0.1   seed 42
+  torch 2.11.0+cu130, L4
+  command     python scripts/dentex/train_enumeration_head.py \
+                --data data/dentex/enumeration_v1 \
+                       data/tufts/enumeration_v1 \
+                       data/kaggle_dual/enumeration_v1
+
+-----------------------------------------------------------------
+ METRICS — per corpus, against a CONTROL trained the same day
+-----------------------------------------------------------------
+ The comparator is models/12a_fdi_head_v2_control_rebuilt, trained on the same
+ machine, same code, same seed, same epochs, on the SAME rebuilt DENTEX+Tufts
+ crops. Comparing against published v2 instead would fold in today's crop
+ rebuild and a torch/GPU change alongside the corpus effect.
+
+ Crop-level, GT boxes, plain argmax, FDI exact. Deltas are paired (same crops),
+ bootstrapped over SOURCE IMAGES, with an exact McNemar test.
+
+   corpus (split)      n      control     v3       delta        95% CI          verdict
+   DENTEX  val      2,729     91.4%     92.5%    +1.14 pp   [+0.33,+1.95]   SIGNIFICANT p=0.013
+   Tufts   test     3,786     75.0%     75.8%    +0.74 pp   [-0.37,+1.89]   not significant p=0.25
+   Kaggle  test     1,994     77.7%     93.2%   +15.45 pp   [+12.79,+18.28] SIGNIFICANT p=1.2e-65
+
+   quadrant / position:
+     DENTEX  99.3->99.5  /  91.8->93.0
+     Tufts   98.0->98.2  /  76.5->76.8
+     Kaggle  94.5->98.7  /  82.0->94.4
+
+ Pooled val (v3 0.855 vs control 0.821) is NOT comparable and must not be
+ quoted: v3's val set contains 1,961 Kaggle crops the control's does not, so
+ the two are computed over different mixtures. That comparison inflates the
+ effect roughly threefold.
+
+-----------------------------------------------------------------
+ HOW TO READ THIS
+-----------------------------------------------------------------
+ * The Kaggle +15.45 pp is NOT a generalisation result. v3 trained on that
+   corpus; the control had never seen it. It says "training on a corpus helps
+   on that corpus". It is reported because omitting the largest number would
+   look like concealment, not because it supports a claim.
+ * The real result is DENTEX +1.14 pp, which survives its interval: a third
+   corpus improved accuracy on a corpus it added no data to.
+ * Tufts is FLAT. +0.74 pp with a CI crossing zero, and near-balanced churn
+   (294 crops v3 fixed, 266 it broke). Report as no change, not as a gain.
+ * Nothing regressed on any corpus or any metric.
+ * What this buys the paper is a THREE-CORPUS claim — a statement about
+   breadth, not a headline metric moving.
+
+-----------------------------------------------------------------
+ ADOPTION — deliberately not taken
+-----------------------------------------------------------------
+ Making v3 the pipeline default requires re-measuring, at minimum:
+   - Stage-2 end-to-end (58.3% / 82.6% of detected)
+   - C4 coverage-accuracy curves (built on v2's confidences)
+   - §8.16 Stage-2 failure taxonomy
+   - the pre-registered ASSESSABILITY_MIN_FDI_CONFIDENCE = 0.30 operating point
+ A +1.14 pp in-domain gain does not justify that before the 14 Oct freeze.
+ Revisit only if the schedule allows a full re-measurement pass.
+
+-----------------------------------------------------------------
+ ARTIFACTS
+-----------------------------------------------------------------
+  enumeration_head_best.pth   44,831,507 bytes
+    sha256 62b4f1b97e091a0f7b24c673758b6c436c601096a0055b02f53a3909580f6974
+  results.json, training_curves.png, confusion_{quadrant,position,fdi}.png,
+  per_position_accuracy.png
+
+  RESULTS_LOG.md 2026-08-28c · PAPER_MATERIAL.md §8.23
