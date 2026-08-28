@@ -177,11 +177,11 @@ observe whether its behaviour changes.
 \subsection{External validation and the missing floor}
 External validation remains uncommon. In our review of 49 task-relevant papers,
 two evaluate on an outside institution. Where it is done, degradation is often
-severe---one reported system falls from 95.06 mAP on its own data to 61.83 on a
-public benchmark. Independent work on periodontal bone loss reports weighted F1
-of 0.29 with severe-class F1 of zero against clinician
-reference~\cite{ren2026dualbranch,george2026explainable}, a reminder that
-in-domain figures can be a poor guide to behaviour elsewhere. To our knowledge,
+severe---one reported caries detector falls from 95.06 mAP on its own data to
+61.83 on a public benchmark~\cite{cao2024dpml}. Independent work on periodontal
+bone loss, evaluated against five clinicians, reports weighted F1 of 0.29 with
+severe-class F1 of zero~\cite{cerda2024determining}, a reminder that in-domain
+figures can be a poor guide to behaviour elsewhere. To our knowledge,
 no work in this area reports an image-blind baseline, which is the gap this
 paper addresses.
 
@@ -528,69 +528,130 @@ all three. We report this as a measured negative result rather than a component.
 
 %% =====================================================================
 \section{Discussion}
-%% =====================================================================
 
-\subsection{Why the floor is high}
-Caries in these cohorts is anatomically concentrated in molars. A tooth-level
-decision is a set-membership question, and set membership inherits that base
-rate directly. The consequence is that headroom above a fixed anatomical answer
-is small---and, importantly, small \emph{independently of model quality}. This
-is a property of the task--metric pairing, not of any particular system.
+\subsection{Why the floor is high, and why that is not a criticism of any model}
+Caries in these cohorts is anatomically concentrated: molars carry most of the
+disease. A tooth-level decision is a set-membership question over a fixed
+vocabulary of 32 codes, and set membership inherits that concentration directly.
+A fixed answer naming the eight first and second molars is therefore not a
+degenerate output---it is a compact statement of dental epidemiology, and it is
+right for the same reason a clinician's prior is right.
 
-That two unrelated metrics agree on development data matters. Set-membership F1
-and lesion localisation were designed to measure different things; the second was
-adopted specifically because it requires spatial correspondence. A single-metric
-result would be a metric artefact. Two are a property of the data.
+The consequence is that headroom above such an answer is small, and---this is
+the part that matters---small \emph{independently of model quality}. No amount of
+architectural work raises a ceiling imposed by the pairing of task and metric.
+A system can only distinguish itself here by being right about \emph{this
+patient} in a way the population prior is not, and tooth-level set membership is
+a poor instrument for detecting that difference.
 
-\subsection{Why the external disagreement matters more}
-We expected the external cohort to confirm the development finding. It did not:
-pooled, the systems are indistinguishable, and per site the difference swings
-through 26 points. Two readings are available and we cannot presently separate
-them. Either the development result is partly a property of DENTEX's particular
-caries distribution, or the external metric---which necessarily uses centroid
-containment rather than overlap, because external lesions are small focal blobs
-inside much larger tooth boxes---has different sensitivity. Both are consistent
-with the data we have.
+That two unrelated metrics agree on development data is what moves this from
+anecdote to property. Set-membership F1 and lesion-localisation agreement were
+constructed to measure different things; the second was adopted precisely
+because it demands spatial correspondence. A result appearing under one metric
+is a metric artefact. The same ordering under both is a property of the data.
 
-What the disagreement does establish is that a \emph{single} external number is
-not informative at this variance. Our own pooled figure of 0.408 is, on its own,
-as uninformative as any other pooled figure in this literature. We report per
-site for that reason, and recommend the same of others.
+\subsection{Anticipated objections}
+\textbf{``Your pipeline is simply weak.''} Possibly, but that does not explain
+the result. Two general-purpose models at 8\,B and 33\,B parameters were scored
+by the identical scorer and placed \emph{below} our pipeline, and all three below
+the constant. An explanation resting on our system's quality would have to
+account for three systems of very different design failing to separate from the
+same prior.
 
-\subsection{What should be reported}
-We propose that a constant-baseline row accompany any tooth-level caries metric
-on this class of data. It costs one line of code and no compute. Without it, a
-mid-range tooth-level number cannot be interpreted---as our four systems
-demonstrate, spanning 0.149 to 0.320 with the \emph{least} informed entry at the
-top.
+\textbf{``The constant was fitted, so it is not uninformed.''} It is fitted, on
+78 held-out images disjoint from every scored image, and then frozen. What it
+learns is a population statistic---which teeth tend to be carious---not anything
+about the radiograph in front of it. That is exactly the quantity a diagnostic
+claim must exceed. We additionally report a test-set-fitted oracle and label it
+as unclaimable.
 
-This does not invalidate prior work. It means one specific claim---\emph{this
-system perceives caries}---is not established by a tooth-level number alone.
+\textbf{``The metrics were poorly chosen.''} The first is the metric this
+literature predominantly reports; we did not select it to make a point. The
+second we introduced specifically to escape the first, and it produced the same
+ordering. We also report the degenerate flag-everything arm, which reaches 0.722
+agreement, so the reader can see what the metric costs to saturate and judge its
+headroom directly.
+
+\textbf{``A molar-prior system would still be clinically useful.''} It might well
+be, and we do not dispute it. But a tool that encodes epidemiology is a different
+object from a tool that reads a radiograph, and only the second can find the
+lesion that the prior does not expect. The distinction is invisible to the metric
+and central to the clinic.
+
+\subsection{Why the external disagreement matters more than the headline}
+We expected the external cohort to confirm the development result. It did not:
+pooled, the two systems are indistinguishable, and per site the difference swings
+through 26 points, from $+15.8$ to $-10.6$.
+
+Two readings remain open and we cannot separate them with the data we have.
+Either the development result is partly a property of DENTEX's particular caries
+distribution, or the external metric---which necessarily uses centroid
+containment, because external lesions are small focal blobs inside much larger
+tooth boxes---has different sensitivity to the same underlying effect. We report
+the ambiguity rather than resolve it by assertion.
+
+What the disagreement does establish is firmer than what it leaves open: at this
+variance, a \emph{single} external number carries very little information. Our
+own pooled 0.408 is, in isolation, as uninterpretable as any other pooled figure
+in this literature, including the ones we cite. One hospital in our cohort would
+have supported the claim that the constant wins decisively; another would have
+supported the opposite. Reporting either alone would have been defensible,
+publishable, and wrong.
+
+\subsection{The mechanism, so far as we can see it}
+Our caries gate over-calls healthy teeth at essentially the rate it over-calls
+impacted teeth. A branch whose false positives are indifferent to what is
+actually in the crop is one whose decisions carry little information beyond
+position---which is precisely the regime in which an anatomical prior competes.
+This was visible in our own error analysis before the constant was ever
+constructed; the constant quantified what it costs.
+
+\subsection{What we propose should be reported}
+\textbf{A constant-baseline row.} One line of code, no compute, alongside any
+tooth-level caries metric on this class of data. Without it a mid-range number
+cannot be interpreted---our four systems span 0.149 to 0.320 with the
+\emph{least} informed at the top.
+
+\textbf{Per-institution results.} Pooled external figures conceal exactly the
+variation that external validation exists to expose.
+
+\textbf{Metrics with demonstrated headroom.} If a degenerate arm reaches most of
+the achievable range, the metric cannot support a perception claim regardless of
+what a system scores on it.
+
+None of this invalidates prior work. It narrows one specific inference: the claim
+\emph{this system perceives caries} is not established by a tooth-level number
+alone.
 
 \subsection{What still separates a system from a prior}
-A constant cannot number teeth, cannot produce a calibrated confidence, cannot
-abstain informatively, and has no behaviour under domain shift to measure. We
-propose these as the axes on which OPG systems should be compared:
+A constant cannot name a tooth, cannot express a calibrated confidence, cannot
+decline informatively, and has no behaviour under domain shift to measure. We
+propose these as the axes on which OPG systems should be compared, with our own
+figures given as an illustration of what reporting them looks like:
 
 \begin{enumerate}
-  \item \textbf{Identification}: can it say \emph{which} tooth?
-        (82.6\,\% of detected teeth here.)
-  \item \textbf{Calibration}: are its confidences probabilities?
-        (ECE 0.136 $\rightarrow$ 0.043.)
-  \item \textbf{Selective prediction}: does declining improve accuracy, and does
-        the gain survive a shuffle control? ($+14.25$ pp; yes.)
-  \item \textbf{Domain shift}: measured on held-out institutions and reported
-        per site.
+  \item \textbf{Identification}---can it say \emph{which} tooth? Here 82.6\,\%
+        of detected teeth, with the detection bound stated alongside.
+  \item \textbf{Calibration}---are its confidences probabilities? ECE
+        $0.136 \rightarrow 0.043$, with the failed temperature-scaling attempt
+        reported because it diagnoses the miscalibration as structural.
+  \item \textbf{Selective prediction}---does declining improve accuracy, and does
+        the gain survive a shuffle control? $+14.25$ pp, and yes.
+  \item \textbf{Domain shift}---measured on held-out institutions, reported per
+        site.
 \end{enumerate}
 
-Our pipeline performs meaningfully on all four. Its caries F1 conveys much less.
+A constant scores nothing on any of these. Our pipeline scores meaningfully on
+all four. That asymmetry, rather than its caries F1, is what the system has to
+show.
 
-\subsection{On reporting negative results}
-Two findings here are unfavourable to our own system: the constant comparison,
-and a bone-loss branch that does not generalise. We report both, because a
-screening tool that fails silently is more dangerous than one that fails
-visibly---and because the alternative, selecting whichever metric flatters the
-system, is precisely the practice this paper argues against.
+\subsection{On reporting results that do not favour the authors}
+Two findings here are unfavourable to our own system: the constant comparison
+and a bone-loss branch that does not generalise. We report both. A screening tool
+that fails silently is more dangerous than one that fails visibly, and the
+alternative---selecting whichever metric flatters the system---is precisely the
+practice this paper argues against. We would have no standing to recommend
+constant baselines to others while declining to survive one ourselves.
 
 %% =====================================================================
 \section{Limitations}
@@ -616,21 +677,39 @@ system, is precisely the practice this paper argues against.
 
 %% =====================================================================
 \section{Conclusion}
-%% =====================================================================
 
-We set out to determine what a tooth-level caries number means, using our own
-system as the subject. On development data, a baseline that never reads the
-radiograph outscored a purpose-built pipeline and two vision--language models
-under two unrelated metrics. Across four external hospitals the same comparison
-produced no separation at all, with a 26-point swing between sites.
+We began with two programs producing the same report: one that examines a
+radiograph, and one that has never seen an image in its life. This paper is an
+attempt to measure the distance between them on the metrics our field actually
+uses, with our own system as the subject rather than anyone else's.
 
-The conclusion we draw is not that automated screening does not work. It is that
-this measurement cannot tell us whether it does. Identification, calibration,
-selective prediction and behaviour under domain shift can---and on those axes,
-reported here with their controls, our pipeline has something to show. We
-recommend that tooth-level caries results be accompanied by an image-blind
-baseline and reported per institution, so that the next number of this kind is
-interpretable when it appears.
+On development data, the distance was negative. A fixed list of eight molars
+outscored a purpose-built six-stage pipeline and two vision--language models
+under two unrelated metrics, and it did so without flagging appreciably more
+teeth. Across four external hospitals the same comparison produced no separation
+at all, with a 26-point swing between sites that the pooled figure erases.
+Meanwhile both language models returned confident, correctly formatted,
+anatomically specific answers to an image containing no anatomy, and got worse
+when given examples to learn from.
+
+The conclusion we draw is not that automated caries screening does not work. It
+is narrower and, we think, more actionable: \emph{this measurement cannot tell us
+whether it does}. A number that an anatomical prior can reach is not evidence of
+perception, however carefully it was produced.
+
+What can distinguish a system from a prior is available and inexpensive.
+Identification, calibration, selective prediction and behaviour under domain
+shift are all things a constant cannot do at all, and all things we report here
+with the controls that make them interpretable---a shuffle test for abstention,
+content-free inputs for the language models, held-out fitting for the baseline.
+On those axes our pipeline has something to show; on tooth-level caries F1 it
+does not, and neither, we suspect, do many published figures in the same range.
+
+We therefore recommend three things of the next paper reporting a tooth-level
+caries result: publish an image-blind baseline beside it, report external results
+per institution rather than pooled, and state the headroom of the metric being
+used. The cost is negligible. The alternative is a literature of numbers that
+cannot be compared to each other, or to doing nothing at all.
 
 %% =====================================================================
 \bibliographystyle{IEEEtran}

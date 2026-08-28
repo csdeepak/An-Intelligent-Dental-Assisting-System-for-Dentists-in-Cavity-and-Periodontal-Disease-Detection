@@ -145,22 +145,18 @@ R.~Geirhos, J.-H. Jacobsen, C.~Michaelis, R.~Zemel, W.~Brendel, M.~Bethge, and
   F.~A. Wichmann, ``Shortcut learning in deep neural networks,'' \emph{Nature
   Machine Intelligence}, 2020.
 
-\bibitem{ren2026dualbranch}
-\BIBentryALTinterwordspacing
-L.~Ren and J.~Chen, ``A dual-branch deep learning framework with explainability
-  for dental caries classification using intra-oral photographs and
-  radiographs,'' \emph{Journal of Imaging}, vol.~12, no.~5, p. 207, 2026,
-  imaging modality not confirmed to be panoramic radiography; verify before
-  relying on this as a panoramic-specific result. [Online]. Available:
-  \url{https://doi.org/10.3390/jimaging12050207}
-\BIBentrySTDinterwordspacing
+\bibitem{cao2024dpml}
+J.~Cao and Others, ``{DPML}: Deep learning for dental caries detection on
+  panoramic radiographs,'' \emph{Expert Systems With Applications}, vol. 254,
+  p. 124446, 2024.
 
-\bibitem{george2026explainable}
+\bibitem{cerda2024determining}
 \BIBentryALTinterwordspacing
-A.~B. George, P.~S, and K.~Agarwal, ``An explainable two-stage deep learning
-  framework for pericoronitis assessment in panoramic radiographs using
-  {YOLOv8} and {ResNet-50},'' \emph{arXiv preprint arXiv:2601.08401}, 2026.
-  [Online]. Available: \url{https://arxiv.org/abs/2601.08401}
+D.~Cerda~Mardini, P.~Cerda~Mardini, D.~Paz Vicu{\~n}a~Iturriaga, and D.~R.
+  Ortu{\~n}o~Borroto, ``Determining the efficacy of a machine learning model
+  for measuring periodontal bone loss,'' \emph{BMC Oral Health}, vol.~24,
+  no.~1, p. 1023, 2024. [Online]. Available:
+  \url{https://bmcoralhealth.biomedcentral.com/articles/10.1186/s12903-024-04795-5}
 \BIBentrySTDinterwordspacing
 
 \bibitem{jocher2024yolo11}
