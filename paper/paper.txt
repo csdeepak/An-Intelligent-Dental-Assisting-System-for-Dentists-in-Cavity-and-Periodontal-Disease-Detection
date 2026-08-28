@@ -55,58 +55,61 @@ useful. What is much rarer is a statement of the floor: what the             wha
      with the spread that pooling conceals.                             External validation remains uncommon. In our review of
   4) Calibration and selective prediction results, each with         49 task-relevant papers, two evaluate on an outside institution.
      a control isolating the mechanism responsible.                  Where it is done, degradation is often severe—one reported
-  5) An honest characterisation of the pipeline itself, includ-      caries detector falls from 95.06 mAP on its own data to 61.83
-     ing one branch that does not survive domain shift and a         on a public benchmark [17]. Independent work on periodontal
-     headline number that is bounded by an earlier stage.            bone loss, evaluated against five clinicians, reports weighted
-   We are explicit about what we do not claim. We do not             F1 of 0.29 with severe-class F1 of zero [18], a reminder that
-assert that published caries results are incorrect. We argue         in-domain figures can be a poor guide to behaviour elsewhere.
-something narrower and, we think, more useful: that a tooth-         To our knowledge, no work in this area reports an image-blind
-level number reported without a floor cannot be distinguished        baseline, which is the gap this paper addresses.
-from an anatomical prior—a statement about evidence, not
-about anyone’s system.                                                                        III. S YSTEM
-                                                                        The finding in this paper is only interesting if the system
-                     II. R ELATED W ORK                              it is measured against is a serious one. We therefore describe
-                                                                     the pipeline before the evaluation that tests it.
-A. Detection and classification on panoramic radiographs
+  5) An honest characterisation of the pipeline itself, includ-      dental object-recognition system falls from 95.06 mAP on its
+     ing one branch that does not survive domain shift and a         own data to 61.83 on a public benchmark [17]. Independent
+     headline number that is bounded by an earlier stage.            work on periodontal bone loss, evaluated against five clini-
+   We are explicit about what we do not claim. We do not             cians, reports weighted F1 of 0.29 with severe-class F1 of
+assert that published caries results are incorrect. We argue         zero [18], a reminder that in-domain figures can be a poor
+something narrower and, we think, more useful: that a tooth-         guide to behaviour elsewhere. To our knowledge, no work in
+level number reported without a floor cannot be distinguished        this area reports an image-blind baseline, which is the gap this
+from an anatomical prior—a statement about evidence, not             paper addresses.
+about anyone’s system.
+                                                                                              III. S YSTEM
+                     II. R ELATED W ORK                                 The finding in this paper is only interesting if the system
+                                                                     it is measured against is a serious one. We therefore describe
+A. Detection and classification on panoramic radiographs             the pipeline before the evaluation that tests it.
    Deep learning on OPGs has converged on a familiar decom-          A. Architecture
-position: detect teeth, then classify each one. Detector choice is      The pipeline maps an OPG to a structured per-tooth record
-well studied; a head-to-head evaluation on dental panoramics         in six stages. Stage 1 detects teeth with a YOLOv11l seg-
-reports YOLOv11 outperforming its successor generation for           mentation model [19]. Stage 2 assigns each detection a two-
-multi-class dental detection, and the same study observes an         digit FDI code using a ResNet18 [20] head that consumes the
-asymmetry that matters here—performance is strong on well-           tooth crop together with four positional features, resolved to
-defined objects such as crowns and implants and markedly             a one-to-one assignment across the mouth by the Hungarian
-weaker on subtle radiolucent pathology including caries and          algorithm [21]. Stages 3 and 4 classify caries and periodontal
-bone loss [4]. YOLO-family detectors are widely applied to           bone loss per tooth using independent ResNet18 branches,
-this data more generally [5]–[7]. Caries and periodontal classi-     each arranged as a coarse-to-fine cascade. Stages 5 and 6
-fication specifically have been approached with dual-network         fuse the per-stage outputs on the FDI key and emit the record.
-frameworks [1], dedicated convolutional classifiers [3], and            The whole system totals approximately 25 M parameters
-contrastive feature-pyramid designs [2], alongside broader           and runs at 2.39 s per image on CPU with no GPU present.
-detection and segmentation work [8], [9].                            This figure becomes relevant in Section V.
+position: detect teeth, then classify each one. Detector choice is
+                                                                        The pipeline maps an OPG to a structured per-tooth record
+well studied; a head-to-head evaluation on dental panoramics
+                                                                     in six stages. Stage 1 detects teeth with a YOLOv11l seg-
+reports YOLOv11 outperforming its successor generation for
+                                                                     mentation model [19]. Stage 2 assigns each detection a two-
+multi-class dental detection, and the same study observes an
+                                                                     digit FDI code using a ResNet18 [20] head that consumes the
+asymmetry that matters here—performance is strong on well-
+                                                                     tooth crop together with four positional features, resolved to
+defined objects such as crowns and implants and markedly
+                                                                     a one-to-one assignment across the mouth by the Hungarian
+weaker on subtle radiolucent pathology including caries and
+                                                                     algorithm [21]. Stages 3 and 4 classify caries and periodontal
+bone loss [4]. YOLO-family detectors are widely applied to
+                                                                     bone loss per tooth using independent ResNet18 branches,
+this data more generally [5]–[7]. Caries and periodontal classi-
+                                                                     each arranged as a coarse-to-fine cascade. Stages 5 and 6
+fication specifically have been approached with dual-network
+                                                                     fuse the per-stage outputs on the FDI key and emit the record.
+frameworks [1], dedicated convolutional classifiers [3], and
+                                                                        The whole system totals approximately 25 M parameters
+contrastive feature-pyramid designs [2], alongside broader
+                                                                     and runs at 2.39 s per image on CPU with no GPU present.
+detection and segmentation work [8], [9].
+                                                                     This figure becomes relevant in Section V.
 
 B. Tooth numbering                                                   B. Data
-                                                                        Tooth detection and bone loss use the Tufts Dental
-  FDI numbering is typically reported at very high accuracy—
-                                                                     Database [22] (1,000 OPGs) under a frozen 700/150/150 split.
-one recent system reports 0.9988 for tooth numbering [10],
-                                                                     Caries uses DENTEX [23]. FDI numbering trains on both,
-and multi-stage segmentation-and-numbering pipelines report
-                                                                     with a third public corpus used for an ablation.
-comparable figures [11]. Such numbers are frequently obtained
-                                                                        All splits are image-level. Two crops from one radiograph
-on pre-cropped teeth, where the task is a 32-way classification
-                                                                     are not independent observations, and a tooth-level split would
-of an image already known to contain exactly one tooth,
-                                                                     place the same mouth in both training and test data.
-correctly framed. That is a materially easier problem than
-                                                                        Two labelling conventions were established by measurement
-numbering under detector output, where teeth may be missed,
-                                                                     rather than assumed, because a silent error in either would
-duplicated or clipped. We report both framings and find the
-                                                                     have trained a plausible but wrong model. Tufts numbering is
-gap between them large.
+  FDI numbering is typically reported at very high accuracy—            Tooth detection and bone loss use the Tufts Dental
+one recent system reports 0.9988 for tooth numbering [10],           Database [22] (1,000 OPGs) under a frozen 700/150/150 split.
+and multi-stage segmentation-and-numbering pipelines report          Caries uses DENTEX [23]. FDI numbering trains on both,
+comparable figures [11]. Such numbers are frequently obtained        with a third public corpus used for an ablation.
+on pre-cropped teeth, where the task is a 32-way classification         All splits are image-level. Two crops from one radiograph
+of an image already known to contain exactly one tooth,              are not independent observations, and a tooth-level split would
+correctly framed. That is a materially easier problem than           place the same mouth in both training and test data.
+numbering under detector output, where teeth may be missed,             Two labelling conventions were established by measurement
+duplicated or clipped. We report both framings and find the          rather than assumed, because a silent error in either would
+gap between them large.                                              have trained a plausible but wrong model. Tufts numbering is
                                                                      left–right mirrored relative to Universal notation (Tufts “1”
-                                                                     corresponds to FDI 28, not 18), confirmed three independent
-C. Vision–language models in dentistry                               ways. The third corpus was checked the same way: using the
+C. Vision–language models in dentistry                               corresponds to FDI 28, not 18), confirmed three independent
+                                                                     ways. The third corpus was checked the same way: using the
    Recent work applies general-purpose and domain-adapted            two-corpus numbering head as an independent arbiter over
 VLMs to dental imaging [12]–[15]. These systems are at-              915 teeth, agreement was 80.3 % reading its labels as written
 tractive because they need no task-specific training, and are        against 1.7 % reading them mirrored.
@@ -378,38 +381,38 @@ all.                                                                            
      rays via feature pyramid contrastive learning,” in Proceedings of               Benchmarks Track.pdf
      the AAAI Conference on Artificial Intelligence, vol. 38, no. 20.           [16] R. Geirhos, J.-H. Jacobsen, C. Michaelis, R. Zemel, W. Brendel,
      AAAI Press, 2024, pp. 21 940–21 948. [Online]. Available: https:                M. Bethge, and F. A. Wichmann, “Shortcut learning in deep neural
-     //ojs.aaai.org/index.php/AAAI/article/view/30197                                networks,” Nature Machine Intelligence, 2020.
- [3] A. Bilal, A. H. Khan, K. Almohammadi, S. A. Al Ghamdi,                     [17] J. Cao and Others, “DPML: Deep learning for dental caries detection
-     H. Long, and H. Malik, “PDCNET: Deep convolutional neural network               on panoramic radiographs,” Expert Systems With Applications, vol. 254,
-     for classification of periodontal disease using dental radiographs,”            p. 124446, 2024.
-     IEEE Access, vol. 12, pp. 10 261–10 275, 2024. [Online]. Available:        [18] D. Cerda Mardini, P. Cerda Mardini, D. Paz Vicuña Iturriaga, and D. R.
-     https://ieeexplore.ieee.org/document/10400831                                   Ortuño Borroto, “Determining the efficacy of a machine learning model
- [4] İ. Mutlu and Others, “Comparison of YOLOv11 and YOLOv12 for                    for measuring periodontal bone loss,” BMC Oral Health, vol. 24, no. 1,
-     dental condition detection on panoramic radiographs,” Odontology,               p. 1023, 2024. [Online]. Available: https://bmcoralhealth.biomedcentral.
-     2026.                                                                           com/articles/10.1186/s12903-024-04795-5
- [5] K. A. Asif and R. A. Khan, “Dental panoramic radiograph                    [19] G. Jocher, J. Qiu, and A. Chaurasia, “Ultralytics YOLO11,” 2024,
-     analysis using YOLO26 from tooth detection to disease diagnosis,”               software, https://github.com/ultralytics/ultralytics.
-     arXiv preprint arXiv:2604.16231, 2026. [Online]. Available: https:         [20] K. He, X. Zhang, S. Ren, and J. Sun, “Deep residual learning for
-     //arxiv.org/abs/2604.16231                                                      image recognition,” in IEEE Conference on Computer Vision and Pattern
- [6] K. Nassiri and M. A. Akhloufi, “YOLO-based panoramic dental                     Recognition (CVPR), 2016.
-     X-ray image analysis,” Neural Computing and Applications, vol. 37,         [21] H. W. Kuhn, “The Hungarian method for the assignment problem,”
-     pp. 25 867–25 890, 2025. [Online]. Available: https://link.springer.com/        Naval Research Logistics Quarterly, vol. 2, no. 1–2, pp. 83–97, 1955.
-     article/10.1007/s00521-025-11462-5                                         [22] K. Panetta, R. Rajendran, A. Ramesh, S. P. Rao, and S. Agaian,
- [7] S. Eftimie, T. Ileni, L. Iacob, M. Hedesiu, and L. Diosan, “Tooth-              “Tufts dental database: A multimodal panoramic x-ray dataset for
-     level detection and mapping of dental pathologies on panoramic                  benchmarking diagnostic systems,” IEEE Journal of Biomedical and
-     radiographs using YOLOv11 and RT-DETR,” MethodsX, vol. 15,                      Health Informatics, 2021.
-     no. 3, p. 103696, 2025, published as Sorana Eftimie; an earlier            [23] I. E. Hamamci, S. Er, E. Simsar, A. Sekuboyina, and Others, “DENTEX:
-     SSRN preprint lists the same author as Sorana Muresanu. Distinct                An abnormal tooth detection with dental enumeration and diagnosis
-     from the unrelated Mureşanu 2024 Diagnostics paper already in                  benchmark,” 2023, arXiv preprint.
-     this corpus (muresanu2024automating). [Online]. Available:                 [24] S. Bai, K. Chen, X. Liu, J. Wang, and Others, “Qwen2.5-VL technical
-     https://doi.org/10.1016/j.mex.2025.103696                                       report,” 2025, arXiv preprint.
- [8] I. D. S. Chen, C.-M. Yang, M.-J. Chen, M.-C. Chen, R.-M. Weng, and         [25] C. Guo, G. Pleiss, Y. Sun, and K. Q. Weinberger, “On calibration
-     C.-H. Yeh, “Deep learning-based recognition of periodontitis and dental         of modern neural networks,” in International Conference on Machine
-     caries in dental X-ray images,” Bioengineering, vol. 10, no. 8, p. 911,         Learning (ICML), 2017.
-     2023. [Online]. Available: https://www.mdpi.com/2306-5354/10/8/911         [26] B. Zadrozny and C. Elkan, “Transforming classifier scores into accu-
- [9] S. S. Alharbi, A. A. AlRugaibah, H. F. Alhasson, and R. U. Khan,                rate multiclass probability estimates,” in ACM SIGKDD International
-     “Detection of cavities from dental panoramic X-ray images using nested          Conference on Knowledge Discovery and Data Mining, 2002.
-     U-Net models,” Applied Sciences, vol. 13, no. 23, p. 12771, 2023.
+     //ojs.aaai.org/index.php/AAAI/article/view/30197                                networks,” Nature Machine Intelligence, vol. 2, pp. 665–673, 2020.
+ [3] A. Bilal, A. H. Khan, K. Almohammadi, S. A. Al Ghamdi,                     [17] Z. Cao, C. Feng, Y. Shen, G. Ye, H. Xu, J. Wu, Z. Wu, H. Gao,
+     H. Long, and H. Malik, “PDCNET: Deep convolutional neural network               and H. Zhu, “DPML: Prior-guided multitask learning for dental object
+     for classification of periodontal disease using dental radiographs,”            recognition on limited panoramic radiograph dataset,” Expert Systems
+     IEEE Access, vol. 12, pp. 10 261–10 275, 2024. [Online]. Available:             with Applications, vol. 254, p. 124446, 2024.
+     https://ieeexplore.ieee.org/document/10400831                              [18] D. Cerda Mardini, P. Cerda Mardini, D. Paz Vicuña Iturriaga, and D. R.
+ [4] Ö. Mutlu, E. Aslan, and A. Mert, “Deep learning–based automated di-            Ortuño Borroto, “Determining the efficacy of a machine learning model
+     agnostic charting on panoramic radiography: Comparison of YOLOv11               for measuring periodontal bone loss,” BMC Oral Health, vol. 24, no. 1,
+     and YOLOv12,” Odontology, 2026.                                                 p. 1023, 2024. [Online]. Available: https://bmcoralhealth.biomedcentral.
+ [5] K. A. Asif and R. A. Khan, “Dental panoramic radiograph                         com/articles/10.1186/s12903-024-04795-5
+     analysis using YOLO26 from tooth detection to disease diagnosis,”          [19] G. Jocher, J. Qiu, and A. Chaurasia, “Ultralytics YOLO11,” 2024,
+     arXiv preprint arXiv:2604.16231, 2026. [Online]. Available: https:              software. https://github.com/ultralytics/ultralytics.
+     //arxiv.org/abs/2604.16231                                                 [20] K. He, X. Zhang, S. Ren, and J. Sun, “Deep residual learning for
+ [6] K. Nassiri and M. A. Akhloufi, “YOLO-based panoramic dental                     image recognition,” in IEEE Conference on Computer Vision and Pattern
+     X-ray image analysis,” Neural Computing and Applications, vol. 37,              Recognition (CVPR), 2016, pp. 770–778.
+     pp. 25 867–25 890, 2025. [Online]. Available: https://link.springer.com/   [21] H. W. Kuhn, “The Hungarian method for the assignment problem,”
+     article/10.1007/s00521-025-11462-5                                              Naval Research Logistics Quarterly, vol. 2, no. 1–2, pp. 83–97, 1955.
+ [7] S. Eftimie, T. Ileni, L. Iacob, M. Hedesiu, and L. Diosan, “Tooth-         [22] K. Panetta, R. Rajendran, A. Ramesh, S. P. Rao, and S. Agaian,
+     level detection and mapping of dental pathologies on panoramic                  “Tufts dental database: A multimodal panoramic x-ray dataset for
+     radiographs using YOLOv11 and RT-DETR,” MethodsX, vol. 15,                      benchmarking diagnostic systems,” IEEE Journal of Biomedical and
+     no. 3, p. 103696, 2025, published as Sorana Eftimie; an earlier                 Health Informatics, vol. 26, no. 4, pp. 1650–1659, 2022.
+     SSRN preprint lists the same author as Sorana Muresanu. Distinct           [23] I. E. Hamamci, S. Er, E. Simsar, A. Sekuboyina, and Others, “DENTEX:
+     from the unrelated Mureşanu 2024 Diagnostics paper already in                  An abnormal tooth detection with dental enumeration and diagnosis
+     this corpus (muresanu2024automating). [Online]. Available:                      benchmark for panoramic x-rays,” 2023, arXiv:2305.19112.
+     https://doi.org/10.1016/j.mex.2025.103696                                  [24] S. Bai, K. Chen, X. Liu, J. Wang, and Others, “Qwen2.5-VL technical
+ [8] I. D. S. Chen, C.-M. Yang, M.-J. Chen, M.-C. Chen, R.-M. Weng, and              report,” 2025, arXiv:2502.13923.
+     C.-H. Yeh, “Deep learning-based recognition of periodontitis and dental    [25] C. Guo, G. Pleiss, Y. Sun, and K. Q. Weinberger, “On calibration
+     caries in dental X-ray images,” Bioengineering, vol. 10, no. 8, p. 911,         of modern neural networks,” in International Conference on Machine
+     2023. [Online]. Available: https://www.mdpi.com/2306-5354/10/8/911              Learning (ICML), 2017.
+ [9] S. S. Alharbi, A. A. AlRugaibah, H. F. Alhasson, and R. U. Khan,           [26] B. Zadrozny and C. Elkan, “Transforming classifier scores into accu-
+     “Detection of cavities from dental panoramic X-ray images using nested          rate multiclass probability estimates,” in ACM SIGKDD International
+     U-Net models,” Applied Sciences, vol. 13, no. 23, p. 12771, 2023.               Conference on Knowledge Discovery and Data Mining, 2002.
      [Online]. Available: https://www.mdpi.com/2076-3417/13/23/12771
 [10] B. G. Zancan, J. A. Carneiro, C. U. Martins, C. Tirapelli, C. P.
      Capel, E. D. da Costa, H. Gaêta-Araujo, J. A. Baranauskas, and

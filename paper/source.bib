@@ -875,43 +875,99 @@
 }
 
 % =====================================================================
-% Entries added 28 Aug 2026 for the methods sections. These are standard,
-% widely-cited works. Author/title/venue/year are stated to the best of
-% knowledge; DOIs are deliberately OMITTED rather than guessed. VERIFY
-% each against the publisher record before submission.
+% Entries added for the methods and related-work sections, 28 Aug 2026.
+% Tagged VERIFIED where checked against the publisher or arXiv record on that
+% date. Where a DOI could not be confirmed it is OMITTED rather than guessed;
+% those entries are tagged UNVERIFIED and should be completed before submission.
 % =====================================================================
 
-@article{panetta2021tufts,
+% VERIFIED -- IEEE JBHI 26(4):1650-1659, 2022 (often mis-cited as 2021, the
+% online-first year).
+@article{panetta2022tufts,
   author  = {Panetta, Karen and Rajendran, Rahul and Ramesh, Aruna and Rao, Shishir P. and Agaian, Sos},
   title   = {Tufts Dental Database: A Multimodal Panoramic X-Ray Dataset for Benchmarking Diagnostic Systems},
   journal = {IEEE Journal of Biomedical and Health Informatics},
-  year    = {2021}
+  volume  = {26},
+  number  = {4},
+  pages   = {1650--1659},
+  year    = {2022},
+  doi     = {10.1109/JBHI.2021.3117575}
 }
 
+% VERIFIED -- arXiv 2305.19112.
 @misc{hamamci2023dentex,
   author = {Hamamci, Ibrahim Ethem and Er, Sezgin and Simsar, Enis and Sekuboyina, Anjany and Others},
-  title  = {{DENTEX}: An Abnormal Tooth Detection with Dental Enumeration and Diagnosis Benchmark},
+  title  = {{DENTEX}: An Abnormal Tooth Detection with Dental Enumeration and Diagnosis Benchmark for Panoramic X-rays},
   year   = {2023},
-  note   = {arXiv preprint}
+  eprint = {2305.19112},
+  note   = {arXiv:2305.19112}
 }
 
-@inproceedings{he2016resnet,
-  author    = {He, Kaiming and Zhang, Xiangyu and Ren, Shaoqing and Sun, Jian},
-  title     = {Deep Residual Learning for Image Recognition},
-  booktitle = {IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
-  year      = {2016}
+% VERIFIED -- Expert Systems with Applications 254:124446, 2024. Note this is
+% dental OBJECT RECOGNITION, not caries detection specifically; the 95.06 mAP
+% figure cited in Related Work is its own-data recognition result.
+@article{cao2024dpml,
+  author  = {Cao, Zhiyu and Feng, Cheng and Shen, Yi and Ye, Gang and Xu, Hao and Wu, Jun and Wu, Zhen and Gao, Hui and Zhu, Hong},
+  title   = {{DPML}: Prior-guided multitask learning for dental object recognition on limited panoramic radiograph dataset},
+  journal = {Expert Systems with Applications},
+  volume  = {254},
+  pages   = {124446},
+  year    = {2024},
+  doi     = {10.1016/j.eswa.2024.124446}
 }
 
+% VERIFIED -- Odontology, 2026. Reports YOLOv11 mAPat 0.5 0.857 internal / 0.806
+% external over 2,297 panoramic radiographs and 13 dental conditions.
+@article{mutlu2026comparison,
+  author  = {Mutlu, {\"O}. and Aslan, E. and Mert, A.},
+  title   = {Deep Learning--Based Automated Diagnostic Charting on Panoramic Radiography: Comparison of {YOLOv11} and {YOLOv12}},
+  journal = {Odontology},
+  year    = {2026},
+  doi     = {10.1007/s10266-026-01333-3}
+}
+
+% VERIFIED -- Nature Machine Intelligence 2:665-673, 2020.
+@article{geirhos2020shortcut,
+  author  = {Geirhos, Robert and Jacobsen, J{\"o}rn-Henrik and Michaelis, Claudio and Zemel, Richard and Brendel, Wieland and Bethge, Matthias and Wichmann, Felix A.},
+  title   = {Shortcut learning in deep neural networks},
+  journal = {Nature Machine Intelligence},
+  volume  = {2},
+  pages   = {665--673},
+  year    = {2020},
+  doi     = {10.1038/s42256-020-00257-z}
+}
+
+% VERIFIED -- Naval Research Logistics Quarterly 2(1-2):83-97, 1955.
 @article{kuhn1955hungarian,
   author  = {Kuhn, Harold W.},
-  title   = {The {H}ungarian Method for the Assignment Problem},
+  title   = {The {H}ungarian method for the assignment problem},
   journal = {Naval Research Logistics Quarterly},
   volume  = {2},
   number  = {1--2},
   pages   = {83--97},
-  year    = {1955}
+  year    = {1955},
+  doi     = {10.1002/nav.3800020109}
 }
 
+% VERIFIED -- arXiv 2502.13923.
+@misc{bai2025qwen25vl,
+  author = {Bai, Shuai and Chen, Keqin and Liu, Xuejing and Wang, Jialin and Others},
+  title  = {{Qwen2.5-VL} Technical Report},
+  year   = {2025},
+  eprint = {2502.13923},
+  note   = {arXiv:2502.13923}
+}
+
+% UNVERIFIED -- widely cited conference paper; DOI not confirmed on 28 Aug 2026.
+@inproceedings{he2016resnet,
+  author    = {He, Kaiming and Zhang, Xiangyu and Ren, Shaoqing and Sun, Jian},
+  title     = {Deep Residual Learning for Image Recognition},
+  booktitle = {IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {770--778},
+  year      = {2016}
+}
+
+% UNVERIFIED -- PMLR proceedings; page range and DOI not confirmed.
 @inproceedings{guo2017calibration,
   author    = {Guo, Chuan and Pleiss, Geoff and Sun, Yu and Weinberger, Kilian Q.},
   title     = {On Calibration of Modern Neural Networks},
@@ -919,6 +975,7 @@
   year      = {2017}
 }
 
+% UNVERIFIED -- ACM SIGKDD 2002; DOI not confirmed.
 @inproceedings{zadrozny2002isotonic,
   author    = {Zadrozny, Bianca and Elkan, Charles},
   title     = {Transforming Classifier Scores into Accurate Multiclass Probability Estimates},
@@ -926,45 +983,10 @@
   year      = {2002}
 }
 
-@misc{bai2025qwen25vl,
-  author = {Bai, Shuai and Chen, Keqin and Liu, Xuejing and Wang, Jialin and Others},
-  title  = {{Qwen2.5-VL} Technical Report},
-  year   = {2025},
-  note   = {arXiv preprint}
-}
-
+% UNVERIFIED -- software release; cite the repository.
 @misc{jocher2024yolo11,
   author = {Jocher, Glenn and Qiu, Jing and Chaurasia, Ayush},
   title  = {{Ultralytics YOLO11}},
   year   = {2024},
-  note   = {Software, \url{https://github.com/ultralytics/ultralytics}}
-}
-
-@article{geirhos2020shortcut,
-  author  = {Geirhos, Robert and Jacobsen, J{\"o}rn-Henrik and Michaelis, Claudio and Zemel, Richard and Brendel, Wieland and Bethge, Matthias and Wichmann, Felix A.},
-  title   = {Shortcut Learning in Deep Neural Networks},
-  journal = {Nature Machine Intelligence},
-  year    = {2020}
-}
-
-% DPML -- the 95.06 -> 61.83 out-of-domain drop cited in Related Work. Reference details
-% taken from docs/results/PAPER_MATERIAL.md 8.10, where it is recorded with volume and
-% article number. DOI omitted rather than guessed; VERIFY before submission.
-@article{cao2024dpml,
-  author  = {Cao, Jing and Others},
-  title   = {{DPML}: Deep Learning for Dental Caries Detection on Panoramic Radiographs},
-  journal = {Expert Systems With Applications},
-  volume  = {254},
-  pages   = {124446},
-  year    = {2024}
-}
-
-% The YOLOv11-vs-YOLOv12 head-to-head on dental panoramics. Recorded in
-% docs/results/PAPER_MATERIAL.md 5.1 with this DOI; VERIFY against the publisher record.
-@article{mutlu2026comparison,
-  author  = {Mutlu, {\.I}. and Others},
-  title   = {Comparison of {YOLOv11} and {YOLOv12} for Dental Condition Detection on Panoramic Radiographs},
-  journal = {Odontology},
-  year    = {2026},
-  doi     = {10.1007/s10266-026-01333-3}
+  note   = {Software. \url{https://github.com/ultralytics/ultralytics}}
 }
