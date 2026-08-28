@@ -475,3 +475,24 @@ Accuracy on retained predictions as the least-confident are declined. Threshold 
 - Pre-registered `ASSESSABILITY_MIN_FDI_CONFIDENCE = 0.30` -> **90.8% coverage at 0.847**.
 - Stage-2 coverage is over *detected* teeth: 75% coverage = **53.0% of teeth actually present**.
 - Source: `outputs/c4_abstention/c4_coverage_accuracy.json`.
+
+## C1 hardened — all arms, one scorer (28 Aug 2026)
+
+164 leak-free DENTEX images, 477 affected teeth. Tooth-level caries FDI-set micro P/R/F1.
+
+| System | P | R | **F1** | params | hardware |
+|---|---|---|---|---|---|
+| **Held-out constant** `{16,17,26,27,36,37,46,47}` — **image never read** | 0.218 | 0.600 | **0.320** | 0 | none |
+| Our six-stage pipeline | 0.235 | 0.390 | **0.294** | ~25 M | CPU, 2.39 s/img |
+| Qwen2.5-VL-32B-Instruct, zero-shot | 0.250 | 0.243 | **0.246** | 33.45 B | H100, 70.1 GB, 1.46 s/img |
+| Qwen2.5-VL-7B-Instruct, zero-shot | 0.248 | 0.107 | **0.149** | 8.29 B | H100, 0.69 s/img |
+| Qwen2.5-VL-7B, **2-shot** | 0.196 | 0.040 | **0.066** | 8.29 B | H100, 1.93 s/img |
+| Qwen2.5-VL-7B, **4-shot** | 0.150 | 0.019 | **0.034** | 8.29 B | H100, 3.36 s/img |
+
+- **The held-out constant is image-blind and beats the pipeline.** Fitted on the 78 leakage-excluded
+  images (overlap with scored set = 0), frozen, then applied. A test-fitted *oracle* constant
+  reaches 0.330 and is not claimable.
+- Few-shot exemplars come only from leakage-excluded images. Empty predictions 56 -> 113 -> 123.
+- Controls: 7B blank/noise both -> `26,36`; 32B blank -> `NONE`, noise -> full molar list.
+- transformers 5.16.1 for all 28 Aug arms; the 27 Aug 7B run (F1 0.143) did not record its version.
+- Source: `outputs/c1_vlm/`, `RESULTS_LOG.md` 2026-08-28b, `PAPER_MATERIAL.md` §8.22.

@@ -4654,3 +4654,86 @@ angxia_dataset`, so the blocker recorded earlier today is lifted.
 - **Source:** `outputs/c4_abstention/c4_coverage_accuracy.json`,
   `docs/results/figures/paper/c4_coverage_accuracy.png`, 8 new tests in `tests/test_c4_coverage.py`
   (**92/92 pass**, up from 84), all invariants hold.
+
+---
+
+## 2026-08-28b - C1 hardened: scale helps, prompting hurts, and an image-blind constant beats us all
+
+Extends and partly **corrects** 2026-08-27aa. That entry stands as written; this one supersedes its
+framing. H100 80GB (EU1), 59 min, **Rs 285.20**, plus **Rs 14.26 wasted** on a stray instance (below).
+
+- **What was done:** the three things a reviewer would immediately ask of a one-model, zero-shot,
+  one-prompt baseline - **a bigger model**, **few-shot prompting**, and **a reproducibility re-run** -
+  plus a properly fitted image-blind constant. All six arms scored by the one scorer.
+
+| System | P | R | **F1** | params | hardware |
+|---|---|---|---|---|---|
+| **Held-out constant** `{16,17,26,27,36,37,46,47}` — **image never read** | 0.218 | 0.600 | **0.320** | 0 | none |
+| Our six-stage pipeline | 0.235 | 0.390 | **0.294** | ~25 M | CPU, 2.39 s/img |
+| Qwen2.5-VL-32B-Instruct, zero-shot | 0.250 | 0.243 | **0.246** | 33.45 B | H100, 70.1 GB, 1.46 s/img |
+| Qwen2.5-VL-7B-Instruct, zero-shot | 0.248 | 0.107 | **0.149** | 8.29 B | H100, 0.69 s/img |
+| Qwen2.5-VL-7B, **2-shot** | 0.196 | 0.040 | **0.066** | 8.29 B | H100, 1.93 s/img |
+| Qwen2.5-VL-7B, **4-shot** | 0.150 | 0.019 | **0.034** | 8.29 B | H100, 3.36 s/img |
+
+- **1. The 27 Aug number reproduces.** Zero-shot 7B scores **0.149** against the 0.143 recorded on
+  27 Aug, on **different hardware (H100 vs A100) and a different transformers MAJOR version
+  (5.16.1 vs 4.x)**. The 0.006 drift is kernel-level nondeterminism under greedy decoding. C1's
+  headline number is stable, which it had to be before going in a paper. **The library version is
+  now recorded in every arm file - 27 Aug did not record it, which is why this re-run was needed.**
+- **2. Scale helps a lot, and this is the correction.** 7B **0.149** -> 32B **0.246** (+65%).
+  27 Aug concluded "the VLM does not beat a constant guess (0.204)". That holds for the **7B**;
+  the **32B beats that particular constant**. The claim must be narrowed to the model it was
+  measured on, and 0.204 was a hand-picked constant, not the best one - see item 4.
+- **3. Few-shot makes it monotonically WORSE, and the reason matters.**
+  0-shot **0.149** -> 2-shot **0.066** -> 4-shot **0.034**. Exemplars were drawn strictly from the
+  86 leakage-excluded images, so no scored image ever entered a prompt (asserted at runtime and in
+  `tests/test_c1_fewshot.py`). The mechanism: **in-context examples teach the model to answer
+  nothing**, not to read radiographs.
+
+| arm | empty predictions | mean codes/image | distinct answers |
+|---|---|---|---|
+| 0-shot | 56 / 164 | 1.26 | 6 |
+| 2-shot | 113 / 164 | 0.59 | 9 |
+| 4-shot | **123 / 164 (75%)** | 0.37 | 14 |
+
+  **A trap worth recording: exact-set match RISES (5.5% -> 7.9% -> 9.2%) while F1 collapses.**
+  16 of the 164 images contain no caries, so an empty answer harvests free exact matches.
+  Reporting "few-shot improved exact-set match" would be true and completely misleading.
+  Note also that few-shot does break the `{26,36}` prior (6 -> 14 distinct answers) - it replaces
+  prior-recitation with **abstention**, not with perception.
+- **4. THE UNCOMFORTABLE RESULT. A constant that never looks at the image beats everything,
+  including us.** Fitting the greedy-best fixed FDI set on the **78 leakage-excluded images**
+  (disjoint from the 164 scored - overlap asserted 0) and freezing it gives
+  `{16,17,26,27,36,37,46,47}` - the eight first and second molars - which scores **F1 0.320** on
+  the test set. **Our six-stage pipeline scores 0.294.** Nothing was tuned on the scored data;
+  this is a baseline anyone could deploy in one line.
+  - A test-set-fitted **oracle** constant reaches 0.330, but that one is not claimable and is
+    labelled an oracle everywhere it appears.
+  - The pipeline wins on **precision** (0.235 vs 0.218) and predicts far fewer teeth; the constant
+    wins on **recall** (0.600 vs 0.390) and therefore on F1.
+  - **Reading:** caries in DENTEX is overwhelmingly molar, so this tooth-level FDI-set F1 is
+    **base-rate dominated and cannot by itself demonstrate clinical value**. This does not touch
+    Stage-2 numbering, detection, abstention or the external-validation results. It does mean the
+    C1 comparison must publish this constant beside every arm, and must not be headlined as
+    "small specialist beats large generalist" without it.
+- **5. Both controls still fire.** 7B: blank grey -> `26,36`, noise -> `26,36`, both identical to a
+  real radiograph. 32B: blank -> **`NONE`** (a genuine improvement - it declines a content-free
+  image), but **noise -> `16,17,26,27,36,37,46,47`, identical to its answer for a real
+  radiograph**. `recites_prior` is true for both.
+- **Process failures worth recording, because both cost money or nearly did.**
+  - **Rs 14.26 wasted:** GPU availability was probed by looping `jl create` over GPU types. The
+    first available type was *created*, not reported. `jl gpus` is the read-only query; the
+    JarvisLabs skill says so and was not loaded until after the mistake.
+  - **A 2.6 KB file broke the whole run.** The 982 MB upload reported bulk success but silently
+    dropped `disease_leaked_images.json`; phase 1 launched and died on it in seconds. Every input
+    is now verified **on the box** (164 images / 477 teeth / identical exemplar list) before a run
+    starts, rather than inferred from an exit code.
+  - Git-Bash rewrote remote paths (`/home/c1` -> `C:/Git/home/c1`) and MSYS `$(pwd)` produced paths
+    the Windows `jl.exe` rejects. Use PowerShell, or `MSYS_NO_PATHCONV=1`.
+  - The template ships **transformers 4.46.2, which cannot load Qwen2.5-VL at all**; upgrading
+    lands on **5.x**, where `torch_dtype=` is renamed `dtype=`. The loader now handles both, and
+    `apply_chat_template(..., tokenize=False)` is explicit - the default has moved between versions.
+- **Source:** `outputs/c1_vlm/arm_vlm_{32b_0shot,7b_0shot_rerun,7b_2shot,7b_4shot}.json`,
+  `control_pixels_{7b,32b}.json`, `c1_constant_arm_vlm_*.json`;
+  `tests/test_c1_fewshot.py` + `tests/test_c1_constant.py`. **109/109 tests pass** (was 92).
+  Instance destroyed; nothing left running.

@@ -41,11 +41,7 @@ Stage 2 numbers 82.6% correctly**. Report both. 77.4% of the numbering errors th
 benign off-by-one; only 2.4% of detected teeth suffer a category error (§8.16 in
 `PAPER_MATERIAL.md`).
 
-**C1 is DONE and is a strong result.** A general-purpose VLM (Qwen2.5-VL-7B, zero-shot) scores
-**F1 0.143** on tooth-level caries against our **0.294** — and, decisively, **below a constant
-guess of `{26,36}` that ignores the image entirely (0.204)**. A blank grey image and a noise image
-both elicit the same confident dental answer. Always publish that control beside the number.
-Cost ₹37.93; **₹612.88 remains**, nothing running.
+**C1 is DONE and hardened, and the honest version is more complicated than it looked on 27 Aug.** A general-purpose VLM zero-shot scores **F1 0.149 at 7B** (reproducing 27 Aug's 0.143 on new hardware and a new transformers major version) and **0.246 at 32B** — scale helps a lot. **Few-shot makes it monotonically worse** (0.066 at 2-shot, 0.034 at 4-shot) because in-context examples teach it to answer *nothing*: 123 of 164 answers are empty at 4-shot. Both models still hand a confident dental answer to a **random-noise image**. **But the result that constrains the write-up: a fixed list of the eight first/second molars — fitted on held-out images, never on the scored set — scores 0.320, above our pipeline's 0.294.** Tooth-level FDI-set F1 is base-rate dominated; that constant must appear beside every C1 arm, and C1 must not be headlined as "small specialist beats large generalist" without it. The efficiency claim survives: 33.45 B params and 70.1 GB of H100 VRAM still lose to ~25 M params on a CPU. Cost Rs 285.20 (+ Rs 14.26 wasted on a stray instance); **~Rs 313 remains**, nothing running.
 
 **C2 external validation, re-measured on the seg detector with same-machine controls:** caries
 lesion agreement **28.8–51.3% across four Ningxia hospitals (40.8% pooled)** against **44.3%
@@ -199,7 +195,7 @@ vs bbox's 3,924 (+0.15%), so near-, not exactly, like-for-like.
 | **R2 mask-aware cropping** implemented + unit-tested (**unwired** — needs R1's masks) | `src/crop_generator.py`, `tests/test_crop_generator.py` |
 | **Environment fixed and pinned** — numpy<2, or `scipy.optimize` (the Hungarian assignment) silently breaks | `requirements.txt`, `RESULTS_LOG.md` 2026-08-24b |
 | **All READMEs + this file** swept for staleness (three passes across two sessions) | `RESULTS_LOG.md` 2026-08-25e/f, 2026-08-26b, this rewrite |
-| Test suite | **92/92 pass**; `verify_invariants.py` all-hold, with **3 checks that used to SKIP now live** (leakage exclusion, caries-v3 MD5 join at 98.28%, caries-v3 dataset hygiene) since DENTEX is local |
+| Test suite | **109/109 pass**; `verify_invariants.py` all-hold, with **3 checks that used to SKIP now live** (leakage exclusion, caries-v3 MD5 join at 98.28%, caries-v3 dataset hygiene) since DENTEX is local |
 | **C1 — VLM baseline** (27 Aug) | Qwen2.5-VL-7B zero-shot F1 **0.143** vs our **0.294**, and **below a constant guess (0.204)**; blank/noise images give the same answer. `RESULTS_LOG.md` 2026-08-27aa, `PAPER_MATERIAL.md` §8.20 |
 | **Confidence intervals** (27 Aug) | Cluster-bootstrap over images for Stage-2, lesion agreement and Ningxia caries, plus paired CIs on the detector-swap deltas. **Two of that day's own claims failed their intervals and were withdrawn.** §8.14 |
 | **Calibration** (27 Aug) | Caries gate ECE **0.136**, systematically overconfident; temperature scaling made it worse (structural, not scale); isotonic fixes it (**0.043**) and is wired **confidence-only**, verdicts byte-identical. §8.15 |
@@ -207,6 +203,7 @@ vs bbox's 3,924 (+0.15%), so near-, not exactly, like-for-like.
 | **Related work + ethics** (27 Aug) | Comparison table from the review sheet; **only 2 of 49 task-relevant papers validate externally**. Ethics statement with a 7-item pre-submission checklist. §2.1, §8.19 |
 | **`docker build` verified** (27 Aug) | Builds, runs, app loads, all 7 checkpoints load in-container; image made genuinely CPU-only and reproducible, **11.2 GB → 4.4 GB**. §3 item 7 |
 | **C4 — abstention** (28 Aug) | Coverage-accuracy curves. Declining the least-confident quarter lifts Stage 2 **0.826 → 0.885** and the caries gate **0.797 → 0.940**; shuffling the confidences collapses both gains to ~0, so the ranking carries real information. The pre-registered 0.30 threshold lands at **90.8% coverage / 0.847**, within 0.2 pp of the empirical 90% point — and was **not** tuned. **C4 had never been produced**: the `assessable` flag existed, the curve did not. `RESULTS_LOG.md` 2026-08-28a, `PAPER_MATERIAL.md` §8.21 |
+| **C1 hardened** (28 Aug) | Scale, few-shot and reproducibility arms. 7B 0.149 (reproduces 0.143 across hardware + a transformers major version), 32B **0.246**, few-shot degrades monotonically to 0.034 via abstention (123/164 empty). **An image-blind constant fitted on held-out data scores 0.320, above our 0.294** — tooth-level F1 is base-rate dominated and that row must be published beside every arm. `RESULTS_LOG.md` 2026-08-28b, `PAPER_MATERIAL.md` §8.22 |
 
 **The pattern worth remembering, stated once rather than per-entry below:** almost every defect
 found across these sessions was in *documentation* or *methodology* — a stale claim, a metric

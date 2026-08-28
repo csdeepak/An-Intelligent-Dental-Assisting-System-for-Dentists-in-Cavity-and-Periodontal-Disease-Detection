@@ -208,13 +208,24 @@ def run_pipeline_arm(disease_dir, gt, out):
 
 
 def _load_vlm(model_id, max_pixels):
+    """Load a VLM, tolerating the transformers 4.x -> 5.x API break.
+
+    `torch_dtype=` was renamed to `dtype=` in transformers 5.0. The GPU template ships 4.46
+    (too old for Qwen2.5-VL at all) and upgrading lands on 5.x, so the same script has to work
+    either side of that line -- discovering it on a billed GPU is the expensive way to find out.
+    """
+    import transformers
     import torch
     from transformers import AutoModelForImageTextToText, AutoProcessor
-    print(f"loading {model_id} …", flush=True)
+    print(f"loading {model_id} … (transformers {transformers.__version__})", flush=True)
     kw = {"max_pixels": max_pixels} if max_pixels else {}
     proc = AutoProcessor.from_pretrained(model_id, **kw)
-    model = AutoModelForImageTextToText.from_pretrained(
-        model_id, torch_dtype=torch.bfloat16, device_map="auto")
+    try:
+        model = AutoModelForImageTextToText.from_pretrained(
+            model_id, dtype=torch.bfloat16, device_map="auto")
+    except TypeError:
+        model = AutoModelForImageTextToText.from_pretrained(
+            model_id, torch_dtype=torch.bfloat16, device_map="auto")
     n_params = sum(p.numel() for p in model.parameters())
     print(f"  {n_params/1e9:.2f}B parameters", flush=True)
     return model, proc, n_params
@@ -222,7 +233,9 @@ def _load_vlm(model_id, max_pixels):
 
 def _ask(model, proc, msgs, images, max_new_tokens):
     import torch
-    text = proc.apply_chat_template(msgs, add_generation_prompt=True)
+    # tokenize=False explicitly: the default flipped between transformers versions, and getting
+    # token ids back where a string is expected fails deep inside the processor call instead of here.
+    text = proc.apply_chat_template(msgs, add_generation_prompt=True, tokenize=False)
     inputs = proc(text=[text], images=images, return_tensors="pt").to(model.device)
     with torch.no_grad():
         gen = model.generate(**inputs, max_new_tokens=max_new_tokens, do_sample=False)
@@ -267,6 +280,7 @@ def run_vlm_arm(disease_dir, gt, out, model_id, max_new_tokens, limit,
     out.mkdir(parents=True, exist_ok=True)
     (out / out_name).write_text(json.dumps(
         {"arm": "vlm", "model": model_id, "params_billion": round(n_params / 1e9, 3),
+         "transformers_version": __import__("transformers").__version__,
          "shots": shots, "exemplars": [s for s, _ in exemplars], "max_pixels": max_pixels,
          "mean_latency_s": round(sum(lat) / max(len(lat), 1), 3),
          "peak_vram_gb": round(vram, 2) if vram else None,

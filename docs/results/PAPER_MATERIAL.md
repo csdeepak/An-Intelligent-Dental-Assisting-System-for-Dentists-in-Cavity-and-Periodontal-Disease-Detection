@@ -1714,6 +1714,54 @@ Figure: `docs/results/figures/paper/c4_coverage_accuracy.png`.
 
 ---
 
+### 8.22 C1 hardened — scale, prompting, and the constant that beats us
+
+**Run 28 Aug 2026**, H100 80GB, 59 min. Answers the three obvious objections to §8.20's
+one-model/zero-shot/one-prompt baseline, and adds the baseline that should have been there first.
+
+| System | P | R | **F1** | params | hardware |
+|---|---|---|---|---|---|
+| **Held-out constant** `{16,17,26,27,36,37,46,47}` — **image never read** | 0.218 | 0.600 | **0.320** | 0 | none |
+| Our six-stage pipeline | 0.235 | 0.390 | **0.294** | ~25 M | CPU, 2.39 s/img |
+| Qwen2.5-VL-32B-Instruct, zero-shot | 0.250 | 0.243 | **0.246** | 33.45 B | H100, 70.1 GB, 1.46 s/img |
+| Qwen2.5-VL-7B-Instruct, zero-shot | 0.248 | 0.107 | **0.149** | 8.29 B | H100, 0.69 s/img |
+| Qwen2.5-VL-7B, **2-shot** | 0.196 | 0.040 | **0.066** | 8.29 B | H100, 1.93 s/img |
+| Qwen2.5-VL-7B, **4-shot** | 0.150 | 0.019 | **0.034** | 8.29 B | H100, 3.36 s/img |
+
+**Reproducibility.** The 7B zero-shot number reproduces at **0.149 vs 0.143** across different
+hardware *and* a different transformers major version. The library version is now recorded in every
+arm file.
+
+**Scale helps; §8.20's claim must be narrowed.** 7B 0.149 -> 32B 0.246. The statement "the VLM does
+not beat a constant guess" was measured against a *hand-picked* constant (0.204) and on the **7B**.
+The 32B clears that constant. State the model and the constant, or the claim is not falsifiable.
+
+**Few-shot degrades it monotonically** — 0.149 -> 0.066 (2-shot) -> 0.034 (4-shot), with exemplars
+drawn only from leakage-excluded images. The mechanism is abstention, not perception: empty answers
+rise 56 -> 113 -> **123 of 164**. Exact-set match *rises* over the same sweep purely because 16
+images contain no caries; **never report that column alone.**
+
+**⚠️ The finding that constrains how C1 may be written up.** A fixed answer of the eight first and
+second molars — fitted on the 78 leakage-excluded images, frozen, and never tuned on the scored set
+— scores **F1 0.320**, above our pipeline's **0.294**. It wins on recall (0.600 vs 0.390) and loses
+on precision (0.218 vs 0.235).
+
+Caries in DENTEX is overwhelmingly molar, so **tooth-level FDI-set F1 is base-rate dominated and
+cannot on its own demonstrate clinical value.** Consequences for the paper, all mandatory:
+
+1. Publish this constant as a row in the C1 table, beside every model arm.
+2. Do **not** headline C1 as "small specialist beats large generalist" without it.
+3. The efficiency argument survives intact and is worth keeping: 33.45 B parameters and 70.1 GB of
+   H100 VRAM still lose to ~25 M parameters on a CPU.
+4. This bears on C1 only. Stage-2 numbering, detection, abstention (§8.21) and external validation
+   (§8.12) are measured on other metrics and are untouched.
+
+**Controls still fire for both models.** 7B: blank and noise both return `26,36`, identical to a
+real radiograph. 32B: blank correctly returns `NONE`, but noise returns the full eight-molar list,
+identical to its answer for a real radiograph.
+
+---
+
 ## 9. What's not yet written — checklist
 
 For whoever drafts the actual paper. Tick items off here as they land.

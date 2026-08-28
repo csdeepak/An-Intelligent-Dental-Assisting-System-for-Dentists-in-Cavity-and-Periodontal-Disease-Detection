@@ -44,17 +44,66 @@ def score_sets(gt, pred):
             "exact_rate": round(exact / len(gt), 4), "tp": tp, "fp": fp, "fn": fn}
 
 
+def best_constant(gt, max_size=12):
+    """The STRONGEST possible image-blind answer, found greedily on the evaluation set itself.
+
+    The hand-picked constants below ({26,36} and friends) answer "is this model's score
+    explainable by a prior?". This answers the harder version: "could ANY fixed answer have done
+    this well?" It is deliberately fitted on the same data it is scored on, which makes it an
+    optimistic upper bound on image-blind performance -- that is the point. A model that beats it
+    is provably using the image for something; a model that loses to it has not demonstrated it
+    is, however plausible its outputs look.
+
+    Label it as an oracle wherever it appears. It is not a baseline anyone could deploy.
+    """
+    chosen, best_f1 = set(), 0.0
+    pool = {c for v in gt.values() for c in v}
+    for _ in range(max_size):
+        cand = max((c for c in pool - chosen),
+                   key=lambda c: score_sets(gt, {k: chosen | {c} for k in gt})["f1"],
+                   default=None)
+        if cand is None:
+            break
+        f1 = score_sets(gt, {k: chosen | {cand} for k in gt})["f1"]
+        if f1 <= best_f1:
+            break
+        chosen, best_f1 = chosen | {cand}, f1
+    return chosen, best_f1
+
+
+def heldout_constant(disease_dir, gt):
+    """The constant a person could ACTUALLY deploy: fitted on held-out images, scored on the test set.
+
+    `best_constant` is fitted on the evaluation set, so it is an oracle and cannot be claimed as a
+    baseline anyone could build. This version fits the same greedy search on the 86
+    leakage-excluded images -- disjoint from the 164 scored ones -- and then applies the frozen
+    answer to the test set. Nothing is tuned on the data it is scored on.
+
+    This is the number that actually matters. If a six-stage pipeline cannot beat a fixed list of
+    tooth codes chosen without ever seeing a radiograph, that is a finding about the task, and it
+    belongs in the paper whether or not it flatters the system.
+    """
+    from c1_vlm_baseline import load_exemplars
+    pool = load_exemplars(disease_dir, 10_000)          # every excluded image, with its codes
+    fit_gt = {stem: set(codes) for stem, codes in pool}
+    assert not (set(fit_gt) & set(gt)), "held-out fit set overlaps the scored set"
+    const, fit_f1 = best_constant(fit_gt)
+    return const, fit_f1, len(fit_gt), score_sets(gt, {k: const for k in gt})
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, default=DEF_OUT)
     ap.add_argument("--disease-dir", type=Path,
                     default=Path.home() / "Downloads/Capstone/DENTEX/disease")
+    ap.add_argument("--arm-file", default="arm_vlm.json",
+                    help="which VLM arm to characterise (several now exist)")
     args = ap.parse_args()
 
     from c1_vlm_baseline import load_gt
     gt = load_gt(args.disease_dir)
 
-    vlm = json.loads((args.out / "arm_vlm.json").read_text())
+    vlm = json.loads((args.out / args.arm_file).read_text())
     vpred = {k: set(v) for k, v in vlm["predictions"].items()}
     gt = {k: v for k, v in gt.items() if k in vpred}
 
@@ -82,8 +131,20 @@ def main():
         rows.append({"baseline": name, **r})
         print(f"  {name:40s} P {r['precision']:.3f}  R {r['recall']:.3f}  F1 {r['f1']:.3f}")
 
+    bc_set, bc_f1 = best_constant(gt)
+    rows.append({"baseline": f"ORACLE best constant {sorted(bc_set)}", "oracle": True,
+                 **score_sets(gt, {k: bc_set for k in gt})})
+    print(f"  {'ORACLE best constant (fitted on TEST)':40s} "
+          f"F1 {bc_f1:.3f}   {sorted(bc_set)}")
+
+    ho_set, ho_fit, ho_n, ho_r = heldout_constant(args.disease_dir, gt)
+    rows.append({"baseline": f"held-out constant {sorted(ho_set)} (fitted on {ho_n} excluded images)",
+                 "oracle": False, **ho_r})
+    print(f"  {'HELD-OUT constant (deployable)':40s} P {ho_r['precision']:.3f}  "
+          f"R {ho_r['recall']:.3f}  F1 {ho_r['f1']:.3f}   {sorted(ho_set)}")
+
     vr = score_sets(gt, vpred)
-    print(f"\n  {'Qwen2.5-VL-7B (actual)':40s} P {vr['precision']:.3f}  "
+    print(f"\n  {vlm.get('model', 'VLM') + ' (actual)':40s} P {vr['precision']:.3f}  "
           f"R {vr['recall']:.3f}  F1 {vr['f1']:.3f}")
 
     best_const = max(rows, key=lambda r: r["f1"])
@@ -103,7 +164,7 @@ def main():
                       "'26,36' -- the same confident dental answer as a real radiograph",
            "reading": "a VLM score at or below a constant guess is not evidence of dental "
                       "perception and must not be reported as a like-for-like model comparison"}
-    (args.out / "c1_constant_baseline.json").write_text(json.dumps(res, indent=2) + "\n")
+    (args.out / f"c1_constant_{args.arm_file}").write_text(json.dumps(res, indent=2) + "\n")
     print(f"\n-> {args.out / 'c1_constant_baseline.json'}")
     return 0
 
