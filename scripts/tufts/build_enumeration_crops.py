@@ -69,6 +69,10 @@ DEF_IMAGES = ARCHIVE / "Radiographs"                      # UPRIGHT 1615x840
 DEF_BBOX = REPO_ROOT / "data/tufts/ZIP/Segmentation/Segmentation/teeth_bbox.json"
 DEF_SPLIT = ARCHIVE / "outputs/eda_tufts/split_v1.csv"
 DEF_OUT = REPO_ROOT / "data/tufts/enumeration_v1"
+
+# Above this share of degenerate crops the source images are in the wrong coordinate frame.
+# Observed: 0.04% correct vs 23% rotated 90deg. Anything near the upper figure is unusable.
+MAX_DEGENERATE_RATE = 0.02
 CROP = 224
 SEED = 42
 MIN_BOX = 2                       # below this a box is a placeholder, not a tooth
@@ -290,6 +294,36 @@ def main():
 
     print("\nwrite stats:", dict(stats))
     print(f"manifest: {man}  ({len(rows):,} rows)")
+
+    # ---------------------------------------------------------------- geometry guard
+    # Added 28 Aug 2026 after this script silently produced a misaligned dataset.
+    #
+    # Every Tufts radiograph on the Windows machine is 840x1615 -- rotated 90 degrees from the
+    # 1615x840 frame teeth_bbox.json uses. Cropping with the wrong orientation does NOT error:
+    # it wrote 28,171/2,249 train/val instead of the documented 35,248/3,721 and rejected
+    # **10,087 crops (23%)** as degenerate. The run looked normal.
+    #
+    # `_tufts_align.image_orientation_score` did not catch it and cannot: it scores mean
+    # brightness inside the annotation boxes, and because teeth sit centrally BOTH orientations
+    # score above 1.0 (1.040 rotated vs 1.021 upright). It was built to catch a 180 degree flip,
+    # where that signal does work.
+    #
+    # The degenerate rate separates the two cases by three orders of magnitude -- 23% vs 0.04% --
+    # so that is what is enforced here. It is agnostic to the *cause*: any future geometry
+    # mismatch, whatever its origin, trips the same wire.
+    n_written = sum(stats[s] for s in ("train", "val", "test") if s in stats)
+    n_degen = stats.get("degenerate_crop", 0) + stats.get("degenerate_after_rotation", 0)
+    rate = n_degen / max(n_written + n_degen, 1)
+    print(f"geometry guard: {n_degen:,} degenerate of {n_written + n_degen:,} ({rate:.2%})")
+    if rate > MAX_DEGENERATE_RATE:
+        raise SystemExit(
+            f"\nGEOMETRY GUARD FAILED: {rate:.1%} of crops are degenerate "
+            f"(limit {MAX_DEGENERATE_RATE:.0%}).\n"
+            f"The images in --images are almost certainly not in the coordinate frame "
+            f"teeth_bbox.json uses.\n"
+            f"On this machine the upright copy is data/tufts/ZIP/Radiographs_upright "
+            f"(1615x840, rotated CCW from the shipped 840x1615 copies).\n"
+            f"Nothing written here should be trained on. See RESULTS_LOG.md 2026-08-28c.")
 
 
 if __name__ == "__main__":
