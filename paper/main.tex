@@ -308,9 +308,26 @@ ranking them.
 \label{sec:results}
 %% =====================================================================
 
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_baselines.png}
+\caption{The constant-baseline argument. \textbf{(a)} Set-prediction F1 on 164
+leakage-free development images: the ordering is inverted with respect to the
+information each system receives, and the best-scoring entry never reads a
+radiograph. \textbf{(b)} A second, unrelated metric requiring spatial
+correspondence returns the same ordering; teeth flagged is annotated inside each
+bar because agreement is recall-shaped, and the flag-everything arm shows what
+saturating the metric costs. \textbf{(c)} The external cohort, where the result
+does \emph{not} replicate: the difference swings 26 points between sites and
+vanishes when pooled. Every value is read from the saved evaluation artefacts at
+render time rather than transcribed.}
+\label{fig:baselines}
+\end{figure*}
+
 \subsection{The ladder, on development data}
 
-Table~\ref{tab:fdiset} gives the set-prediction result.
+Fig.~\ref{fig:baselines} summarises the comparison; Table~\ref{tab:fdiset} gives
+the set-prediction result exactly.
 
 \begin{table}[t]
 \caption{Tooth-level caries prediction, 164 leakage-free DENTEX images,
@@ -407,6 +424,15 @@ A constant answers a set-membership question. It cannot perform tasks whose
 output is not a fixed list, and the pipeline's results on those tasks are
 correspondingly meaningful.
 
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_stage2.png}
+\caption{Where the numbering stage loses teeth. The largest single category is
+teeth the detector never proposes, which no numbering model can recover; among
+the codes that are wrong, most are off-by-one within the correct quadrant.}
+\label{fig:stage2}
+\end{figure*}
+
 \textbf{Tooth numbering.} End-to-end FDI-exact accuracy is 58.3\,\%
 ($546/936$ teeth), 95\,\% CI $[53.9, 62.8]$. This figure is
 \textbf{detection-bound} and we report it as two numbers: 29.4\,\% of
@@ -416,6 +442,15 @@ of 115 incorrect codes, 89 (77.4\,\%) are off-by-one within the correct
 quadrant, and only 16 of 661 detected teeth (2.4\,\%) receive a quadrant-level
 error. A constant cannot attempt this task at all.
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{fig_calibration.png}
+\caption{Reliability of the caries gate before and after isotonic regression.
+The uncorrected model is systematically overconfident. The correction is applied
+to confidences only, leaving every verdict unchanged.}
+\label{fig:calib}
+\end{figure}
+
 \textbf{Calibration.} The caries gate's confidences are not probabilities:
 expected calibration error is 0.136 and the model is systematically
 overconfident. Temperature scaling~\cite{guo2017calibration} made calibration
@@ -423,6 +458,16 @@ overconfident. Temperature scaling~\cite{guo2017calibration} made calibration
 single scale factor; isotonic regression~\cite{zadrozny2002isotonic} reduced ECE
 to \textbf{0.043}, a 68\,\% improvement, and is applied to confidences only,
 leaving every verdict byte-identical.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{fig_coverage.png}
+\caption{Coverage--accuracy for tooth numbering (left) and the caries gate
+(right). Accuracy on retained predictions rises as the least-confident cases are
+declined. The vertical line marks the pre-registered threshold of 0.30, located
+on the curve rather than tuned against it.}
+\label{fig:coverage}
+\end{figure}
 
 \textbf{Selective prediction.} Declining the least-confident quarter of cases
 raises numbering accuracy from 0.826 to \textbf{0.885}
@@ -459,6 +504,15 @@ plainly: 33\,B parameters and 70\,GB of accelerator memory are outperformed by
 approximately 25\,M parameters running on a CPU.
 
 \subsection{Where the pipeline fails}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_boneloss.png}
+\caption{The bone-loss branch under domain shift. Strong in-domain performance
+does not transfer. Reported as a measured negative result rather than a
+component.}
+\label{fig:boneloss}
+\end{figure*}
 
 The bone-loss branch reaches 0.923 macro-F1 in-domain on 1{,}558 validation
 crops at an untouched 4\,\% prevalence (sensitivity 83.05\,\%, specificity
