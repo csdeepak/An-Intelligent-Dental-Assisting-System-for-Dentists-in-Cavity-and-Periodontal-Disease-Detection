@@ -1,0 +1,581 @@
+%% =====================================================================
+%% What Does 44%% Mean? Constant Baselines for Tooth-Level Caries
+%% Evaluation on Panoramic Radiographs
+%%
+%% IEEE conference format (IEEEtran).
+%% Authors intentionally set to "Unknown" pending author-order decision.
+%%
+%% EVERY numeric claim in this file traces to a saved artefact in
+%% ../docs/results/ (RESULTS_LOG.md, model_metrics.md, PAPER_MATERIAL.md)
+%% or to outputs/ JSON. Nothing is estimated or recalled.
+%% =====================================================================
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xcolor}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\begin{document}
+
+\title{What Does 44\,\% Mean?\\
+Constant Baselines for Tooth-Level Caries Evaluation\\
+on Panoramic Radiographs}
+
+\author{\IEEEauthorblockN{Unknown}
+\IEEEauthorblockA{\textit{Author affiliations withheld pending submission} \\
+\textit{Unknown}\\
+Unknown \\
+unknown@unknown}
+}
+
+\maketitle
+
+%% =====================================================================
+%% ABSTRACT -- deliberately withholds the outcome. It states the question,
+%% the apparatus, and the shape of the answer, not the answer itself.
+%% =====================================================================
+\begin{abstract}
+Automated screening of panoramic radiographs is almost always reported with
+tooth-level metrics: which teeth are carious. Such numbers are easy to compute,
+easy to compare, and---we argue---remarkably hard to interpret, because the
+literature rarely establishes what an uninformed system would score on the same
+images. We built a six-stage panoramic pipeline, validated it on four external
+hospitals, calibrated its confidences and gave it a principled way to decline,
+and then set out to answer a narrower question: what does its caries number
+actually mean? To find out, we scored it against progressively less informed
+opponents under one identical scorer---a 33\,B-parameter vision--language
+model, an 8\,B one, and finally a baseline that is not shown the radiograph at
+all. The comparison did not resolve the way we expected, and it did not resolve
+the same way inside and outside our development data. We report what separates
+a diagnostic system from an anatomical prior on this task, what does not, and
+which of our own results survive the distinction.
+\end{abstract}
+
+\begin{IEEEkeywords}
+panoramic radiography, dental caries, evaluation methodology, baselines,
+external validation, model calibration, selective prediction
+\end{IEEEkeywords}
+
+%% =====================================================================
+\section{Introduction}
+%% =====================================================================
+
+Consider a screening report. Against a panoramic radiograph it lists four
+tooth codes---16, 26, 36, 46---and marks them carious. A clinician reading that
+report has a reasonable first impression: the system has looked at the image and
+found something. The codes are specific. They are plausible. They are, often
+enough, correct.
+
+Now consider a second program. It emits the same four codes for every
+radiograph it is ever shown. It contains no network, no features, no pixels---
+only a list. On a large enough set of panoramic images, it too will be right
+often enough to produce a respectable-looking number.
+
+The distance between those two programs is the subject of this paper.
+
+Panoramic radiographs (OPGs) are the most common extraoral radiograph in
+dentistry, and automated caries and periodontal screening on them is an active
+field~\cite{lim2024dual,chen2024cariesxrays,bilal2024pdcnet}. Reported
+tooth-level accuracies cluster in a range that reads as clinically useful. What
+is much rarer is a statement of the floor: what the same metric would return for
+a system that does not perceive anything at all.
+
+Two properties of this task make that floor unusually high, and both are
+anatomical rather than algorithmic. First, caries is not uniformly distributed
+across the dentition---it concentrates heavily in molars. Second, tooth-level
+metrics ask a \emph{set-membership} question: which teeth, from a fixed
+vocabulary of 32 codes. A question of that shape can be answered from anatomy
+alone, without reference to any particular patient. Together these mean that a
+fixed answer inherits a substantial score by construction.
+
+The natural response is to check. We surveyed 49 task-relevant papers from our
+own review of the area; \textbf{two} report validation on data from an
+institution other than the one that produced their training set, and
+\textbf{none} report a constant, image-blind, or otherwise uninformed baseline.
+The floor is, in this literature, essentially unmeasured.
+
+This paper is our attempt to measure it on our own work rather than anyone
+else's. We first built a system worth testing---a six-stage pipeline performing
+tooth detection, FDI numbering, caries classification and periodontal bone-loss
+classification, evaluated with cluster-bootstrapped confidence intervals,
+calibrated probabilities, a pre-registered abstention threshold, and external
+validation across four hospitals it never trained on. We then constructed a
+ladder of opponents, each given strictly less information than the last, and
+scored every rung with one scorer on one set of images.
+
+We report the outcome in full, including the parts that do not favour our
+system, and including a disagreement between our development data and our
+external data that we did not anticipate and cannot yet explain. Our
+contributions are:
+
+\begin{enumerate}
+  \item A \textbf{constant-baseline protocol} for tooth-level OPG evaluation,
+        together with what it reveals when applied across two unrelated metric
+        families and five hospitals.
+  \item A \textbf{vision--language-model baseline with the controls that make
+        it interpretable}---including what these models answer when shown an
+        image containing no anatomy whatsoever.
+  \item \textbf{External validation on four hospitals}, reported per site,
+        with the spread that pooling conceals.
+  \item \textbf{Calibration and selective prediction} results, each with a
+        control isolating the mechanism responsible.
+  \item An honest characterisation of the pipeline itself, including one
+        branch that does not survive domain shift and a headline number that
+        is bounded by an earlier stage.
+\end{enumerate}
+
+We are explicit about what we do not claim. We do not assert that published
+caries results are incorrect. We argue something narrower and, we think, more
+useful: that a tooth-level number reported without a floor cannot be
+distinguished from an anatomical prior---a statement about \emph{evidence},
+not about anyone's system.
+
+%% =====================================================================
+\section{Related Work}
+%% =====================================================================
+
+\subsection{Detection and classification on panoramic radiographs}
+Deep learning on OPGs has converged on a familiar decomposition: detect teeth,
+then classify each one. Detector choice is well studied, and recent head-to-head
+evaluation on dental panoramics supports YOLOv11 over its successor generation
+for multi-class dental detection~\cite{asif2026yolo26,nassiri2025yolo}. The same
+body of work consistently reports an asymmetry that matters here: performance is
+strong on well-defined objects (crowns, implants, restorations) and markedly
+weaker on subtle radiolucent pathology such as caries and bone
+loss~\cite{chen2023deep,alharbi2023detection}. Caries segmentation and
+classification specifically have been approached with dual-network
+frameworks~\cite{lim2024dual}, attention architectures~\cite{bilal2024pdcnet},
+and cascaded designs~\cite{chen2024cariesxrays}.
+
+\subsection{Tooth numbering}
+FDI numbering is typically reported at very high accuracy---frequently above
+0.97---but often on \emph{pre-cropped} teeth, where the task is a 32-way
+classification of an image that is already known to contain exactly one tooth,
+correctly framed~\cite{ayhan2025detection,karamuftuo2025panoramic}. This is a
+materially easier problem than numbering under detector output, where teeth may
+be missed, duplicated or clipped. We report both framings and find the gap
+between them large.
+
+\subsection{Vision--language models in dentistry}
+Recent work applies general-purpose and domain-adapted VLMs to dental
+imaging~\cite{meng2026dentvlm,jha2026dentiask,li2026pandent,hao2025mmoral}.
+These systems are attractive because they need no task-specific training, and
+are difficult to evaluate for the same reason: a fluent, confident, correctly
+formatted answer is not evidence of perception. We adopt a control from the
+broader shortcut-learning literature~\cite{elkhoury2019geffner}: present the
+model with an input containing none of the signal it purports to read, and
+observe whether its behaviour changes.
+
+\subsection{External validation and the missing floor}
+External validation remains uncommon. In our review of 49 task-relevant papers,
+two evaluate on an outside institution. Where it is done, degradation is often
+severe---one reported system falls from 95.06 mAP on its own data to 61.83 on a
+public benchmark. Independent work on periodontal bone loss reports weighted F1
+of 0.29 with severe-class F1 of zero against clinician
+reference~\cite{ren2026dualbranch,george2026explainable}, a reminder that
+in-domain figures can be a poor guide to behaviour elsewhere. To our knowledge,
+no work in this area reports an image-blind baseline, which is the gap this
+paper addresses.
+
+%% =====================================================================
+\section{System}
+%% =====================================================================
+
+The finding in this paper is only interesting if the system it is measured
+against is a serious one. We therefore describe the pipeline before the
+evaluation that tests it.
+
+\subsection{Architecture}
+The pipeline maps an OPG to a structured per-tooth record in six stages.
+\textbf{Stage 1} detects teeth with a YOLOv11l segmentation
+model~\cite{jocher2024yolo11}. \textbf{Stage 2} assigns each detection a
+two-digit FDI code using a ResNet18~\cite{he2016resnet} head that consumes the
+tooth crop together with four positional features, resolved to a one-to-one
+assignment across the mouth by the Hungarian algorithm~\cite{kuhn1955hungarian}.
+\textbf{Stages 3 and 4} classify caries and periodontal bone loss per tooth
+using independent ResNet18 branches, each arranged as a coarse-to-fine cascade.
+\textbf{Stages 5 and 6} fuse the per-stage outputs on the FDI key and emit the
+record.
+
+The whole system totals approximately 25\,M parameters and runs at
+2.39\,s per image on CPU with no GPU present. This figure becomes relevant in
+Section~\ref{sec:results}.
+
+\subsection{Data}
+Tooth detection and bone loss use the Tufts Dental
+Database~\cite{panetta2021tufts} (1{,}000 OPGs) under a frozen
+700/150/150 split. Caries uses DENTEX~\cite{hamamci2023dentex}. FDI numbering
+trains on both, with a third public corpus used for an ablation.
+
+All splits are \textbf{image-level}. Two crops from one radiograph are not
+independent observations, and a tooth-level split would place the same mouth in
+both training and test data.
+
+Two labelling conventions were established by measurement rather than assumed,
+because a silent error in either would have trained a plausible but wrong model.
+Tufts numbering is left--right \textbf{mirrored} relative to Universal notation
+(Tufts ``1'' corresponds to FDI 28, not 18), confirmed three independent ways.
+The third corpus was checked the same way: using the two-corpus numbering head
+as an independent arbiter over 915 teeth, agreement was \textbf{80.3\,\%}
+reading its labels as written against \textbf{1.7\,\%} reading them mirrored.
+
+\subsection{External data}
+Four hospitals from an independent Chinese cohort (denoted test1--test4) serve
+as locked external test data: never trained on, never tuned against, and
+evaluated a bounded and recorded number of times.
+
+\subsection{Crop geometry and pre-registration}
+Classifier inputs are expanded crops resized to $224\times224$. Expansion is
+fixed per branch and identical across corpora---symmetric $1.5\times$ for
+numbering, $1.5\times$ width by $2.0\times$ height for bone loss, since teeth
+are roughly three times taller than wide and horizontal over-expansion bleeds
+into neighbouring teeth.
+
+Operating points are fixed \emph{a priori} and reported where they fall rather
+than tuned against evaluation data. One consequence is reported here rather
+than omitted: the detector's mask-quality bar was pre-registered at 0.65 and
+\textbf{missed}, at 0.638. The bar was not moved after the fact; the model was
+adopted for its bounding boxes alone by an explicit, dated decision, and the
+mask-dependent component it was intended to enable remains unwired.
+
+%% =====================================================================
+\section{Evaluation Protocol}
+\label{sec:protocol}
+%% =====================================================================
+
+Having built the system, we wanted to know what its caries number meant. The
+protocol below is the paper's methodological core.
+
+\subsection{The ladder}
+Four systems answer one question---\emph{which teeth in this radiograph show
+caries?}---on the same 164 leakage-free DENTEX images, scored by one scorer per
+metric family. Each rung is given strictly less information than the one above.
+
+\begin{enumerate}
+  \item \textbf{Pipeline}: the six stages of Section~III.
+  \item \textbf{VLM (33\,B)}: Qwen2.5-VL-33B-Instruct~\cite{bai2025qwen25vl},
+        zero-shot.
+  \item \textbf{VLM (8\,B)}: the same family at 8\,B.
+  \item \textbf{Constant}: a fixed set of FDI codes emitted for every image.
+        \textbf{The radiograph is never read.}
+\end{enumerate}
+
+\subsection{Fairness}
+A rigged baseline is worse than no baseline. The VLMs are given the FDI
+numbering scheme in the prompt, told explicitly that teeth may be absent, and
+parsed permissively, so that neither notation nor formatting is scored as
+clinical error. Our pipeline receives no corresponding assistance. Every
+affordance favours the opponent.
+
+The constant is fitted greedily on 78 leakage-excluded images that are disjoint
+from the scored set---overlap asserted to be zero at runtime---and then frozen.
+We also report a variant fitted directly on the test set; it is labelled an
+oracle throughout and is not claimable.
+
+\subsection{Metrics}
+We use two metric families, chosen to fail differently.
+
+\textbf{FDI-set F1} treats each image as a set-prediction problem: micro-averaged
+precision, recall and F1 over predicted versus annotated FDI codes.
+
+\textbf{Lesion-localisation agreement} asks, of every expert-annotated lesion,
+whether a tooth was flagged that spatially overlaps it. It requires spatial
+correspondence, which set membership does not. Because it has no negative class
+by construction---a deliberate property, since our external cohort lacks healthy
+controls---it is a recall-style measure, and flagging more teeth can only raise
+it. We therefore always report it alongside the predicted-positive match rate
+and the number of teeth flagged, and we include an upper-bound arm that flags
+\emph{every} detected tooth.
+
+\subsection{Controls}
+For the VLMs, we present a \textbf{blank grey image} and a
+\textbf{random-noise image} under the identical prompt. Neither contains a
+tooth. For selective prediction, we \textbf{shuffle the confidences}, breaking
+the link between confidence and correctness while preserving both marginals; a
+gain that survives shuffling is an artefact of discarding items rather than of
+ranking them.
+
+%% =====================================================================
+\section{Results}
+\label{sec:results}
+%% =====================================================================
+
+\subsection{The ladder, on development data}
+
+Table~\ref{tab:fdiset} gives the set-prediction result.
+
+\begin{table}[t]
+\caption{Tooth-level caries prediction, 164 leakage-free DENTEX images,
+477 affected teeth. One scorer for all arms.}
+\label{tab:fdiset}
+\centering
+\begin{tabular}{lccc}
+\toprule
+System & P & R & F1 \\
+\midrule
+\textbf{Constant} (image never read) & 0.218 & 0.600 & \textbf{0.320} \\
+Our pipeline                          & 0.235 & 0.390 & 0.294 \\
+Qwen2.5-VL-33B, zero-shot             & 0.250 & 0.243 & 0.246 \\
+Qwen2.5-VL-8B, zero-shot              & 0.248 & 0.107 & 0.149 \\
+\midrule
+\textit{Oracle constant (test-fitted)} & --- & --- & \textit{0.330} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The ordering is inverted with respect to the information each system receives.
+The best-performing entry is the one that never sees a radiograph.
+
+A single metric behaving oddly is a metric artefact. We therefore repeated the
+comparison under lesion localisation, which demands spatial correspondence
+(Table~\ref{tab:lesion}).
+
+\begin{table}[t]
+\caption{Lesion-localisation agreement, same images, 479 annotated lesions.
+Teeth flagged is reported because agreement alone rewards flagging more.}
+\label{tab:lesion}
+\centering
+\begin{tabular}{lccc}
+\toprule
+System & Agreement & Teeth flagged & Match rate \\
+\midrule
+\textbf{Constant}          & \textbf{0.488} & 859   & 0.272 \\
+Our pipeline               & 0.443          & 755   & 0.281 \\
+\textit{All teeth (ceiling)} & \textit{0.722} & \textit{3{,}344} & \textit{0.103} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The constant leads again, by \textbf{4.59 percentage points}, 95\,\% CI
+$[+0.60, +8.89]$ under a paired bootstrap over images. It does not achieve this
+by indiscriminate flagging: it flags 14\,\% more teeth than the pipeline at an
+essentially identical match rate. Two metric families designed to measure
+different things therefore agree.
+
+\subsection{The ladder, on external data}
+
+We then ran the same comparison on four hospitals the system had never seen
+(Table~\ref{tab:external}).
+
+\begin{table}[t]
+\caption{External validation, four hospitals, 337 images, 1{,}013 lesions.
+Caries lesion agreement by centroid containment.}
+\label{tab:external}
+\centering
+\begin{tabular}{lcccc}
+\toprule
+Hospital & Lesions & Pipeline & Constant & $\Delta$ \\
+\midrule
+test1 & 316 & 0.288 & \textbf{0.446} & $+15.8$ \\
+test2 & 349 & \textbf{0.513} & 0.407 & $-10.6$ \\
+test3 & 162 & 0.401 & 0.377 & $-2.5$ \\
+test4 & 186 & 0.419 & 0.323 & $-9.7$ \\
+\midrule
+\textbf{Pooled} & 1{,}013 & 0.408 & 0.399 & $-0.89$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{The development-set result does not replicate.} Pooled, the difference
+is $-0.89$ percentage points with 95\,\% CI $[-4.88, +3.01]$: the two systems
+are statistically indistinguishable, with the pipeline nominally ahead by an
+amount that is indistinguishable from noise.
+
+The per-site spread is the more useful observation. The difference swings from
+$+15.8$ points at test1 to $-10.6$ at test2---a 26-point range across four
+hospitals of a single cohort---and the pooled figure conceals this entirely.
+Notably, test1 is simultaneously the pipeline's worst site and the constant's
+best. We do not have an explanation for that, and we report it unexplained
+rather than omit it.
+
+Across all five hospitals, then, the defensible claim is \emph{non-separability}:
+a purpose-built pipeline and an image-blind prior cannot be reliably told apart
+by these metrics. That is weaker than the development-set result alone would
+support, and it is the claim the full evidence sustains.
+
+\subsection{What the constant cannot do}
+
+A constant answers a set-membership question. It cannot perform tasks whose
+output is not a fixed list, and the pipeline's results on those tasks are
+correspondingly meaningful.
+
+\textbf{Tooth numbering.} End-to-end FDI-exact accuracy is 58.3\,\%
+($546/936$ teeth), 95\,\% CI $[53.9, 62.8]$. This figure is
+\textbf{detection-bound} and we report it as two numbers: 29.4\,\% of
+ground-truth teeth are never detected, and of the 661 teeth Stage 1 does find,
+Stage 2 numbers \textbf{82.6\,\%} correctly. Residual errors are largely benign:
+of 115 incorrect codes, 89 (77.4\,\%) are off-by-one within the correct
+quadrant, and only 16 of 661 detected teeth (2.4\,\%) receive a quadrant-level
+error. A constant cannot attempt this task at all.
+
+\textbf{Calibration.} The caries gate's confidences are not probabilities:
+expected calibration error is 0.136 and the model is systematically
+overconfident. Temperature scaling~\cite{guo2017calibration} made calibration
+\emph{worse} (0.152), indicating the miscalibration is structural rather than a
+single scale factor; isotonic regression~\cite{zadrozny2002isotonic} reduced ECE
+to \textbf{0.043}, a 68\,\% improvement, and is applied to confidences only,
+leaving every verdict byte-identical.
+
+\textbf{Selective prediction.} Declining the least-confident quarter of cases
+raises numbering accuracy from 0.826 to \textbf{0.885}
+($+5.91$ pp, CI $[+3.88, +7.68]$) and caries-gate accuracy from 0.797 to
+\textbf{0.940} ($+14.25$ pp, CI $[+11.32, +16.63]$). Under the shuffle control
+both gains collapse to $+0.03$ and $+0.00$ percentage points respectively,
+establishing that the improvement comes from the confidence ranking and not from
+discarding items. The pre-registered threshold of 0.30 lands at 90.8\,\%
+coverage and 0.847 accuracy, within 0.2 points of the empirical 90\,\%-coverage
+operating point---a value chosen before these data were seen.
+
+One caveat must accompany any coverage figure here: coverage is measured over
+\emph{detected} teeth. Retaining 75\,\% of detections corresponds to 75\,\% of
+70.6\,\%, or 53.0\,\% of the teeth actually present.
+
+\subsection{Vision--language model behaviour}
+
+Few-shot prompting, with exemplars drawn strictly from leakage-excluded images,
+degrades the 8\,B model monotonically: F1 falls from 0.149 zero-shot to 0.066 at
+two shots and 0.034 at four. The mechanism is abstention rather than error---
+empty answers rise from 56 of 164 images to 123 of 164---so exact-set match
+simultaneously \emph{rises}, because 16 images contain no caries and an empty
+answer scores an exact match on each. Reported alone, that column would be true
+and thoroughly misleading.
+
+The control is more direct. Presented with a \textbf{blank grey image} and with
+\textbf{random noise}, both models return confident, correctly formatted,
+dental-specific answers; for one model the response to pure noise is identical
+to its response to a real radiograph. Whatever these outputs measure, it is not
+perception of the image in front of them.
+
+The efficiency comparison survives all of the above and is worth stating
+plainly: 33\,B parameters and 70\,GB of accelerator memory are outperformed by
+approximately 25\,M parameters running on a CPU.
+
+\subsection{Where the pipeline fails}
+
+The bone-loss branch reaches 0.923 macro-F1 in-domain on 1{,}558 validation
+crops at an untouched 4\,\% prevalence (sensitivity 83.05\,\%, specificity
+99.53\,\%) and \textbf{does not survive domain shift}, firing on 0.7\,\% of
+DENTEX teeth and 2.4\,\% of external teeth. A detector change that moved
+numbering by $+12.0$ points and caries agreement by $+7.7$ moved bone loss by
+nothing, which falsifies the hypothesis that a shared upstream cause explains
+all three. We report this as a measured negative result rather than a component.
+
+%% =====================================================================
+\section{Discussion}
+%% =====================================================================
+
+\subsection{Why the floor is high}
+Caries in these cohorts is anatomically concentrated in molars. A tooth-level
+decision is a set-membership question, and set membership inherits that base
+rate directly. The consequence is that headroom above a fixed anatomical answer
+is small---and, importantly, small \emph{independently of model quality}. This
+is a property of the task--metric pairing, not of any particular system.
+
+That two unrelated metrics agree on development data matters. Set-membership F1
+and lesion localisation were designed to measure different things; the second was
+adopted specifically because it requires spatial correspondence. A single-metric
+result would be a metric artefact. Two are a property of the data.
+
+\subsection{Why the external disagreement matters more}
+We expected the external cohort to confirm the development finding. It did not:
+pooled, the systems are indistinguishable, and per site the difference swings
+through 26 points. Two readings are available and we cannot presently separate
+them. Either the development result is partly a property of DENTEX's particular
+caries distribution, or the external metric---which necessarily uses centroid
+containment rather than overlap, because external lesions are small focal blobs
+inside much larger tooth boxes---has different sensitivity. Both are consistent
+with the data we have.
+
+What the disagreement does establish is that a \emph{single} external number is
+not informative at this variance. Our own pooled figure of 0.408 is, on its own,
+as uninformative as any other pooled figure in this literature. We report per
+site for that reason, and recommend the same of others.
+
+\subsection{What should be reported}
+We propose that a constant-baseline row accompany any tooth-level caries metric
+on this class of data. It costs one line of code and no compute. Without it, a
+mid-range tooth-level number cannot be interpreted---as our four systems
+demonstrate, spanning 0.149 to 0.320 with the \emph{least} informed entry at the
+top.
+
+This does not invalidate prior work. It means one specific claim---\emph{this
+system perceives caries}---is not established by a tooth-level number alone.
+
+\subsection{What still separates a system from a prior}
+A constant cannot number teeth, cannot produce a calibrated confidence, cannot
+abstain informatively, and has no behaviour under domain shift to measure. We
+propose these as the axes on which OPG systems should be compared:
+
+\begin{enumerate}
+  \item \textbf{Identification}: can it say \emph{which} tooth?
+        (82.6\,\% of detected teeth here.)
+  \item \textbf{Calibration}: are its confidences probabilities?
+        (ECE 0.136 $\rightarrow$ 0.043.)
+  \item \textbf{Selective prediction}: does declining improve accuracy, and does
+        the gain survive a shuffle control? ($+14.25$ pp; yes.)
+  \item \textbf{Domain shift}: measured on held-out institutions and reported
+        per site.
+\end{enumerate}
+
+Our pipeline performs meaningfully on all four. Its caries F1 conveys much less.
+
+\subsection{On reporting negative results}
+Two findings here are unfavourable to our own system: the constant comparison,
+and a bone-loss branch that does not generalise. We report both, because a
+screening tool that fails silently is more dangerous than one that fails
+visibly---and because the alternative, selecting whichever metric flatters the
+system, is precisely the practice this paper argues against.
+
+%% =====================================================================
+\section{Limitations}
+%% =====================================================================
+
+\begin{enumerate}
+  \item \textbf{Two caries cohorts, disagreeing in direction.} The constant
+        leads on development data and ties externally. We report both rather
+        than the more striking one; the common finding is non-separability.
+  \item \textbf{No clinician comparison.} We do not know how any system here
+        compares against a dentist on these images. This is the single largest
+        gap and is the subject of ongoing work.
+  \item \textbf{Tooth-level is our finest localisation.} The localisation metric
+        is a tooth-level correspondence check, not a pixel-level segmentation
+        assessment.
+  \item \textbf{One VLM family} at two scales; a domain-adapted medical VLM was
+        not accessible.
+  \item \textbf{Detection bounds Stage 2.} At 0.810 box mAP@0.5, 29.4\,\% of
+        teeth are never presented to the numbering head.
+  \item \textbf{The external cohort lacks healthy controls}, so specificity and
+        AUC are not computable there; we report lesion agreement only.
+\end{enumerate}
+
+%% =====================================================================
+\section{Conclusion}
+%% =====================================================================
+
+We set out to determine what a tooth-level caries number means, using our own
+system as the subject. On development data, a baseline that never reads the
+radiograph outscored a purpose-built pipeline and two vision--language models
+under two unrelated metrics. Across four external hospitals the same comparison
+produced no separation at all, with a 26-point swing between sites.
+
+The conclusion we draw is not that automated screening does not work. It is that
+this measurement cannot tell us whether it does. Identification, calibration,
+selective prediction and behaviour under domain shift can---and on those axes,
+reported here with their controls, our pipeline has something to show. We
+recommend that tooth-level caries results be accompanied by an image-blind
+baseline and reported per institution, so that the next number of this kind is
+interpretable when it appears.
+
+%% =====================================================================
+\bibliographystyle{IEEEtran}
+\bibliography{source}
+
+\end{document}
