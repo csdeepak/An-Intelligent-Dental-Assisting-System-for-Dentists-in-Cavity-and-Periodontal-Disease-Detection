@@ -508,16 +508,20 @@ approximately 25\,M parameters running on a CPU.
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{fig_boneloss.png}
-\caption{The bone-loss branch under domain shift. Strong in-domain performance
-does not transfer. Reported as a measured negative result rather than a
-component.}
+\caption{The bone-loss branch under domain shift. In-domain macro-F1 of 0.923
+on Tufts does not transfer: the branch fires on 0.7\,\% of DENTEX teeth and
+reaches 1.4--5.6\,\% affected-tooth sensitivity across the four external
+hospitals. Metrics necessarily differ between cohorts---the external sets are
+scored by affected-tooth sensitivity---but the collapse does not depend on that
+choice. Reported as a measured negative result rather than a component.}
 \label{fig:boneloss}
 \end{figure*}
 
 The bone-loss branch reaches 0.923 macro-F1 in-domain on 1{,}558 validation
 crops at an untouched 4\,\% prevalence (sensitivity 83.05\,\%, specificity
 99.53\,\%) and \textbf{does not survive domain shift}, firing on 0.7\,\% of
-DENTEX teeth and 2.4\,\% of external teeth. A detector change that moved
+DENTEX teeth and reaching only 1.4--5.6\,\% affected-tooth sensitivity across
+the four external hospitals. A detector change that moved
 numbering by $+12.0$ points and caries agreement by $+7.7$ moved bone loss by
 nothing, which falsifies the hypothesis that a shared upstream cause explains
 all three. We report this as a measured negative result rather than a component.
