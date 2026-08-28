@@ -6,8 +6,8 @@ radiographs: a constant-baseline protocol and an externally validated pipeline*
 **Target:** Computers in Biology and Medicine / Dentomaxillofacial Radiology.
 Fallback: *Scientific Reports*. ~5,000 words.
 
-**Status, 28 Aug 2026.** All sections drafted. Numbers marked `[NINGXIA-CONST]` await the
-external constant arm (running). Everything else traces to `../results/PAPER_MATERIAL.md`.
+**Status, 28 Aug 2026.** All sections drafted; the external constant arm has landed and is
+folded in. Every number traces to `../results/PAPER_MATERIAL.md` / `RESULTS_LOG.md`.
 
 ---
 
@@ -20,11 +20,14 @@ which teeth are carious. We show that on a public OPG dataset such metrics are d
 anatomical priors. Using one scorer and 164 leakage-free images, we compare a purpose-built
 six-stage pipeline (~25 M parameters), two general-purpose vision-language models (8 B and 33 B),
 and an **image-blind constant** — a fixed list of the eight first and second molars, fitted on
-held-out data and never shown a radiograph. The constant scores **F1 0.320** against the
-pipeline's 0.294 and the 33 B model's 0.246, and the result is not an artefact of one metric: on
-a lesion-localisation metric requiring spatial correspondence, the constant again leads,
-0.488 vs 0.443 (+4.59 pp, 95% CI [+0.60, +8.89]). We therefore argue that a constant-baseline row
-should accompany any tooth-level caries metric on this class of data. We further report what a
+held-out data and never shown a radiograph. Internally the constant scores **F1 0.320** against
+the pipeline's 0.294 and the 33 B model's 0.246, and leads again on a lesion-localisation metric
+that requires spatial correspondence (0.488 vs 0.443, +4.59 pp, 95% CI [+0.60, +8.89]). Across
+**four external hospitals** the two become statistically **indistinguishable** (0.399 vs 0.408,
+-0.89 pp, CI [-4.88, +3.01]), with a 26-point swing between sites that the pooled figure conceals.
+Over five hospitals, then, a purpose-built pipeline is not distinguishable from an image-blind
+prior on this class of metric. We therefore argue that a constant-baseline row should accompany
+any tooth-level caries metric on this class of data, and that per-site results be reported. We further report what a
 constant provably cannot do — FDI tooth numbering (82.6% of detected teeth), calibrated confidence
 (ECE 0.136 → 0.043), and principled abstention (+14.25 pp accuracy at 75% coverage, with a shuffle
 control) — and external validation across four hospitals, and propose these as the axes on which
@@ -52,8 +55,9 @@ system.
 
 **Beat 4 — contributions.**
 1. A **constant-baseline protocol** for tooth-level OPG evaluation, and evidence across two metric
-   families that a specialist pipeline, a 33 B VLM and an image-blind constant are
-   indistinguishable or favour the constant.
+   families and five hospitals that a specialist pipeline, a 33 B VLM and an image-blind constant
+   are **statistically indistinguishable** — the constant leading internally, neither system
+   separable externally.
 2. A **VLM baseline with the control that makes it interpretable** — including that blank and
    random-noise images elicit confident dental answers, and that few-shot prompting makes
    performance monotonically worse.
@@ -215,8 +219,9 @@ selecting the metric that flatters the system, is the practice this paper argues
 
 ## 7. Limitations
 
-1. **Single caries dataset for the constant result.** Demonstrated on DENTEX; the external arm
-   `[NINGXIA-CONST]` tests transfer but on one further population.
+1. **Two caries datasets, and they disagree in direction.** The constant wins on DENTEX and ties
+   externally. We report both rather than the more striking one; the common finding is
+   non-separability, not constant superiority. Whether it holds on a third population is untested.
 2. **Tooth-level is the finest localisation this pipeline performs.** The lesion-localisation
    metric is a tooth-level correspondence check, not pixel-level segmentation quality.
 3. **No clinician comparison.** We do not know how any of these systems compare to a dentist on
