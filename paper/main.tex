@@ -144,25 +144,29 @@ not about anyone's system.
 
 \subsection{Detection and classification on panoramic radiographs}
 Deep learning on OPGs has converged on a familiar decomposition: detect teeth,
-then classify each one. Detector choice is well studied, and recent head-to-head
-evaluation on dental panoramics supports YOLOv11 over its successor generation
-for multi-class dental detection~\cite{asif2026yolo26,nassiri2025yolo}. The same
-body of work consistently reports an asymmetry that matters here: performance is
-strong on well-defined objects (crowns, implants, restorations) and markedly
-weaker on subtle radiolucent pathology such as caries and bone
-loss~\cite{chen2023deep,alharbi2023detection}. Caries segmentation and
-classification specifically have been approached with dual-network
-frameworks~\cite{lim2024dual}, attention architectures~\cite{bilal2024pdcnet},
-and cascaded designs~\cite{chen2024cariesxrays}.
+then classify each one. Detector choice is well studied; a head-to-head evaluation
+on dental panoramics reports YOLOv11 outperforming its successor generation for
+multi-class dental detection, and the same study observes an asymmetry that matters
+here---performance is strong on well-defined objects such as crowns and implants and
+markedly weaker on subtle radiolucent pathology including caries and bone
+loss~\cite{mutlu2026comparison}. YOLO-family detectors are widely applied to this
+data more generally~\cite{asif2026yolo26,nassiri2025yolo,eftimie2025tooth}. Caries
+and periodontal classification specifically have been approached with dual-network
+frameworks~\cite{lim2024dual}, dedicated convolutional
+classifiers~\cite{bilal2024pdcnet}, and contrastive feature-pyramid
+designs~\cite{chen2024cariesxrays}, alongside broader detection and segmentation
+work~\cite{chen2023deep,alharbi2023detection}.
 
 \subsection{Tooth numbering}
-FDI numbering is typically reported at very high accuracy---frequently above
-0.97---but often on \emph{pre-cropped} teeth, where the task is a 32-way
-classification of an image that is already known to contain exactly one tooth,
-correctly framed~\cite{ayhan2025detection,karamuftuo2025panoramic}. This is a
-materially easier problem than numbering under detector output, where teeth may
-be missed, duplicated or clipped. We report both framings and find the gap
-between them large.
+FDI numbering is typically reported at very high accuracy---one recent system
+reports 0.9988 for tooth numbering~\cite{zancan2025ai}, and multi-stage
+segmentation-and-numbering pipelines report comparable
+figures~\cite{zhang2025reliable}. Such numbers are frequently obtained on
+\emph{pre-cropped} teeth, where the task is a 32-way classification of an image
+already known to contain exactly one tooth, correctly framed. That is a materially
+easier problem than numbering under detector output, where teeth may be missed,
+duplicated or clipped. We report both framings and find the gap between them
+large.
 
 \subsection{Vision--language models in dentistry}
 Recent work applies general-purpose and domain-adapted VLMs to dental
@@ -170,7 +174,7 @@ imaging~\cite{meng2026dentvlm,jha2026dentiask,li2026pandent,hao2025mmoral}.
 These systems are attractive because they need no task-specific training, and
 are difficult to evaluate for the same reason: a fluent, confident, correctly
 formatted answer is not evidence of perception. We adopt a control from the
-broader shortcut-learning literature~\cite{elkhoury2019geffner}: present the
+broader shortcut-learning literature~\cite{geirhos2020shortcut}: present the
 model with an input containing none of the signal it purports to read, and
 observe whether its behaviour changes.
 

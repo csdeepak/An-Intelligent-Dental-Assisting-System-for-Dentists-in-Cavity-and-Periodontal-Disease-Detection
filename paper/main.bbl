@@ -49,6 +49,10 @@ A.~Bilal, A.~H. Khan, K.~Almohammadi, S.~A. Al~Ghamdi, H.~Long, and H.~Malik,
   \url{https://ieeexplore.ieee.org/document/10400831}
 \BIBentrySTDinterwordspacing
 
+\bibitem{mutlu2026comparison}
+{\.I}.~Mutlu and Others, ``Comparison of {YOLOv11} and {YOLOv12} for dental
+  condition detection on panoramic radiographs,'' \emph{Odontology}, 2026.
+
 \bibitem{asif2026yolo26}
 \BIBentryALTinterwordspacing
 K.~A. Asif and R.~A. Khan, ``Dental panoramic radiograph analysis using
@@ -63,6 +67,18 @@ K.~Nassiri and M.~A. Akhloufi, ``{YOLO}-based panoramic dental {X}-ray image
   analysis,'' \emph{Neural Computing and Applications}, vol.~37, pp.
   25\,867--25\,890, 2025. [Online]. Available:
   \url{https://link.springer.com/article/10.1007/s00521-025-11462-5}
+\BIBentrySTDinterwordspacing
+
+\bibitem{eftimie2025tooth}
+\BIBentryALTinterwordspacing
+S.~Eftimie, T.~Ileni, L.~Iacob, M.~Hedesiu, and L.~Diosan, ``Tooth-level
+  detection and mapping of dental pathologies on panoramic radiographs using
+  {YOLOv11} and {RT-DETR},'' \emph{MethodsX}, vol.~15, no.~3, p. 103696, 2025,
+  published as Sorana Eftimie; an earlier SSRN preprint lists the same author
+  as Sorana Muresanu. Distinct from the unrelated Mure\c{s}anu 2024
+  \emph{Diagnostics} paper already in this corpus
+  (\texttt{muresanu2024automating}). [Online]. Available:
+  \url{https://doi.org/10.1016/j.mex.2025.103696}
 \BIBentrySTDinterwordspacing
 
 \bibitem{chen2023deep}
@@ -81,22 +97,23 @@ S.~S. Alharbi, A.~A. AlRugaibah, H.~F. Alhasson, and R.~U. Khan, ``Detection of
   Available: \url{https://www.mdpi.com/2076-3417/13/23/12771}
 \BIBentrySTDinterwordspacing
 
-\bibitem{ayhan2025detection}
+\bibitem{zancan2025ai}
 \BIBentryALTinterwordspacing
-B.~Ayhan, E.~Ayan, and S.~Ats{\"u}, ``Detection of dental caries under fixed
-  dental prostheses by analyzing digital panoramic radiographs with artificial
-  intelligence algorithms based on deep learning methods,'' \emph{BMC Oral
-  Health}, vol.~25, no.~1, p. 216, 2025. [Online]. Available:
-  \url{https://bmcoralhealth.biomedcentral.com/articles/10.1186/s12903-025-05577-3}
+B.~G. Zancan, J.~A. Carneiro, C.~U. Martins, C.~Tirapelli, C.~P. Capel, E.~D.
+  da~Costa, H.~Ga{\^e}ta-Araujo, J.~A. Baranauskas, and A.~A. Macedo,
+  ``{AI}-powered precision in dental radiographic analysis using tailored
+  {CNNs} for tooth numbering and cavity detection,'' \emph{PLOS Digital
+  Health}, vol.~4, no.~2, p. e0000744, 2025. [Online]. Available:
+  \url{https://pmc.ncbi.nlm.nih.gov/articles/PMC11868773/}
 \BIBentrySTDinterwordspacing
 
-\bibitem{karamuftuo2025panoramic}
+\bibitem{zhang2025reliable}
 \BIBentryALTinterwordspacing
-N.~Karam{\"u}ft{\"u}o{\u{g}}lu, A.~Bulut, M.~Ak{\i}n, and
-  {\c{S}}.~Sa{\u{g}}iro{\u{g}}lu, ``Panoramic radiograph-based deep learning
-  models for diagnosis and clinical decision support of furcation lesions in
-  primary molars,'' \emph{Children}, vol.~12, no.~3, p. 304, 2025. [Online].
-  Available: \url{https://www.mdpi.com/2227-9067/12/3/304}
+Y.~Zhang, Y.~Yu, Q.~Li, H.~Chen, Y.~Liang, J.~Chen, and J.~Yin, ``A reliable
+  multi-stage system for tooth instance segmentation and numbering in panoramic
+  radiographs,'' \emph{IEEE Journal of Biomedical and Health Informatics},
+  vol.~29, no.~3, pp. 2050--2060, 2025. [Online]. Available:
+  \url{https://ieeexplore.ieee.org/document/10839580}
 \BIBentrySTDinterwordspacing
 
 \bibitem{meng2026dentvlm}
@@ -140,7 +157,7 @@ J.~Hao, Y.~Fan, Y.~Sun, K.~Guo, L.~Lin, J.~Yang, Q.~Y.~H. Ai, L.~M. Wong,
   \url{https://proceedings.neurips.cc/paper_files/paper/2025/file/3797b3a3c939156757857cf1b9afde3c-Paper-Datasets_and_Benchmarks_Track.pdf}
 \BIBentrySTDinterwordspacing
 
-\bibitem{elkhoury2019geffner}
+\bibitem{geirhos2020shortcut}
 R.~Geirhos, J.-H. Jacobsen, C.~Michaelis, R.~Zemel, W.~Brendel, M.~Bethge, and
   F.~A. Wichmann, ``Shortcut learning in deep neural networks,'' \emph{Nature
   Machine Intelligence}, 2020.
