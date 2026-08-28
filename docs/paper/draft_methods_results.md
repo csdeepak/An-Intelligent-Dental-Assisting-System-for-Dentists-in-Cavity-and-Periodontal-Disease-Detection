@@ -1,3 +1,5 @@
+> **SUPERSEDED FRAMING — 28 Aug 2026.** The Methods below stand. The **Results ordering does not**: the plan to lead on lesion localisation was tested and failed (a molar constant beats the pipeline there too, +4.59 pp [+0.60,+8.89]). See `draft_spine.md` for the redrafted argument and `RESULTS_LOG.md` 2026-08-28d.
+
 # Draft — Methods and Results
 
 **Target:** ISBI 2027, 4 pages + references. This file is the *prose draft*; every number traces
