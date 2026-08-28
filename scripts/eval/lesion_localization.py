@@ -131,6 +131,7 @@ DEF_DISEASE_DIR = Path.home() / "Downloads/Capstone/DENTEX/disease"
 from run_inference import DEF_DETECTOR  # noqa: E402
 DEF_CARIES_GATE = REPO_ROOT / "models/09_caries_gate_v3/caries_gate_v3.pth"
 DEF_CARIES_SEVERITY = REPO_ROOT / "models/07_caries_cascade/phase2_final_bundle.pth"
+DEF_FDI_HEAD = REPO_ROOT / "models/10_fdi_head_dentex_tufts_v2/enumeration_head_best.pth"
 DEF_OUT = REPO_ROOT / "outputs/lesion_localization"
 
 TARGET_FINDING_ID = "1"  # çürük -- see the module docstring for why only this one
@@ -188,13 +189,38 @@ def main():
                     help="inherited from validate_fdi_assignment.py, not re-tuned here")
     ap.add_argument("--n", type=int, default=None, help="limit to first N non-leaked images")
     ap.add_argument("--out", type=Path, default=DEF_OUT)
+    ap.add_argument("--decision", choices=["pipeline", "constant-molars", "all-teeth"],
+                    default="pipeline",
+                    help="what decides a tooth is diseased. See CONSTANT ARMS below.")
+    ap.add_argument("--fdi-head", type=Path, default=DEF_FDI_HEAD,
+                    help="only used by --decision constant-molars, to know which teeth are molars")
     args = ap.parse_args()
+
+    # ------------------------------------------------------------------ CONSTANT ARMS
+    # Added 28 Aug 2026, because the C1 comparison found that an image-blind constant -- a fixed
+    # list of the eight first and second molars -- scores F1 0.320 on tooth-level FDI-set
+    # prediction against this pipeline's 0.294 (RESULTS_LOG 2026-08-28b). Caries in DENTEX is
+    # overwhelmingly molar, so that metric is base-rate dominated.
+    #
+    # The obvious hope was that THIS metric is immune because it requires spatial correspondence.
+    # That hope is not self-evidently true and is therefore tested rather than asserted: a
+    # constant that flags eight real detected tooth boxes does localise, in the only sense this
+    # pipeline localises anything (tooth-level). So the constant is run through the identical
+    # matcher and reported beside the pipeline.
+    #
+    # `all-teeth` is the stress test that matters. `lesion_localization_agreement` is RECALL over
+    # lesions with no negative class, so flagging more teeth can only help it -- flagging every
+    # detected tooth is its ceiling. If the pipeline does not clearly beat that ceiling on the
+    # PAIR (agreement AND predicted-positive match rate), then this metric is no better than the
+    # one it was meant to replace, and the paper must say so.
+    MOLAR_CONSTANT = {"16", "17", "26", "27", "36", "37", "46", "47"}
 
     import cv2
     import torch
     from ultralytics import YOLO
 
     from src.classifiers import load_classifier, run_caries
+    from src.fdi_head_inference import assign_fdi_head
     from src.orientation import detect_upright
 
     leaked = _load_leaked()
@@ -213,6 +239,13 @@ def main():
     if sev_cls and sev_cls != {"caries": 0, "deep_caries": 1}:
         raise SystemExit(f"caries severity class order changed: {sev_cls}")
     print(f"device={device}  gate={args.caries_gate.name}")
+    fdi_head = None
+    if args.decision == "constant-molars":
+        from src.fdi_head_inference import assign_fdi_head, load_head
+        fdi_head = load_head(args.fdi_head, device)
+        print(f"  constant arm: flagging {sorted(MOLAR_CONSTANT)} on every image")
+    elif args.decision == "all-teeth":
+        print("  constant arm: flagging EVERY detected tooth (metric ceiling)")
 
     n_lesions = n_matched = n_pred_pos = n_pred_pos_matched = n_images_with_lesions = 0
     per_image, flag_counts = [], Counter()
@@ -231,7 +264,14 @@ def main():
         boxes, _ = detect_upright(det, img, imgsz=1024, conf=0.25, iou=0.50, verbose=False)
         caries = run_caries(gate, sev, img, boxes, device) if boxes else []
 
-        pos_idx = [i for i, c in enumerate(caries) if c["finding"] != "no_caries"]
+        if args.decision == "pipeline":
+            pos_idx = [i for i, c in enumerate(caries) if c["finding"] != "no_caries"]
+        elif args.decision == "all-teeth":
+            pos_idx = list(range(len(boxes)))
+        else:                                    # constant-molars -- the image is never read
+            assigns = assign_fdi_head(fdi_head, img, boxes, device, one_to_one=True) if boxes else []
+            pos_idx = [i for i, a in enumerate(assigns)
+                       if str(a.get("fdi")) in MOLAR_CONSTANT]
         pos_dets = [{"bbox": boxes[i]} for i in pos_idx]
 
         matches = match_gt_to_detections(gt, pos_dets, min_iou=args.min_iou)

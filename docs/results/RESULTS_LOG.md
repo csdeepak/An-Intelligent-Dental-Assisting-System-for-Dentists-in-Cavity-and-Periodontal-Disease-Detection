@@ -4816,3 +4816,48 @@ poisoned the first.
   `models/12a_fdi_head_v2_control_rebuilt/run_summary.txt`,
   `scripts/kaggle_dual/{build_enumeration_crops,verify_fdi_convention}.py`.
   **122/122 tests** (was 109).
+
+---
+
+## 2026-08-28d - The metric fix FAILED: a molar constant beats the pipeline on lesion localisation too
+
+- **What was tried, and why.** 2026-08-28b found that an image-blind constant (the eight first and
+  second molars) scores F1 **0.320** on tooth-level caries FDI-set prediction against this
+  pipeline's **0.294**. The proposed rescue was to lead the paper on **lesion-localisation
+  agreement** instead, on the reasoning that a constant "localises nothing". **That reasoning was
+  wrong and the experiment says so.**
+- **Two errors in the original reasoning, both found by reading the metric rather than trusting
+  the pitch.** (1) A molar constant *does* localise: it flags eight real detected tooth boxes, and
+  tooth-level is the only localisation this pipeline performs at all. (2)
+  `lesion_localization_agreement` is **recall over lesions with no negative class** - by design, so
+  Ningxia's missing healthy controls cannot corrupt it - which means flagging MORE teeth can only
+  raise it.
+- **Result, 164 leak-free DENTEX images, 479 caries lesions, one matcher, three decision rules:**
+
+| arm | agreement (recall) | teeth flagged | on a lesion | match rate |
+|---|---|---|---|---|
+| Our pipeline | 0.443 | 755 | 212 | 0.281 |
+| **Constant: eight molars, image never read** | **0.488** | 859 | 234 | 0.272 |
+| Ceiling: flag every detected tooth | 0.722 | 3,344 | 346 | 0.103 |
+
+- **The constant beats the pipeline by +4.59 pp [+0.60, +8.89]** (paired bootstrap over images,
+  5,000 resamples). **The interval excludes zero: this is real, not a tie.**
+- **And it does not win by brute force.** It flags 859 teeth against the pipeline's 755 - only
+  **14% more** - at essentially the same match rate (0.272 vs 0.281). The two sit on the same
+  efficiency frontier, with the constant slightly ahead on both axes taken together.
+- **Reading.** The caries branch's tooth-level decisions carry little information beyond the prior
+  "molars get caries". This is consistent with SS 8.17, where the gate over-calls healthy teeth
+  (19.2%) at the same rate as impacted teeth (19.0%) - it was already visible, and this quantifies
+  what it costs.
+- **What this does NOT say.** It is a statement about the caries branch on this dataset under
+  tooth-level metrics. It does not touch Stage-2 numbering (82.6% of detected - a constant cannot
+  do that task at all), abstention (SS 8.21), calibration (SS 8.15), or the external-validation
+  result (SS 8.12).
+- **The honest conclusion, which supersedes the plan in the 28 Aug session note.** Changing the
+  metric does not rescue the caries claim, because the problem is not the metric - it is that
+  caries on public OPG data is molar-dominated and tooth-level decisions are dominated by that
+  prior. **Any paper reporting tooth-level caries numbers in this range on this kind of data owes
+  a constant-baseline row**, and this project should say so rather than quietly pick whichever
+  metric flatters it. That is a stronger contribution than the pipeline number was.
+- **Source:** `scripts/eval/lesion_localization.py --decision {pipeline,constant-molars,all-teeth}`,
+  `outputs/lesion_loc_*/lesion_localization.json`.
