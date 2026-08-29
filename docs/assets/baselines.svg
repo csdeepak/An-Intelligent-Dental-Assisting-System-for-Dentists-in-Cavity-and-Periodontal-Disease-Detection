@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 560" width="1160" height="560" role="img" aria-label="C1 baseline comparison on tooth-level caries FDI sets: an image-blind constant scores F1 0.320, our six-stage pipeline 0.294, Qwen2.5-VL-32B zero-shot 0.246, Qwen2.5-VL-7B zero-shot 0.149, and few-shot prompting makes the 7B model monotonically worse">
+  <title>C1 &#8212; the constant baseline that beats everything</title>
+  <desc>164 leak-free DENTEX images, 477 affected teeth, one scorer for every arm. Tooth-level caries FDI-set micro F1. A fixed list of the eight first and second molars, fitted on held-out images and never on the scored set, reaches F1 0.320 without reading the image at all. Few-shot prompting teaches the VLM to answer nothing: empty predictions rise from 56 to 123.</desc>
+  <defs>
+    <style>
+      .f  { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif; }
+      .m  { font-family: ui-monospace, 'SFMono-Regular', 'Cascadia Code', Consolas, 'Liberation Mono', monospace; }
+      .hd { font-size: 17px; font-weight: 680; fill: #eaf3fa; }
+      .sb { font-size: 12.5px; fill: #8ba3b8; }
+      .kk { font-size: 10px; letter-spacing: 1.3px; font-weight: 700; fill: #5f7d97; }
+      .nm { font-size: 13px; font-weight: 700; }
+      .lb { font-size: 12.5px; fill: #dbe9f4; }
+      .sm { font-size: 10.5px; fill: #7189a0; }
+      .grow { transform-origin: left center; animation: gw 1.15s cubic-bezier(.22,.85,.3,1) both; }
+      @keyframes gw { from { transform: scaleX(0) } to { transform: scaleX(1) } }
+      @media (prefers-reduced-motion: reduce) { .grow { animation: none } }
+    </style>
+  </defs>
+
+  <rect width="1160" height="560" rx="14" fill="#0a1626"/>
+  <rect x="0.5" y="0.5" width="1159" height="559" rx="14" fill="none" stroke="#1c3a52" stroke-width="1"/>
+
+  <text class="f kk" x="40" y="42">CONTRIBUTION C1 &#183; TOOTH-LEVEL CARIES FDI-SET MICRO F1 &#183; 164 LEAK-FREE DENTEX IMAGES</text>
+  <text class="f hd" x="40" y="72">An <tspan fill="#fbbf24">image-blind constant</tspan> beats every model here &#8212; including ours</text>
+  <text class="f sb" x="40" y="94">Tooth-level FDI-set F1 is base-rate dominated. This control must appear beside every arm, or the benchmark says nothing.</text>
+
+  <!-- axis -->
+  <g stroke="#16304a" stroke-width="1">
+    <line x1="380" y1="118" x2="380" y2="452"/>
+    <line x1="580" y1="118" x2="580" y2="452"/>
+    <line x1="780" y1="118" x2="780" y2="452"/>
+    <line x1="980" y1="118" x2="980" y2="452"/>
+  </g>
+  <g class="f sm" fill="#4d6a84" text-anchor="middle">
+    <text x="380" y="470">0.10</text><text x="580" y="470">0.20</text><text x="780" y="470">0.30</text><text x="980" y="470">0.40</text>
+  </g>
+
+  <!-- bars: x0 = 380 - 0.10*2000 = 180 ; scale 2000 px per 1.0 F1 -->
+  <!-- constant 0.320 -->
+  <g transform="translate(180,132)">
+    <rect class="grow" width="640" height="30" rx="4" fill="#fbbf24" style="animation-delay:.05s"/>
+    <text class="f nm" x="652" y="20" fill="#fbbf24">0.320</text>
+  </g>
+  <text class="f lb" x="166" y="152" text-anchor="end">Held-out constant</text>
+  <text class="f sm" x="166" y="167" text-anchor="end">0 params &#183; never reads the image</text>
+  <text class="m sm" x="192" y="188" style="fill:#a8834f">{16, 17, 26, 27, 36, 37, 46, 47} &#8212; the eight first and second molars, frozen before scoring</text>
+
+  <!-- ours 0.294 -->
+  <g transform="translate(180,206)">
+    <rect class="grow" width="588" height="30" rx="4" fill="#2dd4bf" style="animation-delay:.14s"/>
+    <text class="f nm" x="600" y="20" fill="#2dd4bf">0.294</text>
+  </g>
+  <text class="f lb" x="166" y="226" text-anchor="end">Our six-stage pipeline</text>
+  <text class="f sm" x="166" y="241" text-anchor="end">61.2 M params &#183; CPU, 2.39 s/img</text>
+
+  <!-- 32B 0.246 -->
+  <g transform="translate(180,262)">
+    <rect class="grow" width="492" height="30" rx="4" fill="#8b5cf6" style="animation-delay:.22s"/>
+    <text class="f nm" x="504" y="20" fill="#a78bfa">0.246</text>
+  </g>
+  <text class="f lb" x="166" y="282" text-anchor="end">Qwen2.5-VL-32B-Instruct</text>
+  <text class="f sm" x="166" y="297" text-anchor="end">33.45 B params &#183; H100, 70.1 GB</text>
+
+  <!-- 7B 0.149 -->
+  <g transform="translate(180,318)">
+    <rect class="grow" width="298" height="30" rx="4" fill="#6366f1" style="animation-delay:.30s"/>
+    <text class="f nm" x="310" y="20" fill="#818cf8">0.149</text>
+  </g>
+  <text class="f lb" x="166" y="338" text-anchor="end">Qwen2.5-VL-7B-Instruct</text>
+  <text class="f sm" x="166" y="353" text-anchor="end">8.29 B params &#183; zero-shot</text>
+
+  <!-- 2-shot 0.066 -->
+  <g transform="translate(180,374)">
+    <rect class="grow" width="132" height="30" rx="4" fill="#475569" style="animation-delay:.37s"/>
+    <text class="f nm" x="144" y="20" fill="#7c8ea3">0.066</text>
+  </g>
+  <text class="f lb" x="166" y="394" text-anchor="end">&#8942; same 7B, 2-shot</text>
+
+  <!-- 4-shot 0.034 -->
+  <g transform="translate(180,418)">
+    <rect class="grow" width="68" height="30" rx="4" fill="#3f4c5e" style="animation-delay:.43s"/>
+    <text class="f nm" x="80" y="20" fill="#6b7d92">0.034</text>
+  </g>
+  <text class="f lb" x="166" y="438" text-anchor="end">&#8942; same 7B, 4-shot</text>
+
+  <line x1="40" y1="490" x2="1120" y2="490" stroke="#1c3a52" stroke-width="1"/>
+  <g transform="translate(40,516)">
+    <rect x="0" y="-14" width="4" height="32" rx="2" fill="#fbbf24"/>
+    <text class="f lb" x="18" y="1">Few-shot makes it monotonically <tspan fill="#fb7185" font-weight="700">worse</tspan>: in-context examples teach the model to answer nothing (empty predictions 56 &#8594; 113 &#8594; 123 of 164).</text>
+    <text class="f sm" x="18" y="20">Both VLMs hand a confident dental answer to a random-noise image. The efficiency claim survives regardless: 33.45 B on an H100 loses to 61.2 M on a CPU &#8212; roughly 550&#215;.</text>
+  </g>
+</svg>

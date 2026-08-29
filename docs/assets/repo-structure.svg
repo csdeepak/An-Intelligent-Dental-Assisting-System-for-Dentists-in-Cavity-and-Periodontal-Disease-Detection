@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 714" width="1160" height="714" role="img" aria-label="Repository structure: entry points at the root, source modules in src, CLI entry points in scripts, training notebooks, model checkpoints, and a four-layer documentation system under docs">
+  <title>Repository structure</title>
+  <desc>Four zones. Entry points at the root (transfer.md is the cold-start snapshot, run_inference.py the single inference path, app.py and the Dockerfile a thin wrapper around it). Code in src and scripts. Artefacts in models, data and outputs. And a documentation system under docs with an append-only results log, a current-numbers scoreboard, a master paper document and one memory file per working session.</desc>
+  <defs>
+    <style>
+      .f  { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif; }
+      .m  { font-family: ui-monospace, 'SFMono-Regular', 'Cascadia Code', Consolas, 'Liberation Mono', monospace; }
+      .kk { font-size: 10px; letter-spacing: 1.3px; font-weight: 700; fill: #5f7d97; }
+      .hd { font-size: 17px; font-weight: 680; fill: #eaf3fa; }
+      .zn { font-size: 10.5px; letter-spacing: 1.4px; font-weight: 700; }
+      .dir{ font-size: 12.5px; font-weight: 700; fill: #7dd3fc; }
+      .fl { font-size: 12px; fill: #cfe0ee; }
+      .no { font-size: 11px; fill: #7189a0; }
+      .star { animation: tw 2.8s ease-in-out infinite; }
+      @keyframes tw { 0%,100% { opacity:.45 } 50% { opacity:1 } }
+      @media (prefers-reduced-motion: reduce) { .star { animation: none } }
+    </style>
+  </defs>
+
+  <rect width="1160" height="714" rx="14" fill="#0a1626"/>
+  <rect x="0.5" y="0.5" width="1159" height="713" rx="14" fill="none" stroke="#1c3a52" stroke-width="1"/>
+
+  <text class="f kk" x="40" y="42">REPOSITORY STRUCTURE &#183; FOUR ZONES</text>
+  <text class="f hd" x="40" y="70">Where everything lives, and which file is authoritative for what</text>
+
+  <!-- ZONE 1 : ENTRY POINTS -->
+  <rect x="40" y="92" width="1080" height="118" rx="11" fill="#0c2032" stroke="#1b3a52"/>
+  <rect x="40" y="92" width="3.5" height="118" rx="2" fill="#2dd4bf"/>
+  <text class="f zn" x="62" y="116" fill="#2dd4bf">ZONE 1 &#183; ENTRY POINTS (REPO ROOT)</text>
+  <g transform="translate(62,140)">
+    <text class="m fl" x="0" y="0"><tspan class="star" fill="#fbbf24">&#9733;</tspan> transfer.md</text>
+    <text class="f no" x="200" y="0">the cold-start snapshot &#8212; rewritten in place, never appended to. Read this first.</text>
+    <text class="m fl" x="0" y="24">CLAUDE.md</text>
+    <text class="f no" x="200" y="24">standing rules for every session: log results, leave a memory file, never delete artefacts.</text>
+    <text class="m fl" x="0" y="48">app.py &#183; Dockerfile</text>
+    <text class="f no" x="200" y="48">browser demo &#8212; a thin wrapper over run_inference.py, so it cannot drift from the CLI.</text>
+  </g>
+
+  <!-- ZONE 2 : CODE -->
+  <rect x="40" y="224" width="530" height="252" rx="11" fill="#0c2032" stroke="#1b3a52"/>
+  <rect x="40" y="224" width="3.5" height="252" rx="2" fill="#38bdf8"/>
+  <text class="f zn" x="62" y="248" fill="#38bdf8">ZONE 2 &#183; CODE</text>
+  <g transform="translate(62,274)">
+    <text class="m dir" x="0" y="0">src/</text>
+    <text class="f no" x="120" y="0">the pipeline modules</text>
+    <text class="m fl" x="16" y="20">orientation.py</text><text class="f no" x="150" y="20">detector input-rotation contract</text>
+    <text class="m fl" x="16" y="38">fdi_head_inference.py</text><text class="f no" x="180" y="38">Stage 2</text>
+    <text class="m fl" x="16" y="56">classifiers.py</text><text class="f no" x="150" y="56">Stages 3 and 4</text>
+    <text class="m fl" x="16" y="74">crop_generator.py</text><text class="f no" x="164" y="74">the two crop geometries</text>
+    <text class="m fl" x="16" y="92">utils/fdi_converter.py</text><text class="f no" x="184" y="92">incl. the Tufts mirror fix</text>
+
+    <text class="m dir" x="0" y="124">scripts/</text>
+    <text class="f no" x="120" y="124">CLI entry points</text>
+    <text class="m fl" x="16" y="144"><tspan class="star" fill="#fbbf24">&#9733;</tspan> run_inference.py</text><text class="f no" x="180" y="144">all six stages, one command</text>
+    <text class="m fl" x="16" y="162">eval/</text><text class="f no" x="100" y="162">18 evaluation + invariant scripts</text>
+    <text class="m fl" x="16" y="180">yolo/ dentex/ tufts/</text><text class="f no" x="180" y="180">per-corpus data toolchains</text>
+  </g>
+
+  <!-- ZONE 3 : ARTEFACTS -->
+  <rect x="590" y="224" width="530" height="252" rx="11" fill="#0c2032" stroke="#1b3a52"/>
+  <rect x="590" y="224" width="3.5" height="252" rx="2" fill="#a78bfa"/>
+  <text class="f zn" x="612" y="248" fill="#a78bfa">ZONE 3 &#183; ARTEFACTS</text>
+  <g transform="translate(612,274)">
+    <text class="m dir" x="0" y="0">models/</text>
+    <text class="f no" x="130" y="0">one numbered dir per trained stage</text>
+    <text class="m fl" x="16" y="20">11_yolo_seg_tufts_r1/</text><text class="f no" x="190" y="20">Stage-1 default</text>
+    <text class="m fl" x="16" y="38">10_fdi_head_dentex_tufts_v2/</text><text class="f no" x="234" y="38">Stage-2 default</text>
+    <text class="m fl" x="16" y="56">09_caries_gate_v3/</text><text class="f no" x="190" y="56">Stage-3 default</text>
+    <text class="m fl" x="16" y="74">03_ / 04_ bone_loss</text><text class="f no" x="190" y="74">Stage-4 defaults</text>
+    <text class="f no" x="16" y="94">every checkpoint version-tagged and SHA-256 pinned</text>
+
+    <text class="m dir" x="0" y="124">notebooks/</text>
+    <text class="f no" x="130" y="124">how each model was trained</text>
+    <text class="m dir" x="0" y="148">outputs/</text>
+    <text class="f no" x="130" y="148">22 saved run directories &#8212; every number traces here</text>
+    <text class="m dir" x="0" y="172">tests/</text>
+    <text class="f no" x="130" y="172">122 tests, all passing</text>
+  </g>
+
+  <!-- ZONE 4 : DOCS -->
+  <rect x="40" y="490" width="1080" height="196" rx="11" fill="#0c2032" stroke="#1b3a52"/>
+  <rect x="40" y="490" width="3.5" height="196" rx="2" fill="#fbbf24"/>
+  <text class="f zn" x="62" y="514" fill="#fbbf24">ZONE 4 &#183; THE DOCUMENTATION SYSTEM &#8212; UNDOCUMENTED RESULTS ARE LOST RESULTS</text>
+
+  <g transform="translate(62,544)">
+    <rect x="0" y="-16" width="252" height="130" rx="8" fill="#12283c" stroke="#22465f"/>
+    <text class="m fl" x="14" y="4" font-weight="700">results/RESULTS_LOG.md</text>
+    <text class="f no" x="14" y="24">append-only journal.</text>
+    <text class="f no" x="14" y="41">One entry per milestone,</text>
+    <text class="f no" x="14" y="58">oldest first. An entry is</text>
+    <text class="f no" x="14" y="75">never edited &#8212; a wrong</text>
+    <text class="f no" x="14" y="92">number gets a new one.</text>
+  </g>
+  <g transform="translate(338,544)">
+    <rect x="0" y="-16" width="252" height="130" rx="8" fill="#12283c" stroke="#22465f"/>
+    <text class="m fl" x="14" y="4" font-weight="700">results/model_metrics.md</text>
+    <text class="f no" x="14" y="24">the scoreboard.</text>
+    <text class="f no" x="14" y="41">Current numbers only,</text>
+    <text class="f no" x="14" y="58">one table per model,</text>
+    <text class="f no" x="14" y="75">no history. Kept</text>
+    <text class="f no" x="14" y="92">consistent with the log.</text>
+  </g>
+  <g transform="translate(614,544)">
+    <rect x="0" y="-16" width="252" height="130" rx="8" fill="#12283c" stroke="#22465f"/>
+    <text class="m fl" x="14" y="4" font-weight="700">results/PAPER_MATERIAL.md</text>
+    <text class="f no" x="14" y="24">the master source.</text>
+    <text class="f no" x="14" y="41">Methods, every result</text>
+    <text class="f no" x="14" y="58">table, and a 25-item</text>
+    <text class="f no" x="14" y="75">honest-limitations list.</text>
+    <text class="f no" x="14" y="92">The paper is written</text>
+    <text class="f no" x="14" y="109">from this file.</text>
+  </g>
+  <g transform="translate(890,544)">
+    <rect x="0" y="-16" width="208" height="130" rx="8" fill="#12283c" stroke="#22465f"/>
+    <text class="m fl" x="14" y="4" font-weight="700">session-memory/</text>
+    <text class="f no" x="14" y="24">one dated file per</text>
+    <text class="f no" x="14" y="41">working session: goal,</text>
+    <text class="f no" x="14" y="58">actions, decisions,</text>
+    <text class="f no" x="14" y="75">open questions, next</text>
+    <text class="f no" x="14" y="92">steps. Never edited.</text>
+  </g>
+</svg>

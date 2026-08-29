@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 470" width="1160" height="470" role="img" aria-label="Stage-2 failure taxonomy: of 936 ground-truth teeth, 275 are never detected by Stage 1, 546 are numbered correctly, and 115 receive a wrong FDI code of which 89 are benign off-by-one errors">
+  <title>Where the 936 teeth go &#8212; Stage-2 failure taxonomy</title>
+  <desc>End-to-end FDI accuracy of 58.3 percent is detection-bound. 275 of 936 teeth (29.4 percent) are never detected and cannot be numbered. Of the 661 teeth Stage 1 does find, Stage 2 numbers 82.6 percent correctly. 77.4 percent of the remaining errors are benign off-by-one; only 2.4 percent of detected teeth suffer a category error.</desc>
+  <defs>
+    <style>
+      .f  { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif; }
+      .hd { font-size: 17px; font-weight: 680; fill: #eaf3fa; }
+      .sb { font-size: 12.5px; fill: #8ba3b8; }
+      .lb { font-size: 12.5px; fill: #cfe0ee; }
+      .nm { font-size: 12.5px; font-weight: 700; }
+      .cap{ font-size: 11px; fill: #7189a0; }
+      .kk { font-size: 10px; letter-spacing: 1.3px; font-weight: 700; fill: #5f7d97; }
+      .grow { transform-origin: left center; animation: gw 1.1s cubic-bezier(.22,.85,.3,1) both; }
+      @keyframes gw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+      @media (prefers-reduced-motion: reduce) { .grow { animation: none } }
+    </style>
+  </defs>
+
+  <rect width="1160" height="470" rx="14" fill="#0a1626"/>
+  <rect x="0.5" y="0.5" width="1159" height="469" rx="14" fill="none" stroke="#1c3a52" stroke-width="1"/>
+
+  <text class="f kk" x="40" y="42">STAGE-2 FAILURE TAXONOMY &#183; 936 GROUND-TRUTH TEETH &#183; 164 LEAK-FREE DENTEX IMAGES</text>
+  <text class="f hd" x="40" y="72">58.3% end-to-end is a <tspan fill="#38bdf8">detection-bound</tspan> number, not a numbering score</text>
+  <text class="f sb" x="40" y="94">Of the 661 teeth Stage 1 actually finds, Stage 2 numbers <tspan fill="#a78bfa" font-weight="700">82.6%</tspan> correctly. Report both figures.</text>
+
+  <!-- scale: 936 teeth over 880 px, x0 = 210 -->
+  <g>
+    <!-- correct 546 -->
+    <g transform="translate(210,124)">
+      <rect class="grow" width="513" height="34" rx="4" fill="#34d399" style="animation-delay:.05s"/>
+      <text class="f nm" x="12" y="22" fill="#06281c">546 teeth</text>
+    </g>
+    <text class="f lb" x="196" y="146" text-anchor="end">correct</text>
+    <text class="f nm" x="1120" y="146" text-anchor="end" fill="#34d399">58.3%</text>
+
+    <!-- not detected 275 -->
+    <g transform="translate(210,170)">
+      <rect class="grow" width="258" height="34" rx="4" fill="#64748b" style="animation-delay:.15s"/>
+      <text class="f nm" x="12" y="22" fill="#0b1622">275 teeth</text>
+    </g>
+    <text class="f lb" x="196" y="192" text-anchor="end">never detected</text>
+    <text class="f nm" x="1120" y="192" text-anchor="end" fill="#94a3b8">29.4%</text>
+    <text class="f cap" x="482" y="192">Stage 1 missed them &#8212; Stage 2 never gets a chance</text>
+
+    <!-- off by one 89 -->
+    <g transform="translate(210,216)">
+      <rect class="grow" width="84" height="34" rx="4" fill="#fbbf24" style="animation-delay:.25s"/>
+      <text class="f nm" x="12" y="22" fill="#2a1d00">89</text>
+    </g>
+    <text class="f lb" x="196" y="238" text-anchor="end">off-by-one</text>
+    <text class="f nm" x="1120" y="238" text-anchor="end" fill="#fbbf24">9.5%</text>
+    <text class="f cap" x="308" y="238">right quadrant, adjacent position &#8212; 53 mesial / 36 distal, so not an indexing bug</text>
+
+    <!-- same quadrant far 10 -->
+    <g transform="translate(210,262)">
+      <rect class="grow" width="9.4" height="34" rx="3" fill="#f59e0b" style="animation-delay:.32s"/>
+    </g>
+    <text class="f lb" x="196" y="284" text-anchor="end">same quadrant, far</text>
+    <text class="f nm" x="1120" y="284" text-anchor="end" fill="#f59e0b">1.1%</text>
+    <text class="f cap" x="234" y="284">10 &#8212; a counting slip of two or more positions</text>
+
+    <!-- mirror 8 -->
+    <g transform="translate(210,300)">
+      <rect class="grow" width="7.5" height="34" rx="3" fill="#fb7185" style="animation-delay:.38s"/>
+    </g>
+    <text class="f lb" x="196" y="322" text-anchor="end">mirrored side</text>
+    <text class="f nm" x="1120" y="322" text-anchor="end" fill="#fb7185">0.9%</text>
+    <text class="f cap" x="234" y="322">8 &#8212; right arch and position, wrong side</text>
+
+    <!-- wrong arch 6 -->
+    <g transform="translate(210,338)">
+      <rect class="grow" width="5.6" height="34" rx="3" fill="#f43f5e" style="animation-delay:.44s"/>
+    </g>
+    <text class="f lb" x="196" y="360" text-anchor="end">wrong arch</text>
+    <text class="f nm" x="1120" y="360" text-anchor="end" fill="#f43f5e">0.6%</text>
+    <text class="f cap" x="234" y="360">6 &#8212; upper called lower, or the reverse. Fell 75% with the seg detector</text>
+  </g>
+
+  <line x1="40" y1="392" x2="1120" y2="392" stroke="#1c3a52" stroke-width="1"/>
+
+  <g transform="translate(40,418)">
+    <rect x="0" y="-14" width="4" height="34" rx="2" fill="#34d399"/>
+    <text class="f lb" x="18" y="2">The errors that remain are overwhelmingly benign.</text>
+    <text class="f cap" x="18" y="20">89 of 115 wrong codes (77.4%) are off-by-one. Only 16 of 661 detected teeth &#8212; <tspan fill="#fb7185" font-weight="700">2.4%</tspan> &#8212; are category errors (wrong arch, mirrored side, other).</text>
+  </g>
+</svg>

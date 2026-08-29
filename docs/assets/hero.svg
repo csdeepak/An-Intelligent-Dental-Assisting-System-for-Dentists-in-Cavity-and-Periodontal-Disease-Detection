@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 300" width="1160" height="300" role="img" aria-label="Dental AI Pipeline — automated OPG analysis: six stages, four datasets, external validation on four hospitals">
+  <title>Dental AI Pipeline — automated panoramic dental X-ray analysis</title>
+  <defs>
+    <linearGradient id="hbg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0a1626"/>
+      <stop offset="55%" stop-color="#0d2035"/>
+      <stop offset="100%" stop-color="#0a1a2c"/>
+    </linearGradient>
+    <linearGradient id="hstroke" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#2dd4bf" stop-opacity="0.55"/>
+      <stop offset="50%" stop-color="#38bdf8" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#2dd4bf" stop-opacity="0.55"/>
+    </linearGradient>
+    <linearGradient id="htitle" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#e9f3fb"/>
+      <stop offset="45%" stop-color="#7dd3fc"/>
+      <stop offset="100%" stop-color="#5eead4"/>
+    </linearGradient>
+    <linearGradient id="scanline" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#5eead4" stop-opacity="0"/>
+      <stop offset="45%" stop-color="#5eead4" stop-opacity="0.85"/>
+      <stop offset="55%" stop-color="#5eead4" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#5eead4" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="hclip"><rect x="0" y="0" width="1160" height="300" rx="16"/></clipPath>
+    <style>
+      .f { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif; }
+      .m { font-family: ui-monospace, 'SFMono-Regular', 'Cascadia Code', Consolas, 'Liberation Mono', monospace; }
+      .t1 { font-size: 40px; font-weight: 700; letter-spacing: -0.6px; fill: url(#htitle); }
+      .t2 { font-size: 16.5px; fill: #9fb3c8; letter-spacing: 0.2px; }
+      .kpi-n { font-size: 21px; font-weight: 700; fill: #e6f1f8; }
+      .kpi-l { font-size: 10.5px; fill: #7f95ab; letter-spacing: 0.75px; }
+      .tag { font-size: 11.5px; fill: #7dd3fc; letter-spacing: 0.9px; font-weight: 600; }
+      .fade-a { animation: fadeUp .9s ease-out both; }
+      .fade-b { animation: fadeUp .9s .18s ease-out both; }
+      .fade-c { animation: fadeUp .9s .34s ease-out both; }
+      @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+      @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+    </style>
+  </defs>
+
+  <g clip-path="url(#hclip)">
+    <rect width="1160" height="300" fill="url(#hbg)"/>
+
+    <!-- faint tooth-arch lattice, evoking the 32-tooth FDI grid -->
+    <g opacity="0.16" fill="none" stroke="#38bdf8" stroke-width="1">
+      <path d="M120 236 Q 335 108 550 236"/>
+      <path d="M148 244 Q 335 132 522 244"/>
+      <path d="M610 64 Q 825 192 1040 64"/>
+      <path d="M638 56 Q 825 168 1012 56"/>
+    </g>
+    <g opacity="0.5" fill="#2dd4bf">
+      <circle cx="150" cy="228" r="2.4"><animate attributeName="opacity" values="0.25;1;0.25" dur="3.2s" repeatCount="indefinite"/></circle>
+      <circle cx="256" cy="166" r="2.4"><animate attributeName="opacity" values="0.25;1;0.25" dur="3.2s" begin="0.4s" repeatCount="indefinite"/></circle>
+      <circle cx="420" cy="166" r="2.4"><animate attributeName="opacity" values="0.25;1;0.25" dur="3.2s" begin="0.8s" repeatCount="indefinite"/></circle>
+      <circle cx="522" cy="228" r="2.4"><animate attributeName="opacity" values="0.25;1;0.25" dur="3.2s" begin="1.2s" repeatCount="indefinite"/></circle>
+      <circle cx="900" cy="128" r="2.4"><animate attributeName="opacity" values="0.25;1;0.25" dur="3.2s" begin="1.6s" repeatCount="indefinite"/></circle>
+      <circle cx="1010" cy="72" r="2.4"><animate attributeName="opacity" values="0.25;1;0.25" dur="3.2s" begin="2.0s" repeatCount="indefinite"/></circle>
+    </g>
+
+    <!-- radiograph scan sweep -->
+    <rect x="-260" y="0" width="180" height="300" fill="url(#scanline)" opacity="0.30">
+      <animate attributeName="x" values="-260;1180" dur="7s" repeatCount="indefinite"/>
+    </rect>
+
+    <g class="fade-a">
+      <text class="f tag" x="56" y="66">PANORAMIC RADIOGRAPH · PER-TOOTH DIAGNOSIS · FDI NOTATION</text>
+      <text class="f t1" x="54" y="118">Dental AI Pipeline</text>
+    </g>
+    <g class="fade-b">
+      <text class="f t2" x="56" y="152">Six-stage OPG analysis — YOLOv11l-seg detection, learned FDI enumeration,</text>
+      <text class="f t2" x="56" y="176">and two ResNet18 cascades for caries and periodontal bone loss.</text>
+    </g>
+
+    <!-- KPI strip -->
+    <g class="fade-c">
+      <rect x="54" y="204" width="1052" height="62" rx="11" fill="#0e2438" stroke="url(#hstroke)" stroke-width="1"/>
+      <g transform="translate(84,230)">
+        <text class="f kpi-n" x="0" y="0">0.810</text><text class="f kpi-l" x="0" y="18">DETECTION mAP@0.5</text>
+      </g>
+      <line x1="240" y1="216" x2="240" y2="254" stroke="#1e3a52" stroke-width="1"/>
+      <g transform="translate(268,230)">
+        <text class="f kpi-n" x="0" y="0">58.3%</text><text class="f kpi-l" x="0" y="18">FDI EXACT, END-TO-END</text>
+      </g>
+      <line x1="440" y1="216" x2="440" y2="254" stroke="#1e3a52" stroke-width="1"/>
+      <g transform="translate(468,230)">
+        <text class="f kpi-n" x="0" y="0">0.9233</text><text class="f kpi-l" x="0" y="18">BONE-LOSS MACRO F1</text>
+      </g>
+      <line x1="648" y1="216" x2="648" y2="254" stroke="#1e3a52" stroke-width="1"/>
+      <g transform="translate(676,230)">
+        <text class="f kpi-n" x="0" y="0">4</text><text class="f kpi-l" x="0" y="18">EXTERNAL HOSPITALS</text>
+      </g>
+      <line x1="838" y1="216" x2="838" y2="254" stroke="#1e3a52" stroke-width="1"/>
+      <g transform="translate(866,230)">
+        <text class="f kpi-n" x="0" y="0">83.6 M</text><text class="f kpi-l" x="0" y="18">PARAMS, ALL SIX MODELS</text>
+      </g>
+    </g>
+
+    <rect x="0.5" y="0.5" width="1159" height="299" rx="16" fill="none" stroke="url(#hstroke)" stroke-width="1"/>
+  </g>
+</svg>

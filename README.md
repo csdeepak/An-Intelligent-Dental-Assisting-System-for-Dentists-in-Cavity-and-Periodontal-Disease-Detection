@@ -1,606 +1,760 @@
-# 🦷 Dental AI Pipeline — Automated OPG Analysis
+<div align="center">
 
-> **Caries Detection & Periodontal Bone Loss Detection from Panoramic Dental X-rays**
+<img src="docs/assets/hero.svg" width="100%" alt="Dental AI Pipeline — six-stage OPG analysis. Detection mAP@0.5 0.810, FDI exact 58.3% end-to-end, bone-loss macro F1 0.9233, four external hospitals, 83.6 M parameters across six models.">
 
-[![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-red.svg)](https://pytorch.org/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-6%2F6%20Stages%20Running-brightgreen.svg)]()
-[![Tests](https://img.shields.io/badge/tests-84%20passing-brightgreen.svg)]()
-[![External](https://img.shields.io/badge/external%20validation-4%20hospitals-blue.svg)]()
+<br>
+
+[![Python](https://img.shields.io/badge/Python-3.12%20%7C%203.13-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.8-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![Ultralytics](https://img.shields.io/badge/YOLOv11l--seg-Ultralytics-0B0B0B?logo=yolo&logoColor=white)](https://docs.ultralytics.com/)
+[![Streamlit](https://img.shields.io/badge/Demo-Streamlit-FF4B4B?logo=streamlit&logoColor=white)](app.py)
+[![Docker](https://img.shields.io/badge/Container-CPU--only-2496ED?logo=docker&logoColor=white)](Dockerfile)
+[![Tests](https://img.shields.io/badge/tests-122%20passing-2ea043)](tests/)
+[![Invariants](https://img.shields.io/badge/invariants-all%20hold-2ea043)](scripts/eval/verify_invariants.py)
+[![External validation](https://img.shields.io/badge/external%20validation-4%20hospitals-1f6feb)](#c2--external-validation-on-four-hospitals)
+[![Stages](https://img.shields.io/badge/pipeline-6%2F6%20stages%20running-2ea043)](#system-architecture)
+[![License](https://img.shields.io/badge/License-MIT-777)](LICENSE)
+
+**Automated caries and periodontal bone-loss screening from a single panoramic dental X-ray.**<br>
+Detect every tooth · number it in FDI notation · classify two pathologies per tooth · emit a structured report.
+
+</div>
 
 ---
 
-> ## 📍 START HERE
+> ### START HERE
 >
-> **Picking this up cold — human or AI session? Read [`transfer.md`](transfer.md) first.**
-> It is the living snapshot: where we are against the 8-week plan, what is verified done,
-> what is next with the actual blocker named, and which decisions are pending. It is
-> rewritten in place every substantial session (`CLAUDE.md` rule 5), so it is current in a
-> way this README cannot be.
->
-> Then, depending on what you need:
+> **Picking this up cold — human or AI session? Read [`transfer.md`](transfer.md) first.** It is the
+> living snapshot: where we are, what is verified done, what is next with the blocker named. It is
+> rewritten in place every substantial session ([`CLAUDE.md`](CLAUDE.md) rule 5), so it is current
+> in a way this README cannot be.
 >
 > | Question | File |
 > |---|---|
 > | What are the current numbers? | [`docs/results/model_metrics.md`](docs/results/model_metrics.md) |
 > | Full technical story + honest limitations (the paper is written from this) | [`docs/results/PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) |
-> | Why is it like this? What happened when? | [`docs/results/RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) (append-only) |
-> | What should I work on? | [`docs/research/PUBLICATION_TODO.md`](docs/research/PUBLICATION_TODO.md) status block, sequenced by [`MASTER_PLAN_2026H2.md`](docs/research/MASTER_PLAN_2026H2.md) |
+> | Why is it like this? What happened when? | [`docs/results/RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) — 100 dated entries, append-only |
+> | What should I work on? | [`docs/research/PUBLICATION_TODO.md`](docs/research/PUBLICATION_TODO.md), sequenced by [`MASTER_PLAN_2026H2.md`](docs/research/MASTER_PLAN_2026H2.md) |
 > | How is the documentation laid out? | [`docs/README.md`](docs/README.md) |
 > | What does the code do? | [`src/README.md`](src/README.md), [`scripts/README.md`](scripts/README.md) |
-> | **Publication target and grading criteria** | [`transfer.md`](transfer.md) §5 |
-> | **Setting this up on a new machine — what's in git vs what needs a manual Drive fetch** | [`transfer.md`](transfer.md) §8, [`docs/EXTERNAL_DRIVE.md`](docs/EXTERNAL_DRIVE.md) |
+> | Which checkpoint is the pipeline default? | [`models/README.md`](models/README.md) |
+> | Setting up on a new machine | [`transfer.md`](transfer.md) §8, [`docs/EXTERNAL_DRIVE.md`](docs/EXTERNAL_DRIVE.md) |
 >
-> ⚠️ **Before running the pipeline on any non-Tufts image, rotate it 90° counter-clockwise**
-> — the frozen detector was trained on sideways panoramics. Upright input gives 7.5% recall
-> and 0% FDI accuracy. Use `src.orientation.detect_upright`. See [`src/README.md`](src/README.md).
+> **⚠️ Before running the pipeline on any non-Tufts image, rotate it 90° counter-clockwise.** The
+> frozen detector was trained on sideways panoramics. Upright input gives 7.5% recall and 0% FDI
+> accuracy. Use `src.orientation.detect_upright` — see [`src/README.md`](src/README.md).
 
 ---
 
-## Table of Contents
+## Table of contents
 
-- [Overview](#overview)
-- [System Architecture](#system-architecture)
-- [Pipeline Stages](#pipeline-stages)
-- [Current Results](#current-results)
-- [Dataset](#dataset)
-- [Project Structure](#project-structure)
-- [Setup & Installation](#setup--installation)
+- [What this is](#what-this-is)
+- [System architecture](#system-architecture)
+- [Pipeline stages](#pipeline-stages)
+- [Results](#results)
+  - [C1 — the constant baseline that beats everything](#c1--the-constant-baseline-that-beats-everything)
+  - [Where the 936 teeth go](#where-the-936-teeth-go--stage-2-failure-taxonomy)
+  - [C2 — external validation on four hospitals](#c2--external-validation-on-four-hospitals)
+  - [C4 — abstention](#c4--abstention-the-system-knows-when-to-decline)
+  - [Calibration](#calibration--the-probabilities-are-not-probabilities)
+- [Model zoo](#model-zoo)
+- [Datasets](#datasets)
+- [Repository structure](#repository-structure)
+- [Setup and installation](#setup-and-installation)
 - [Usage](#usage)
-- [Phase Status](#phase-status)
-- [Key Design Decisions](#key-design-decisions)
-- [Known Bugs & Fixes](#known-bugs--fixes)
-- [Evaluation Targets](#evaluation-targets)
-- [Risks & Mitigations](#risks--mitigations)
-- [Universal to FDI Conversion](#universal-to-fdi-conversion)
-- [Publication Target & Grading Criteria](#publication-target--grading-criteria)
+- [Reproducing every number](#reproducing-every-number)
+- [Methodology and rigor practices](#methodology-and-rigor-practices)
+- [Key engineering decisions](#key-engineering-decisions)
+- [Known limitations](#known-limitations)
+- [Bugs found and fixed](#bugs-found-and-fixed)
+- [Universal → FDI conversion](#universal--fdi-conversion)
+- [Publication target](#publication-target)
 - [Contributing](#contributing)
 - [License](#license)
 
 ---
 
-## Overview
+## What this is
 
-This project builds a **fully automated dental diagnostic system** that takes a single
-**OPG (Orthopantomogram) X-ray** as input and produces a **structured per-tooth clinical
-report** identifying:
+Orthopantomograms (OPGs, panoramic dental radiographs) are the routine first-line imaging modality
+in general dentistry: one exposure captures the full dentition, both jaws and the surrounding
+alveolar bone. Their interpretation is strongly reader-dependent. Early enamel/dentin caries and
+early-to-moderate periodontal bone loss are low-contrast, small-area findings distributed across
+~32 teeth in a single image, and the readers most likely to miss them — students and junior
+clinicians — are exactly the ones least likely to have a specialist second opinion.
 
-- **Caries** — presence (Yes/No) and depth (shallow `caries` vs `deep_caries`)
-- **Bone Loss** — presence (Present/Absent) and severity (Mild / Moderate / Severe)
+Two properties make this a good automation target:
 
-Each finding is mapped to the affected tooth using **FDI numbering** (international
-standard). Only affected teeth appear in the final report.
+- **The clinical output is structured and per-tooth, not per-image.** A useful report says
+  "tooth 36: caries present, deep; bone loss present, moderate", keyed to the FDI World Dental
+  Federation notation every dentist already uses.
+- **The two pathologies live in different spatial supports of the same tooth** — caries in the
+  crown, bone loss in the alveolar bone apical to the cemento-enamel junction. A whole-image
+  classifier discards that structure; a tooth-centric pipeline preserves it.
 
-### Final Output Format
+**The constraint that shaped the entire design:** no single public dataset annotates teeth, caries
+and bone loss together. The pipeline is therefore deliberately modular — each stage trains on the
+dataset that actually carries its label (Tufts for detection and bone loss, DENTEX for caries) and
+the stages are joined at inference time on the FDI key.
+
+### Output format
 
 ```
-Tooth [FDI Number]
+Tooth 36
   → Caries: Yes | Depth: Deep
   → Bone Loss: Present | Severity: Moderate
 
-Tooth [FDI Number]
+Tooth 24
   → Caries: No
   → Bone Loss: Present | Severity: Mild
 ```
 
-> ✅ **This output format is shipped, not just a design target.** `scripts/run_inference.py`
-> joins all six stages into one runnable inference: OPG in, per-tooth JSON + annotated overlay
-> out. There is also a browser demo — `streamlit run app.py`, or `docker build` from the
-> repo's `Dockerfile`. See [Usage](#usage) and [Pipeline Stages](#pipeline-stages) below.
-> ⚠️ What "shipped" does **not** mean: validated to clinical standard. Every generated report
-> carries a `limitations` field naming exactly what is still weak — see that table below.
+This is **shipped, not a design target**. [`scripts/run_inference.py`](scripts/run_inference.py)
+joins all six stages into one runnable command: OPG in, per-tooth JSON + annotated overlay out.
+[`app.py`](app.py) and the [`Dockerfile`](Dockerfile) wrap it for a browser demo.
+
+> **"Shipped" does not mean "validated to clinical standard."** Every generated report carries a
+> `limitations` field naming exactly what is still weak. This is a research prototype and a
+> capstone project — not a medical device, and not for clinical use.
 
 ---
 
-## System Architecture
+## System architecture
 
-The system processes an OPG through a **six-stage pipeline**, with two parallel analysis
-branches (caries and bone loss) running on different crop types from the same tooth
-bounding box.
+Six stages, with two parallel analysis branches running on **two different crops of the same
+detected tooth box**.
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        OPG X-ray Input                          │
-│                        (840 × 1615 px)                          │
-└──────────────────────────┬──────────────────────────────────────┘
-                           ▼
-┌─────────────────────────────────────────────────────────────────┐
-│              Stage 1: Tooth Detection (YOLOv11l)                │
-│              Output: Per-tooth bounding boxes                   │
-└──────────────────────────┬──────────────────────────────────────┘
-                           ▼
-┌─────────────────────────────────────────────────────────────────┐
-│              Stage 2: FDI Assignment (learned head)             │
-│              ResNet18 + position → quadrant/position → FDI      │
-└──────────┬───────────────────────────────────────┬──────────────┘
-           ▼                                       ▼
-┌──────────────────────┐              ┌──────────────────────────┐
-│   CARIES PATH        │              │   BONE LOSS PATH         │
-│                      │              │                          │
-│  Tight Crop (1.0×)   │              │  Expanded Crop           │
-│  Crown-focused       │              │  (1.5× W, 2.0× H)        │
-│       │              │              │  Crown + root + bone     │
-│       ▼              │              │       ▼                  │
-│  Resize 224×224      │              │  Resize 224×224          │
-│  ImageNet normalize  │              │  ImageNet normalize      │
-│       ▼              │              │       ▼                  │
-│  ResNet18 Gate       │              │  ResNet18 Binary         │
-│  (caries / no)       │              │  (Bone Loss Yes/No)      │
-│       ▼ (if caries)  │              │       ▼ (if present)     │
-│  ResNet18 Depth      │              │  ResNet18 Severity       │
-│  (caries/deep)       │              │  (Mild/Mod/Severe)       │
-└──────────┬───────────┘              └──────────┬───────────────┘
-           └──────────────┬───────────────────────┘
-                          ▼
-┌─────────────────────────────────────────────────────────────────┐
-│      Stage 5: Fusion, flags, assessability   ✅ BUILT           │
-│      Per-tooth fusion + confidence gating                       │
-└─────────────────────────┬───────────────────────────────────────┘
-                          ▼
-┌─────────────────────────────────────────────────────────────────┐
-│      Stage 6: Per-tooth JSON + overlay   ✅ BUILT (no Grad-CAM) │
-└─────────────────────────────────────────────────────────────────┘
-```
+<img src="docs/assets/pipeline.svg" width="100%" alt="Six-stage pipeline. Stage 1 YOLOv11l-seg tooth detection at mAP@0.5 0.810. Stage 2 ResNet18 plus four positional features assigns FDI codes by Hungarian one-to-one assignment, 58.3 percent end-to-end. The caries path uses a tight 1.0x crop through a ResNet18 gate and depth head; the bone-loss path uses a 1.5x wide, 2.0x tall crop through a ResNet18 gate and severity head. Stage 5 fuses findings with confidence gating and Stage 6 emits per-tooth JSON and an overlay in 2.39 seconds per image on CPU.">
 
-> Diagrams: [`docs/architecture/`](docs/architecture/) —
-> `corrected_opg_pipeline_architecture.svg` is the authoritative version.
+The asymmetry between the two crops is the single most consequential design decision in the
+pipeline, and it follows directly from anatomy — see
+[Key engineering decisions](#key-engineering-decisions).
 
 ---
 
-## Pipeline Stages
+## Pipeline stages
 
-| Stage | Component | Input | Output | Status |
-|-------|-----------|-------|--------|--------|
-| 1 | Tooth Detection (YOLOv11l-seg) | Full OPG | Tooth bboxes | ✅ **Complete** — test mAP@0.5 (box) **0.810**; pipeline default **frozen** as `tooth-detector-seg-tufts-1024-v1.0` (R1, 27 Aug 2026). Adopted for a **+2.76-point box gain** over the superseded bbox detector (0.782), which stays frozen and hash-pinned. **Masks scored 0.638 against a pre-registered 0.65 bar — the bar was NOT met**; the model is used for its **boxes only** and mask-aware cropping (R2) stays unwired. |
-| 2 | Sorting + FDI assignment | Tooth bboxes | FDI-keyed tooth list | ✅ **Complete — learned enumeration head** ([validated](scripts/eval/README.md) on 164 leak-free images): quadrant 94.7%, FDI exact **58.3% end-to-end** (up from 46.3% on the superseded detector, and from 22.9% for the positional method it replaced). Universal→FDI table correct (`f8b31f8`). **Pipeline default is now v2.0** (DENTEX+Tufts, adopted for cross-domain robustness — +21.5pp on a second machine population, same 46.5% in-domain). See [`models/README.md`](models/README.md) "Which FDI head to use". |
-| 3 | Caries cascade (ResNet18 ×2) | Tight 1.0× crop | caries / deep_caries | ✅ **Complete, gate rebuilt 25 Aug** — `caries-gate-resnet18-v3.0` is the pipeline default, trained on a repaired negative class (5,366 real healthy teeth). In-pipeline caries rate **84.9% → 19.1%**. Held-out precision **0.40** — improved, not solved. |
-| 4a | Bone Loss binary (ResNet18) | Expanded 1.5×W/2.0×H crop | Present / Absent | ✅ **Complete** — macro F1 **0.9233** |
-| 4b | Bone Loss severity (ResNet18) | Expanded crop | Mild / Moderate / Severe | ✅ **Complete** — macro F1 0.7208 (only 52 val crops) |
+| # | Stage | Input | Output | Status and current number |
+|---|-------|-------|--------|---------------------------|
+| 1 | **Tooth detection** — YOLOv11l-seg | Full OPG, 1024 px | Tooth boxes (`nc=1`) | ✅ Test box **mAP@0.5 0.810**. Pipeline default frozen as `tooth-detector-seg-tufts-1024-v1.0`. Adopted for a **+2.76-point box gain** over the superseded bbox detector (0.7824). **Masks scored 0.638 against a pre-registered 0.65 bar — the bar was NOT met**; used for its **boxes only**, and mask-aware cropping stays unwired. |
+| 2 | **FDI enumeration** — ResNet18 + 4 positional features | Tooth box + 1.5× crop | FDI-keyed tooth list | ✅ **58.3% exact end-to-end** [53.9, 62.8]; **82.6% of detected teeth** [79.1, 85.8]; quadrant 97.6%. Hungarian one-to-one over the 32 codes → **0 duplicate codes**. Pipeline default is head **v2.0** (DENTEX+Tufts), adopted for cross-domain robustness. |
+| 3a | **Caries gate** — ResNet18 | Tight 1.0× crop | caries / healthy | ✅ `caries-gate-resnet18-v3.0`. Held-out **P 0.398 / R 0.740**, **AP 0.550** against a 0.147 chance line (3.7× chance). Rebuilt on a real negative class of 5,366 healthy teeth; in-pipeline caries rate **84.9% → 19.1%**. Improved, not solved. |
+| 3b | **Caries depth** — ResNet18 | Tight 1.0× crop | caries / deep_caries | ✅ acc **0.81**, macro F1 **0.77** (133 val crops). Validation only — no held-out test split exists for this head yet. |
+| 4a | **Bone-loss gate** — ResNet18 + focal loss | Expanded 1.5×W / 2.0×H crop | Present / Absent | ✅ macro F1 **0.9233**, sens 83.05%, spec 99.53% (1,558 val crops at real 4% prevalence). **Collapses out of domain** — see [C2](#c2--external-validation-on-four-hospitals). |
+| 4b | **Bone-loss severity** — ResNet18 + focal loss | Same expanded crop | Mild / Moderate / Severe | ✅ macro F1 **0.7208** — but on **52 val crops**. Provisional. |
+| — | *CEJ bone-level estimation (classical CV)* | Expanded crop | bone loss % | 🔬 **Negative result.** 15.1% exact agreement, 61.6% within ±1 class. **Not in the pipeline**, reported as a negative result. |
+| 5 | **Fusion, flags, assessability** | All tooth outputs | Fused per-tooth record | ✅ Positional-alignment guard + confidence gating. Abstains below `ASSESSABILITY_MIN_FDI_CONFIDENCE = 0.30` → 90.8% coverage at 0.847 accuracy. |
+| 6 | **Report** | Fused findings | Per-tooth JSON + overlay | ✅ **2.39 s/image on CPU.** Grad-CAM remains design-only. |
 
-| — | CEJ bone-level estimation | Expanded crop | bone loss % | 🔬 Exploratory — 15.1% agreement, **not in the pipeline** |
-| 5 | Fusion, flags, assessability | All tooth outputs | Fused per-tooth record | ✅ **Built 24 Aug** — `src/classifiers.py` + `run_inference.py`; positional-alignment guard, confidence gating |
-| 6 | Per-tooth JSON + overlay | Fused findings | Report + annotated image | ✅ **Built 24 Aug** — Grad-CAM remains design-only |
-
-> **"Complete" means trained and running end to end — not validated to clinical standard.**
-> Tier-0 (T0.1–T0.4) closed 25 Aug. What is still honestly weak, and is written into every
-> generated report under `["limitations"]`: caries precision is **0.40**; the bone-loss branch
-> **collapses outside Tufts** (fires on 0.7% of DENTEX teeth, 0.8–5.4% affected-tooth
-> sensitivity on Ningxia); detector recall **70.6%** caps Stage-2 end-to-end at 58.3%.
-> Current state: [`transfer.md`](transfer.md), then
-> `docs/research/PUBLICATION_TODO.md` status block.
+> **"Complete" means trained and running end to end — not validated to clinical standard.** What is
+> honestly still weak, and is written into every generated report under `["limitations"]`: caries
+> precision is **0.40**; the bone-loss branch **collapses outside Tufts** (fires on 0.7% of DENTEX
+> teeth, 2.4% affected-tooth sensitivity on Ningxia); detector recall **70.6%** caps Stage 2
+> end-to-end at 58.3%.
 
 ---
 
-## Current Results
+## Results
 
 Full tables and provenance: [`docs/results/model_metrics.md`](docs/results/model_metrics.md).
+Every number below traces to a saved artefact under `outputs/`, a
+`models/<NN>_<name>/*summary*.txt`, or a run `results.csv`.
+[`scripts/verify_paper_numbers.py`](scripts/verify_paper_numbers.py) asserts 82 manuscript numbers
+against those artefacts, so numeric drift fails loudly.
 
 | Model | Dataset | Split | Headline metric |
-|-------|---------|-------|-----------------|
-| YOLOv11l-**seg** tooth detection (**pipeline default**, imgsz 1024, 135 ep) | Tufts | **test** | mAP@0.5 box **0.810** / mask 0.638 |
-| YOLOv11l tooth detection (A100, imgsz 1024, 150 ep) — superseded 27 Aug, retained + hash-pinned | Tufts | val / **test** | mAP@0.5 0.834 / **0.782** |
-| YOLOv11l tooth detection (H200, imgsz 768, 50 ep) — superseded | Tufts | val | mAP@0.5 0.678 |
-| FDI enumeration head v2.0 (DENTEX+Tufts, **pipeline default**) | DENTEX / Tufts | 164 leak-free / held-out | end-to-end **58.3%** DENTEX on the seg detector (46.3% on the superseded one, same head), **71.5%** Tufts |
-| Caries cascade Phase 2 (caries vs deep_caries) | DENTEX | val (133) | acc **0.81**, macro F1 **0.77** |
-| Bone loss binary | Tufts | val (1,558, real prevalence) | macro F1 **0.9233**, sens 83.05%, spec 99.53% |
-| Bone loss severity (3-class) | Tufts | val (52) | macro F1 **0.7208** |
-| **C1 — VLM baseline** (tooth-level caries FDI sets) | DENTEX | 164 leak-free | **ours F1 0.294** vs Qwen2.5-VL-7B **0.143**, and vs a constant guess **0.204** which the VLM does *not* beat |
-| CEJ estimation (exploratory) | Tufts | 296 crops | 15.1% agreement with primary label |
+|---|---|---|---|
+| YOLOv11l-**seg** detection (**pipeline default**) | Tufts | **test** | mAP@0.5 box **0.810** / mask 0.638 |
+| YOLOv11l bbox detection — superseded, retained + hash-pinned | Tufts | val / **test** | 0.834 / **0.7824** |
+| FDI enumeration head v2.0 | DENTEX / Tufts | 164 leak-free / held-out | **58.3%** end-to-end; **82.6%** of detected; **71.5%** Tufts crop-level |
+| Caries gate v3.0 | DENTEX | held-out test (863 crops) | P **0.398** / R **0.740**, AP **0.550**, ECE 0.136 |
+| Caries depth (caries vs deep) | DENTEX | val (133) | acc **0.81**, macro F1 **0.77** |
+| Bone-loss binary | Tufts | val (1,558, real prevalence) | macro F1 **0.9233** |
+| Bone-loss severity (3-class) | Tufts | val (52) | macro F1 **0.7208** |
+| **C1 — VLM baseline** | DENTEX | 164 leak-free | ours **F1 0.294** vs Qwen2.5-VL-32B **0.246** — and vs an image-blind constant **0.320** that beats both |
+| **C2 — external validation** | Ningxia ×4 hospitals | locked, evaluated once | caries agreement **40.8%** pooled vs **44.3%** internal |
+| CEJ estimation (exploratory) | Tufts | 296 crops | 15.1% agreement — negative result |
+
+### C1 — the constant baseline that beats everything
+
+<img src="docs/assets/baselines.svg" width="100%" alt="C1 baseline comparison. An image-blind constant scores F1 0.320; our six-stage pipeline 0.294; Qwen2.5-VL-32B-Instruct zero-shot 0.246; Qwen2.5-VL-7B-Instruct zero-shot 0.149; the same 7B at 2-shot 0.066 and 4-shot 0.034.">
+
+The headline finding is **not** "small specialist beats large generalist", and this project refuses
+to write it that way. A fixed list of the eight first and second molars — `{16,17,26,27,36,37,46,47}`,
+fitted on the 78 leakage-excluded images, frozen, then applied without ever reading a pixel —
+scores **F1 0.320**, above our pipeline's 0.294. Tooth-level FDI-set F1 is **base-rate dominated**,
+and that control must appear beside every arm or the benchmark says nothing.
+
+What survives:
+
+- **Scale helps the VLM a lot** — 0.149 at 7B → 0.246 at 32B, zero-shot.
+- **Few-shot makes it monotonically worse** — 0.066 at 2-shot, 0.034 at 4-shot — because in-context
+  examples teach the model to answer *nothing*: empty predictions go 56 → 113 → 123 of 164.
+- **Both models hand a confident dental answer to a random-noise image.** The 7B returns `26,36`
+  for blank *and* noise input; the 32B returns `NONE` for blank and the full molar list for noise.
+- **The efficiency claim holds regardless**: 33.45 B parameters and 70.1 GB of H100 VRAM lose to
+  **61.2 M** parameters on a CPU — roughly **550×**, in the VLM's disfavour.
+
+### Where the 936 teeth go — Stage-2 failure taxonomy
+
+<img src="docs/assets/error-propagation.svg" width="100%" alt="Stage-2 failure taxonomy over 936 ground-truth teeth: 546 correct (58.3 percent), 275 never detected (29.4 percent), 89 off-by-one (9.5 percent), 10 same-quadrant-far, 8 mirrored side, 6 wrong arch.">
+
+**58.3% end-to-end is a detection-bound number, not a numbering score.** 275 teeth (29.4%) are
+never detected and cannot be numbered at all. **Of the 661 teeth Stage 1 does find, Stage 2 numbers
+82.6% correctly.** Both figures belong in any honest report of this system.
+
+The errors that remain are overwhelmingly benign: **89 of 115 wrong codes (77.4%) are off-by-one** —
+right quadrant, adjacent position, usually the same tooth type. Only **16 of 661 detected teeth
+(2.4%)** are category errors. The off-by-one drift splits 53 mesial / 36 distal, which is *not* the
+one-sided lean an indexing bug would produce — a check worth reporting as having been made.
+
+Difficulty is also not where intuition puts it: molars are the **easiest** positions (13.0–14.9%
+wrong-code rate on the largest support), because they are large, distinctive and terminal, so they
+anchor arch ordering.
+
+### C2 — external validation on four hospitals
+
+<img src="docs/assets/domain-shift.svg" width="100%" alt="External validation. Caries agreement: 44.3 percent DENTEX internal, then 28.8, 51.3, 40.1 and 41.9 percent across four Ningxia hospitals, 40.8 percent pooled — a 3.5 point internal-to-external gap. Bone loss: 0.9233 macro F1 on Tufts collapses to 0.7 percent firing on DENTEX and 2.4 percent affected-tooth sensitivity on Ningxia.">
+
+Ningxia is **locked external test data** — never trained on, never tuned on, evaluated once, with
+zero-leakage verified separately against Tufts and every DENTEX subset (0 of 2,912 unique test
+hashes matched).
+
+**Caries degrades gracefully.** Pooled external agreement is 40.8% against 44.3% internal — a
+**3.5 pp gap**, down from 8.9 pp, more than halved by the detector swap alone. Only the external
+gain is statistically real (+7.7 pp [+3.3, +12.0]); the internal one is not (+2.3 pp [−3.4, +7.9])
+and is not quoted as an improvement. 40.8% remains weak in absolute terms and three of four
+hospitals sit below the internal figure — this is not a claim that caries generalises well.
+
+**Bone loss does not transfer, and this is reported rather than patched.** The standing hypothesis
+was that the detector and the bone-loss branch failed out-of-domain for a shared reason. That
+hypothesis was **tested and falsified**: swapping the detector moved Stage 2 by +12.0 points and
+caries by +7.7 points, and bone loss by *nothing* — 168 affected teeth flagged before, 165 after,
+while the denominator grew 9%. DENTEX carries no bone-loss labels, so the combined-training lever
+never existed either. Full write-up: [`PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) §8.13.
+
+### C4 — abstention: the system knows when to decline
+
+<img src="docs/assets/abstention.svg" width="100%" alt="Coverage-accuracy curves. At 75 percent coverage, Stage-2 FDI accuracy rises from 0.826 to 0.885 (+5.91 points) and the calibrated caries gate from 0.797 to 0.940 (+14.25 points). Shuffling the confidences flattens both gains to zero.">
+
+Declining the least-confident predictions raises accuracy on the retained ones — and the
+**shuffled-confidence control** is what makes that meaningful: break the link between confidence
+and correctness and the gain vanishes (+0.03 pp / +0.00 pp). The threshold was **not** tuned here.
+
+### Calibration — the probabilities are not probabilities
+
+The caries gate is **systematically overconfident**, not merely imprecise. Every reliability bin
+lies below the diagonal: at a predicted P(caries) of 0.85 the observed frequency is **0.26**.
+
+| | ECE | MCE | Brier | AP |
+|---|---|---|---|---|
+| Raw | 0.136 | 0.596 | 0.137 | 0.550 |
+| + temperature scaling (T = 1.377) | 0.152 ❌ *worse* | 0.433 | 0.132 | 0.550 |
+| + isotonic regression | **0.043** ✅ *−68%* | 0.334 | 0.098 | 0.500 ↓ |
+
+The failure of temperature scaling is informative rather than embarrassing: it assumes a uniform
+*scale* error, but the reliability curve is a *shape* error — flat at ~0.27 across predicted
+0.50–0.85, then jumping to 0.69. One scalar cannot re-bend that. **The miscalibration is
+structural, not a temperature effect.**
+
+Isotonic fixes it but costs AP (0.550 → 0.500) and flips **18% of verdicts**. The adoption
+decision is therefore deliberately partial: isotonic is applied to the *reported confidence* only,
+leaving the verdict as `argmax` on raw logits — so every published downstream number stays exactly
+as measured, and no further touch on locked external data is spent.
 
 ---
 
-## Dataset
+## Model zoo
 
-### Tufts Dental OPG Dataset — detection + bone loss
+Six trained models, **83,564,140 parameters total**, counted with `torch.load` over the
+checkpoints. Every one is version-tagged and SHA-256 pinned, and
+[`scripts/eval/verify_invariants.py`](scripts/eval/verify_invariants.py) re-checks the hashes.
 
-| Component | Count | Description |
-|-----------|-------|-------------|
-| Radiographs | 1,000 | OPG X-rays (840 × 1615 px, uniform) |
-| Tooth Bounding Boxes | 26,005 | Per-tooth annotations across 968 images |
-| Expert Reports | 1,000 | Free-text radiology diagnoses |
-| Expert Pathology Masks | 439 | 285 empty (normal) + 154 annotated |
-| Working Training Pool | 423 | Images with full annotation overlap |
-| Detection split | 700 / 150 / 150 | Frozen image-level 70/15/15 train/val/test |
-| Bone-loss crops built | 22,806 | 23.84× class imbalance (96% normal / 4% diseased) |
+| Stage | Model | Directory | Params | Version tag | In git? |
+|---|---|---|---|---|---|
+| 1 | YOLOv11l-seg | [`models/11_yolo_seg_tufts_r1/`](models/11_yolo_seg_tufts_r1/) | 27,617,459 | `tooth-detector-seg-tufts-1024-v1.0` | ❌ Drive |
+| 1 | YOLOv11l bbox *(superseded)* | [`models/06_yolo_detection_a100_run/`](models/06_yolo_detection_a100_run/) | 25.3 M | `tooth-detector-a100-1024-v1.0` | ❌ Drive |
+| 2 | ResNet18 + 4 positional feats | [`models/10_fdi_head_dentex_tufts_v2/`](models/10_fdi_head_dentex_tufts_v2/) | 11,197,536 | `fdi-enumeration-head-resnet18-v2.0` | ✅ |
+| 2 | FDI head v1.0 *(superseded)* | [`models/08_fdi_enumeration_head/`](models/08_fdi_enumeration_head/) | 11.2 M | `fdi-enumeration-head-resnet18-v1.0` | ✅ |
+| 3a | ResNet18 caries gate | [`models/09_caries_gate_v3/`](models/09_caries_gate_v3/) | 11,187,158 | `caries-gate-resnet18-v3.0` | ❌ Drive |
+| 3b | ResNet18 caries severity | [`models/07_caries_cascade/`](models/07_caries_cascade/) | 11,187,158 | `caries-cascade-resnet18-v1.0` | ✅ |
+| 4a | ResNet18 bone-loss gate | [`models/03_bone_loss_model_training_notebook_models/`](models/03_bone_loss_model_training_notebook_models/) | 11,187,158 | `bone-loss-binary-resnet18-v1.0` | ✅ |
+| 4b | ResNet18 bone-loss severity | [`models/04_bone_loss_severity_notebook_models/`](models/04_bone_loss_severity_notebook_models/) | 11,187,671 | `bone-loss-severity-resnet18-v1.0` | ✅ |
+| | **Total, all six pipeline models** | | **83,564,140** | | |
+| | **Caries path only** (stages 1, 2, 3a, 3b) | | **61,189,311** | | |
 
-### DENTEX — caries
+> ⚠️ **Do not quote "~25 M" for this pipeline.** That figure is the *superseded bbox detector
+> alone*. It had propagated into nine places across six files before anyone counted it
+> ([`RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) 2026-08-28). The efficiency comparison against
+> Qwen2.5-VL-32B-Instruct is **33.45 B vs 61.2 M**.
+
+**Also present, not pipeline defaults:** [`models/12_fdi_head_v3_3corpus/`](models/12_fdi_head_v3_3corpus/)
+(three-corpus head — an **ablation**: +1.14 pp on DENTEX val, significant; +0.74 pp on Tufts, not
+significant; the +15.45 pp Kaggle cell is *not* a generalisation result because v3 trained on that
+corpus) and [`models/12a_fdi_head_v2_control_rebuilt/`](models/12a_fdi_head_v2_control_rebuilt/)
+(its same-day control), plus [`models/05_cej_estimation_v2_models/`](models/05_cej_estimation_v2_models/)
+(the exploratory CEJ negative result).
+
+### Architecture specifications
+
+| | Stage 1 detector | Stage 2 FDI head | Caries cascade | Bone-loss binary | Bone-loss severity |
+|---|---|---|---|---|---|
+| Architecture | YOLOv11l-seg | ResNet18 + 4 positional features | ResNet18 ×2 (ImageNet) | ResNet18 (ImageNet) | ResNet18 (ImageNet) |
+| Input | 1024 px OPG | 224×224 crop at 1.5× + `[cx,cy,bw,bh]` | 224×224 **tight** crop, no expansion | 224×224 at 1.5×W / 2.0×H | same expanded crop |
+| Head | — | (512+64) → 4 and → 8 | 512 → 2 | 512 → 2 | 512 → 3 |
+| Output | tooth boxes, `nc=1` | quadrant (4) × position (8) → FDI | caries/no → caries/deep | Present / Absent | Mild / Moderate / Severe |
+| Assignment | NMS IoU 0.50, conf 0.25 | **Hungarian one-to-one** over 32 codes | argmax | argmax | argmax |
+
+**Training configuration — bone-loss binary** (the most-tuned classifier):
+
+| Parameter | Value |
+|---|---|
+| Loss | Focal Loss (γ = 2.0, α = [0.642, 2.258]) |
+| Optimizer | Adam, lr 1e-4, weight decay 1e-4 |
+| Scheduler | ReduceLROnPlateau (patience 5) |
+| Batch size | 32 |
+| Epochs | 50 budgeted / 32 run, best epoch 22 (early stopping on val macro-F1, patience 10) |
+| Augmentation | H-flip, brightness jitter, rotation ±10°, bbox jitter ±15% |
+| Class imbalance | 23.8× — undersampling + minority augmentation + focal loss |
+
+> **This model overfits, and the training curves are published rather than hidden.** Train loss
+> falls 0.126 → ~0.002 while validation loss flattens near 0.05 from about epoch 5 and never
+> improves — a ~25× gap. With 711 positive training crops, partly augmented duplicates of the same
+> teeth, that is expected. Figure: `docs/results/figures/paper/stage4a_training_curves.png`.
+
+**Detector augmentation is clinically constrained:** horizontal flip, ±10° rotation, small
+translate/scale, HSV-value jitter. **No vertical flip** (an inverted jaw is anatomically
+meaningless), **no mosaic**, **no mixup** — both destroy the global jaw geometry that tooth
+ordering depends on.
+
+---
+
+## Datasets
+
+### Tufts Dental Database — detection + bone loss
+
+| Component | Count |
+|---|---|
+| Radiographs | 1,000 OPGs, 840 × 1615 px (uniform) |
+| Tooth bounding boxes | 26,005 across 968 images |
+| Expert reports | 1,000 free-text radiology diagnoses |
+| Expert pathology masks | 439 (285 empty/normal + 154 annotated) |
+| Detection split | **700 / 150 / 150** frozen image-level train/val/test |
+| Bone-loss crops built | 22,806 — 23.84× class imbalance (96% normal / 4% diseased) |
+
+### DENTEX — caries + FDI enumeration
 
 | Split / class | Count |
-|---------------|-------|
+|---|---|
 | Phase 1 train — `caries` / `no_caries` | 2,767 / 762 |
 | Phase 2 val — `caries` / `deep_caries` | 101 / 32 (133 total) |
+| Caries gate v3 negatives | 5,366 real healthy teeth (MD5 join, 98.28% FDI agreement) |
+| Stage-2 evaluation set | **164 leak-free images**, 936 FDI-labelled teeth |
 
-### Dataset Characteristics
+> **86 of the original 250 evaluation images are excluded as training duplicates** — 85
+> byte-identical to enumeration-head training images, 1 to a detector training image. An earlier
+> table reported 52.2% on the contaminated 249-image set; that figure was **inflated by 5.7 points
+> and is withdrawn**. Exclusion list: `data/dentex/disease_leaked_images.json`.
 
-| Metric | Value |
-|--------|-------|
-| Image size | 840 × 1615 px (uniform) |
+### Ningxia — locked external test, 4 hospitals
+
+| | |
+|---|---|
+| Splits | test1–test4, four independent centres |
+| Images | 736 |
+| Caries lesions | 1,013 (316 / 349 / 162 / 186) |
+| Periodontitis-affected teeth | 6,791 |
+| Leakage | **0 of 2,912** unique test hashes matched any training corpus |
+| Policy | **Never train on it, never tune on it.** Evaluated once. |
+
+> All four splits are **equally external to us**. Ningxia's own split design labels one of them
+> "same-centre-as-train" — that describes *Ningxia's* training set, not ours. Describing it as
+> "in-domain" for this pipeline would be wrong.
+
+### Dataset characteristics and gotchas
+
+| Property | Value |
+|---|---|
 | Avg teeth per image | 26.9 |
-| Tooth aspect ratio | ~0.35 (3× taller than wide) |
-| Michelson contrast | 0.999 (high quality) |
-| Bbox coordinate format | Corner points, frame-dependent — `[y1,x1,y2,x2]` landscape (bone-loss path) or `[x1,y1,x2,y2]` portrait (FDI numbering path); see `docs/exploration/README.md` Bug 2's note |
-| Tooth numbering | Universal (1-32) — converted to FDI, and **left-right mirrored** in the raw data (Tufts "1" = FDI 28, not 18); see `scripts/tufts/README.md` |
-| Join key | `External ID` field in JSON records |
+| Tooth aspect ratio | ~0.35 — 3× taller than wide |
+| Michelson contrast | 0.999 |
+| Bbox coordinate format | **Frame-dependent** — `[y1,x1,y2,x2]` landscape (bone-loss path) or `[x1,y1,x2,y2]` portrait (FDI path) |
+| Polygon coordinate format | `[y, x]` — **transposed relative to the bbox file** |
+| Tooth numbering | Universal (1–32), and **left-right mirrored** in Tufts (Tufts "1" = FDI 28, not 18) |
+| Join key | nested `External ID` field, not the filename stem |
 
-### Crop Strategy
-
-| Model | Crop Factor | Region | Rationale |
-|-------|-------------|--------|-----------|
-| Caries (ResNet18) | 1.0× (tight) | Crown only | Caries appears on enamel/dentin |
-| Bone Loss (ResNet18) | 1.5× W / 2.0× H | Crown + root + bone | Bone level visible below root; asymmetric because teeth are tall |
+Each of those four rows is a bug that was found the hard way. See
+[Bugs found and fixed](#bugs-found-and-fixed).
 
 ---
 
-## Project Structure
+## Repository structure
+
+<img src="docs/assets/repo-structure.svg" width="100%" alt="Repository structure in four zones: entry points at the root, code in src and scripts, artefacts in models notebooks outputs and tests, and a four-layer documentation system with an append-only results log, a current-numbers scoreboard, a master paper document and per-session memory files.">
+
+<details>
+<summary><b>Full tree</b></summary>
 
 ```
-An-Intelligent-Dental-Assisting-System-.../
+├── README.md                    ← you are here
+├── transfer.md                  ← ★ START HERE cold — living state snapshot
+├── CLAUDE.md                    ← standing rules for AI/automation sessions
+├── app.py · Dockerfile          ← Streamlit demo, CPU-only container
+├── requirements.txt · setup.py · LICENSE
 │
-├── README.md                       ← You are here
-├── transfer.md                     ← ★ START HERE for a cold session — living state snapshot
-├── CLAUDE.md                       ← Working rules for AI/automation sessions in this repo
-├── LICENSE  ·  requirements.txt  ·  setup.py  ·  .gitignore
-├── app.py                          ← Streamlit deployment demo (wraps run_inference.py)
-├── Dockerfile  ·  .dockerignore    ← CPU-only container for the same demo
-│
-├── configs/
-│   └── dataset_config.yaml         ← All paths, hyperparameters, Universal→FDI table
+├── configs/dataset_config.yaml  ← paths, hyperparameters, Universal→FDI table
 │
 ├── src/
-│   ├── orientation.py              ← Detector input-rotation contract
-│   ├── fdi_head_inference.py       ← Stage 2 — the learned enumeration head (current method)
-│   ├── classifiers.py              ← Stages 3/4 — caries + bone-loss cascades
-│   ├── data_loader.py              ← JSON parsing, coordinate conversion
-│   ├── crop_generator.py           ← Expanded crop, jitter, resize
-│   ├── label_assigner.py           ← Pixel-overlap ratio, thresholding
-│   └── utils/                      ← fdi_converter (incl. Tufts mirror correction), visualization, constants
+│   ├── orientation.py           ← detector input-rotation contract
+│   ├── fdi_head_inference.py    ← Stage 2 — learned enumeration head
+│   ├── fdi_assignment.py        ← Hungarian one-to-one assignment
+│   ├── classifiers.py           ← Stages 3/4 — caries + bone-loss cascades
+│   ├── crop_generator.py        ← the two crop geometries
+│   ├── data_loader.py · label_assigner.py
+│   └── utils/                   ← fdi_converter (incl. Tufts mirror fix), visualization, constants
 │
 ├── scripts/
-│   ├── run_inference.py            ← ★ CLI: full six-stage pipeline, OPG in → JSON + overlay out
-│   ├── build_dataset.py            ← CLI: build the crop training dataset (legacy bone-loss path)
-│   ├── train_model.py              ← CLI: train the bone loss model (legacy bone-loss path)
-│   ├── yolo/                       ← Stage 1 detection toolchain (+ its own README)
-│   │   ├── convert_tufts_to_yolo.py
-│   │   ├── train_yolo.py
-│   │   └── evaluate_yolo.py
-│   ├── dentex/                     ← Stage 2 head (DENTEX) + Stage 3 caries toolchain (+ README)
-│   ├── tufts/                      ← Stage 2 — Tufts as a second FDI corpus (+ README)
-│   └── eval/                       ← Evaluation, error propagation, invariant checks (+ README)
+│   ├── run_inference.py         ← ★ CLI: all six stages, OPG in → JSON + overlay out
+│   ├── verify_paper_numbers.py  ← asserts 82 manuscript numbers against artefacts
+│   ├── audit_citations.py · check_text_reuse.py · build_handbook.py
+│   ├── eval/                    ← 18 evaluation + invariant scripts (+ README)
+│   ├── yolo/                    ← Stage-1 detection toolchain (+ README)
+│   ├── dentex/ · tufts/ · kaggle_dual/   ← per-corpus data toolchains (+ READMEs)
+│   └── figures/                 ← paper figure generators
 │
 ├── notebooks/
-│   ├── yolo_detection/             ← Stage 1 — the two competing runs (+ README)
-│   │   ├── a100_1024px_150ep.ipynb ← current best detector
-│   │   └── h200_768px_50ep.ipynb   ← superseded
-│   ├── caries/                     ← Stage 3 — DENTEX cascade
-│   │   ├── phase-1.ipynb
-│   │   └── approach.txt            ← method + the author's own critique of it
-│   └── bone_loss/                  ← Stage 4 — Tufts (renamed from "Bone Loss")
-│       ├── 01_tufts_data_exploration_v2.ipynb
-│       ├── 02_bone_loss_dataset_construction.ipynb
-│       ├── 03_bone_loss_model_training.ipynb
-│       ├── 04_bone_loss_severity.ipynb
-│       └── 05_cej_estimation_v2.ipynb
+│   ├── yolo_detection/          ← Stage 1 — the competing runs (+ README)
+│   ├── caries/                  ← Stage 3 — DENTEX cascade + approach.txt
+│   └── bone_loss/               ← Stage 4 — 6 notebooks, exploration → CEJ
 │
-├── docs/                           ← ★ documentation system — start at docs/README.md
-│   ├── README.md                   ← index of everything below
-│   ├── architecture/               ← pipeline diagrams (+ drawio source)
-│   ├── results/
-│   │   ├── PAPER_MATERIAL.md       ← ★ master paper-writing document
-│   │   ├── RESULTS_LOG.md          ← append-only milestone journal
-│   │   ├── model_metrics.md        ← one-page scoreboard
-│   │   └── figures/                ← result plots (detector curves, confusion matrices)
-│   ├── reports/
-│   │   ├── project_report.pdf  ·  data_exploration_v2.pdf
-│   │   │                              (pes_capstone_report/ archived 2026-08-15 →
-│   │   │                               _repo_archive/, see ARCHIVE_MANIFEST.md)
-│   │   ├── literature/             ← survey paper + literature review sheet
-│   │   └── legacy/                 ← original all-in-one analysis document
-│   ├── exploration/README.md       ← dataset quirks + the 5 critical bugs caught
-│   ├── session-memory/             ← one dated file per working session
-│   └── research/                   ← maintained by a separate workstream
+├── models/                      ← one numbered dir per trained stage (see models/README.md)
+├── data/                        ← tufts · dentex · ningxia · kaggle_dual (large files gitignored)
+├── outputs/                     ← 22 saved run directories — every number traces here
+├── paper/                       ← main.tex · main.pdf · source.bib · figures
+├── tests/                       ← 122 tests
 │
-├── models/                         ← Trained checkpoints + training summaries (see models/README.md)
-│   ├── 03_bone_loss_model_training_notebook_models/
-│   ├── 04_bone_loss_severity_notebook_models/
-│   ├── 05_cej_estimation_v2_models/
-│   ├── 06_yolo_detection_a100_run/ ← best.pt/last.pt (git-ignored), args, results.csv
-│   ├── 08_fdi_enumeration_head/    ← Stage-2 head v1.0 (DENTEX) — retained, hash-pinned
-│   ├── 09_caries_gate_v3/          ← caries gate — current pipeline default
-│   └── 10_fdi_head_dentex_tufts_v2/← Stage-2 head v2.0 (DENTEX+Tufts) — current pipeline default
-│
-├── data/                           ← Datasets and metadata (large files git-ignored)
-└── tests/                          ← 65 tests — test_data_loader, test_crop_generator,
-                                       test_label_assigner, test_fdi_converter, test_orientation,
-                                       test_classifiers, test_fdi_assignment
+└── docs/                        ← ★ start at docs/README.md
+    ├── assets/                  ← the animated SVG diagrams in this README
+    ├── architecture/            ← pipeline diagrams (+ drawio source)
+    ├── results/
+    │   ├── PAPER_MATERIAL.md    ← ★ master paper-writing document
+    │   ├── RESULTS_LOG.md       ← append-only journal, 100 entries
+    │   ├── model_metrics.md     ← one-page scoreboard
+    │   ├── METHODOLOGY_CHANGELOG.md
+    │   └── figures/paper/       ← 17 paper/review figures
+    ├── paper/REBUILD_AUDIT.md   ← the 28 Aug evidence audit behind main.tex
+    ├── exploration/README.md    ← dataset quirks + the critical bugs caught
+    ├── session-memory/          ← one dated file per working session
+    ├── reports/ · research/     ← report PDFs; parallel planning workstream
+    └── EXTERNAL_DRIVE.md        ← where the gitignored checkpoints live
 ```
 
-> Bulky untracked material (a stale nested clone, the 2.2 GB raw-data workspace, the YOLO
-> run directory, duplicate diagrams) was **relocated, not deleted**, to `_repo_archive/`,
-> a sibling folder outside this repo. See `_repo_archive/ARCHIVE_MANIFEST.md` for the full
-> inventory and one-line restore commands.
+</details>
+
+> Bulky untracked material (a stale nested clone, the 2.2 GB raw-data workspace, the YOLO run
+> directory, duplicate diagrams, superseded paper drafts) was **relocated, never deleted**, to
+> `_repo_archive/` — a sibling folder outside this repo. See `_repo_archive/ARCHIVE_MANIFEST.md`
+> for the inventory and one-line restore commands. That is [`CLAUDE.md`](CLAUDE.md) rule 3.
 
 ---
 
-## Setup & Installation
+## Setup and installation
 
 ### Prerequisites
 
-- Python 3.8+
-- CUDA-compatible GPU (recommended for training)
-- Google Colab / Kaggle (with GPU runtime) — most notebooks were run this way
-
-### Local Setup
+- Python 3.12 or 3.13 (the environment was rebuilt on 3.13; the Docker image pins 3.12-slim)
+- A CUDA GPU for *training*. **Inference runs on CPU** at 2.39 s/image.
 
 ```bash
 git clone https://github.com/csdeepak/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection.git
 cd An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection
-
-python -m venv venv
-source venv/bin/activate        # Linux/Mac
-# venv\Scripts\activate         # Windows
-
+python -m venv venv && source venv/bin/activate   # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Dataset Setup
+> **`numpy` must stay below 2.0, and this is load-bearing.** torch, scipy 1.12 and scikit-learn 1.4
+> are compiled against numpy 1.x. Installing numpy 2.x breaks torch↔numpy conversion,
+> `scipy.optimize.linear_sum_assignment` — *which is the Stage-2 Hungarian assignment* — and
+> sklearn entirely, **silently, at import time.** The Docker build re-checks this and fails loudly.
 
-**Just want to run inference?** You don't need any of the dataset layout below — see
-[Setting up on a new machine](#setting-up-on-a-new-machine-checkpoints-only) further down.
-The Google-Drive layout here is only for **retraining** the bone-loss branch from the original
-notebooks (`notebooks/bone_loss/`), which is one specific path through this repo, not the
-default one.
+### Fetching the checkpoints
 
-The Tufts Dental Dataset is expected in Google Drive:
+Everything needed to run the pipeline is committed **except three checkpoints over 50 MB**
+([`CLAUDE.md`](CLAUDE.md) rule 4). Get them from [`docs/EXTERNAL_DRIVE.md`](docs/EXTERNAL_DRIVE.md):
 
 ```
-Google Drive/
-  tufts/
-    ZIP/
-      Radiographs/Radiographs/     ← OPG images (.JPG)
-      Segmentation/Segmentation/   ← teeth_bbox.json, teeth_polygon.json
-      Expert/Expert/               ← expert.json
-      Expert/Expert/mask/          ← Expert pathology masks (.JPG)
+models/11_yolo_seg_tufts_r1/best.pt            ← Stage-1 DEFAULT
+models/09_caries_gate_v3/caries_gate_v3.pth    ← Stage-3 DEFAULT
+models/06_yolo_detection_a100_run/best.pt      ← superseded detector, for the fallback below
 ```
 
-> Update the `paths.base` value in `configs/dataset_config.yaml` to match your mount.
-> The YOLO scripts in `scripts/yolo/` still carry hard-coded macOS paths — edit them
-> before use (noted in `scripts/yolo/README.md`).
->
-> **⚠️ Tufts licence note:** the dataset's own release agreement forbids re-posting it
-> anywhere, including a shared Drive folder without access controls. See
-> [`docs/EXTERNAL_DRIVE.md`](docs/EXTERNAL_DRIVE.md) before setting one up.
+> ⚠️ **As of 27 Aug 2026 the Stage-1 default checkpoint has not been uploaded to Drive yet**, so a
+> fresh clone cannot run the pipeline at full accuracy until it is. That is a manual, account-owner
+> action. Until then, either work on a machine that already holds
+> `models/11_yolo_seg_tufts_r1/best.pt`, or fall back with
+> `--detector models/06_yolo_detection_a100_run/best.pt` — which scores **46.3%** end-to-end at
+> Stage 2, not 58.3%.
 
-### Setting up on a new machine (checkpoints only)
-
-To just **run the pipeline** — `run_inference.py`, `app.py`, or the Docker demo — none of the
-raw datasets above are needed. Everything else, including the current Stage-2 head, is
-committed; the checkpoints below are >50 MB and gitignored (`CLAUDE.md` rule 4).
-
-> ⚠️ **As of 27 Aug 2026 a fresh clone cannot run the pipeline yet.** The Stage-1 default
-> changed to the seg detector (`run_inference.py` → `DEF_DETECTOR`), and **that checkpoint has
-> not been uploaded to Drive**. It is a manual, account-owner action — see
-> [`docs/EXTERNAL_DRIVE.md`](docs/EXTERNAL_DRIVE.md) for the exact upload + `sha256`
-> verification recipe and why a Claude Code session cannot do it. Until then, clone-and-run
-> works only on a machine that already holds `models/11_yolo_seg_tufts_r1/best.pt`, or by
-> passing `--detector models/06_yolo_detection_a100_run/best.pt` to fall back to the
-> superseded bbox detector (which scores 46.3% end-to-end at Stage 2, not 58.3%).
+### Verify the install
 
 ```bash
-git clone <this repo>
-pip install -r requirements.txt
-# fetch from docs/EXTERNAL_DRIVE.md's links — everything else is already in git:
-#   models/11_yolo_seg_tufts_r1/best.pt              (Stage-1 DEFAULT — not on Drive yet, see above)
-#   models/09_caries_gate_v3/caries_gate_v3.pth      (DENTEX drive)
-#   models/06_yolo_detection_a100_run/best.pt        (Tufts drive — superseded, only for the fallback above)
-python scripts/eval/verify_invariants.py   # should print "all invariants hold"
-python scripts/run_inference.py --image path/to/opg.png --output report.json
+python -m pytest tests/ -q
 ```
 
-Full checklist, including what to do if a step fails: [`transfer.md`](transfer.md) §8.
+```bash
+python scripts/eval/verify_invariants.py
+```
+
+The first should report `122 passed`. The second should print `all invariants hold` — it re-checks
+frozen weight hashes, checkpoint class orders, crop-contract distinctness, caries dataset hygiene,
+the leakage exclusion list, and the MD5 join behind the v3 negative class.
 
 ---
 
 ## Usage
 
-### 1. Stage 1 — tooth detection
+### Full pipeline inference
 
 ```bash
-python scripts/yolo/convert_tufts_to_yolo.py   # Tufts → YOLO format + data.yaml
-python scripts/yolo/train_yolo.py              # fine-tune YOLOv11l (imgsz 1024)
-python scripts/yolo/evaluate_yolo.py           # evaluate best.pt on the test split
+python scripts/run_inference.py --image path/to/opg.jpg --output report.json --overlay viz.jpg
 ```
 
-### 2. Stage 4 — bone loss crop dataset + model
+Every stage's checkpoint is overridable (`--detector`, `--fdi-head`, `--caries-gate`,
+`--caries-severity`, `--bone-loss`, `--bone-severity`), as are the detector's operating points
+(`--conf` 0.25, `--imgsz` 1024, `--det-iou` 0.50). `--no-one-to-one` disables the Hungarian
+assignment — useful for ablation, and it costs 4.3 points of FDI-exact accuracy while emitting 679
+anatomically impossible duplicate codes.
 
-Run `notebooks/bone_loss/02_bone_loss_dataset_construction.ipynb` (crop construction,
-overlap labelling, image-level split), then
-`notebooks/bone_loss/03_bone_loss_model_training.ipynb`. Equivalent CLI entry points:
-
-```bash
-python scripts/build_dataset.py --config configs/dataset_config.yaml
-python scripts/train_model.py   --config configs/dataset_config.yaml
-```
-
-**Critical review points during dataset construction:** inspect the overlap-ratio
-distribution before accepting `overlap_threshold`, and inspect the visual validation grid
-before trusting the labels. If the labels do not match the pathology, adjust the threshold
-and rebuild.
-
-### 3. Stage 3 — caries
-
-`notebooks/caries/phase-1.ipynb` (Kaggle, DENTEX pre-processed crops). Read
-`notebooks/caries/approach.txt` first — it documents both the method and its gaps.
-
-### 4. Full pipeline inference
+### Browser demo
 
 ```bash
-python scripts/run_inference.py --image path/to/opg.jpg --output report.json
-```
-
-**Or the interactive demo** — upload an OPG, see the report and overlay in a browser:
-
-```bash
-pip install -r requirements.txt   # includes streamlit
 streamlit run app.py
 ```
 
-`Dockerfile` builds the same app as a container (CPU-only, no GPU needed). Both are a thin
-wrapper around `run_inference.py` — no second implementation, so they inherit every limitation
-and fix automatically.
-
-This runs all six stages and writes a per-tooth JSON report (add `--overlay viz.jpg` for an
-annotated image). Two checkpoints are not in git — see
-[`docs/EXTERNAL_DRIVE.md`](docs/EXTERNAL_DRIVE.md) for where to get them.
-
----
-
-## Phase Status
-
-| Phase | Description | Owner | Status |
-|-------|-------------|-------|--------|
-| Phase 0 | Literature review & survey paper | Deepak | ✅ Complete |
-| Phase 1 | Caries — gate (ResNet18 binary) | Gunadeep | ✅ Complete (Phase 1 metrics not saved) |
-| Phase 2 | Caries — depth (caries vs deep_caries) | Gunadeep | ✅ Complete — val acc 81%, macro F1 0.77 |
-| Phase 3 | Tooth Detection (YOLOv11l) | Deepak | ✅ Complete — test mAP@0.5 0.782; canonical run **frozen + tagged** 20 Aug 2026 |
-| Phase 4a | Bone Loss — data exploration | Deepak | ✅ Complete |
-| Phase 4b | Bone Loss — dataset construction | Deepak | ✅ Complete — 22,806 crops |
-| Phase 4c | Bone Loss — model training | Deepak | ✅ Complete — macro F1 0.9233 |
-| Phase 4d | Bone Loss — evaluation + severity | Deepak | ✅ Complete — severity macro F1 0.7208 (52 val crops) |
-| Phase 4e | CEJ bone-level estimation | Deepak | 🔬 Exploratory — negative result, not integrated |
-| Phase 5 | Full pipeline integration (Stages 5–6) | Deepak & Gunadeep | ✅ **Complete** — `run_inference.py` runs all six stages; `app.py`/`Dockerfile` deployment demo |
-| Phase 5a | Stage-2 head v2.0 — Tufts FDI corpus | Gunadeep | ✅ Complete — found + corrected Tufts' mirrored numbering, built a second FDI corpus, ran the A/B/C head comparison, adopted v2.0 (+21.5pp cross-domain, `RESULTS_LOG.md` 2026-08-25h/j) |
-| Phase 5b | Deployment — Streamlit app + Docker | Gunadeep | ✅ Complete — `app.py`, `Dockerfile`, wraps `run_inference.py` unchanged |
-| Phase 5c | C2 external validation — Ningxia | Gunadeep | ✅ Complete — 4 hospitals, zero leakage verified, `RESULTS_LOG.md` 2026-08-25d |
-| Phase 6 | Paper writing | Deepak & Gunadeep | **NOW THE CRITICAL PATH (27 Aug 2026).** All contributions are measured — C1, C2, confidence intervals, calibration, failure taxonomy, related work and ethics live in `PAPER_MATERIAL.md` §2.1 / §8.13–§8.20 with 8 figures. Drafting itself has not started. |
-
----
-
-## Key Design Decisions
-
-### 1. Pixel-Overlap Ratio Instead of IoU
-
-```
-overlap = mask_pixels_inside_crop / crop_area
+```bash
+docker build -t dental-ai . && docker run -p 8501:8501 dental-ai
 ```
 
-**Why not IoU?** Expert mask blobs are tiny sparse lesion annotations (0.5–2% of an
-expanded crop). IoU = intersection / union ≈ tiny / large ≈ 0, so even true positives get
-IoU ≈ 0 and every crop is labelled negative.
+Both are a **thin wrapper** around `run_inference.py` — they call the same `load_models` and
+`run_pipeline` functions the CLI uses. There is no second implementation, so the demo cannot
+silently drift from what the CLI proves out, and it inherits every fix and every limitation
+automatically. The `limitations` block is rendered directly under the results, at the same size as
+everything else, so it cannot be screenshotted away from the numbers it qualifies.
 
-**Threshold:** 0.01 (1%), defensible range 0.005–0.02. The same quantity is reused as the
-severity axis: mild ≤ 0.05, moderate 0.05–0.15, severe > 0.15.
+### Training
 
-### 2. Asymmetric Crop Expansion (1.5× W, 2.0× H)
+```bash
+python scripts/yolo/convert_tufts_to_yolo_seg.py   # Tufts → YOLO-seg format + data.yaml
+python scripts/yolo/train_yolo_seg.py              # fine-tune YOLOv11l-seg at imgsz 1024
+python scripts/yolo/evaluate_yolo.py               # evaluate on the held-out test split
+```
 
-Teeth have a mean aspect ratio of ~0.35 (3× taller than wide). Equal expansion in both
-directions bleeds into adjacent teeth horizontally while under-covering vertically. More
-vertical expansion captures the alveolar bone below the root, which is exactly where bone
-loss is visible.
+```bash
+python scripts/dentex/train_enumeration_head.py    # Stage 2
+python scripts/dentex/train_caries_cascade.py      # Stage 3
+python scripts/build_dataset.py --config configs/dataset_config.yaml   # Stage 4 crops
+python scripts/train_model.py   --config configs/dataset_config.yaml   # Stage 4 model
+```
 
-### 3. Binary Classification Instead of Severity Segmentation
-
-U-Net severity segmentation was ruled out because expert masks encode **per-lesion instance
-IDs**, not severity classes; no pixel-level mild/moderate/severe annotation exists; only
-154 annotated samples; and CEJ ground-truth points do not exist in the dataset.
-
-### 4. Image-Level (Patient-Level) Train/Val Split
-
-All crops from the same radiograph — including jittered copies — stay in the same split.
-A crop-level split leaks patient-specific exposure and anatomy between train and val.
-
-### 5. Bbox Jitter for Detector Noise Simulation
-
-Training crops come from ground-truth boxes; inference crops come from YOLO predictions
-with small localisation errors. ±15% random jitter during training teaches robustness to
-imperfect crop boundaries. **Not yet validated on real detector output** — the integration
-that would test it does not exist.
-
-### 6. Clinically-Valid Augmentation Only (detector)
-
-Horizontal flip, ±10° rotation, small translate/scale, HSV-value jitter. **No vertical
-flip** (an inverted jaw is anatomically meaningless), **no mosaic**, **no mixup** — both
-destroy the global jaw geometry that tooth ordering depends on.
+> `convert_tufts_to_yolo_seg.py` **picks its image directory by measuring against
+> `teeth_bbox.json`, not by name**, and re-scores the labels it wrote afterwards, exiting non-zero
+> if they disagree. That gate exists because a 90-epoch A100 run was silently voided by misaligned
+> masks — see [Bugs found and fixed](#bugs-found-and-fixed).
 
 ---
 
-## Known Bugs & Fixes
+## Reproducing every number
 
-Discovered during data exploration and **already fixed** in all code
-(full detail: [`docs/exploration/README.md`](docs/exploration/README.md)):
+| Claim | Script | Artefact |
+|---|---|---|
+| Stage-2 end-to-end FDI accuracy | `scripts/eval/validate_fdi_assignment.py` | `outputs/stage2_segdet/` |
+| Stage-2 failure taxonomy | `scripts/eval/stage2_failure_taxonomy.py` | `outputs/stage2_taxonomy/` |
+| Stage-2 ceiling vs positional method | `scripts/eval/analyze_stage2_ceiling.py` | — |
+| Head input ablation | `scripts/eval/ablate_head_inputs.py` | — |
+| Cross-corpus crop-level head comparison | `scripts/eval/crop_eval.py` | — |
+| Caries gate repair (v1 vs v3, in-pipeline) | `scripts/eval/compare_caries_gates.py` | — |
+| Caries failure panel | `scripts/eval/caries_failure_panel.py` | `outputs/caries_failure_panel/` |
+| Calibration, temperature, isotonic | `calibration_pr.py`, `temperature_scale.py`, `isotonic_calibrate.py` | `outputs/calibration/` |
+| Lesion-localisation agreement | `scripts/eval/lesion_localization.py` | `outputs/lesion_loc_*/` |
+| **C1** — VLM + constant baselines | `c1_vlm_baseline.py`, `c1_constant_baseline.py` | `outputs/c1_vlm/` |
+| **C2** — Ningxia external validation | `scripts/eval/ningxia_external.py` | `outputs/ningxia_*/` |
+| **C4** — coverage–accuracy | `scripts/eval/c4_coverage_accuracy.py` | `outputs/c4_abstention/` |
+| Confidence intervals (all of the above) | `scripts/eval/bootstrap_ci.py` | `outputs/bootstrap_ci/` |
+| Bone-loss evaluation | `scripts/eval/bone_loss_eval.py` | `outputs/bone_loss_eval/` |
+| Frozen hashes, class orders, crop contracts, leakage | `scripts/eval/verify_invariants.py` | — |
+| The 82 manuscript numbers | `scripts/verify_paper_numbers.py` | `paper/main.tex` |
 
-| Bug | Root Cause | Fix |
-|-----|-----------|-----|
-| Coverage matrix showed 0 matches | Compared filename stems against dict keys; actual join field is nested `External ID` | Extract `Path(item['External ID']).stem` as join key |
-| All crops extracted from wrong locations | Assumed bbox format `[x, y, w, h]`; actual format is `[y1, x1, y2, x2]` | Convert: `w = x2-x1`, `h = y2-y1`, swap x and y |
-| U-Net architecture selected prematurely | Assumed expert masks encode severity; pixel values are per-lesion instance IDs | Changed to binary ResNet18 classifier |
-| PIL DecompressionBombError | PIL rejected large composite figures | `PILImage.MAX_IMAGE_PIXELS = None` |
-| Font download 404 | wget from GitHub returned HTML instead of TTF | `apt-get install fonts-dejavu-core` |
-
-### Closed bug — Universal→FDI lower-arch mapping
-
-**Fixed in `f8b31f8`.** This section previously said the bug was open and deliberately
-left unfixed. Re-verified 21 Aug 2026 against the actual files: `configs/dataset_config.yaml`
-and `src/utils/fdi_converter.py` both match the correct table below, agree with each other,
-and `tests/test_fdi_converter.py` carries regression tests naming the historical bug
-explicitly. Nothing to do here.
-
----
-
-## Evaluation Targets
-
-| Metric | Target | Achieved (bone loss binary) |
-|--------|--------|------------------------------|
-| Class 0 F1 (normal) | ≥ 0.75 | **0.9943** ✅ |
-| Class 1 F1 (bone loss) | ≥ 0.70 | **0.8522** ✅ |
-| Macro F1 | ≥ 0.72 | **0.9233** ✅ |
-| Accuracy | Secondary | 98.91% (misleading at 4% prevalence) |
-
-Severity model: macro F1 **0.7208** against the same 0.72 target — met, but on 52
-validation crops, so treat as provisional. Detection: test mAP@0.5 **0.782** against a
-literature benchmark of ≥ 0.90 — **not met**.
-
-### Training Configuration (bone loss binary)
-
-| Parameter | Value |
-|-----------|-------|
-| Architecture | ResNet18 pretrained (ImageNet), FC 512 → 2 |
-| Loss | Focal Loss (γ=2.0, α=[0.642, 2.258]) |
-| Optimizer | Adam, lr=1e-4, wd=1e-4 |
-| Scheduler | ReduceLROnPlateau (patience=5) |
-| Batch size | 32 |
-| Epochs | 50 budgeted / 32 run, best epoch 22 (early stopping on val macro-F1, patience 10) |
-| Augmentation | H-flip, brightness jitter, rotation ±10°, bbox jitter ±15% |
-| Normalization | ImageNet mean/std |
+Paper figures regenerate from **saved run artefacts only, never re-measured**:
+`scripts/figures/make_paper_figures.py`, `make_baseline_figure.py`,
+`make_boneloss_paper_figure.py`, `make_stage34_figures.py`.
 
 ---
 
-## Risks & Mitigations
+## Methodology and rigor practices
 
-| Risk | Level | Mitigation |
-|------|-------|------------|
-| Small training set (423 annotated images) | HIGH | Heavy augmentation, transfer learning from ImageNet |
-| Image-level labels → noisy per-crop assignment | MEDIUM | Spatial overlap with expert mask (not blanket labelling) |
-| Detector recall 0.74 → missed teeth never classified | HIGH | Freeze the 1024 px model; measure error propagation once Stage 5 exists |
-| YOLO crop variability at inference | MEDIUM | ±15% bbox jitter during training (unvalidated end-to-end) |
-| Class imbalance 23.8× (bone loss) | HIGH | Undersampling + minority augmentation + Focal Loss; untouched val set |
-| Universal vs FDI numbering mismatch | HIGH | Conversion at detector output — fixed and regression-tested (`f8b31f8`) |
-| Domain shift (Tufts vs real OPGs) | MEDIUM | CLAHE normalisation at inference (untested) |
-| No external clinical validation | HIGH | Acknowledged limitation; out of scope for the capstone |
+The contribution of this project is **not peak accuracy** — several published numbers on these
+datasets are higher. It is that these numbers survive contact with an external test set, carry
+intervals, and come with a stage-wise attribution of where the errors are. The practices below are
+what make that claim checkable.
+
+**Pre-registration.** The R1 detector retrain had its acceptance bars written down *before* the
+run: box mAP@0.5 ≥ 0.75, mask ≥ 0.65. Box passed at 0.810; **mask failed at 0.6383, short by
+0.0117**. The bar was **not moved after seeing the number.** The model was adopted anyway by an
+explicit, dated human decision on the strength of the box result — and the consequence was
+enforced: it is used for its **boxes only**, and mask-aware cropping stays unwired because that
+floor existed to protect it. Adoption ≠ the bar being met; both facts are on the record.
+
+**Leakage control, applied per corpus.** 86 of 250 DENTEX evaluation images were found to be
+byte-identical duplicates of training images and excluded; the inflated 52.2% figure they produced
+was withdrawn rather than quietly restated. Ningxia was hash-checked separately against Tufts and
+each of the five DENTEX subsets. Splits are **image-level (patient-level)** everywhere — all crops
+from one radiograph, including jittered copies, stay in the same split, because a crop-level split
+leaks patient-specific exposure and anatomy.
+
+**Confidence intervals by cluster bootstrap over images**, 10,000 resamples, seed 42 — resampling
+*images* rather than *teeth*, because teeth within a radiograph are not independent and a
+tooth-level bootstrap reports intervals far too narrow. **Two deltas reported earlier did not
+survive their intervals** (detection recall +3.3 pp, DENTEX-internal lesion agreement +2.3 pp) and
+are explicitly not quoted as improvements.
+
+**Paired significance testing.** Head comparisons use McNemar on the same items; the rejected
+Tufts-only head lost 9.1 points on DENTEX (p = 4.7×10⁻¹¹) while its edge on Tufts was not
+significant (p = 0.732), so v2.0 strictly dominates it. Detector-swap deltas are measured against a
+**same-machine control run of the old configuration first**, so the delta is attributable to the
+model rather than the environment — and the control's ~3-tooth drift from the originally published
+figure is stated rather than hidden.
+
+**Controls for every headline.** The VLM baseline is reported beside an image-blind constant that
+beats it *and* us. The abstention result is reported beside a shuffled-confidence control. Blank
+and random-noise images are fed to both VLMs to check whether the answer depends on the input.
+
+**A falling loss curve is not evidence of correct data.** One 90-epoch A100 run completed cleanly,
+with healthy throughput and checkpointing and every hyperparameter matching its pre-registration —
+and was **scientifically void**, because every instance mask was spatially misaligned. What caught
+it was comparing against a known reference (0.258 val mAP against the canonical detector's 0.834)
+and treating the gap as *a defect to explain* rather than a disappointing number to report.
+Geometry is now verified against an independent annotation source **before** training, in code that
+exits non-zero rather than in a doc that can go stale.
+
+**Numbers are pinned to artefacts.** `verify_paper_numbers.py` asserts 82 manuscript numbers
+against their JSONs; `verify_invariants.py` asserts frozen weight hashes and dataset hygiene;
+122 unit tests cover the coordinate conversions, the FDI table, the crop contracts and the
+orientation contract. A wrong parameter count once propagated into nine places across six files
+before it was caught — these checks exist so that class of drift fails loudly next time.
 
 ---
 
-## Universal to FDI Conversion
+## Key engineering decisions
 
-Tufts *labels look like* Universal numbering (1–32); the clinical report requires FDI. This is
-the **standard Universal→FDI table**, and it is correct for standard Universal input — **but
-Tufts' own labels are left-right mirrored relative to it** (Tufts "1" is FDI 28, the upper-left
-third molar, not FDI 18). Apply `src.utils.fdi_converter.tufts_title_to_fdi()` to Tufts titles,
-never this table directly — see `scripts/tufts/README.md` for how that was established.
-**Correct** mapping, for genuine Universal input:
+**1 — Asymmetric crop expansion, 1.5× width and 2.0× height.** Teeth have a mean aspect ratio of
+~0.35 — three times taller than wide. Equal expansion bleeds into adjacent teeth horizontally while
+under-covering vertically. More vertical expansion captures the alveolar bone below the root, which
+is exactly where bone loss is visible. The caries path, by contrast, uses the **raw box with no
+expansion**, because caries appears on enamel and dentin in the crown. Two pathologies, two
+supports, two crops of the same box.
 
-| Universal | FDI | Universal | FDI | Universal | FDI | Universal | FDI |
-|-----------|-----|-----------|-----|-----------|-----|-----------|-----|
+**2 — Pixel-overlap ratio instead of IoU.** `overlap = mask_pixels_inside_crop / crop_area`.
+Expert mask blobs are tiny sparse lesion annotations (0.5–2% of an expanded crop), so
+IoU ≈ tiny/large ≈ 0 and *every* crop — true positives included — would be labelled negative.
+Threshold 0.01, defensible range 0.005–0.02. The same quantity doubles as the severity axis:
+mild ≤ 0.05, moderate 0.05–0.15, severe > 0.15.
+
+**3 — Binary classification instead of severity segmentation.** U-Net was ruled out on evidence,
+not preference: expert masks encode **per-lesion instance IDs, not severity classes**; no
+pixel-level mild/moderate/severe annotation exists; only 154 annotated samples do; and CEJ
+ground-truth points are absent from the dataset entirely.
+
+**4 — Hungarian one-to-one assignment over the 32 FDI codes.** Plain argmax emits **679
+anatomically impossible duplicate codes** and scores 65.1% / 43.6%. The global one-to-one
+constraint removes **all** of them for 69.4% / 46.5% — **+4.3 points of-detected, +2.9 end-to-end** —
+at a cost of 2.1 points of raw quadrant accuracy, because the constraint sometimes moves a tooth
+across a quadrant boundary. A mouth cannot contain two tooth 36s; the model should not be allowed
+to say it does.
+
+**5 — A learned enumeration head instead of positional sorting.** Rank-order sorting reaches 22.9%
+end-to-end. The head reaches 58.3%. On the population where sorting is at its *best* — teeth in
+complete 8-detection quadrants — positional reaches 66.3% and the head 80.2%, a **+13.9-point
+margin on the same population**. An order-independent method exceeds what rank-order can reach, and
+not marginally.
+
+**6 — Bbox jitter (±15%) to emulate detector noise.** Training crops come from ground-truth boxes;
+inference crops come from detector predictions with localisation error. The input ablation shows
+this is cheap insurance rather than a crutch: realistic box error costs ~nothing (±15% leaves FDI
+exact unchanged to 0.1 pp; ±100% costs 0.2 pp). Shuffled coordinates cost 22.9 points, but a
+shuffle teleports a coordinate across the mouth and does not occur in practice.
+
+---
+
+## Known limitations
+
+Stated plainly, because a screening aid that oversells itself is worse than one that does not
+exist. The full 25-item treatment is [`PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) §8.
+
+| # | Limitation | Status |
+|---|---|---|
+| 1 | **The bone-loss branch does not generalise.** 0.9233 in-domain → 0.7% firing on DENTEX → 2.4% affected-tooth sensitivity on Ningxia. | **Decided limitation, reported not fixed.** The shared-root-cause hypothesis was tested and falsified; DENTEX has no bone-loss labels, so the combined-training lever never existed. |
+| 2 | **Caries precision is 0.40** — roughly six of ten positives are wrong. | Improved from a 7.3× over-call to 1.6×, not solved. 96.5% of false positives are *healthy* teeth, not other pathology — which rules out the obvious remedy. |
+| 3 | **Detector recall 70.6% caps everything downstream.** 29.4% of teeth are never detected. | Binding constraint, measured. Detection 0.810 sits below the 0.90–0.97 reported for similar tasks. |
+| 4 | **Severity heads rest on tiny validation sets** — 52 crops (bone loss), 133 (caries depth). | Provisional. The 0.72 target was met by 0.0008 on 52 samples. |
+| 5 | **Tooth-level FDI-set F1 is base-rate dominated** — an image-blind constant beats the pipeline. | Reported as the headline control, not buried. |
+| 6 | **The caries gate is miscalibrated** (ECE 0.136, systematically overconfident). | Isotonic fixes it to 0.043, applied to reported confidence only; verdicts unchanged so published numbers stay valid. |
+| 7 | **The negative class rests on presumed-negative labelling.** DENTEX "healthy" means *no disease annotation*; several high-confidence false positives visibly carry restorations — and a restored tooth has already been treated for caries. | Flagged as an observation for a clinician to confirm, **not yet a claim**. |
+| 8 | **The bone-loss classifier has no calibration analysis.** Its metadata carries no bounding boxes, so the crops need a geometry-verified rebuild first. | Open. A silent crop-geometry mismatch is exactly what voided the R1 run. |
+| 9 | **Stage-4a overfits** — ~25× train/val loss gap. | Measured and published rather than hidden. |
+| 10 | **CEJ estimation is a negative result** (15.1% agreement). | Not integrated; reported as a negative result. |
+| 11 | **Mask-aware cropping is unwired** because the mask bar was missed. | Deliberate consequence of the pre-registered bar. |
+| 12 | **No clinical validation, no IRB, and four non-engineering compliance items are open.** | ⛔ **Blocking for publication.** See below. |
+
+### Compliance status — read before redistributing anything
+
+Four items block submission, and **none of them are engineering**. All are account-owner actions,
+documented in [`PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) §8.19:
+
+1. **A Tufts Drive folder was found browsable without sign-in.** The Tufts release agreement
+   forbids reposting the database anywhere. **This is a live licence breach to resolve.**
+2. **DENTEX and Ningxia licences have never been read or recorded.** Both are widely used public
+   datasets so the expected answer is permissive — but *expected* is not *verified*, and an ethics
+   statement asserting a licence nobody read does not belong in a paper.
+3. **A clinic dataset's `metadata/index.csv` shares a folder with its `images/`**, which voids that
+   copy's de-identification. That data is used in **no result**.
+4. **IRB not started.**
+
+Additionally: **real Tufts radiograph pixels are embedded as base64 output in 7 tracked notebooks**
+on `origin/main`. The repository is private, so this is deferred risk by explicit decision — but it
+**must be resolved before this repo, or any fork, is ever made public.**
+
+---
+
+## Bugs found and fixed
+
+Full detail: [`docs/exploration/README.md`](docs/exploration/README.md).
+
+| Bug | Root cause | Fix |
+|---|---|---|
+| Coverage matrix showed 0 matches | Compared filename stems against dict keys; the real join field is a nested `External ID` | Extract `Path(item['External ID']).stem` as the join key |
+| Every crop extracted from the wrong location | Assumed bbox format `[x, y, w, h]`; actual is `[y1, x1, y2, x2]` | Convert `w = x2−x1`, `h = y2−y1`, swap x and y |
+| U-Net selected prematurely | Assumed expert masks encode severity; the pixel values are **per-lesion instance IDs** | Changed to a binary ResNet18 classifier |
+| **A 90-epoch A100 run was scientifically void** | Two *independent* defects, both required: `teeth_polygon.json` stores points as `[y, x]` while `teeth_bbox.json` uses `[x1,y1,x2,y2]`; and that machine's rotated radiographs were 180° out | Transpose proven over 6,006 title-paired objects (2.06 px median centre-distance vs 175–442 px for every alternative). Median IoU **0.000 → 0.837**, agreement **1.6% → 99.4%**. Now enforced in code, which measures its input and exits non-zero. |
+| Caries gate called 84.9% of all teeth carious | Its negative class was Impacted + Periapical Lesion with **no healthy teeth** — not broken for the task it was trained on, but not the task the pipeline asks of it | Rebuilt the negative class from 5,366 real healthy teeth → 19.1% |
+| Deployed demo crashed at upload, after a green build | Streamlit removed `use_column_width` in 1.6x; the call only runs once an image is uploaded, so build and page-load both passed | Pinned `streamlit>=1.62.0`; the Dockerfile now re-checks the API signature at build time |
+| PIL `DecompressionBombError` | PIL rejected large composite figures | `PILImage.MAX_IMAGE_PIXELS = None` |
+
+### Closed: the Universal→FDI lower-arch bug
+
+**Fixed in `f8b31f8`**, regression-tested in `tests/test_fdi_converter.py`. It is recorded here
+because it was described as *open* in five separate places long after it closed — the same
+documentation-drift failure mode this repo's rules exist to prevent, running in reverse.
+Verify before you write, in both directions.
+
+---
+
+## Universal → FDI conversion
+
+Tufts labels *look like* Universal numbering (1–32); the clinical report requires FDI. The table
+below is the **standard Universal→FDI mapping**, correct for genuine Universal input.
+
+| Univ | FDI | Univ | FDI | Univ | FDI | Univ | FDI |
+|---|---|---|---|---|---|---|---|
 | 1 | 18 | 9 | 21 | 17 | 38 | 25 | 41 |
 | 2 | 17 | 10 | 22 | 18 | 37 | 26 | 42 |
 | 3 | 16 | 11 | 23 | 19 | 36 | 27 | 43 |
@@ -610,91 +764,91 @@ never this table directly — see `scripts/tufts/README.md` for how that was est
 | 7 | 12 | 15 | 27 | 23 | 32 | 31 | 47 |
 | 8 | 11 | 16 | 28 | 24 | 31 | 32 | 48 |
 
-> ✅ **`configs/dataset_config.yaml` matches this table.** Checked entry-by-entry on
-> 21 Aug 2026, along with `src/utils/fdi_converter.py` (identical table, and the two agree)
-> and `tests/test_fdi_converter.py` (regression tests that name the historical bug — the
-> shifted lower arch, and the duplicated FDI 33/34 that collapsed the reverse lookup).
-> The fix landed in `f8b31f8`; this warning had outlived it.
+> ⚠️ **Do not apply this table to Tufts titles directly.** Tufts' own labels are **left-right
+> mirrored** relative to it — Tufts "1" is FDI 28, the upper-*left* third molar, not FDI 18. Use
+> `src.utils.fdi_converter.tufts_title_to_fdi()`, and read
+> [`scripts/tufts/README.md`](scripts/tufts/README.md) for how that was established. Correcting it
+> is what turned Tufts into a usable second FDI corpus and bought head v2.0 its +21.5 pp of
+> cross-domain robustness.
+
+`configs/dataset_config.yaml` and `src/utils/fdi_converter.py` both match this table, agree with
+each other, and are regression-tested.
 
 ---
 
-## Publication Target & Grading Criteria
+## Publication target
 
-**Grading rubric for this course project:**
+**Named target: IEEE ISBI 2027** — the 24th International Symposium on Biomedical Imaging.
+Submission deadline **26 Oct 2026**; implementation freeze **14 Oct 2026**.
 
-| Grade | Requirement |
-|---|---|
-| **S** | Publication in a journal, or a conference in its **10th edition or later** |
-| **A** | Mid-tier conference, **5th–10th edition** |
-| **B** | Newer/lower-tier conference, **1st–5th edition** |
-| **C** | No publication secured |
+A **complete manuscript exists and compiles clean** — 0 errors, 0 overfull boxes, 0 undefined
+references — rebuilt on 28 Aug 2026 from the artefacts after a full evidence audit
+([`docs/paper/REBUILD_AUDIT.md`](docs/paper/REBUILD_AUDIT.md)). Five defects in the previous draft
+were found and corrected, the worst being the parameter count described above.
 
-**Senior guidance:** target an IEEE conference with good Scopus indexing for S/A grades.
-Verify Scopus coverage on the official Scopus source list before submitting to any specific
-venue — a call-for-papers page claiming indexing is not the same as being on that list.
+> *"What a Tooth-Level Score Cannot Tell You: Constant Baselines, External Validation and Domain
+> Shift in Automated Panoramic Dental Screening"*
 
-**Named target: IEEE ISBI 2027** — the **24th** International Symposium on Biomedical Imaging,
-paper submission deadline **26 Oct 2026** (verified against the official conference site). That
-edition count clears the **S**-grade bar. `MASTER_PLAN_2026H2.md` schedules W8 as the
-submission window.
+The title changed on 28 Aug, and the reason matters: the previous title led on a single result
+(44.3% lesion-localisation agreement) that **does not replicate externally**. The current title
+names the *contribution* rather than a number.
 
-**Where this project stands toward that, honestly:** not on the strength of any single model
-swap, but on cross-corpus generalisation measured with paired significance tests (something
-comparable published work in this space does not do), external validation on four hospitals
-never trained on, and a visibly-corrected result (a leaked evaluation set found and fixed
-before publication, not after). **R1 (the detector retrain) landed on 27 Aug and moved the
-headline: Stage-2 end-to-end 46.3% → 58.3%, detector recall 67.3% → 70.6%** — confirming, by
-measurement, this project's standing prediction that Stage 1 was the binding constraint. It is
-still the binding constraint, just a looser one; a second published paper's own numbers
-independently show the same in-domain/
-out-of-domain gap this project measured, which supports the framing rather than undermining it.
+**The critical path is no longer writing — it is the venue-length cut** (12 pages against ISBI's 4)
+plus the four compliance blockers above.
 
-**Full assessment, kept current, not duplicated here:** [`transfer.md`](transfer.md) §5.
+**Where this stands, honestly.** Not on the strength of any single model swap, but on: cross-corpus
+generalisation measured with paired significance tests, external validation on four hospitals never
+trained on, a visibly-corrected result (a leaked evaluation set found and fixed *before*
+publication), and controls that make our own headline look worse than it otherwise would. Of 49
+task-relevant papers in this project's own literature review, **2 (4%) do genuine external
+validation** — that is the gap this work fills.
+
+Current assessment, kept current: [`transfer.md`](transfer.md) §5.
 
 ---
 
 ## Contributing
 
-This is a capstone project. Contributions follow this workflow:
-
-1. Create a feature branch: `git checkout -b feature/pipeline-integration`
-2. Make changes and test
-3. Commit with descriptive messages
-4. Push and open a pull request
-
-**Automation note:** [`CLAUDE.md`](CLAUDE.md) at the repo root defines the standing rules
-for AI-assisted sessions — every result gets logged to `docs/results/RESULTS_LOG.md`, every
-session leaves a `docs/session-memory/` file, and nothing is ever deleted (only relocated
-to `_repo_archive/`).
-
-### Commit Message Convention
+This is a capstone project. Phases and owners are tracked in
+[`docs/research/PUBLICATION_TODO.md`](docs/research/PUBLICATION_TODO.md).
 
 ```
-feat:     New feature (e.g., "feat: add visual validation step")
-fix:      Bug fix (e.g., "fix: correct bbox coordinate conversion")
-data:     Dataset changes (e.g., "data: update overlap threshold to 0.015")
-docs:     Documentation (e.g., "docs: add exploration findings")
-refactor: Code refactoring without functional change
-test:     Adding or updating tests
+feat:     new feature          fix:      bug fix
+data:     dataset changes      docs:     documentation
+refactor: no functional change test:     tests
 ```
+
+**Three standing rules** ([`CLAUDE.md`](CLAUDE.md)), which apply to human and AI sessions alike:
+
+1. **Every result gets logged.** A new number appends to `RESULTS_LOG.md`, updates
+   `model_metrics.md` if it changes a current best, and updates `PAPER_MATERIAL.md` if it is
+   paper-relevant. Every number traces to a saved artefact or is marked `[UNVERIFIED]`.
+   **Do not soften a limitation to make a result look better.**
+2. **Every substantial session leaves a memory file** under `docs/session-memory/` — goal, actions,
+   decisions *with reasoning*, open questions, next steps.
+3. **Never delete raw research artefacts.** Relocate to `_repo_archive/` with a manifest entry and
+   a restore command. Use `mv`, never `rm`.
+
+Also: stage explicit paths rather than `git add -A` (large untracked data directories sit next to
+this repo), no binaries over ~50 MB, no new paths containing spaces, and never `git push` without
+being asked.
 
 ---
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
-
----
+MIT — see [LICENSE](LICENSE). The **license covers this source code only.** The Tufts, DENTEX and
+Ningxia datasets carry their own terms; Tufts' in particular forbids redistribution. See
+[Compliance status](#compliance-status--read-before-redistributing-anything).
 
 ## Acknowledgments
 
-- **Tufts Dental Dataset** — multi-annotator OPG radiograph collection
-- **DENTEX** — dental enumeration and diagnosis dataset (caries)
-- **PyTorch** / **torchvision** — model architecture and training
-- **Ultralytics** — YOLOv11 for tooth detection
+**Tufts Dental Database** (detection + bone loss) · **DENTEX** (caries + enumeration) ·
+**Ningxia multi-centre release** (external validation) · **Ultralytics** YOLOv11 ·
+**PyTorch** / **torchvision** · **Qwen2.5-VL** (the C1 baseline arms).
 
----
-
-<p align="center">
-  <strong>Dental AI Pipeline</strong> — Capstone Project 2026
-</p>
+<div align="center">
+<br>
+<sub><b>Research prototype — not a medical device, and not for clinical use.</b></sub><br>
+<sub>Dental AI Pipeline · Capstone Project 2026</sub>
+</div>

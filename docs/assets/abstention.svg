@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 510" width="1160" height="510" role="img" aria-label="Coverage-accuracy curves: declining the least-confident predictions raises Stage-2 FDI accuracy from 0.826 to 0.885 and calibrated caries-gate accuracy from 0.797 to 0.940 at 75 percent coverage, while shuffling the confidences flattens both gains to zero">
+  <title>C4 &#8212; the system knows when to decline</title>
+  <desc>Accuracy on retained predictions as the least-confident are declined. At 75 percent coverage Stage-2 FDI numbering gains 5.91 points and the isotonic-calibrated caries gate gains 14.25 points, both with clustered-bootstrap confidence intervals excluding zero. Shuffling the confidences breaks the link and the gains vanish, which is the control that makes the result meaningful. The threshold was not tuned here.</desc>
+  <defs>
+    <style>
+      .f  { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif; }
+      .m  { font-family: ui-monospace, 'SFMono-Regular', 'Cascadia Code', Consolas, 'Liberation Mono', monospace; }
+      .kk { font-size: 10px; letter-spacing: 1.3px; font-weight: 700; fill: #5f7d97; }
+      .hd { font-size: 17px; font-weight: 680; fill: #eaf3fa; }
+      .ax { font-size: 10.5px; fill: #4d6a84; }
+      .lb { font-size: 12px; fill: #cfe0ee; }
+      .no { font-size: 11px; fill: #7189a0; }
+      .draw { stroke-dasharray: 760; stroke-dashoffset: 760; animation: dr 1.7s .2s ease-out forwards; }
+      @keyframes dr { to { stroke-dashoffset: 0 } }
+      .pop { animation: pp .45s ease-out both; }
+      @keyframes pp { from { opacity:0 } to { opacity:1 } }
+      @media (prefers-reduced-motion: reduce) { .draw { stroke-dashoffset: 0; animation: none } .pop { animation: none; opacity: 1 } }
+    </style>
+  </defs>
+
+  <rect width="1160" height="510" rx="14" fill="#0a1626"/>
+  <rect x="0.5" y="0.5" width="1159" height="509" rx="14" fill="none" stroke="#1c3a52" stroke-width="1"/>
+
+  <text class="f kk" x="40" y="42">CONTRIBUTION C4 &#183; COVERAGE&#8211;ACCURACY &#183; THRESHOLD NOT TUNED HERE</text>
+  <text class="f hd" x="40" y="70">Decline the least-confident predictions and accuracy climbs &#8212; because the confidences mean something</text>
+
+  <!-- legend, on its own row above the plot -->
+  <g transform="translate(150,98)">
+    <rect x="0" y="0" width="14" height="3.5" rx="1.75" fill="#fbbf24"/>
+    <text class="f lb" x="22" y="6">Caries gate, isotonic-calibrated &#8212; 863 crops</text>
+    <rect x="292" y="0" width="14" height="3.5" rx="1.75" fill="#a78bfa"/>
+    <text class="f lb" x="314" y="6">Stage-2 FDI exact match &#8212; 661 detected teeth</text>
+  </g>
+
+  <!-- grid -->
+  <g stroke="#16304a" stroke-width="1">
+    <line x1="150" y1="140" x2="640" y2="140"/>
+    <line x1="150" y1="196" x2="640" y2="196"/>
+    <line x1="150" y1="252" x2="640" y2="252"/>
+    <line x1="150" y1="308" x2="640" y2="308"/>
+    <line x1="150" y1="364" x2="640" y2="364"/>
+    <line x1="150" y1="420" x2="640" y2="420"/>
+  </g>
+  <g class="f ax" text-anchor="end">
+    <text x="138" y="144">1.00</text><text x="138" y="200">0.95</text><text x="138" y="256">0.90</text>
+    <text x="138" y="312">0.85</text><text x="138" y="368">0.80</text><text x="138" y="424">0.75</text>
+  </g>
+  <g class="f ax" text-anchor="middle">
+    <text x="150" y="442">50%</text><text x="395" y="442">75%</text><text x="542" y="442">90%</text><text x="640" y="442">100%</text>
+  </g>
+  <text class="f no" x="395" y="464" text-anchor="middle">COVERAGE &#8212; share of predictions retained</text>
+
+  <!-- 75% marker -->
+  <line x1="395" y1="140" x2="395" y2="420" stroke="#2dd4bf" stroke-width="1" stroke-dasharray="3 4" opacity="0.5"/>
+
+  <!-- shuffled control -->
+  <path d="M640 367.4 L150 366.1" fill="none" stroke="#546b82" stroke-width="1.8" stroke-dasharray="5 5"/>
+  <text class="f no" x="404" y="386" text-anchor="middle" fill="#6f8599">confidences shuffled &#8212; the gain vanishes (+0.03 pp / +0.00 pp)</text>
+
+  <!-- caries gate curve -->
+  <path class="draw" d="M640 367.4 L542 300.2 L395 207.2 L150 173.6" fill="none" stroke="#fbbf24" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+  <g fill="#fbbf24">
+    <circle cx="640" cy="367.4" r="4.5" class="pop" style="animation-delay:.3s"/>
+    <circle cx="542" cy="300.2" r="4.5" class="pop" style="animation-delay:.8s"/>
+    <circle cx="395" cy="207.2" r="5.5" class="pop" style="animation-delay:1.3s"/>
+    <circle cx="150" cy="173.6" r="4.5" class="pop" style="animation-delay:1.7s"/>
+  </g>
+
+  <!-- stage 2 curve -->
+  <path class="draw" d="M640 334.9 L542 309.1 L395 268.8 L150 231.8" fill="none" stroke="#a78bfa" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" style="animation-delay:.35s"/>
+  <g fill="#a78bfa">
+    <circle cx="640" cy="334.9" r="4.5" class="pop" style="animation-delay:.45s"/>
+    <circle cx="542" cy="309.1" r="4.5" class="pop" style="animation-delay:.95s"/>
+    <circle cx="395" cy="268.8" r="5.5" class="pop" style="animation-delay:1.45s"/>
+    <circle cx="150" cy="231.8" r="4.5" class="pop" style="animation-delay:1.85s"/>
+  </g>
+
+  <!-- ============ RIGHT PANEL ============ -->
+  <rect x="690" y="106" width="430" height="330" rx="12" fill="#0c2032" stroke="#1b3a52"/>
+  <text class="f kk" x="714" y="134">GAIN AT 75% COVERAGE</text>
+
+  <g transform="translate(714,150)">
+    <rect x="0" y="0" width="382" height="62" rx="8" fill="#12283c" stroke="#22465f"/>
+    <text class="f" x="16" y="26" font-size="20" font-weight="700" fill="#a78bfa">+5.91 pp</text>
+    <text class="m no" x="16" y="46">[+3.88, +7.68]  Stage-2 FDI &#183; 0.826 &#8594; 0.885</text>
+  </g>
+  <g transform="translate(714,222)">
+    <rect x="0" y="0" width="382" height="62" rx="8" fill="#12283c" stroke="#22465f"/>
+    <text class="f" x="16" y="26" font-size="20" font-weight="700" fill="#fbbf24">+14.25 pp</text>
+    <text class="m no" x="16" y="46">[+11.32, +16.63]  Caries gate &#183; 0.797 &#8594; 0.940</text>
+  </g>
+
+  <text class="f no" x="714" y="312">Intervals are a clustered bootstrap over <tspan fill="#cfe0ee">images</tspan>, not teeth &#8212;</text>
+  <text class="f no" x="714" y="330">teeth within one radiograph are not independent, and a</text>
+  <text class="f no" x="714" y="348">tooth-level bootstrap would report intervals far too narrow.</text>
+
+  <line x1="714" y1="368" x2="1096" y2="368" stroke="#1b3a52"/>
+  <text class="f lb" x="714" y="392">The pre-registered operating point holds:</text>
+  <text class="m no" x="714" y="412">ASSESSABILITY_MIN_FDI_CONFIDENCE = 0.30</text>
+  <text class="f no" x="714" y="430">&#8594; 90.8% coverage at 0.847 accuracy.</text>
+
+  <line x1="40" y1="462" x2="1120" y2="462" stroke="#1c3a52" stroke-width="1"/>
+  <text class="f no" x="40" y="486">Read the Stage-2 axis carefully: coverage is over <tspan fill="#cfe0ee">detected</tspan> teeth, so 75% coverage is 53.0% of the teeth actually present in the mouth.</text>
+</svg>

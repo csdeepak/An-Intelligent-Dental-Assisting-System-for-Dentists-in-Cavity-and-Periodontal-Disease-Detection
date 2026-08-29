@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 880" width="1160" height="880" role="img" aria-label="Six-stage OPG analysis pipeline: YOLOv11l-seg tooth detection, learned FDI enumeration head, then two parallel ResNet18 cascades for caries and periodontal bone loss, fused into a per-tooth JSON report and overlay">
+  <title>Six-stage OPG analysis pipeline</title>
+  <desc>OPG in, per-tooth JSON out. Stage 1 YOLOv11l-seg detects teeth (test box mAP@0.5 0.810). Stage 2 a ResNet18 enumeration head with positional features assigns FDI codes by Hungarian one-to-one assignment (58.3 percent exact end-to-end, 82.6 percent of detected teeth). Stage 3 a caries cascade runs on a tight 1.0x crop; Stage 4 a bone-loss cascade runs on a 1.5x-wide, 2.0x-tall crop of the same box. Stages 5 and 6 fuse the findings and emit the report.</desc>
+  <defs>
+    <linearGradient id="pbg" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0%" stop-color="#0a1626"/><stop offset="100%" stop-color="#0a1d30"/>
+    </linearGradient>
+    <marker id="ar" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0.6 L9 5 L0 9.4 z" fill="#4c6b86"/>
+    </marker>
+    <style>
+      .f  { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif; }
+      .m  { font-family: ui-monospace, 'SFMono-Regular', 'Cascadia Code', Consolas, 'Liberation Mono', monospace; }
+      .st { font-size: 10px; letter-spacing: 1.3px; font-weight: 700; }
+      .ti { font-size: 16.5px; font-weight: 650; fill: #eaf3fa; }
+      .sb { font-size: 12.5px; fill: #93aabf; }
+      .mt { font-size: 12.5px; font-weight: 700; }
+      .mn { font-size: 11px; fill: #7f97ad; }
+      .bl { font-size: 11.5px; letter-spacing: 1.5px; font-weight: 700; }
+      .box  { fill: #0f2739; stroke: #21455f; stroke-width: 1.15; }
+      .lane { fill: #0c2032; stroke: #1b3a52; stroke-width: 1.15; }
+      .link { stroke: #375c78; stroke-width: 1.7; fill: none; }
+      .pulse { animation: gl 3.4s ease-in-out infinite; }
+      @keyframes gl { 0%,100% { opacity:.30 } 50% { opacity:.85 } }
+      @media (prefers-reduced-motion: reduce) { .pulse { animation: none } }
+    </style>
+  </defs>
+
+  <rect width="1160" height="880" rx="14" fill="url(#pbg)"/>
+  <rect x="0.5" y="0.5" width="1159" height="879" rx="14" fill="none" stroke="#1c3a52" stroke-width="1"/>
+
+  <!-- spine and branch connectors -->
+  <g class="link">
+    <path id="l1" d="M580 78 L580 106" marker-end="url(#ar)"/>
+    <path id="l2" d="M580 192 L580 220" marker-end="url(#ar)"/>
+    <path id="l3" d="M580 306 L580 332 Q580 344 566 344 L318 344 Q304 344 304 356 L304 384" marker-end="url(#ar)"/>
+    <path id="l4" d="M580 306 L580 332 Q580 344 594 344 L842 344 Q856 344 856 356 L856 384" marker-end="url(#ar)"/>
+    <path d="M304 442 L304 460" marker-end="url(#ar)"/>
+    <path d="M856 442 L856 460" marker-end="url(#ar)"/>
+    <path d="M304 528 L304 546" marker-end="url(#ar)"/>
+    <path d="M856 528 L856 546" marker-end="url(#ar)"/>
+    <path id="l5" d="M304 620 L304 648 Q304 660 318 660 L566 660 Q580 660 580 672 L580 690" marker-end="url(#ar)"/>
+    <path id="l6" d="M856 620 L856 648 Q856 660 842 660 L594 660 Q580 660 580 672 L580 690" marker-end="url(#ar)"/>
+    <path d="M580 770 L580 794" marker-end="url(#ar)"/>
+  </g>
+
+  <!-- flowing signal packets -->
+  <g>
+    <circle r="3.4" fill="#5eead4"><animateMotion dur="1.5s" repeatCount="indefinite"><mpath href="#l1"/></animateMotion></circle>
+    <circle r="3.4" fill="#7dd3fc"><animateMotion dur="1.5s" begin="0.5s" repeatCount="indefinite"><mpath href="#l2"/></animateMotion></circle>
+    <circle r="3.4" fill="#fbbf24"><animateMotion dur="2.4s" begin="1.0s" repeatCount="indefinite"><mpath href="#l3"/></animateMotion></circle>
+    <circle r="3.4" fill="#fb7185"><animateMotion dur="2.4s" begin="1.0s" repeatCount="indefinite"><mpath href="#l4"/></animateMotion></circle>
+    <circle r="3.4" fill="#fbbf24"><animateMotion dur="2.4s" begin="2.2s" repeatCount="indefinite"><mpath href="#l5"/></animateMotion></circle>
+    <circle r="3.4" fill="#fb7185"><animateMotion dur="2.4s" begin="2.2s" repeatCount="indefinite"><mpath href="#l6"/></animateMotion></circle>
+  </g>
+
+  <!-- INPUT -->
+  <g>
+    <rect x="400" y="24" width="360" height="54" rx="9" class="box"/>
+    <rect x="400" y="24" width="360" height="54" rx="9" fill="#5eead4" opacity="0.05" class="pulse"/>
+    <text class="f ti" x="580" y="46" text-anchor="middle">OPG panoramic radiograph</text>
+    <text class="m sb" x="580" y="65" text-anchor="middle" font-size="11.5">840 &#215; 1615 px  &#183;  rotate 90&#176; CCW before Stage 1</text>
+  </g>
+
+  <!-- STAGE 1 -->
+  <g>
+    <rect x="250" y="106" width="660" height="86" rx="10" class="box"/>
+    <rect x="250" y="106" width="4" height="86" rx="2" fill="#38bdf8"/>
+    <text class="f st" x="272" y="128" fill="#38bdf8">STAGE 1 &#183; TOOTH DETECTION</text>
+    <text class="f ti" x="272" y="152">YOLOv11l-seg &#183; imgsz 1024 &#183; nc = 1</text>
+    <text class="f sb" x="272" y="174">Tufts &#183; frozen 700/150/150 image-level split &#183; boxes only</text>
+    <text class="f mt" x="888" y="132" text-anchor="end" fill="#38bdf8">mAP@0.5  0.810</text>
+    <text class="f mn" x="888" y="152" text-anchor="end">mask 0.638 &#8212; 0.65 bar missed</text>
+    <text class="f mn" x="888" y="172" text-anchor="end">recall 70.6% [66.5, 74.6]</text>
+  </g>
+
+  <!-- STAGE 2 -->
+  <g>
+    <rect x="250" y="220" width="660" height="86" rx="10" class="box"/>
+    <rect x="250" y="220" width="4" height="86" rx="2" fill="#a78bfa"/>
+    <text class="f st" x="272" y="242" fill="#a78bfa">STAGE 2 &#183; FDI ENUMERATION</text>
+    <text class="f ti" x="272" y="266">ResNet18 + 4 positional features</text>
+    <text class="f sb" x="272" y="288">quadrant &#215; position, Hungarian one-to-one &#8212; 0 duplicate codes</text>
+    <text class="f mt" x="888" y="246" text-anchor="end" fill="#a78bfa">58.3% end-to-end</text>
+    <text class="f mn" x="888" y="266" text-anchor="end">82.6% of detected teeth</text>
+    <text class="f mn" x="888" y="286" text-anchor="end">quadrant 97.6%</text>
+  </g>
+
+  <text class="f" x="580" y="332" text-anchor="middle" font-size="10.5" fill="#5f7d97" letter-spacing="1.6">TWO DIFFERENT CROPS OF THE SAME DETECTED BOX</text>
+
+  <!-- CARIES LANE -->
+  <rect x="60" y="356" width="488" height="268" rx="12" class="lane"/>
+  <text class="f bl" x="84" y="382" fill="#fbbf24">CARIES PATH</text>
+  <text class="f" x="524" y="382" text-anchor="end" font-size="11" fill="#7f97ad">DENTEX</text>
+
+  <g>
+    <rect x="100" y="396" width="408" height="46" rx="8" fill="#122b3d" stroke="#2a4a63" stroke-width="1"/>
+    <text class="f" x="304" y="416" text-anchor="middle" font-size="13" fill="#dbe9f4">Tight crop &#183; 1.0&#215; (no expansion)</text>
+    <text class="m" x="304" y="433" text-anchor="middle" font-size="10.5" fill="#7f97ad">crown only &#8594; 224&#215;224, ImageNet norm</text>
+  </g>
+  <g>
+    <rect x="100" y="460" width="408" height="68" rx="9" class="box"/>
+    <rect x="100" y="460" width="3.5" height="68" rx="2" fill="#fbbf24"/>
+    <text class="f" x="120" y="484" font-size="13.5" font-weight="650" fill="#eaf3fa">ResNet18 gate &#8212; caries / healthy</text>
+    <text class="f mn" x="120" y="503">P 0.398 &#183; R 0.740 &#183; AP 0.550 (3.7&#215; chance)</text>
+    <text class="f mn" x="120" y="519">ECE 0.136 &#8594; 0.043 after isotonic</text>
+  </g>
+  <g>
+    <rect x="100" y="546" width="408" height="68" rx="9" class="box"/>
+    <rect x="100" y="546" width="3.5" height="68" rx="2" fill="#fbbf24"/>
+    <text class="f" x="120" y="570" font-size="13.5" font-weight="650" fill="#eaf3fa">ResNet18 depth &#8212; caries / deep</text>
+    <text class="f mn" x="120" y="589">acc 0.81 &#183; macro F1 0.77 (133 val crops)</text>
+    <text class="f mn" x="120" y="605">runs only when the gate fires</text>
+  </g>
+
+  <!-- BONE LOSS LANE -->
+  <rect x="612" y="356" width="488" height="268" rx="12" class="lane"/>
+  <text class="f bl" x="636" y="382" fill="#fb7185">BONE-LOSS PATH</text>
+  <text class="f" x="1076" y="382" text-anchor="end" font-size="11" fill="#7f97ad">TUFTS</text>
+
+  <g>
+    <rect x="652" y="396" width="408" height="46" rx="8" fill="#122b3d" stroke="#2a4a63" stroke-width="1"/>
+    <text class="f" x="856" y="416" text-anchor="middle" font-size="13" fill="#dbe9f4">Expanded crop &#183; 1.5&#215; W, 2.0&#215; H</text>
+    <text class="m" x="856" y="433" text-anchor="middle" font-size="10.5" fill="#7f97ad">crown + root + alveolar bone</text>
+  </g>
+  <g>
+    <rect x="652" y="460" width="408" height="68" rx="9" class="box"/>
+    <rect x="652" y="460" width="3.5" height="68" rx="2" fill="#fb7185"/>
+    <text class="f" x="672" y="484" font-size="13.5" font-weight="650" fill="#eaf3fa">ResNet18 gate &#8212; present / absent</text>
+    <text class="f mn" x="672" y="503">macro F1 0.9233 &#183; sens 83.1% &#183; spec 99.5%</text>
+    <text class="f mn" x="672" y="519">focal loss against a 23.8&#215; imbalance</text>
+  </g>
+  <g>
+    <rect x="652" y="546" width="408" height="68" rx="9" class="box"/>
+    <rect x="652" y="546" width="3.5" height="68" rx="2" fill="#fb7185"/>
+    <text class="f" x="672" y="570" font-size="13.5" font-weight="650" fill="#eaf3fa">ResNet18 severity &#8212; mild / mod / severe</text>
+    <text class="f mn" x="672" y="589">macro F1 0.7208 (52 val crops &#8212; provisional)</text>
+    <text class="f mn" x="672" y="605">runs only when the gate fires</text>
+  </g>
+
+  <!-- STAGE 5 -->
+  <g>
+    <rect x="250" y="690" width="660" height="80" rx="10" class="box"/>
+    <rect x="250" y="690" width="4" height="80" rx="2" fill="#2dd4bf"/>
+    <text class="f st" x="272" y="712" fill="#2dd4bf">STAGE 5 &#183; FUSION, FLAGS, ASSESSABILITY</text>
+    <text class="f ti" x="272" y="736">Per-tooth join on the FDI key + confidence gating</text>
+    <text class="f sb" x="272" y="758">positional-alignment guard &#183; abstain below FDI confidence 0.30 &#8594; 90.8% coverage</text>
+  </g>
+
+  <!-- STAGE 6 -->
+  <g>
+    <rect x="250" y="794" width="660" height="62" rx="10" class="box"/>
+    <rect x="250" y="794" width="4" height="62" rx="2" fill="#34d399"/>
+    <text class="f st" x="272" y="816" fill="#34d399">STAGE 6 &#183; REPORT</text>
+    <text class="f ti" x="272" y="840">Per-tooth JSON + annotated overlay &#183; 2.39 s/image on CPU</text>
+  </g>
+</svg>
