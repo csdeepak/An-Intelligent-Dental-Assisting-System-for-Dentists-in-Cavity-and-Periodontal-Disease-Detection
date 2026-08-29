@@ -1658,8 +1658,9 @@ only **6 distinct answers**, two of which cover 110 images. 26, 36 and 37 are am
 common caries sites: **the model is reciting a prior, not reading the image.**
 
 **Efficiency, which is the other half of C1's brief.** The VLM is **8.29 B parameters, 18.01 GB
-peak VRAM, 1.08 s/image on an A100-80GB**. This pipeline is ~25 M parameters across five small
-models, runs at **2.39 s/image on CPU with no GPU at all**, and scores **2.1x the F1**. The
+peak VRAM, 1.08 s/image on an A100-80GB**. This pipeline is **83.6 M parameters across six
+models (61.2 M on the caries path)** — corrected 28 Aug 2026 by counting the checkpoints; the
+earlier "~25 M" was the superseded bbox detector alone. It runs at **2.39 s/image on CPU with no GPU at all**, and scores **2.1x the F1**. The
 "small specialist beats large generalist, at a fraction of the compute" claim is now measured
 rather than assumed.
 
@@ -1722,7 +1723,7 @@ one-model/zero-shot/one-prompt baseline, and adds the baseline that should have 
 | System | P | R | **F1** | params | hardware |
 |---|---|---|---|---|---|
 | **Held-out constant** `{16,17,26,27,36,37,46,47}` — **image never read** | 0.218 | 0.600 | **0.320** | 0 | none |
-| Our six-stage pipeline | 0.235 | 0.390 | **0.294** | ~25 M | CPU, 2.39 s/img |
+| Our six-stage pipeline | 0.235 | 0.390 | **0.294** | 61.2 M† | CPU, 2.39 s/img |
 | Qwen2.5-VL-32B-Instruct, zero-shot | 0.250 | 0.243 | **0.246** | 33.45 B | H100, 70.1 GB, 1.46 s/img |
 | Qwen2.5-VL-7B-Instruct, zero-shot | 0.248 | 0.107 | **0.149** | 8.29 B | H100, 0.69 s/img |
 | Qwen2.5-VL-7B, **2-shot** | 0.196 | 0.040 | **0.066** | 8.29 B | H100, 1.93 s/img |
@@ -1752,7 +1753,8 @@ cannot on its own demonstrate clinical value.** Consequences for the paper, all 
 1. Publish this constant as a row in the C1 table, beside every model arm.
 2. Do **not** headline C1 as "small specialist beats large generalist" without it.
 3. The efficiency argument survives intact and is worth keeping: 33.45 B parameters and 70.1 GB of
-   H100 VRAM still lose to ~25 M parameters on a CPU.
+   H100 VRAM still lose to **61.2 M** parameters on a CPU († caries path; 83.6 M for all six
+   models). Counted from the checkpoints 28 Aug 2026 — the earlier "~25 M" was the detector alone.
 4. This bears on C1 only. Stage-2 numbering, detection, abstention (§8.21) and external validation
    (§8.12) are measured on other metrics and are untouched.
 
@@ -1930,3 +1932,62 @@ For whoever drafts the actual paper. Tick items off here as they land.
       recall 0.74 → 0.35.
 - [ ] Threshold sweep for the bone-loss decision boundary, reported as a PR curve rather
       than a single operating point.
+
+---
+
+## 10. The manuscript — written 28 Aug 2026, and the five things this document got wrong
+
+**`paper/main.tex` is now a complete manuscript** that compiles clean (0 errors, 0 overfull
+boxes, 0 undefined references, 12 pages) with all five figures. The full audit that preceded
+it — research story, 20-item problem audit, numerical audit, storyboard, citation audit and
+five title options — is `docs/paper/REBUILD_AUDIT.md`. History: `RESULTS_LOG.md` 2026-08-28.
+Narrative: `docs/session-memory/2026-08-28-manuscript-rebuild.md`.
+
+**The title is now "What a Tooth-Level Score Cannot Tell You: Constant Baselines, External
+Validation and Domain Shift in Automated Panoramic Dental Screening."** The previous title
+anchored on 44.3 %, which is the *pipeline's own* lesion-localisation agreement (212/479) —
+one row of one table, and not the finding. A title asserting the constant wins would also
+have overclaimed, since the result does not replicate externally.
+
+**Five defects in the draft, four of which originated in the draft and one here.** They are
+listed in full in `RESULTS_LOG.md` 2026-08-28; the ones that touch *this* document:
+
+1. **The "~25 M parameters" figure was wrong and it came from here.** §8.20 and §8.22 both
+   carried it. It is the *superseded bbox detector alone*. The pipeline is **83.56 M across
+   six models, 61.19 M on the caries path** — counted from the checkpoints, per-stage table
+   now in `model_metrics.md`. Corrected in this file, `model_metrics.md` and the three
+   `docs/paper/` drafts; `RESULTS_LOG.md` records rather than edits it.
+2. The draft named two models that do not exist ("Qwen2.5-VL-33B", "-8B"). **This document
+   was right** — §8.22 uses the released names. Keep using them.
+3. The draft claimed *both* VLMs answer a blank grey image with a dental answer. **This
+   document was right** — §8.22 records that the 32 B model returns `NONE` to the blank and
+   only fails on noise. Keep that distinction; the precise version is the stronger result,
+   because the 32 B model's answer to *noise* is exactly the eight-molar constant.
+4. The draft said isotonic calibration leaves every verdict unchanged. **This document was
+   right** — §8.15 records 155 of 863 verdicts flipping and AP 0.550 → 0.500, and explains
+   that the invariance is our *deployment choice*, not a property of the method.
+5. "No paper in the survey reports an image-blind baseline" was written as a counted census.
+   **It is not counted anywhere** — `related_work_extract.csv` has a validation-design field,
+   not a baseline field. The **2-of-49 external count is verified** (recomputed 28 Aug). State
+   the baseline claim as an observation.
+
+**Newly established during the audit, and worth keeping:**
+
+- **477 vs 479 is not an error.** 479 çürük *polygons* over the 164 scored images fall on
+  **477 distinct teeth**; exactly two teeth carry two lesions each (`test_101` tooth 36,
+  `test_25` tooth 46). Different units. Say so wherever both appear.
+- **The constant reproduces exactly** — the greedy fit re-run from scratch on the 78 fitting
+  images returns `{16,17,26,27,36,37,46,47}`. It scores **F1 0.392 on its fitting set and
+  0.320 on the scored set**, i.e. it transfers *downwards*. That is the answer to "the
+  constant was fitted, so it is not uninformed".
+- **The 86 → 78 arithmetic:** 250 DENTEX `disease/` images; 86 excluded by MD5 byte-identity
+  (85 via the numbering head, 1 via the detector); 164 scored; of the 86, **78 carry ≥1 caries
+  annotation** and those are the fitting set. (`c1_constant_baseline.py:78`'s docstring still
+  says 86 — stale comment.)
+- **Internal and external lesion agreement are NOT comparable to each other.** Different
+  matchers, forced by the ~200x lesion-to-tooth area ratio. §8.12 knew this; the manuscript
+  now states it, because 0.443 → 0.408 reads as a degradation figure and is not one.
+
+**Left for the next session:** the manuscript is **12 pages against ISBI's 4**. It was written
+as a complete, self-explaining document by request; the cut is venue-specific and should not
+be done by re-compressing prose written to be clear. Decide the venue first.

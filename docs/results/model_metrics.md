@@ -350,7 +350,9 @@ caries).
 
 **The VLM scores below a constant guess.** Blank and random-noise images elicit the same confident
 answer; only 6 distinct answers across 164 radiographs. **Never quote 0.143 without that control.**
-Efficiency: 8.29 B params / 18.01 GB VRAM vs ~25 M params on CPU. `RESULTS_LOG.md` 2026-08-27aa.
+Efficiency: 8.29 B params / 18.01 GB VRAM vs **61.2 M** params on CPU (caries path; 83.6 M all
+six models — counted 28 Aug 2026, superseding "~25 M", which was the detector alone).
+`RESULTS_LOG.md` 2026-08-27aa, 2026-08-28.
 
 ---
 
@@ -483,7 +485,7 @@ Accuracy on retained predictions as the least-confident are declined. Threshold 
 | System | P | R | **F1** | params | hardware |
 |---|---|---|---|---|---|
 | **Held-out constant** `{16,17,26,27,36,37,46,47}` — **image never read** | 0.218 | 0.600 | **0.320** | 0 | none |
-| Our six-stage pipeline | 0.235 | 0.390 | **0.294** | ~25 M | CPU, 2.39 s/img |
+| Our six-stage pipeline | 0.235 | 0.390 | **0.294** | 61.2 M | CPU, 2.39 s/img |
 | Qwen2.5-VL-32B-Instruct, zero-shot | 0.250 | 0.243 | **0.246** | 33.45 B | H100, 70.1 GB, 1.46 s/img |
 | Qwen2.5-VL-7B-Instruct, zero-shot | 0.248 | 0.107 | **0.149** | 8.29 B | H100, 0.69 s/img |
 | Qwen2.5-VL-7B, **2-shot** | 0.196 | 0.040 | **0.066** | 8.29 B | H100, 1.93 s/img |
@@ -511,3 +513,27 @@ Accuracy on retained predictions as the least-confident are declined. Threshold 
 - Pooled val (v3 0.855 vs control 0.821) is **not comparable**: different val mixtures.
 - Pipeline default remains **v2.0** (`models/10_fdi_head_dentex_tufts_v2`).
 - Source: `models/12_fdi_head_v3_3corpus/run_summary.txt`, `RESULTS_LOG.md` 2026-08-28c.
+
+---
+
+## Pipeline size — parameter counts per stage (28 Aug 2026)
+
+Counted with `torch.load` over the six checkpoints, summing `numel()`. Recorded here
+because the manuscript cites it and because a wrong version of this number propagated
+through nine places in the docs before it was caught (`RESULTS_LOG.md` 2026-08-28).
+
+| Stage | Model | Checkpoint | Parameters |
+|---|---|---|---|
+| 1  | YOLOv11l-seg | `models/11_yolo_seg_tufts_r1/best.pt` | 27,617,459 |
+| 2  | ResNet18 + 4 positional feats | `models/10_fdi_head_dentex_tufts_v2/` | 11,197,536 |
+| 3a | ResNet18 caries gate | `models/09_caries_gate_v3/` | 11,187,158 |
+| 3b | ResNet18 caries severity | `models/07_caries_cascade/` | 11,187,158 |
+| 4a | ResNet18 bone-loss gate | `models/03_bone_loss_model_training_notebook_models/` | 11,187,158 |
+| 4b | ResNet18 bone-loss severity | `models/04_bone_loss_severity_notebook_models/` | 11,187,671 |
+| | **Total, all six** | | **83,564,140** |
+| | **Caries path only** (1, 2, 3a, 3b) | | **61,189,311** |
+
+**Do not quote "~25 M" for the pipeline.** That is the *superseded bbox* detector's own
+count (`tooth-detector-a100-1024-v1.0`, 25.3 M, recorded under Stage 1 above); the current
+seg detector is 27.6 M and the pipeline is not one model. The efficiency comparison against
+Qwen2.5-VL-32B-Instruct is 33.45 B vs 61.2 M — roughly 550x, in the VLM's disfavour.

@@ -55,24 +55,40 @@ def main():
     if len(nx) != 4:
         sys.exit(f"expected 4 external hospitals, found {len(nx)}")
 
-    labels = ["Tufts\n(in-domain,\nmacro-F1)", "DENTEX\n(firing rate)"] + \
-             [f"Ningxia {sp}\n(affected-tooth\nsensitivity)" for sp, _ in nx]
-    vals = [TUFTS_MACRO_F1, DENTEX_FIRING] + [v for _, v in nx]
-    cols = [OK] + [BAD] * (len(vals) - 1)
+    # TWO PANELS, NOT ONE SHARED AXIS.
+    # The in-domain figure is a macro-F1; the external figures are a firing rate and an
+    # affected-tooth sensitivity. Three different quantities on one axis invites the reader
+    # to subtract them, which is exactly the comparison the caption then has to disown.
+    # Panel (a) is the in-domain result; panel (b) is every out-of-domain measurement, on
+    # its own scale, with the metric named under each bar.
+    ext_labels = ["DENTEX\n(firing rate,\n164 images)"] + \
+                 [f"Ningxia {sp}\n(affected-tooth\nsensitivity)" for sp, _ in nx]
+    ext_vals = [DENTEX_FIRING] + [v for _, v in nx]
 
-    fig, ax = plt.subplots(figsize=(9.0, 3.4))
-    bars = ax.bar(labels, vals, color=cols, width=0.6, edgecolor="none")
-    for b, v in zip(bars, vals):
-        ax.text(b.get_x() + b.get_width() / 2, v + 0.02,
-                f"{v:.1%}" if v < 0.5 else f"{v:.3f}",
-                ha="center", fontsize=9.5, color=INK, fontweight="600")
+    fig, (ax_in, ax_out) = plt.subplots(
+        1, 2, figsize=(9.4, 3.5), gridspec_kw={"width_ratios": [1, 3.4]})
 
-    ax.set_ylim(0, 1.06)
-    ax.set_ylabel("score / firing rate", fontsize=9.5, color=INK)
-    ax.tick_params(labelsize=8.5, colors=INK)
-    ax.spines[["top", "right"]].set_visible(False)
-    ax.grid(axis="y", alpha=0.25)
-    ax.set_axisbelow(True)
+    ax_in.bar(["Tufts validation\n(1,558 crops,\n4% prevalence)"], [TUFTS_MACRO_F1],
+              color=OK, width=0.5, edgecolor="none")
+    ax_in.text(0, TUFTS_MACRO_F1 + 0.02, f"{TUFTS_MACRO_F1:.3f}",
+               ha="center", fontsize=10, color=INK, fontweight="600")
+    ax_in.set_ylim(0, 1.06)
+    ax_in.set_ylabel("macro-F1", fontsize=9.5, color=INK)
+    ax_in.set_title("(a) In domain", fontsize=10, color=INK)
+
+    bars = ax_out.bar(ext_labels, ext_vals, color=BAD, width=0.6, edgecolor="none")
+    for b, v in zip(bars, ext_vals):
+        ax_out.text(b.get_x() + b.get_width() / 2, v + 0.0015, f"{v:.1%}",
+                    ha="center", fontsize=9.5, color=INK, fontweight="600")
+    ax_out.set_ylim(0, max(ext_vals) * 1.30)
+    ax_out.set_ylabel("firing rate / sensitivity", fontsize=9.5, color=INK)
+    ax_out.set_title("(b) Out of domain — note the axis scale", fontsize=10, color=INK)
+
+    for axis in (ax_in, ax_out):
+        axis.tick_params(labelsize=8.5, colors=INK)
+        axis.spines[["top", "right"]].set_visible(False)
+        axis.grid(axis="y", alpha=0.25)
+        axis.set_axisbelow(True)
     # No suptitle and no burned-in caption: the LaTeX \caption carries both.
 
     fig.tight_layout()

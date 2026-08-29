@@ -123,11 +123,10 @@ Z.~Meng, J.~Hao, X.~Dai, Y.~Feng, J.~Liu, B.~Feng, H.~Wu, X.~Gai, H.~Zhu,
   T.~Hu, Y.~Wu, H.~Xu, J.~Li, J.~Xiao, X.~Liu, J.~T. Zhou, F.~Zhu, Z.~Zhao,
   L.~Xia, B.~Fang, J.~Sun, J.~Wu, and Z.~Liu, ``A multimodal vision-language
   model for comprehensive dental diagnosis and enhanced clinical practice,''
-  \emph{Nature Communications}, 2026, author list extracted from a fetched
-  summary, not the publisher record directly; volume/issue/pages not resolved
-  at time of writing -- verify against the publisher record at proof stage.
-  Preprint precursor available as arXiv:2509.23344 (DentVLM). [Online].
-  Available: \url{https://doi.org/10.1038/s41467-026-75718-x}
+  \emph{Nature Communications}, vol.~17, p. 8933, 2026, article 8933. Metadata
+  verified against the Crossref record, 28 Aug 2026. Preprint precursor
+  available as arXiv:2509.23344 (DentVLM). [Online]. Available:
+  \url{https://doi.org/10.1038/s41467-026-75718-x}
 \BIBentrySTDinterwordspacing
 
 \bibitem{jha2026dentiask}
@@ -179,8 +178,8 @@ D.~Cerda~Mardini, P.~Cerda~Mardini, D.~Paz Vicu{\~n}a~Iturriaga, and D.~R.
 \BIBentrySTDinterwordspacing
 
 \bibitem{jocher2024yolo11}
-G.~Jocher, J.~Qiu, and A.~Chaurasia, ``{Ultralytics YOLO11},'' 2024, software.
-  \url{https://github.com/ultralytics/ultralytics}.
+G.~Jocher, J.~Qiu, and A.~Chaurasia, ``{Ultralytics YOLO11},'' Software,
+  version 8.3, 2024, \url{https://github.com/ultralytics/ultralytics}.
 
 \bibitem{he2016resnet}
 K.~He, X.~Zhang, S.~Ren, and J.~Sun, ``Deep residual learning for image
@@ -207,13 +206,18 @@ S.~Bai, K.~Chen, X.~Liu, J.~Wang, and Others, ``{Qwen2.5-VL} technical
   report,'' 2025, arXiv:2502.13923.
 
 \bibitem{guo2017calibration}
+\BIBentryALTinterwordspacing
 C.~Guo, G.~Pleiss, Y.~Sun, and K.~Q. Weinberger, ``On calibration of modern
-  neural networks,'' in \emph{International Conference on Machine Learning
-  (ICML)}, 2017.
+  neural networks,'' in \emph{Proceedings of the 34th International Conference
+  on Machine Learning (ICML)}, ser. Proceedings of Machine Learning Research,
+  vol.~70, 2017, pp. 1321--1330. [Online]. Available:
+  \url{https://proceedings.mlr.press/v70/guo17a.html}
+\BIBentrySTDinterwordspacing
 
 \bibitem{zadrozny2002isotonic}
 B.~Zadrozny and C.~Elkan, ``Transforming classifier scores into accurate
-  multiclass probability estimates,'' in \emph{ACM SIGKDD International
-  Conference on Knowledge Discovery and Data Mining}, 2002.
+  multiclass probability estimates,'' in \emph{Proceedings of the 8th ACM
+  SIGKDD International Conference on Knowledge Discovery and Data Mining},
+  2002, pp. 694--699.
 
 \end{thebibliography}

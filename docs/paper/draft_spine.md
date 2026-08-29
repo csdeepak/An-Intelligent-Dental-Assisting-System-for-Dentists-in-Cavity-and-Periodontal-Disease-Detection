@@ -118,7 +118,7 @@ examples teach it to abstain, with 123 of 164 answers empty at 4-shot. Blank and
 both elicit confident, dental-specific answers.
 
 Efficiency survives intact and is worth stating: 33 B parameters and 70 GB of GPU memory lose to
-~25 M parameters on a CPU.
+61.2 M parameters on a CPU.
 
 ### 5.4 External validation
 

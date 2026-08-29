@@ -26,7 +26,7 @@ and periodontal bone loss per tooth with independent ResNet18 branches. **Stages
 per-stage outputs on the FDI key and emit a structured record.
 
 The design commitment is that every stage is small and separately auditable: the pipeline totals
-~25 M parameters and runs at 2.39 s per image on CPU with no GPU. We return to that figure in
+83.6 M parameters (61.2 M on the caries path) and runs at 2.39 s per image on CPU with no GPU. We return to that figure in
 Section 3.5, because it is the basis of the only comparison in this paper we win outright.
 
 ### 2.2 Data
@@ -123,7 +123,7 @@ dental-specific answer to a **random-noise image**.
 of the eight first and second molars — fitted on held-out images, never on the scored set — scores
 **F1 0.320**, above our 0.294. Caries in DENTEX is overwhelmingly molar, so tooth-level FDI-set F1
 is **base-rate dominated and cannot on its own demonstrate clinical value**. What survives intact
-is the efficiency claim: 33.45 B parameters and 70 GB of H100 VRAM lose to ~25 M parameters on a
+is the efficiency claim: 33.45 B parameters and 70.1 GB of H100 VRAM lose to 61.2 M parameters on a
 CPU.
 
 ### 3.6 Third-corpus ablation

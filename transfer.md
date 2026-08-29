@@ -6,7 +6,9 @@ It is **rewritten, not appended to** — unlike `docs/results/RESULTS_LOG.md` (a
 history) and `docs/session-memory/` (one file per session, never edited). Those two are the
 record; this is the snapshot.
 
-**Last updated: 27 August 2026, end of a very long session.** Implementation is essentially complete and **the paper draft is now the critical path**. C1 ran and landed (VLM below a constant guess); the rigor block — confidence intervals, calibration, failure taxonomy, related work, ethics — is done; bone loss is a decided limitation rather than an open problem; DENTEX is local; the environment was rebuilt on Python 3.13 after the 3.11 install lost its interpreter mid-session. 84/84 tests, all invariants hold, ₹612.88 GPU balance, nothing running. §1 and §3 are the snapshot; `RESULTS_LOG.md` 2026-08-27f … 2026-08-27aa is the day's history.
+**Last updated: 28 August 2026.** **A complete manuscript now exists and compiles**, rebuilt from the artefacts after a full evidence audit (`docs/paper/REBUILD_AUDIT.md`, `RESULTS_LOG.md` 2026-08-28). Five defects in the previous draft were found and corrected — the worst was a whole-system parameter count of "~25 M" that was the *superseded detector alone*; the pipeline is **83.6 M across six models, 61.2 M on the caries path**, and that wrong figure had propagated into 9 places across 6 files. **The critical path is no longer "write the draft" — it is the venue-length cut** (12 pages against ISBI's 4) plus the four non-engineering compliance blockers. 122/122 tests, 82 manuscript numbers auto-verified against their JSONs, all invariants hold, ₹~313 GPU balance, nothing running.
+
+**Previously: 27 August 2026**, end of a very long session. C1 ran and landed (VLM below a constant guess); the rigor block — confidence intervals, calibration, failure taxonomy, related work, ethics — is done; bone loss is a decided limitation rather than an open problem; DENTEX is local; the environment was rebuilt on Python 3.13 after the 3.11 install lost its interpreter mid-session. `RESULTS_LOG.md` 2026-08-27f … 2026-08-27aa is that day's history.
 
 **Previously: 26 August 2026** (later the same day: work resumed on the **Windows** machine;
 the frozen Tufts split was made regenerable from code and `dataset_seg/` rebuilt, so R1 is
@@ -29,11 +31,26 @@ added; full README + checkpoint-continuity audit for a machine handoff.)
 
 ## 1. Where we are, in six lines
 
-**Every headline contribution is now measured. What is left is writing.** The six-stage pipeline
-runs end to end, is deployed in a verified Docker image, and has been evaluated on four hospitals
-it never trained on. As of 27 August the results block is complete: C1, C2, C3-style error
-attribution, confidence intervals, calibration and a failure taxonomy all exist as numbers with
-saved artefacts behind them.
+**Everything is measured AND written. What is left is a length cut and paperwork.** The six-stage
+pipeline runs end to end, is deployed in a verified Docker image, and has been evaluated on four
+hospitals it never trained on. The results block is complete — C1, C2, C3-style error attribution,
+confidence intervals, calibration and a failure taxonomy all exist as numbers with saved artefacts
+behind them — and as of 28 August those numbers are assembled into a **complete manuscript that
+compiles clean** (0 errors, 0 overfull boxes, 0 undefined references, 12 pages).
+
+**The manuscript's title changed on 28 Aug, and the reason matters.** It was *"What Does 44 %
+Mean?"* — but 44.3 % is 212/479, the *pipeline's own* lesion-localisation agreement: one row of one
+table, never written as "44 %" in the body, and not the finding. It is now **"What a Tooth-Level
+Score Cannot Tell You: Constant Baselines, External Validation and Domain Shift in Automated
+Panoramic Dental Screening"**, which names the contribution rather than a result — necessary,
+because the result does **not** replicate externally.
+
+**⚠️ A wrong number had propagated into nine places before anyone counted it.** The pipeline was
+described everywhere as "~25 M parameters". That is the **superseded bbox detector alone**. Counted
+from the checkpoints: **83.56 M across six models, 61.19 M on the caries path** (per-stage table in
+`model_metrics.md`). Corrected in 5 files; `RESULTS_LOG.md` records it rather than being edited.
+`scripts/verify_paper_numbers.py` now asserts 82 manuscript numbers against their artefacts so this
+class of drift fails loudly next time.
 
 **The headline: Stage-2 FDI is 58.3% end-to-end [53.9, 62.8], and that is a DETECTION-bound
 number.** 29.4% of ground-truth teeth are never detected; **of the 661 teeth Stage 1 does find,
@@ -41,7 +58,7 @@ Stage 2 numbers 82.6% correctly**. Report both. 77.4% of the numbering errors th
 benign off-by-one; only 2.4% of detected teeth suffer a category error (§8.16 in
 `PAPER_MATERIAL.md`).
 
-**C1 is DONE and hardened, and the honest version is more complicated than it looked on 27 Aug.** A general-purpose VLM zero-shot scores **F1 0.149 at 7B** (reproducing 27 Aug's 0.143 on new hardware and a new transformers major version) and **0.246 at 32B** — scale helps a lot. **Few-shot makes it monotonically worse** (0.066 at 2-shot, 0.034 at 4-shot) because in-context examples teach it to answer *nothing*: 123 of 164 answers are empty at 4-shot. Both models still hand a confident dental answer to a **random-noise image**. **But the result that constrains the write-up: a fixed list of the eight first/second molars — fitted on held-out images, never on the scored set — scores 0.320, above our pipeline's 0.294.** Tooth-level FDI-set F1 is base-rate dominated; that constant must appear beside every C1 arm, and C1 must not be headlined as "small specialist beats large generalist" without it. The efficiency claim survives: 33.45 B params and 70.1 GB of H100 VRAM still lose to ~25 M params on a CPU. Cost Rs 285.20 (+ Rs 14.26 wasted on a stray instance); **~Rs 313 remains**, nothing running.
+**C1 is DONE and hardened, and the honest version is more complicated than it looked on 27 Aug.** A general-purpose VLM zero-shot scores **F1 0.149 at 7B** (reproducing 27 Aug's 0.143 on new hardware and a new transformers major version) and **0.246 at 32B** — scale helps a lot. **Few-shot makes it monotonically worse** (0.066 at 2-shot, 0.034 at 4-shot) because in-context examples teach it to answer *nothing*: 123 of 164 answers are empty at 4-shot. Both models still hand a confident dental answer to a **random-noise image**. **But the result that constrains the write-up: a fixed list of the eight first/second molars — fitted on held-out images, never on the scored set — scores 0.320, above our pipeline's 0.294.** Tooth-level FDI-set F1 is base-rate dominated; that constant must appear beside every C1 arm, and C1 must not be headlined as "small specialist beats large generalist" without it. The efficiency claim survives: 33.45 B params and 70.1 GB of H100 VRAM still lose to **61.2 M** params on a CPU (caries path; 83.6 M all six models — counted 28 Aug, correcting the "~25 M" that was the detector alone). Cost Rs 285.20 (+ Rs 14.26 wasted on a stray instance); **~Rs 313 remains**, nothing running.
 
 **C2 external validation, re-measured on the seg detector with same-machine controls:** caries
 lesion agreement **28.8–51.3% across four Ningxia hospitals (40.8% pooled)** against **44.3%
@@ -54,9 +71,9 @@ and bone loss by **nothing**, which falsified the shared-root-cause hypothesis; 
 no bone-loss labels, so the combined-training lever never existed. Written up as `PAPER_MATERIAL.md`
 §8.13. **Its crops cannot be rebuilt on this machine** (§8, and `RESULTS_LOG.md` 2026-08-27u).
 
-**84/84 tests pass, `verify_invariants.py` all-hold with 3 previously-skipping checks now live.**
-We are past W2 of the 8-week plan on results and behind on prose; implementation freeze **14 Oct**,
-ISBI **26 Oct**.
+**122/122 tests pass, `verify_invariants.py` all-hold with 3 previously-skipping checks now live.**
+We are past W2 of the 8-week plan on results and, as of 28 Aug, **no longer behind on prose**;
+implementation freeze **14 Oct**, ISBI **26 Oct**.
 
 **⚠️ Four things block submission and NONE are engineering** — all are account-owner actions:
 (1) a Tufts Drive folder browsable without sign-in, which its licence forbids; (2) DENTEX and
@@ -65,8 +82,13 @@ Ningxia licences never read or recorded; (3) SDH `metadata/index.csv` sharing a 
 §8.19 has the seven-item checklist. Also deferred by explicit decision: real Tufts pixels embedded
 in 7 tracked notebooks on `origin/main` (repo private — must be resolved before any public release).
 
-**The user's stated intent: implementation first, paper draft last.** That inverted on 27 Aug —
-implementation is now essentially done and **the draft is the critical path**.
+**The user's stated intent: implementation first, paper draft last.** That inverted on 27 Aug, and
+on 28 Aug the draft landed too. **What is on the critical path now is the venue-length cut** — the
+manuscript is 12 pages and ISBI allows 4. It was deliberately written as a complete, self-explaining
+document; the cut is a separate, venue-specific task and should not be done by re-compressing prose
+that was just written to be clear. §III–§V and the 12-item limitations list are where the
+compression lives, and some of it may belong in supplementary material. **Decide the venue first —
+the cut differs.**
 
 
 ## 1a. R1 — what actually happened, 26–27 Aug
@@ -205,6 +227,7 @@ vs bbox's 3,924 (+0.15%), so near-, not exactly, like-for-like.
 | **C4 — abstention** (28 Aug) | Coverage-accuracy curves. Declining the least-confident quarter lifts Stage 2 **0.826 → 0.885** and the caries gate **0.797 → 0.940**; shuffling the confidences collapses both gains to ~0, so the ranking carries real information. The pre-registered 0.30 threshold lands at **90.8% coverage / 0.847**, within 0.2 pp of the empirical 90% point — and was **not** tuned. **C4 had never been produced**: the `assessable` flag existed, the curve did not. `RESULTS_LOG.md` 2026-08-28a, `PAPER_MATERIAL.md` §8.21 |
 | **C1 hardened** (28 Aug) | Scale, few-shot and reproducibility arms. 7B 0.149 (reproduces 0.143 across hardware + a transformers major version), 32B **0.246**, few-shot degrades monotonically to 0.034 via abstention (123/164 empty). **An image-blind constant fitted on held-out data scores 0.320, above our 0.294** — tooth-level F1 is base-rate dominated and that row must be published beside every arm. `RESULTS_LOG.md` 2026-08-28b, `PAPER_MATERIAL.md` §8.22 |
 | **Stage-2 head v3, 3 corpora** (28 Aug) | Kaggle dual-labeled added as a third FDI corpus (499 images / 13,166 teeth; numbering verified standard by arbiter, 80.3% direct vs 1.7% mirrored). Against a same-day control: **DENTEX +1.14 pp [+0.33,+1.95] significant**, Tufts flat, nothing regressed. **Reported ablation, NOT the default** — swapping invalidates the 58.3%/82.6% headline, C4 curves and §8.16. `models/12_fdi_head_v3_3corpus/`, `RESULTS_LOG.md` 2026-08-28c |
+| **Root `README.md` rebuilt** (29 Aug) | Rewritten against the artefacts, with seven hand-authored animated SVGs in `docs/assets/`. Cleared stale front-page claims: the tests badge said **84** and the tree said **65** (both are **122**); Stage 1 still led with the superseded detector's **0.782** rather than the default's **0.810**; Phase 6 still read "drafting has not started"; the risk table still called external validation "out of scope for the capstone" *after* four hospitals had been run; `models/11,12,12a`, `scripts/kaggle_dual`, `docs/paper` and `docs/assets` were missing from the tree. Every link, image path and anchor is machine-checked; 122/122 and `all invariants hold` re-run to confirm the badges. `docs/session-memory/2026-08-29-readme-rebuild-svg-assets.md` |
 | **Tufts 90-degree geometry bug FIXED** (28 Aug) | Every Tufts radiograph here is rotated 90 degrees; the crop builder silently produced 23% degenerate crops and the repo's own alignment guard passed it (both orientations score >1.0). CCW rotation reproduces v2's corpus exactly (35,248/3,721/3,786). Builder now aborts above a 2% degenerate rate. Upright copies at `data/tufts/ZIP/Radiographs_upright`. **Does not unblock bone loss** — that is a separate defect |
 
 **The pattern worth remembering, stated once rather than per-entry below:** almost every defect
@@ -224,20 +247,26 @@ not, and would have been quietly wrong if the second measurement had not been as
 
 ## 3. What is NEXT — the draft is now the critical path
 
-**Everything measurable has been measured.** The ordering below reflects that inversion.
+**Everything measurable has been measured, and the draft is written.** The ordering below reflects
+both inversions.
 
-1. **WRITE THE DRAFT.** `PAPER_MATERIAL.md` now carries §2.1 (related work + comparison table),
-   §5–§6 (methods), §7 (results), §8.1–§8.20 (limitations, error attribution, calibration, C1),
-   and 8 paper figures under `docs/results/figures/paper/`. §9's checklist is down to the draft
-   itself and an optional reader study. **This is the only thing on the critical path.**
-2. **The four compliance blockers** (§1, `PAPER_MATERIAL.md` §8.19). Zero compute, all
+1. **CUT THE MANUSCRIPT TO VENUE LENGTH.** `paper/main.tex` is complete, compiles clean and is
+   **12 pages**; ISBI allows 4. Pick the venue first, because the cut differs — a journal with room
+   for the full version needs no cut at all. **This is the only thing on the critical path.**
+   Everything the cut needs is already written; `docs/paper/REBUILD_AUDIT.md` Deliverable 4 gives
+   the section-by-section purpose so nothing load-bearing gets removed by accident.
+2. **Authors and affiliations are still `Unknown`** in `main.tex`. Blocking, not engineering.
+3. **The four compliance blockers** (§1, `PAPER_MATERIAL.md` §8.19). Zero compute, all
    account-owner actions, and (1) and (3) are live protocol breaches rather than paperwork.
-3. **Upload `models/11_yolo_seg_tufts_r1/best.pt` to Drive.** Still the only thing standing
+4. **Upload `models/11_yolo_seg_tufts_r1/best.pt` to Drive.** Still the only thing standing
    between this repo and a working fresh clone. Recipe and hash in `docs/EXTERNAL_DRIVE.md`.
-4. **Optional accuracy lever, if time allows: Stage-2 head v3 on a third FDI corpus.** The Kaggle
-   *Dual-labeled Panoramic Radiographs* set (2,000 images, native FDI, no mirror) would make
-   generalisation a 3-corpus claim. Needs a CPU fetch, then ~1 GPU-hour of the ₹612.88 remaining.
-   **This is the only justified remaining training job in the project.**
+5. ~~**Stage-2 head v3 on a third FDI corpus.**~~ **DONE 28 Aug** — ran, and stayed an ablation.
+   DENTEX val +1.14 pp [+0.33, +1.95] against a same-day control; Tufts flat; the Kaggle +15.45 pp
+   is not a generalisation result because v3 trained on that corpus. **Pipeline default remains
+   v2.0** — adopting v3 would invalidate the 58.3 % / 82.6 % Stage-2 headline, the coverage curves
+   and the failure taxonomy, all measured against v2. Two data corrections came out of it: the
+   corpus is **500 images, not 2,000**, and its numbering is standard FDI, verified by arbiter
+   (80.3 % direct vs 1.7 % mirrored) rather than assumed. `PAPER_MATERIAL.md` §8.23.
 5. **Bone-loss calibration / CIs / the three §9 ablations** — all blocked on the same thing:
    `Radiographs/Radiographs/`, the ORIGINAL un-rotated Tufts radiographs, which are not on this
    machine. Note that even with them, **49.6% of the val crops carry unsaved jitter offsets and
@@ -264,7 +293,7 @@ was proposed and declined on 27 Aug for exactly this reason.
 | **⚠️ Real Tufts radiograph pixels are embedded in 7 tracked notebooks, already on `origin/main`** — not references, actual base64 image data in cell outputs (`RESULTS_LOG.md` 2026-08-26b). **The GitHub repo is confirmed private, so this is deferred risk, not an active leak** — the user's explicit call. Must be resolved (strip outputs going forward, or rewrite history — destructive, needs a force-push) **before this repo, or any fork of it, is ever made public.** | Deferred by explicit user decision 26 Aug; revisit before any public release |
 | **Is the Tufts mirror finding novel?** NOT established. The Panetta et al. (IEEE JBHI 2022) full text is IEEE-paywalled and unread — tried the indexed biomedical/arXiv corpora, the DOI, the author's own site, PDF search, and GitHub; all dead ends. If the paper documents the convention, this is a usage note, not a discovery. `RESULTS_LOG.md` 2026-08-25h §2, 2026-08-26a. | Needs someone with IEEE Xplore access — a 5-minute read, not a research task |
 | ~~**Bone-loss domain-shift fix — what approach?**~~ **RESOLVED 27 Aug: none — reported as a measured limitation** (`PAPER_MATERIAL.md` §8.13). The Stage-2 combined-training lever does not transfer (DENTEX has no bone-loss labels); every remaining option is a research programme that does not fit before the 14 Oct freeze. Kept here for the reasoning, not because it is open. Options span the DENTEX+Tufts combined-training trick that worked for Stage 2 (untried here), R1 (shared Tufts-side fix), Ningxia-informed fine-tuning (needs care — Ningxia is locked, no tuning against it directly), or documenting it as a limitation rather than a fix. | Research direction, not a fact to look up |
-| **A third public FDI corpus exists, unused.** DentFound trains tooth-ID on the Kaggle *Dual-labeled Panoramic Radiographs* set — 2,000 images, native FDI 11–48, larger than DENTEX or Tufts, no mirror to correct. | Whether to add it before or after R1 |
+| ~~**A third public FDI corpus exists, unused.**~~ **RESOLVED 28 Aug: added, and it stays an ablation.** Head v3 trained on DENTEX+Tufts+Kaggle gains **+1.14 pp on DENTEX val** [+0.33, +1.95] against a same-day control; Tufts flat; the pipeline default stays v2.0 because swapping it invalidates every Stage-2 number in the paper. The corpus is **500 images, not 2,000**, and its FDI convention was verified by arbiter, not assumed. `PAPER_MATERIAL.md` §8.23. | Closed |
 | **What else to use `DENTEX/disease/` for**, beyond the Stage-2 eval set (164 leak-free of 250) and the lesion-localisation source. The 91 `saglam` (healthy) teeth as a small real healthy class is still an open candidate use. | Scoping call |
 | **Clinic data governance.** `index.csv` sits beside `images/` on a shared Drive, voiding the de-identification. Five actions in `clinical_dataset_provenance.md` §4a, all needing the Drive owner. | Not this repo's account |
 | **`split_v1` has a train/test leak** — `590.JPG` (test) and `591.JPG` (train) are byte-identical, so the frozen detector trained on one of its own test images (1 of 150). The Tufts crop builder works around it; the detector's reported test metrics have **not** been re-measured. | Whether to re-measure the detector, or document and move on |
@@ -419,6 +448,7 @@ actual A100 bbox run and looks conservative by roughly 3–4×.
 | Weights, version tags, which head is the pipeline default | `models/README.md` |
 | **Google Drive links, checkpoint restore steps, and the Tufts licence warning** | `docs/EXTERNAL_DRIVE.md` |
 | Paper/review figures | `docs/results/figures/paper/` |
+| The root `README.md`'s animated SVGs | `docs/assets/` — **they carry hard-coded numbers; edit them when a headline number moves** |
 | **This file's own §5** | Publication target and grading criteria |
 
 Every directory containing code has a README; all were swept for staleness across three passes

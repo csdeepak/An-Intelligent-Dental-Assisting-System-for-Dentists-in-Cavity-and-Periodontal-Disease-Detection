@@ -18,7 +18,8 @@ folded in. Every number traces to `../results/PAPER_MATERIAL.md` / `RESULTS_LOG.
 Automated analysis of panoramic radiographs (OPGs) is usually evaluated with tooth-level metrics:
 which teeth are carious. We show that on a public OPG dataset such metrics are dominated by
 anatomical priors. Using one scorer and 164 leakage-free images, we compare a purpose-built
-six-stage pipeline (~25 M parameters), two general-purpose vision-language models (8 B and 33 B),
+six-stage pipeline (83.6 M parameters), two general-purpose vision-language models
+(Qwen2.5-VL-7B-Instruct and -32B-Instruct, 8.29 B and 33.45 B as loaded),
 and an **image-blind constant** — a fixed list of the eight first and second molars, fitted on
 held-out data and never shown a radiograph. Internally the constant scores **F1 0.320** against
 the pipeline's 0.294 and the 33 B model's 0.246, and leads again on a lesion-localisation metric
@@ -93,7 +94,7 @@ prose.)*
 
 **3.1 Pipeline.** Six stages: YOLOv11l-seg detection → FDI numbering (ResNet18 + 4 positional
 features, Hungarian one-to-one) → caries cascade → bone-loss cascade → fusion → report.
-~25 M parameters total, 2.39 s/image on CPU.
+83.6 M parameters total (61.2 M on the caries path), 2.39 s/image on CPU.
 
 **3.2 Data.** Tufts (1,000 OPGs, frozen 700/150/150) for detection and bone loss; DENTEX for
 caries; DENTEX + Tufts for numbering, with a third corpus as an ablation. **All splits are
@@ -159,7 +160,7 @@ miscalibration is structural.
 
 **5.3 VLM behaviour.** Few-shot degrades monotonically (0.149 → 0.066 → 0.034); 123 of 164 answers
 are empty at 4-shot. Blank and noise images both elicit confident dental answers. Efficiency:
-33 B parameters and 70 GB of GPU memory lose to ~25 M parameters on CPU.
+33.45 B parameters and 70.1 GB of GPU memory lose to 61.2 M parameters on CPU.
 
 **5.4 External validation.** Four hospitals, caries lesion agreement **28.8–51.3% (40.8% pooled)**
 against 44.3% internally. The **constant arm on the same four hospitals** does **not** replicate the DENTEX

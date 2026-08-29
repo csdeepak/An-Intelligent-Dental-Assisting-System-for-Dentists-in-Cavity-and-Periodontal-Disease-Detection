@@ -48,11 +48,14 @@ def main():
     comp = {r["arm"]: r for r in load(REPO / "outputs/c1_vlm/c1_comparison.json")["results"]}
     const = load(REPO / "outputs/c1_vlm/c1_constant_arm_vlm_32b_0shot.json")
     held = next(b for b in const["constant_baselines"] if b["baseline"].startswith("held-out"))
+    # Model labels use the RELEASED names (Qwen2.5-VL-32B/7B-Instruct), not the measured
+    # parameter counts (33.45 B / 8.29 B). An earlier draft labelled these "33B" and "8B",
+    # which names two models that do not exist. Parameter counts belong in the table.
     a_rows = [
         ("Constant\n(image never read)", held["f1"], C_CONST),
         ("Our pipeline", comp["pipeline"]["f1"], C_OURS),
-        ("Qwen2.5-VL-33B", comp["vlm_32b_0shot"]["f1"], C_VLM),
-        ("Qwen2.5-VL-8B", comp["vlm_7b_0shot_rerun"]["f1"], C_VLM),
+        ("Qwen2.5-VL-32B", comp["vlm_32b_0shot"]["f1"], C_VLM),
+        ("Qwen2.5-VL-7B", comp["vlm_7b_0shot_rerun"]["f1"], C_VLM),
     ]
 
     # ---------------------------------------------------------------- panel (b)

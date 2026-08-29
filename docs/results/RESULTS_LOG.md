@@ -4909,3 +4909,99 @@ and gate, so no drift is folded into the comparison. Caries only; periodontitis 
   key into a confident null result. Neither was reported.
 - **Source:** `scripts/eval/ningxia_external.py --decision constant-molars`,
   `outputs/ningxia_{pipeline,constant-molars}/ningxia_external.json`.
+
+---
+
+## 2026-08-28 — Manuscript rebuilt from the artefacts; five numeric/factual defects corrected
+
+- **What was done:** a full evidence audit of `paper/main.tex` against the repository,
+  followed by a complete rewrite. Audit written to `docs/paper/REBUILD_AUDIT.md`
+  (research story, 20-item problem audit, numerical audit, storyboard, citation audit,
+  five title options). The superseded draft is copied to
+  `_repo_archive/paper_draft_v1_44percent_title/` (ARCHIVE_MANIFEST item 7); git history
+  holds it too. **No experiment was re-run and no evaluation artefact was touched** — this
+  is a documentation pass over already-measured results.
+- **Dataset / config:** no new runs. Every number re-read from `outputs/*.json`,
+  `models/*/run_summary.txt`, the DENTEX label files, and the checkpoint tensors.
+- **FIVE DEFECTS IN THE PUBLISHED DRAFT, all now corrected:**
+  1. **Parameter count.** The draft claimed the whole system is "approximately 25 M
+     parameters". Counted from the six checkpoints with `torch.load`: detector 27.62 M,
+     FDI head 11.20 M, caries gate 11.19 M, caries severity 11.19 M, bone-loss gate
+     11.19 M, bone-loss severity 11.19 M = **83.56 M total**, **61.20 M on the caries
+     path**. The 25 M figure was the *superseded bbox detector alone* (`model_metrics.md`
+     records it as "25.3M params"), promoted to a whole-system claim. The efficiency
+     argument survives — 33.45 B against 61.2 M is still ~550x — but on the true number.
+  2. **Two model names that do not exist.** The draft wrote "Qwen2.5-VL-33B" and
+     "Qwen2.5-VL-8B". The arms were run on **Qwen2.5-VL-32B-Instruct** (33.45 B params as
+     loaded) and **Qwen2.5-VL-7B-Instruct** (8.29 B). Released name and measured parameter
+     count are now separate columns. Figure labels regenerated.
+  3. **The blank-image control was overstated.** The draft said *both* models return
+     confident dental answers to a blank grey image and to noise. `control_pixels_32b.json`
+     says `answers.blank = "NONE"` — the 32 B model answers the blank **correctly**. Only
+     the 7 B model fails there; both fail on noise. The precise result is *stronger*: the
+     32 B model's answer to random noise is `16, 17, 26, 27, 36, 37, 46, 47` — **exactly
+     the eight-molar constant our greedy search recovered from the data.**
+  4. **Isotonic calibration does not leave verdicts unchanged.** The draft said the ECE
+     0.136 → 0.043 correction leaves "every verdict byte-identical".
+     `caries_gate_isotonic.json` records `verdicts_flipped_at_0.5 = 155` (18% of 863) and
+     `average_precision 0.550 → 0.4996`. The invariance is a **deployment choice** — we
+     apply isotonic to the reported confidence only and leave the verdict as raw `argmax` —
+     not a property of the method. Temperature scaling is the decision-invariant one, and it
+     made calibration worse. Both costs are now stated.
+  5. **An uncounted survey claim.** "None of the 49 report a constant, image-blind or
+     otherwise uninformed baseline" was presented as a census.
+     `outputs/related_work_extract.csv` has no baseline-reporting field and no such count
+     exists. The **2-of-49 external-validation count is verified** (recomputed here: 84 rows
+     → 49 unique titles; negation-aware classifier reproduces 2 primary studies). The
+     baseline claim is now stated as an observation, not a count.
+- **477 vs 479 RESOLVED, and it was never an error.** Recomputed from
+  `DENTEX/disease/label/*.json` over the 164 scored images: **479 çürük polygons** across
+  **477 distinct (image, FDI) pairs**. Exactly two teeth carry two annotated lesions each —
+  `test_101` tooth 36 and `test_25` tooth 46. Different units, both correct; the manuscript
+  now says so in the table caption.
+- **The constant reproduces exactly.** The greedy fit was re-run from scratch on the 78
+  fitting images and returned `{16,17,26,27,36,37,46,47}` — identical to the stored result.
+  Also newly recorded: it scores **F1 0.392 on its fitting set and 0.320 on the scored
+  set**, i.e. it transfers *downwards*, which is what an honest held-out fit does. This is a
+  useful answer to "the constant was fitted, so it is not uninformed".
+- **The 86 → 78 fitting-set arithmetic is now explained, not asserted.** 250 DENTEX
+  `disease/` images; 86 excluded by **MD5 byte-identity** against training images (85 via
+  the numbering head, 1 via the detector); 164 scored. Of the 86, **78 carry at least one
+  caries annotation** and those are the fitting set. (`c1_constant_baseline.py`'s docstring
+  still says "86" — stale comment; the runtime label and the paper are right.)
+- **Metrics:** no metric changed. 82 numeric claims in the manuscript now pass an automated
+  check against their artefacts (`scripts/verify_paper_numbers.py`, new). 122/122 tests
+  pass. Manuscript compiles clean: 0 errors, 0 overfull boxes, 0 undefined references,
+  12 pages.
+- **Key decision or insight:** **the paper's title changed.** "What Does 44 % Mean?" anchors
+  on 212/479 = 44.3 %, which is the *pipeline's own* lesion-localisation agreement — one row
+  of one table, never written as "44 %" in the body, and not the finding. New title: *"What
+  a Tooth-Level Score Cannot Tell You: Constant Baselines, External Validation and Domain
+  Shift in Automated Panoramic Dental Screening."* It names the contribution rather than a
+  result, survives the external cohort's non-replication (a title asserting the constant
+  wins would not), and admits the periodontal branch, which the old title excluded.
+- **Also now in the manuscript, and previously absent:** the periodontal task is introduced
+  clinically rather than appearing mid-Methods; test2's `same_centre_as_train` label is
+  stated with the "equally external to us" reasoning; the two lesion matchers are declared
+  **not comparable to each other**; the bone-loss 0.923 carries both its documented caveats
+  (peak of a noisy 32-epoch curve over 59 val positives; **not reproducible** — jitter RNG
+  never saved, source images off-machine, rebuild rejected by its own geometry check); a
+  Statistical analysis subsection states the cluster bootstrap (10,000 resamples, seed 42,
+  over images) and the two quantities it cannot cover; and the caries gate's **AP 0.550
+  [0.445, 0.660] against 0.147 prevalence** appears, so the calibration failure is not read
+  as a failure of discrimination.
+- **Bibliography:** five entries carrying `UNVERIFIED` or "verify at proof stage" notes were
+  re-verified and completed — `he2016resnet` (doi 10.1109/CVPR.2016.90), `zadrozny2002isotonic`
+  (doi 10.1145/775047.775151, pp. 694–699), `guo2017calibration` (PMLR 70:1321–1330, no DOI
+  issued), `jocher2024yolo11` (software citation), `meng2026dentvlm` (Nat. Commun. **17**,
+  art. 8933 — full author list confirmed against Crossref). **No submission-blocking
+  provenance note remains on any cited entry.** Two such notes remain on *uncited* entries.
+- **Source:** `docs/paper/REBUILD_AUDIT.md`, `paper/main.tex`, `paper/source.bib`,
+  `scripts/verify_paper_numbers.py` (new), `scripts/figures/make_baseline_figure.py`,
+  `scripts/figures/make_boneloss_paper_figure.py`.
+- **Follow-ups:** (1) **12 pages against an ISBI 4-page limit** — the rebuilt manuscript is a
+  complete, self-explaining document and needs a venue-specific cut, not a rewrite; §III–§V
+  and the Limitations list are where the compression lives. (2) `kong2024integrating` pairs a
+  Bioengineering journal record with a Springer *chapter* DOI; uncited, so not blocking, but
+  fix before it is used. (3) `c1_constant_baseline.py:78` docstring says 86 where the fitting
+  set is 78.
