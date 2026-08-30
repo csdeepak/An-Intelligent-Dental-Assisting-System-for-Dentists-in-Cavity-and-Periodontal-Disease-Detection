@@ -1,0 +1,13 @@
+{
+  "model": "Qwen/Qwen2.5-VL-7B-Instruct",
+  "answers": {
+    "real_a": "26,37",
+    "real_b": "26,36",
+    "blank": "26,36",
+    "noise": "26,36"
+  },
+  "blank_matches_a_real_answer": true,
+  "noise_matches_a_real_answer": true,
+  "content_free_input_yields_fdi_codes": true,
+  "recites_prior": true
+}

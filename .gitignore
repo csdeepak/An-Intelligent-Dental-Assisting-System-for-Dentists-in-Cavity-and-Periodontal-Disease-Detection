@@ -60,7 +60,41 @@ models/checkpoints/
 models/**/*.pt
 
 # --- Training outputs ---
-outputs/
+# Ignored by default (these are regenerable evaluation artefacts), EXCEPT the specific runs
+# whitelisted below. Added 30 Aug 2026 so a fresh clone (e.g. a teammate's machine) has every
+# JSON scripts/verify_paper_numbers.py and the manuscript's cited numbers depend on, without
+# a second GPU rental. All whitelisted paths are JSON only, largest is 232 KB. outputs/c1_vlm/
+# is the one that matters most: it is the H100 VLM run (Rs 285) and cannot be regenerated
+# without renting a GPU again. See docs/results/RESULTS_LOG.md for what produced each run.
+outputs/*
+!outputs/c1_vlm/
+!outputs/c1_vlm/**
+!outputs/stage2_segdet/
+!outputs/stage2_segdet/**
+!outputs/stage2_control_olddet/
+!outputs/stage2_control_olddet/**
+!outputs/stage2_taxonomy/
+!outputs/stage2_taxonomy/**
+!outputs/c4_abstention/
+!outputs/c4_abstention/**
+!outputs/calibration/
+!outputs/calibration/**
+!outputs/lesion_loc_pipeline/
+!outputs/lesion_loc_pipeline/**
+!outputs/lesion_localization_segdet/
+!outputs/lesion_localization_segdet/**
+!outputs/lesion_localization_control_olddet/
+!outputs/lesion_localization_control_olddet/**
+!outputs/ningxia_external_segdet/
+!outputs/ningxia_external_segdet/**
+!outputs/ningxia_caries_segdet/
+!outputs/ningxia_caries_segdet/**
+!outputs/ningxia_caries_control_olddet/
+!outputs/ningxia_caries_control_olddet/**
+!outputs/ningxia_pipeline/
+!outputs/ningxia_pipeline/**
+!outputs/ningxia_constant-molars/
+!outputs/ningxia_constant-molars/**
 runs/
 logs/
 wandb/

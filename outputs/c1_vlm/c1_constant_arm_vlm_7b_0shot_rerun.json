@@ -1,0 +1,78 @@
+{
+  "n_images": 164,
+  "vlm": {
+    "precision": 0.2476,
+    "recall": 0.1069,
+    "f1": 0.1493,
+    "exact_rate": 0.0549,
+    "tp": 51,
+    "fp": 155,
+    "fn": 426
+  },
+  "vlm_distinct_answers": 6,
+  "vlm_top_answer_share": 0.3415,
+  "constant_baselines": [
+    {
+      "baseline": "{26,36} (what a BLANK image produced)",
+      "precision": 0.25,
+      "recall": 0.1719,
+      "f1": 0.2037,
+      "exact_rate": 0.0061,
+      "tp": 82,
+      "fp": 246,
+      "fn": 395
+    },
+    {
+      "baseline": "{26,37}",
+      "precision": 0.2226,
+      "recall": 0.153,
+      "f1": 0.1814,
+      "exact_rate": 0.0,
+      "tp": 73,
+      "fp": 255,
+      "fn": 404
+    },
+    {
+      "baseline": "{26}",
+      "precision": 0.2195,
+      "recall": 0.0755,
+      "f1": 0.1123,
+      "exact_rate": 0.0061,
+      "tp": 36,
+      "fp": 128,
+      "fn": 441
+    },
+    {
+      "baseline": "VLM's own most common answer",
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "exact_rate": 0.0976,
+      "tp": 0,
+      "fp": 0,
+      "fn": 477
+    },
+    {
+      "baseline": "empty set (predict nothing)",
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "exact_rate": 0.0976,
+      "tp": 0,
+      "fp": 0,
+      "fn": 477
+    },
+    {
+      "baseline": "ORACLE best constant ['16', '26', '36', '37', '46', '47']",
+      "precision": 0.2449,
+      "recall": 0.5052,
+      "f1": 0.3299,
+      "exact_rate": 0.0,
+      "tp": 241,
+      "fp": 743,
+      "fn": 236
+    }
+  ],
+  "control": "on the GPU box, a blank grey image and a random-noise image both produced '26,36' -- the same confident dental answer as a real radiograph",
+  "reading": "a VLM score at or below a constant guess is not evidence of dental perception and must not be reported as a like-for-like model comparison"
+}

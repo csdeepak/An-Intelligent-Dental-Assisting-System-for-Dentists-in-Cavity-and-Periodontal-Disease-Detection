@@ -1,0 +1,77 @@
+{
+  "stage2": {
+    "n": 661,
+    "accuracy_full_coverage": 0.826,
+    "gain_at_75": {
+      "target_coverage": 0.75,
+      "accuracy_full_coverage": 0.826,
+      "gain_pp": 5.91,
+      "ci95_pp": [
+        3.88,
+        7.68
+      ],
+      "n_images": 151,
+      "shuffled_control_gain_pp": 0.03,
+      "shuffled_control_note": "confidence shuffled -> abstention carries no information; a real gain must clear this"
+    },
+    "operating_point": {
+      "threshold": 0.3,
+      "coverage": 0.9077,
+      "accuracy": 0.8467
+    },
+    "at_90": {
+      "coverage": 0.9001512859304085,
+      "n_retained": 595,
+      "accuracy": 0.8487394957983193,
+      "threshold_at_this_coverage": 0.4178
+    },
+    "at_75": {
+      "coverage": 0.7503782148260212,
+      "n_retained": 496,
+      "accuracy": 0.8850806451612904,
+      "threshold_at_this_coverage": 0.9617
+    },
+    "at_50": {
+      "coverage": 0.49924357034795763,
+      "n_retained": 330,
+      "accuracy": 0.9181818181818182,
+      "threshold_at_this_coverage": 0.9994
+    }
+  },
+  "caries_gate": {
+    "n": 863,
+    "accuracy_full_coverage": 0.7972,
+    "gain_at_75": {
+      "target_coverage": 0.75,
+      "accuracy_full_coverage": 0.7972,
+      "gain_pp": 14.25,
+      "ci95_pp": [
+        11.32,
+        16.63
+      ],
+      "n_images": 34,
+      "shuffled_control_gain_pp": 0.0,
+      "shuffled_control_note": "confidence shuffled -> abstention carries no information; a real gain must clear this"
+    },
+    "at_90": {
+      "coverage": 0.9003476245654692,
+      "n_retained": 777,
+      "accuracy": 0.8571428571428571,
+      "threshold_at_this_coverage": 0.29870128631591797
+    },
+    "at_75": {
+      "coverage": 0.7497103128621089,
+      "n_retained": 647,
+      "accuracy": 0.9397217928902627,
+      "threshold_at_this_coverage": 0.777074232649112
+    },
+    "at_50": {
+      "coverage": 0.49942062572421786,
+      "n_retained": 431,
+      "accuracy": 0.9698375870069605,
+      "threshold_at_this_coverage": 0.9142857119441032
+    },
+    "confidence": "isotonic-calibrated, in the reported class"
+  },
+  "discipline": "ASSESSABILITY_MIN_FDI_CONFIDENCE = 0.30 is pre-registered in run_inference.py and was NOT tuned here; the curve only locates it"
+}

@@ -1,0 +1,450 @@
+{
+  "arm": "vlm",
+  "model": "Qwen/Qwen2.5-VL-7B-Instruct",
+  "params_billion": 8.292,
+  "transformers_version": "5.16.1",
+  "shots": 4,
+  "exemplars": [
+    "test_20",
+    "test_23",
+    "test_210",
+    "test_13"
+  ],
+  "max_pixels": null,
+  "mean_latency_s": 3.362,
+  "peak_vram_gb": 22.58,
+  "prompt": "This is a dental panoramic radiograph (OPG).\nIdentify every tooth that shows DENTAL CARIES (tooth decay).\n\nAnswer using FDI two-digit tooth notation, where the first digit is the quadrant (1 = upper right, 2 = upper left, 3 = lower left, 4 = lower right) and the second digit is the position from the midline (1 = central incisor ... 8 = third molar). Valid codes are 11-18, 21-28, 31-38 and 41-48.\n\nSome teeth may be missing; only report teeth that are present and carious.\nReply with ONLY a comma-separated list of FDI codes, or the word NONE if no tooth is carious. Do not explain.",
+  "raw_responses": {
+    "test_0": "46",
+    "test_1": "NONE",
+    "test_10": "NONE",
+    "test_101": "18, 28",
+    "test_102": "NONE",
+    "test_103": "NONE",
+    "test_104": "45, 46",
+    "test_105": "NONE",
+    "test_106": "46",
+    "test_11": "25",
+    "test_110": "NONE",
+    "test_113": "NONE",
+    "test_114": "NONE",
+    "test_115": "NONE",
+    "test_119": "16, 17",
+    "test_12": "NONE",
+    "test_120": "NONE",
+    "test_121": "NONE",
+    "test_122": "NONE",
+    "test_123": "NONE",
+    "test_124": "25, 26",
+    "test_126": "NONE",
+    "test_127": "46",
+    "test_131": "35, 36",
+    "test_134": "NONE",
+    "test_135": "NONE",
+    "test_136": "NONE",
+    "test_137": "25",
+    "test_138": "NONE",
+    "test_14": "18",
+    "test_140": "NONE",
+    "test_141": "NONE",
+    "test_142": "NONE",
+    "test_143": "NONE",
+    "test_146": "28",
+    "test_147": "NONE",
+    "test_15": "NONE",
+    "test_151": "36",
+    "test_152": "18, 28",
+    "test_153": "NONE",
+    "test_154": "NONE",
+    "test_155": "25, 26",
+    "test_156": "NONE",
+    "test_157": "NONE",
+    "test_158": "NONE",
+    "test_16": "18, 28",
+    "test_160": "25, 26",
+    "test_161": "45",
+    "test_162": "NONE",
+    "test_163": "NONE",
+    "test_165": "NONE",
+    "test_166": "NONE",
+    "test_167": "NONE",
+    "test_168": "NONE",
+    "test_17": "NONE",
+    "test_171": "NONE",
+    "test_172": "NONE",
+    "test_173": "NONE",
+    "test_174": "NONE",
+    "test_175": "NONE",
+    "test_176": "NONE",
+    "test_177": "36",
+    "test_178": "26, 27",
+    "test_179": "NONE",
+    "test_180": "NONE",
+    "test_182": "46",
+    "test_183": "NONE",
+    "test_185": "NONE",
+    "test_186": "NONE",
+    "test_187": "45, 46",
+    "test_190": "25, 26",
+    "test_191": "NONE",
+    "test_192": "NONE",
+    "test_193": "NONE",
+    "test_194": "46",
+    "test_195": "NONE",
+    "test_196": "NONE",
+    "test_197": "NONE",
+    "test_198": "NONE",
+    "test_200": "NONE",
+    "test_201": "36, 37",
+    "test_205": "18",
+    "test_208": "NONE",
+    "test_209": "NONE",
+    "test_211": "NONE",
+    "test_212": "NONE",
+    "test_213": "NONE",
+    "test_216": "NONE",
+    "test_217": "NONE",
+    "test_218": "NONE",
+    "test_219": "25, 26",
+    "test_22": "NONE",
+    "test_220": "NONE",
+    "test_222": "25",
+    "test_223": "NONE",
+    "test_224": "NONE",
+    "test_226": "NONE",
+    "test_227": "NONE",
+    "test_228": "NONE",
+    "test_229": "NONE",
+    "test_230": "NONE",
+    "test_231": "46",
+    "test_233": "NONE",
+    "test_235": "NONE",
+    "test_236": "NONE",
+    "test_237": "NONE",
+    "test_239": "NONE",
+    "test_24": "NONE",
+    "test_240": "NONE",
+    "test_241": "28",
+    "test_242": "NONE",
+    "test_243": "NONE",
+    "test_244": "NONE",
+    "test_246": "NONE",
+    "test_247": "NONE",
+    "test_25": "NONE",
+    "test_26": "NONE",
+    "test_27": "NONE",
+    "test_29": "NONE",
+    "test_30": "NONE",
+    "test_32": "NONE",
+    "test_33": "NONE",
+    "test_35": "NONE",
+    "test_38": "NONE",
+    "test_4": "45",
+    "test_41": "NONE",
+    "test_43": "NONE",
+    "test_44": "NONE",
+    "test_46": "NONE",
+    "test_47": "25, 26",
+    "test_49": "NONE",
+    "test_5": "NONE",
+    "test_51": "NONE",
+    "test_52": "NONE",
+    "test_53": "NONE",
+    "test_54": "NONE",
+    "test_55": "46",
+    "test_57": "NONE",
+    "test_58": "NONE",
+    "test_59": "NONE",
+    "test_6": "NONE",
+    "test_62": "NONE",
+    "test_63": "45",
+    "test_65": "NONE",
+    "test_68": "NONE",
+    "test_69": "NONE",
+    "test_7": "18, 28",
+    "test_70": "NONE",
+    "test_75": "NONE",
+    "test_76": "NONE",
+    "test_8": "25, 26",
+    "test_80": "NONE",
+    "test_81": "NONE",
+    "test_83": "NONE",
+    "test_84": "NONE",
+    "test_89": "NONE",
+    "test_9": "36",
+    "test_90": "NONE",
+    "test_91": "45",
+    "test_92": "25, 26",
+    "test_95": "35, 36",
+    "test_96": "NONE",
+    "test_97": "NONE",
+    "test_99": "25"
+  },
+  "predictions": {
+    "test_0": [
+      "46"
+    ],
+    "test_1": [],
+    "test_10": [],
+    "test_101": [
+      "18",
+      "28"
+    ],
+    "test_102": [],
+    "test_103": [],
+    "test_104": [
+      "45",
+      "46"
+    ],
+    "test_105": [],
+    "test_106": [
+      "46"
+    ],
+    "test_11": [
+      "25"
+    ],
+    "test_110": [],
+    "test_113": [],
+    "test_114": [],
+    "test_115": [],
+    "test_119": [
+      "16",
+      "17"
+    ],
+    "test_12": [],
+    "test_120": [],
+    "test_121": [],
+    "test_122": [],
+    "test_123": [],
+    "test_124": [
+      "25",
+      "26"
+    ],
+    "test_126": [],
+    "test_127": [
+      "46"
+    ],
+    "test_131": [
+      "35",
+      "36"
+    ],
+    "test_134": [],
+    "test_135": [],
+    "test_136": [],
+    "test_137": [
+      "25"
+    ],
+    "test_138": [],
+    "test_14": [
+      "18"
+    ],
+    "test_140": [],
+    "test_141": [],
+    "test_142": [],
+    "test_143": [],
+    "test_146": [
+      "28"
+    ],
+    "test_147": [],
+    "test_15": [],
+    "test_151": [
+      "36"
+    ],
+    "test_152": [
+      "18",
+      "28"
+    ],
+    "test_153": [],
+    "test_154": [],
+    "test_155": [
+      "25",
+      "26"
+    ],
+    "test_156": [],
+    "test_157": [],
+    "test_158": [],
+    "test_16": [
+      "18",
+      "28"
+    ],
+    "test_160": [
+      "25",
+      "26"
+    ],
+    "test_161": [
+      "45"
+    ],
+    "test_162": [],
+    "test_163": [],
+    "test_165": [],
+    "test_166": [],
+    "test_167": [],
+    "test_168": [],
+    "test_17": [],
+    "test_171": [],
+    "test_172": [],
+    "test_173": [],
+    "test_174": [],
+    "test_175": [],
+    "test_176": [],
+    "test_177": [
+      "36"
+    ],
+    "test_178": [
+      "26",
+      "27"
+    ],
+    "test_179": [],
+    "test_180": [],
+    "test_182": [
+      "46"
+    ],
+    "test_183": [],
+    "test_185": [],
+    "test_186": [],
+    "test_187": [
+      "45",
+      "46"
+    ],
+    "test_190": [
+      "25",
+      "26"
+    ],
+    "test_191": [],
+    "test_192": [],
+    "test_193": [],
+    "test_194": [
+      "46"
+    ],
+    "test_195": [],
+    "test_196": [],
+    "test_197": [],
+    "test_198": [],
+    "test_200": [],
+    "test_201": [
+      "36",
+      "37"
+    ],
+    "test_205": [
+      "18"
+    ],
+    "test_208": [],
+    "test_209": [],
+    "test_211": [],
+    "test_212": [],
+    "test_213": [],
+    "test_216": [],
+    "test_217": [],
+    "test_218": [],
+    "test_219": [
+      "25",
+      "26"
+    ],
+    "test_22": [],
+    "test_220": [],
+    "test_222": [
+      "25"
+    ],
+    "test_223": [],
+    "test_224": [],
+    "test_226": [],
+    "test_227": [],
+    "test_228": [],
+    "test_229": [],
+    "test_230": [],
+    "test_231": [
+      "46"
+    ],
+    "test_233": [],
+    "test_235": [],
+    "test_236": [],
+    "test_237": [],
+    "test_239": [],
+    "test_24": [],
+    "test_240": [],
+    "test_241": [
+      "28"
+    ],
+    "test_242": [],
+    "test_243": [],
+    "test_244": [],
+    "test_246": [],
+    "test_247": [],
+    "test_25": [],
+    "test_26": [],
+    "test_27": [],
+    "test_29": [],
+    "test_30": [],
+    "test_32": [],
+    "test_33": [],
+    "test_35": [],
+    "test_38": [],
+    "test_4": [
+      "45"
+    ],
+    "test_41": [],
+    "test_43": [],
+    "test_44": [],
+    "test_46": [],
+    "test_47": [
+      "25",
+      "26"
+    ],
+    "test_49": [],
+    "test_5": [],
+    "test_51": [],
+    "test_52": [],
+    "test_53": [],
+    "test_54": [],
+    "test_55": [
+      "46"
+    ],
+    "test_57": [],
+    "test_58": [],
+    "test_59": [],
+    "test_6": [],
+    "test_62": [],
+    "test_63": [
+      "45"
+    ],
+    "test_65": [],
+    "test_68": [],
+    "test_69": [],
+    "test_7": [
+      "18",
+      "28"
+    ],
+    "test_70": [],
+    "test_75": [],
+    "test_76": [],
+    "test_8": [
+      "25",
+      "26"
+    ],
+    "test_80": [],
+    "test_81": [],
+    "test_83": [],
+    "test_84": [],
+    "test_89": [],
+    "test_9": [
+      "36"
+    ],
+    "test_90": [],
+    "test_91": [
+      "45"
+    ],
+    "test_92": [
+      "25",
+      "26"
+    ],
+    "test_95": [
+      "35",
+      "36"
+    ],
+    "test_96": [],
+    "test_97": [],
+    "test_99": [
+      "25"
+    ]
+  }
+}

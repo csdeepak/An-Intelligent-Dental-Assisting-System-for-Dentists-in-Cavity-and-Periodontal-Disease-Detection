@@ -1,0 +1,29 @@
+{
+  "temperature": 1.3768,
+  "fitted_on": "val",
+  "evaluated_on": "test",
+  "n_val": 1003,
+  "n_test": 863,
+  "val_nll_before": 0.43,
+  "val_nll_after": 0.4147,
+  "test": {
+    "ece": [
+      0.1362,
+      0.1521
+    ],
+    "mce": [
+      0.5958,
+      0.4329
+    ],
+    "brier": [
+      0.1365,
+      0.1319
+    ],
+    "average_precision": [
+      0.55,
+      0.55
+    ]
+  },
+  "decisions_unchanged_at_0.5": true,
+  "note": "argmax(z/T) == argmax(z) for T>0, so no verdict and no decision-based published number changes; only reported confidences do. AP is invariant by construction and is used here as a correctness check."
+}

@@ -1,0 +1,37 @@
+{
+  "method": "isotonic regression",
+  "fitted_on": "val",
+  "evaluated_on": "test",
+  "n_val": 1003,
+  "n_test": 863,
+  "test": {
+    "ece": [
+      0.1362,
+      0.043
+    ],
+    "mce": [
+      0.5958,
+      0.3338
+    ],
+    "brier": [
+      0.1365,
+      0.0977
+    ],
+    "average_precision": [
+      0.55,
+      0.4996
+    ]
+  },
+  "val_ece": [
+    0.1041,
+    0.0016
+  ],
+  "val_test_ece_gap_after": 0.0414,
+  "verdicts_flipped_at_0.5": 155,
+  "distinct_calibrated_values_test": 46,
+  "caveats": [
+    "isotonic is only weakly monotonic, so AP can drop through ties -- that is a real cost, not a bug",
+    "decisions CAN change, unlike temperature scaling; flipped count above",
+    "fitted on 1,003 val crops with 199 positives -- overfitting risk is the reason val and test calibration are both reported"
+  ]
+}
