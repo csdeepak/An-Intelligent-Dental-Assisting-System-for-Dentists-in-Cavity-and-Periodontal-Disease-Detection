@@ -1,0 +1,28 @@
+{
+  "n_images": 1,
+  "n_images_with_caries_lesions": 1,
+  "n_lesions": 3,
+  "n_lesions_matched": 1,
+  "lesion_localization_agreement": 0.3333,
+  "n_predicted_positive_teeth": 2,
+  "n_predicted_positive_matched_to_a_lesion": 1,
+  "predicted_positive_match_rate_DIAGNOSTIC_NOT_PRECISION": 0.5,
+  "min_iou": 0.3,
+  "target_finding": "\u00e7\u00fcr\u00fck (caries) only, see module docstring",
+  "caveat": "unmatched predicted-positive teeth are NOT confirmed false positives -- disease/ annotates only ~6 of ~30 teeth per image (compare_caries_gates.py); an unmatched positive may be real, unannotated caries.",
+  "flag_counts": {
+    "caries_uncalibrated": 18
+  },
+  "per_image": [
+    {
+      "image": "test_0",
+      "n_lesions": 3,
+      "n_matched": 1,
+      "n_predicted_positive": 2,
+      "n_predicted_positive_unmatched": 1,
+      "unmatched_positive_gate_confidence": [
+        0.898
+      ]
+    }
+  ]
+}

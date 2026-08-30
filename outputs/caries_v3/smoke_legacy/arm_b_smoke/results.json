@@ -1,0 +1,395 @@
+{
+  "run": "arm_b_smoke",
+  "created": "2026-08-25T00:03:24",
+  "arm": "b",
+  "augmentation": true,
+  "seed": 42,
+  "device": "cpu",
+  "smoke": true,
+  "config": {
+    "crops": "/Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/data/dentex/crops_v2",
+    "variant": "phase1_legacy",
+    "phase2_crops": null,
+    "phase2_variant": "phase2",
+    "phase1_only": false,
+    "arm": "b",
+    "out": "outputs/caries_v3/smoke_legacy",
+    "seed": 42,
+    "batch_size": 32,
+    "p1_epochs": 1,
+    "p1_lr": 0.001,
+    "p2_head_epochs": 1,
+    "p2_head_lr": 0.001,
+    "p2_full_epochs": 1,
+    "p2_full_lr": 3e-05,
+    "smoke": true
+  },
+  "fixes": {
+    "T0.1": "both arms run",
+    "T0.2": "test reported separately, evaluated once",
+    "T0.3": "checkpoint selection on macro-F1",
+    "T0.4": "cosine LR schedule; full config recorded"
+  },
+  "known_limitation": "Phase-1 no_caries = Impacted + Periapical Lesion; contains NO healthy teeth. See RESULTS_LOG 2026-08-21j / 21m.",
+  "phase1": {
+    "class_to_idx": {
+      "caries": 0,
+      "no_caries": 1
+    },
+    "train_counts": [
+      32,
+      32
+    ],
+    "class_weights": [
+      1.0,
+      1.0
+    ],
+    "best_epoch": 1,
+    "best_val_macro_f1": 0.3333333333333333,
+    "val": {
+      "macro_f1": 0.3333333333333333,
+      "accuracy": 0.5,
+      "confusion_matrix": [
+        [
+          0,
+          32
+        ],
+        [
+          0,
+          32
+        ]
+      ],
+      "report": {
+        "caries": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1-score": 0.0,
+          "support": 32.0
+        },
+        "no_caries": {
+          "precision": 0.5,
+          "recall": 1.0,
+          "f1-score": 0.6666666666666666,
+          "support": 32.0
+        },
+        "accuracy": 0.5,
+        "macro avg": {
+          "precision": 0.25,
+          "recall": 0.5,
+          "f1-score": 0.3333333333333333,
+          "support": 64.0
+        },
+        "weighted avg": {
+          "precision": 0.25,
+          "recall": 0.5,
+          "f1-score": 0.3333333333333333,
+          "support": 64.0
+        }
+      },
+      "report_text": "              precision    recall  f1-score   support\n\n      caries       0.00      0.00      0.00        32\n   no_caries       0.50      1.00      0.67        32\n\n    accuracy                           0.50        64\n   macro avg       0.25      0.50      0.33        64\nweighted avg       0.25      0.50      0.33        64\n",
+      "n": 64,
+      "predicted_class_counts": [
+        0,
+        64
+      ],
+      "true_class_counts": [
+        32,
+        32
+      ]
+    },
+    "test": {
+      "macro_f1": 0.3333333333333333,
+      "accuracy": 0.5,
+      "confusion_matrix": [
+        [
+          0,
+          32
+        ],
+        [
+          0,
+          32
+        ]
+      ],
+      "report": {
+        "caries": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1-score": 0.0,
+          "support": 32.0
+        },
+        "no_caries": {
+          "precision": 0.5,
+          "recall": 1.0,
+          "f1-score": 0.6666666666666666,
+          "support": 32.0
+        },
+        "accuracy": 0.5,
+        "macro avg": {
+          "precision": 0.25,
+          "recall": 0.5,
+          "f1-score": 0.3333333333333333,
+          "support": 64.0
+        },
+        "weighted avg": {
+          "precision": 0.25,
+          "recall": 0.5,
+          "f1-score": 0.3333333333333333,
+          "support": 64.0
+        }
+      },
+      "report_text": "              precision    recall  f1-score   support\n\n      caries       0.00      0.00      0.00        32\n   no_caries       0.50      1.00      0.67        32\n\n    accuracy                           0.50        64\n   macro avg       0.25      0.50      0.33        64\nweighted avg       0.25      0.50      0.33        64\n",
+      "n": 64,
+      "predicted_class_counts": [
+        0,
+        64
+      ],
+      "true_class_counts": [
+        32,
+        32
+      ]
+    },
+    "extern50": {
+      "macro_f1": 0.3333333333333333,
+      "accuracy": 0.5,
+      "confusion_matrix": [
+        [
+          0,
+          32
+        ],
+        [
+          0,
+          32
+        ]
+      ],
+      "report": {
+        "caries": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1-score": 0.0,
+          "support": 32.0
+        },
+        "no_caries": {
+          "precision": 0.5,
+          "recall": 1.0,
+          "f1-score": 0.6666666666666666,
+          "support": 32.0
+        },
+        "accuracy": 0.5,
+        "macro avg": {
+          "precision": 0.25,
+          "recall": 0.5,
+          "f1-score": 0.3333333333333333,
+          "support": 64.0
+        },
+        "weighted avg": {
+          "precision": 0.25,
+          "recall": 0.5,
+          "f1-score": 0.3333333333333333,
+          "support": 64.0
+        }
+      },
+      "report_text": "              precision    recall  f1-score   support\n\n      caries       0.00      0.00      0.00        32\n   no_caries       0.50      1.00      0.67        32\n\n    accuracy                           0.50        64\n   macro avg       0.25      0.50      0.33        64\nweighted avg       0.25      0.50      0.33        64\n",
+      "n": 64,
+      "predicted_class_counts": [
+        0,
+        64
+      ],
+      "true_class_counts": [
+        32,
+        32
+      ]
+    }
+  },
+  "phase2": {
+    "class_to_idx": {
+      "caries": 0,
+      "deep_caries": 1
+    },
+    "train_counts": [
+      32,
+      32
+    ],
+    "class_weights": [
+      1.0,
+      1.0
+    ],
+    "best_epoch": 1,
+    "best_val_macro_f1": 0.5030789825970549,
+    "val": {
+      "macro_f1": 0.5030789825970549,
+      "accuracy": 0.546875,
+      "confusion_matrix": [
+        [
+          8,
+          24
+        ],
+        [
+          5,
+          27
+        ]
+      ],
+      "report": {
+        "caries": {
+          "precision": 0.6153846153846154,
+          "recall": 0.25,
+          "f1-score": 0.35555555555555557,
+          "support": 32.0
+        },
+        "deep_caries": {
+          "precision": 0.5294117647058824,
+          "recall": 0.84375,
+          "f1-score": 0.6506024096385542,
+          "support": 32.0
+        },
+        "accuracy": 0.546875,
+        "macro avg": {
+          "precision": 0.5723981900452488,
+          "recall": 0.546875,
+          "f1-score": 0.5030789825970549,
+          "support": 64.0
+        },
+        "weighted avg": {
+          "precision": 0.5723981900452488,
+          "recall": 0.546875,
+          "f1-score": 0.5030789825970549,
+          "support": 64.0
+        }
+      },
+      "report_text": "              precision    recall  f1-score   support\n\n      caries       0.62      0.25      0.36        32\n deep_caries       0.53      0.84      0.65        32\n\n    accuracy                           0.55        64\n   macro avg       0.57      0.55      0.50        64\nweighted avg       0.57      0.55      0.50        64\n",
+      "n": 64,
+      "predicted_class_counts": [
+        13,
+        51
+      ],
+      "true_class_counts": [
+        32,
+        32
+      ]
+    },
+    "test": {
+      "macro_f1": 0.41125541125541126,
+      "accuracy": 0.46875,
+      "confusion_matrix": [
+        [
+          5,
+          27
+        ],
+        [
+          7,
+          25
+        ]
+      ],
+      "report": {
+        "caries": {
+          "precision": 0.4166666666666667,
+          "recall": 0.15625,
+          "f1-score": 0.22727272727272727,
+          "support": 32.0
+        },
+        "deep_caries": {
+          "precision": 0.4807692307692308,
+          "recall": 0.78125,
+          "f1-score": 0.5952380952380952,
+          "support": 32.0
+        },
+        "accuracy": 0.46875,
+        "macro avg": {
+          "precision": 0.44871794871794873,
+          "recall": 0.46875,
+          "f1-score": 0.41125541125541126,
+          "support": 64.0
+        },
+        "weighted avg": {
+          "precision": 0.44871794871794873,
+          "recall": 0.46875,
+          "f1-score": 0.41125541125541126,
+          "support": 64.0
+        }
+      },
+      "report_text": "              precision    recall  f1-score   support\n\n      caries       0.42      0.16      0.23        32\n deep_caries       0.48      0.78      0.60        32\n\n    accuracy                           0.47        64\n   macro avg       0.45      0.47      0.41        64\nweighted avg       0.45      0.47      0.41        64\n",
+      "n": 64,
+      "predicted_class_counts": [
+        12,
+        52
+      ],
+      "true_class_counts": [
+        32,
+        32
+      ]
+    },
+    "extern50": {
+      "macro_f1": 0.39756367663344405,
+      "accuracy": 0.46875,
+      "confusion_matrix": [
+        [
+          4,
+          28
+        ],
+        [
+          6,
+          26
+        ]
+      ],
+      "report": {
+        "caries": {
+          "precision": 0.4,
+          "recall": 0.125,
+          "f1-score": 0.19047619047619047,
+          "support": 32.0
+        },
+        "deep_caries": {
+          "precision": 0.48148148148148145,
+          "recall": 0.8125,
+          "f1-score": 0.6046511627906976,
+          "support": 32.0
+        },
+        "accuracy": 0.46875,
+        "macro avg": {
+          "precision": 0.44074074074074077,
+          "recall": 0.46875,
+          "f1-score": 0.39756367663344405,
+          "support": 64.0
+        },
+        "weighted avg": {
+          "precision": 0.44074074074074077,
+          "recall": 0.46875,
+          "f1-score": 0.39756367663344405,
+          "support": 64.0
+        }
+      },
+      "report_text": "              precision    recall  f1-score   support\n\n      caries       0.40      0.12      0.19        32\n deep_caries       0.48      0.81      0.60        32\n\n    accuracy                           0.47        64\n   macro avg       0.44      0.47      0.40        64\nweighted avg       0.44      0.47      0.40        64\n",
+      "n": 64,
+      "predicted_class_counts": [
+        10,
+        54
+      ],
+      "true_class_counts": [
+        32,
+        32
+      ]
+    }
+  },
+  "epoch_log": [
+    {
+      "stage": "phase1",
+      "epoch": 1,
+      "lr": 0.0,
+      "val_macro_f1": 0.3333333333333333,
+      "val_accuracy": 0.5
+    },
+    {
+      "stage": "phase2_head",
+      "epoch": 1,
+      "lr": 0.0,
+      "val_macro_f1": 0.43859649122807015,
+      "val_accuracy": 0.53125
+    },
+    {
+      "stage": "phase2_full",
+      "epoch": 1,
+      "lr": 0.0,
+      "val_macro_f1": 0.5030789825970549,
+      "val_accuracy": 0.546875
+    }
+  ]
+}

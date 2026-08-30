@@ -1,0 +1,98 @@
+{
+  "run": "outputs/stage2_reverify",
+  "definition": "bucketed by DETECTOR boxes in the tooth's own quadrant; buckets taken from the positional run so both methods share a population",
+  "n_detected_teeth": 627,
+  "by_bucket": [
+    {
+      "detections_in_quadrant": 1,
+      "n": 2,
+      "positional_exact": 0.5,
+      "head_exact": 0.5,
+      "delta": 0.0
+    },
+    {
+      "detections_in_quadrant": 2,
+      "n": 12,
+      "positional_exact": 0.4166666666666667,
+      "head_exact": 0.5833333333333334,
+      "delta": 0.16666666666666666
+    },
+    {
+      "detections_in_quadrant": 3,
+      "n": 26,
+      "positional_exact": 0.2692307692307692,
+      "head_exact": 0.5769230769230769,
+      "delta": 0.3076923076923077
+    },
+    {
+      "detections_in_quadrant": 4,
+      "n": 54,
+      "positional_exact": 0.2037037037037037,
+      "head_exact": 0.5925925925925926,
+      "delta": 0.3888888888888889
+    },
+    {
+      "detections_in_quadrant": 5,
+      "n": 99,
+      "positional_exact": 0.25252525252525254,
+      "head_exact": 0.5959595959595959,
+      "delta": 0.3434343434343434
+    },
+    {
+      "detections_in_quadrant": 6,
+      "n": 115,
+      "positional_exact": 0.2608695652173913,
+      "head_exact": 0.7217391304347827,
+      "delta": 0.4608695652173913
+    },
+    {
+      "detections_in_quadrant": 7,
+      "n": 159,
+      "positional_exact": 0.36477987421383645,
+      "head_exact": 0.7421383647798742,
+      "delta": 0.37735849056603776
+    },
+    {
+      "detections_in_quadrant": 8,
+      "n": 101,
+      "positional_exact": 0.6633663366336634,
+      "head_exact": 0.801980198019802,
+      "delta": 0.13861386138613863
+    },
+    {
+      "detections_in_quadrant": 9,
+      "n": 39,
+      "positional_exact": 0.23076923076923078,
+      "head_exact": 0.6923076923076923,
+      "delta": 0.46153846153846156
+    },
+    {
+      "detections_in_quadrant": 10,
+      "n": 16,
+      "positional_exact": 0.0625,
+      "head_exact": 0.625,
+      "delta": 0.5625
+    },
+    {
+      "detections_in_quadrant": 11,
+      "n": 3,
+      "positional_exact": 0.0,
+      "head_exact": 0.3333333333333333,
+      "delta": 0.3333333333333333
+    },
+    {
+      "detections_in_quadrant": 12,
+      "n": 1,
+      "positional_exact": 0.0,
+      "head_exact": 1.0,
+      "delta": 1.0
+    }
+  ],
+  "complete_quadrant_ceiling": {
+    "n": 101,
+    "positional_exact": 0.6633663366336634,
+    "head_exact": 0.801980198019802,
+    "margin": 0.13861386138613863
+  },
+  "supersedes": "the 67.0% ceiling and +2.4 point margin in RESULTS_LOG 2026-08-22j"
+}

@@ -1,0 +1,1055 @@
+{
+  "schema_version": "opg-report/1.0",
+  "generated": "2026-08-24T23:08:01",
+  "image": {
+    "path": "/Users/chennupatigunadeep/Downloads/Capstone/DENTEX/disease/input/test_10.png",
+    "width": 2940,
+    "height": 1316
+  },
+  "summary": {
+    "teeth_detected": 29,
+    "teeth_assessable": 23,
+    "distinct_fdi_codes": 29,
+    "duplicate_fdi_codes": 0,
+    "caries_positive": 29,
+    "bone_loss_positive": 0
+  },
+  "teeth": [
+    {
+      "detection_index": 2,
+      "bbox_xyxy": [
+        1415.5,
+        342.2,
+        1532.3,
+        660.6
+      ],
+      "detection_confidence": 0.7128,
+      "fdi": 11,
+      "quadrant": 1,
+      "position": 1,
+      "fdi_confidence": 0.9189,
+      "fdi_flags": [],
+      "caries": {
+        "finding": "caries",
+        "gate_confidence": 0.7606,
+        "severity": "caries",
+        "severity_confidence": 0.853,
+        "flags": [
+          "gate_out_of_distribution"
+        ]
+      },
+      "bone_loss": {
+        "finding": "normal",
+        "confidence": 0.9958,
+        "severity": null,
+        "severity_confidence": null,
+        "flags": []
+      },
+      "assessable": true,
+      "not_assessable_reasons": []
+    },
+    {
+      "detection_index": 6,
+      "bbox_xyxy": [
+        1308.7,
+        344.7,
+        1429.2,
+        667.3
+      ],
+      "detection_confidence": 0.5719,
+      "fdi": 12,
+      "quadrant": 1,
+      "position": 2,
+      "fdi_confidence": 0.9999,
+      "fdi_flags": [],
+      "caries": {
+        "finding": "caries",
+        "gate_confidence": 0.9235,
+        "severity": "caries",
+        "severity_confidence": 0.9805,
+        "flags": [
+          "gate_out_of_distribution"
+        ]
+      },
+      "bone_loss": {
+        "finding": "normal",
+        "confidence": 0.9988,
+        "severity": null,
+        "severity_confidence": null,
+        "flags": []
+      },
+      "assessable": true,
+      "not_assessable_reasons": []
+    },
+    {
+      "detection_index": 9,
+      "bbox_xyxy": [
+        1236.1,
+        351.3,
+        1335.9,
+        664.5
+      ],
+      "detection_confidence": 0.5493,
+      "fdi": 13,
+      "quadrant": 1,
+      "position": 3,
+      "fdi_confidence": 1.0,
+      "fdi_flags": [],
+      "caries": {
+        "finding": "caries",
+        "gate_confidence": 0.9999,
+        "severity": "caries",
+        "severity_confidence": 0.8831,
+        "flags": [
+          "gate_out_of_distribution"
+        ]
+      },
+      "bone_loss": {
+        "finding": "normal",
+        "confidence": 0.9955,
+        "severity": null,
+        "severity_confidence": null,
+        "flags": []
+      },
+      "assessable": true,
+      "not_assessable_reasons": []
+    },
+    {
+      "detection_index": 23,
+      "bbox_xyxy": [
+        1147.6,
+        308.1,
+        1261.0,
+        684.3
+      ],
+      "detection_confidence": 0.4303,
+      "fdi": 14,
+      "quadrant": 1,
+      "position": 4,
+      "fdi_confidence": 1.0,
+      "fdi_flags": [],
+      "caries": {
+        "finding": "caries",
+        "gate_confidence": 1.0,
+        "severity": "caries",
+        "severity_confidence": 0.9999,
+        "flags": [
+          "gate_out_of_distribution"
+        ]
+      },
+      "bone_loss": {
+        "finding": "normal",
+        "confidence": 0.9945,
+        "severity": null,
+        "severity_confidence": null,
+        "flags": []
+      },
+      "assessable": true,
+      "not_assessable_reasons": []
+    },
+    {
+      "detection_index": 25,
+      "bbox_xyxy": [
+        1065.7,
+        334.8,
+        1173.7,
+        682.2
+      ],
+      "detection_confidence": 0.42,
+      "fdi": 15,
+      "quadrant": 1,
+      "position": 5,
+      "fdi_confidence": 1.0,
+      "fdi_flags": [],
+      "caries": {
+        "finding": "caries",
+        "gate_confidence": 0.9998,
+        "severity": "caries",
+        "severity_confidence": 0.9965,
+        "flags": [
+          "gate_out_of_distribution"
+        ]
+      },
+      "bone_loss": {
+        "finding": "normal",
+        "confidence": 0.999,
+        "severity": null,
+        "severity_confidence": null,
+        "flags": []
+      },
+      "assessable": true,
+      "not_assessable_reasons": []
+    },
+    {
+      "detection_index": 27,
+      "bbox_xyxy": [
+        995.2,
+        345.8,
+        1103.7,
+        675.2
+      ],
+      "detection_confidence": 0.3828,
+      "fdi": 16,
+      "quadrant": 1,
+      "position": 6,
+      "fdi_confidence": 0.9989,
+      "fdi_flags": [],
+      "caries": {
+        "finding": "caries",
+        "gate_confidence": 0.9996,
+        "severity": "caries",
+        "severity_confidence": 0.9949,
+        "flags": [
+          "gate_out_of_distribution"
+        ]
+      },
+      "bone_loss": {
+        "finding": "normal",
+        "confidence": 0.9948,
+        "severity": null,
+        "severity_confidence": null,
+        "flags": []
+      },
+      "assessable": true,
+      "not_assessable_reasons": []
+    },
+    {
+      "detection_index": 19,
+      "bbox_xyxy": [
+        883.1,
+        296.5,
+        1019.8,
+        676.3
+      ],
+      "detection_confidence": 0.4634,
+      "fdi": 17,
+      "quadrant": 1,
+      "position": 7,
+      "fdi_confidence": 0.6842,
+      "fdi_flags": [],
+      "caries": {
+        "finding": "caries",
+        "gate_confidence": 0.9999,
+        "severity": "caries",
+        "severity_confidence": 1.0,
+        "flags": [
+          "gate_out_of_distribution"
+        ]
+      },
+      "bone_loss": {
+        "finding": "normal",
+        "confidence": 0.9954,
+        "severity": null,
+        "severity_confidence": null,
+        "flags": []
+      },
+      "assessable": true,
+      "not_assessable_reasons": []
+    },
+    {
+      "detection_index": 8,
+      "bbox_xyxy": [
+        766.1,
+        299.8,
+        912.9,
+        670.0
+      ],
+      "detection_confidence": 0.5543,
+      "fdi": 18,
+      "quadrant": 1,
+      "position": 8,
+      "fdi_confidence": 0.9039,
+      "fdi_flags": [],
+      "caries": {
+        "finding": "caries",
+        "gate_confidence": 0.9767,
+        "severity": "caries",
+        "severity_confidence": 0.655,
+        "flags": [
+          "gate_out_of_distribution"
+        ]
+      },
+      "bone_loss": {
+        "finding": "normal",
+        "confidence": 0.9977,
+        "severity": null,
+        "severity_confidence": null,
+        "flags": []
+      },
+      "assessable": true,
+      "not_assessable_reasons": []
+    },
+    {
+      "detection_index": 14,
+      "bbox_xyxy": [
+        1537.1,
+        344.8,
+        1637.8,
+        648.8
+      ],
+      "detection_confidence": 0.5063,
+      "fdi": 21,
+      "quadrant": 2,
+      "position": 1,
+      "fdi_confidence": 0.0697,
+      "fdi_flags": [
+        "low_confidence",
+        "reassigned_by_one_to_one"
+      ],
+      "caries": {
+        "finding": "caries",
+        "gate_confidence": 0.941,
+        "severity": "caries",
+        "severity_confidence": 0.6966,
+        "flags": [
+          "gate_out_of_distribution"
+        ]
+      },
+      "bone_loss": {
+        "finding": "normal",
+        "confidence": 0.9985,
+        "severity": null,
+        "severity_confidence": null,
+        "flags": []
+      },
+      "assessable": false,
+      "not_assessable_reasons": [
+        "fdi_confidence_below_threshold"
+      ]
+    },
+    {
+      "detection_index": 18,
+      "bbox_xyxy": [
+        1592.6,
+        309.8,
+        1701.8,
+        653.4
+      ],
+      "detection_confidence": 0.4795,
+      "fdi": 22,
+      "quadrant": 2,
+      "position": 2,
+      "fdi_confidence": 1.0,
+      "fdi_flags": [],
+      "caries": {
+        "finding": "caries",
+        "gate_confidence": 0.9999,
+        "severity": "caries",
+        "severity_confidence": 0.9715,
+        "flags": [
+          "gate_out_of_distribution"
+        ]
+      },
+      "bone_loss": {
+        "finding": "normal",
+        "confidence": 0.9987,
+        "severity": null,
+        "severity_confidence": null,
+        "flags": []
+      },
+      "assessable": true,
+      "not_assessable_reasons": []
+    },
+    {
+      "detection_index": 20,
+      "bbox_xyxy": [
+        1654.3,
+        313.6,
+        1772.2,
+        649.4
+      ],
+      "detection_confidence": 0.439,
+      "fdi": 23,
+      "quadrant": 2,
+      "position": 3,
+      "fdi_confidence": 1.0,
+      "fdi_flags": [],
+      "caries": {
+        "finding": "caries",
+        "gate_confidence": 1.0,
+        "severity": "caries",
+        "severity_confidence": 0.9789,
+        "flags": [
+          "gate_out_of_distribution"
+        ]
+      },
+      "bone_loss": {
+        "finding": "normal",
+        "confidence": 0.9995,
+        "severity": null,
+        "severity_confidence": null,
+        "flags": []
+      },
+      "assessable": true,
+      "not_assessable_reasons": []
+    },
+    {
+      "detection_index": 15,
+      "bbox_xyxy": [
+        1723.4,
+        316.5,
+        1847.5,
+        640.5
+      ],
+      "detection_confidence": 0.4982,
+      "fdi": 24,
+      "quadrant": 2,
+      "position": 4,
+      "fdi_confidence": 0.9999,
+      "fdi_flags": [],
+      "caries": {
+        "finding": "caries",
+        "gate_confidence": 0.9819,
+        "severity": "caries",
+        "severity_confidence": 0.9608,
+        "flags": [
+          "gate_out_of_distribution"
+        ]
+      },
+      "bone_loss": {
+        "finding": "normal",
+        "confidence": 0.9988,
+        "severity": null,
+        "severity_confidence": null,
+        "flags": []
+      },
+      "assessable": true,
+      "not_assessable_reasons": []
+    },
+    {
+      "detection_index": 4,
+      "bbox_xyxy": [
+        1814.0,
+        316.0,
+        1991.4,
+        630.4
+      ],
+      "detection_confidence": 0.6864,
+      "fdi": 25,
+      "quadrant": 2,
+      "position": 5,
+      "fdi_confidence": 0.9635,
+      "fdi_flags": [],
+      "caries": {
+        "finding": "caries",
+        "gate_confidence": 0.9995,
+        "severity": "caries",
+        "severity_confidence": 0.9969,
+        "flags": [
+          "gate_out_of_distribution"
+        ]
+      },
+      "bone_loss": {
+        "finding": "normal",
+        "confidence": 0.999,
+        "severity": null,
+        "severity_confidence": null,
+        "flags": []
+      },
+      "assessable": true,
+      "not_assessable_reasons": []
+    },
+    {
+      "detection_index": 7,
+      "bbox_xyxy": [
+        1974.4,
+        300.0,
+        2151.6,
+        620.3
+      ],
+      "detection_confidence": 0.5655,
+      "fdi": 27,
+      "quadrant": 2,
+      "position": 7,
+      "fdi_confidence": 0.9999,
+      "fdi_flags": [],
+      "caries": {
+        "finding": "caries",
+        "gate_confidence": 0.9995,
+        "severity": "caries",
+        "severity_confidence": 0.7912,
+        "flags": [
+          "gate_out_of_distribution"
+        ]
+      },
+      "bone_loss": {
+        "finding": "normal",
+        "confidence": 0.9974,
+        "severity": null,
+        "severity_confidence": null,
+        "flags": []
+      },
+      "assessable": true,
+      "not_assessable_reasons": []
+    },
+    {
+      "detection_index": 13,
+      "bbox_xyxy": [
+        1495.9,
+        670.8,
+        1584.0,
+        915.1
+      ],
+      "detection_confidence": 0.5159,
+      "fdi": 31,
+      "quadrant": 3,
+      "position": 1,
+      "fdi_confidence": 0.9961,
+      "fdi_flags": [],
+      "caries": {
+        "finding": "caries",
+        "gate_confidence": 0.674,
+        "severity": "caries",
+        "severity_confidence": 0.6853,
+        "flags": [
+          "gate_out_of_distribution"
+        ]
+      },
+      "bone_loss": {
+        "finding": "normal",
+        "confidence": 0.9472,
+        "severity": null,
+        "severity_confidence": null,
+        "flags": []
+      },
+      "assessable": true,
+      "not_assessable_reasons": []
+    },
+    {
+      "detection_index": 16,
+      "bbox_xyxy": [
+        1554.0,
+        658.6,
+        1662.5,
+        966.4
+      ],
+      "detection_confidence": 0.4946,
+      "fdi": 32,
+      "quadrant": 3,
+      "position": 2,
+      "fdi_confidence": 0.6938,
+      "fdi_flags": [],
+      "caries": {
+        "finding": "caries",
+        "gate_confidence": 0.9521,
+        "severity": "caries",
+        "severity_confidence": 0.9621,
+        "flags": [
+          "gate_out_of_distribution"
+        ]
+      },
+      "bone_loss": {
+        "finding": "normal",
+        "confidence": 0.9598,
+        "severity": null,
+        "severity_confidence": null,
+        "flags": []
+      },
+      "assessable": true,
+      "not_assessable_reasons": []
+    },
+    {
+      "detection_index": 12,
+      "bbox_xyxy": [
+        1284.8,
+        686.9,
+        1378.0,
+        984.9
+      ],
+      "detection_confidence": 0.516,
+      "fdi": 33,
+      "quadrant": 3,
+      "position": 3,
+      "fdi_confidence": 0.0001,
+      "fdi_flags": [
+        "low_confidence",
+        "reassigned_by_one_to_one"
+      ],
+      "caries": {
+        "finding": "deep_caries",
+        "gate_confidence": 0.9477,
+        "severity": "deep_caries",
+        "severity_confidence": 0.7423,
+        "flags": [
+          "gate_out_of_distribution"
+        ]
+      },
+      "bone_loss": {
+        "finding": "normal",
+        "confidence": 0.9877,
+        "severity": null,
+        "severity_confidence": null,
+        "flags": []
+      },
+      "assessable": false,
+      "not_assessable_reasons": [
+        "fdi_confidence_below_threshold"
+      ]
+    },
+    {
+      "detection_index": 10,
+      "bbox_xyxy": [
+        1695.5,
+        666.5,
+        1814.2,
+        960.7
+      ],
+      "detection_confidence": 0.546,
+      "fdi": 34,
+      "quadrant": 3,
+      "position": 4,
+      "fdi_confidence": 0.9955,
+      "fdi_flags": [],
+      "caries": {
+        "finding": "caries",
+        "gate_confidence": 0.9937,
+        "severity": "caries",
+        "severity_confidence": 0.9947,
+        "flags": [
+          "gate_out_of_distribution"
+        ]
+      },
+      "bone_loss": {
+        "finding": "normal",
+        "confidence": 0.9981,
+        "severity": null,
+        "severity_confidence": null,
+        "flags": []
+      },
+      "assessable": true,
+      "not_assessable_reasons": []
+    },
+    {
+      "detection_index": 5,
+      "bbox_xyxy": [
+        1773.8,
+        664.9,
+        1949.2,
+        949.1
+      ],
+      "detection_confidence": 0.672,
+      "fdi": 35,
+      "quadrant": 3,
+      "position": 5,
+      "fdi_confidence": 0.4776,
+      "fdi_flags": [],
+      "caries": {
+        "finding": "caries",
+        "gate_confidence": 0.9805,
+        "severity": "caries",
+        "severity_confidence": 0.9869,
+        "flags": [
+          "gate_out_of_distribution"
+        ]
+      },
+      "bone_loss": {
+        "finding": "normal",
+        "confidence": 0.9813,
+        "severity": null,
+        "severity_confidence": null,
+        "flags": []
+      },
+      "assessable": true,
+      "not_assessable_reasons": []
+    },
+    {
+      "detection_index": 1,
+      "bbox_xyxy": [
+        1878.9,
+        639.9,
+        2104.8,
+        923.4
+      ],
+      "detection_confidence": 0.7186,
+      "fdi": 36,
+      "quadrant": 3,
+      "position": 6,
+      "fdi_confidence": 0.9954,
+      "fdi_flags": [],
+      "caries": {
+        "finding": "caries",
+        "gate_confidence": 0.9768,
+        "severity": "caries",
+        "severity_confidence": 0.9986,
+        "flags": [
+          "gate_out_of_distribution"
+        ]
+      },
+      "bone_loss": {
+        "finding": "normal",
+        "confidence": 0.9576,
+        "severity": null,
+        "severity_confidence": null,
+        "flags": []
+      },
+      "assessable": true,
+      "not_assessable_reasons": []
+    },
+    {
+      "detection_index": 24,
+      "bbox_xyxy": [
+        1630.0,
+        663.3,
+        1740.2,
+        961.3
+      ],
+      "detection_confidence": 0.4231,
+      "fdi": 37,
+      "quadrant": 3,
+      "position": 7,
+      "fdi_confidence": 0.0,
+      "fdi_flags": [
+        "low_confidence",
+        "reassigned_by_one_to_one"
+      ],
+      "caries": {
+        "finding": "caries",
+        "gate_confidence": 0.9926,
+        "severity": "caries",
+        "severity_confidence": 0.8981,
+        "flags": [
+          "gate_out_of_distribution"
+        ]
+      },
+      "bone_loss": {
+        "finding": "normal",
+        "confidence": 0.981,
+        "severity": null,
+        "severity_confidence": null,
+        "flags": []
+      },
+      "assessable": false,
+      "not_assessable_reasons": [
+        "fdi_confidence_below_threshold"
+      ]
+    },
+    {
+      "detection_index": 22,
+      "bbox_xyxy": [
+        1423.7,
+        675.9,
+        1505.2,
+        917.8
+      ],
+      "detection_confidence": 0.436,
+      "fdi": 41,
+      "quadrant": 4,
+      "position": 1,
+      "fdi_confidence": 0.9974,
+      "fdi_flags": [],
+      "caries": {
+        "finding": "deep_caries",
+        "gate_confidence": 0.9478,
+        "severity": "deep_caries",
+        "severity_confidence": 0.7121,
+        "flags": [
+          "gate_out_of_distribution"
+        ]
+      },
+      "bone_loss": {
+        "finding": "normal",
+        "confidence": 0.8602,
+        "severity": null,
+        "severity_confidence": null,
+        "flags": []
+      },
+      "assessable": true,
+      "not_assessable_reasons": []
+    },
+    {
+      "detection_index": 17,
+      "bbox_xyxy": [
+        1366.4,
+        680.6,
+        1449.8,
+        936.6
+      ],
+      "detection_confidence": 0.4873,
+      "fdi": 42,
+      "quadrant": 4,
+      "position": 2,
+      "fdi_confidence": 0.5662,
+      "fdi_flags": [],
+      "caries": {
+        "finding": "deep_caries",
+        "gate_confidence": 0.9868,
+        "severity": "deep_caries",
+        "severity_confidence": 0.7907,
+        "flags": [
+          "gate_out_of_distribution"
+        ]
+      },
+      "bone_loss": {
+        "finding": "normal",
+        "confidence": 0.987,
+        "severity": null,
+        "severity_confidence": null,
+        "flags": []
+      },
+      "assessable": true,
+      "not_assessable_reasons": []
+    },
+    {
+      "detection_index": 21,
+      "bbox_xyxy": [
+        1215.6,
+        689.1,
+        1319.0,
+        1043.8
+      ],
+      "detection_confidence": 0.4389,
+      "fdi": 43,
+      "quadrant": 4,
+      "position": 3,
+      "fdi_confidence": 0.0057,
+      "fdi_flags": [
+        "low_confidence",
+        "reassigned_by_one_to_one"
+      ],
+      "caries": {
+        "finding": "caries",
+        "gate_confidence": 0.9829,
+        "severity": "caries",
+        "severity_confidence": 0.8487,
+        "flags": [
+          "gate_out_of_distribution"
+        ]
+      },
+      "bone_loss": {
+        "finding": "normal",
+        "confidence": 0.9882,
+        "severity": null,
+        "severity_confidence": null,
+        "flags": []
+      },
+      "assessable": false,
+      "not_assessable_reasons": [
+        "fdi_confidence_below_threshold"
+      ]
+    },
+    {
+      "detection_index": 26,
+      "bbox_xyxy": [
+        1135.8,
+        713.1,
+        1242.1,
+        1038.2
+      ],
+      "detection_confidence": 0.4093,
+      "fdi": 44,
+      "quadrant": 4,
+      "position": 4,
+      "fdi_confidence": 0.9993,
+      "fdi_flags": [],
+      "caries": {
+        "finding": "caries",
+        "gate_confidence": 0.9491,
+        "severity": "caries",
+        "severity_confidence": 0.8359,
+        "flags": [
+          "gate_out_of_distribution"
+        ]
+      },
+      "bone_loss": {
+        "finding": "normal",
+        "confidence": 0.9919,
+        "severity": null,
+        "severity_confidence": null,
+        "flags": []
+      },
+      "assessable": true,
+      "not_assessable_reasons": []
+    },
+    {
+      "detection_index": 11,
+      "bbox_xyxy": [
+        1033.1,
+        724.9,
+        1151.8,
+        1036.7
+      ],
+      "detection_confidence": 0.5364,
+      "fdi": 45,
+      "quadrant": 4,
+      "position": 5,
+      "fdi_confidence": 1.0,
+      "fdi_flags": [],
+      "caries": {
+        "finding": "deep_caries",
+        "gate_confidence": 0.9211,
+        "severity": "deep_caries",
+        "severity_confidence": 0.5904,
+        "flags": [
+          "gate_out_of_distribution"
+        ]
+      },
+      "bone_loss": {
+        "finding": "normal",
+        "confidence": 0.9944,
+        "severity": null,
+        "severity_confidence": null,
+        "flags": []
+      },
+      "assessable": true,
+      "not_assessable_reasons": []
+    },
+    {
+      "detection_index": 28,
+      "bbox_xyxy": [
+        1073.1,
+        718.6,
+        1187.9,
+        1028.7
+      ],
+      "detection_confidence": 0.2783,
+      "fdi": 46,
+      "quadrant": 4,
+      "position": 6,
+      "fdi_confidence": 0.0,
+      "fdi_flags": [
+        "low_confidence",
+        "reassigned_by_one_to_one"
+      ],
+      "caries": {
+        "finding": "deep_caries",
+        "gate_confidence": 0.8991,
+        "severity": "deep_caries",
+        "severity_confidence": 0.8173,
+        "flags": [
+          "gate_out_of_distribution"
+        ]
+      },
+      "bone_loss": {
+        "finding": "normal",
+        "confidence": 0.9968,
+        "severity": null,
+        "severity_confidence": null,
+        "flags": []
+      },
+      "assessable": false,
+      "not_assessable_reasons": [
+        "fdi_confidence_below_threshold"
+      ]
+    },
+    {
+      "detection_index": 3,
+      "bbox_xyxy": [
+        871.3,
+        724.0,
+        1069.8,
+        1033.8
+      ],
+      "detection_confidence": 0.7087,
+      "fdi": 47,
+      "quadrant": 4,
+      "position": 7,
+      "fdi_confidence": 0.2175,
+      "fdi_flags": [
+        "low_confidence",
+        "reassigned_by_one_to_one"
+      ],
+      "caries": {
+        "finding": "deep_caries",
+        "gate_confidence": 0.6594,
+        "severity": "deep_caries",
+        "severity_confidence": 0.94,
+        "flags": [
+          "gate_out_of_distribution"
+        ]
+      },
+      "bone_loss": {
+        "finding": "normal",
+        "confidence": 0.9657,
+        "severity": null,
+        "severity_confidence": null,
+        "flags": []
+      },
+      "assessable": false,
+      "not_assessable_reasons": [
+        "fdi_confidence_below_threshold"
+      ]
+    },
+    {
+      "detection_index": 0,
+      "bbox_xyxy": [
+        676.8,
+        684.4,
+        925.9,
+        979.1
+      ],
+      "detection_confidence": 0.7325,
+      "fdi": 48,
+      "quadrant": 4,
+      "position": 8,
+      "fdi_confidence": 0.8385,
+      "fdi_flags": [],
+      "caries": {
+        "finding": "deep_caries",
+        "gate_confidence": 0.7046,
+        "severity": "deep_caries",
+        "severity_confidence": 0.9343,
+        "flags": [
+          "gate_out_of_distribution"
+        ]
+      },
+      "bone_loss": {
+        "finding": "normal",
+        "confidence": 0.9497,
+        "severity": null,
+        "severity_confidence": null,
+        "flags": []
+      },
+      "assessable": true,
+      "not_assessable_reasons": []
+    }
+  ],
+  "models": {
+    "detector": {
+      "weights": "/Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/models/06_yolo_detection_a100_run/best.pt",
+      "tag": "tooth-detector-a100-1024-v1.0",
+      "imgsz": 1024,
+      "conf": 0.25,
+      "nms_iou": 0.5,
+      "input_rotation": "90 deg counter-clockwise (src/orientation.py)"
+    },
+    "fdi_head": {
+      "weights": "/Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/models/08_fdi_enumeration_head/enumeration_head_best.pth",
+      "tag": "fdi-enumeration-head-resnet18-v1.0",
+      "one_to_one": true,
+      "crop_expand": [
+        1.5,
+        1.5
+      ]
+    },
+    "caries": {
+      "gate": "/Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/models/07_caries_cascade/final_model.pth",
+      "severity": "/Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/models/07_caries_cascade/phase2_final_bundle.pth",
+      "tag": "caries-cascade-resnet18-v1.0",
+      "crop_expand": [
+        1.0,
+        1.0
+      ]
+    },
+    "bone_loss": {
+      "binary": "/Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/models/03_bone_loss_model_training_notebook_models/bone_loss_resnet18_best.pth",
+      "severity": "/Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/models/04_bone_loss_severity_notebook_models/bone_loss_severity_resnet18_best.pth",
+      "crop_expand": [
+        1.5,
+        2.0
+      ],
+      "severity_classes": [
+        "Mild",
+        "Moderate",
+        "Severe"
+      ],
+      "class_order_note": "binary class order derived from the FocalLoss alpha [0.642, 2.258] against counts (2500 normal / 711 diseased); the checkpoint carries no class_to_idx. Inferred, not read."
+    }
+  },
+  "limitations": {
+    "stage1_detector_recall": 0.67,
+    "stage2_fdi_exact_end_to_end": 0.465,
+    "interpretation": "Detection recall and FDI accuracy are measured on DENTEX disease/ (164 leak-free images, RESULTS_LOG 2026-08-22j). A missed tooth is absent from this report; a misnumbered tooth carries correct findings under the wrong FDI code. Expect roughly half the codes in this report to be wrong.",
+    "caries_gate_out_of_distribution": "The caries gate's negative class is Impacted + Periapical Lesion and contains no healthy teeth, while this pipeline feeds it every detected tooth. It will over-call caries. Not a clinical caries rate.",
+    "not_clinically_validated": true
+  }
+}
