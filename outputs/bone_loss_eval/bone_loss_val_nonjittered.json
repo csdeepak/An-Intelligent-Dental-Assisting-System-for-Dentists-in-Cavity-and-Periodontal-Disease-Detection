@@ -1,0 +1,150 @@
+{
+  "n": 785,
+  "n_positive": 35,
+  "subset": "non-jittered val only",
+  "not_a_reproduction_of": "0.9233 macro-F1 on the full 1,558 val crops",
+  "macro_f1": 0.5371,
+  "macro_f1_ci95": [
+    0.4868,
+    0.5994
+  ],
+  "sensitivity": 0.0857,
+  "sensitivity_ci95": [
+    0.0,
+    0.1923
+  ],
+  "specificity": 0.976,
+  "confusion": {
+    "tn": 732,
+    "fp": 18,
+    "fn": 32,
+    "tp": 3
+  },
+  "ece": 0.0468,
+  "mce": 0.7451,
+  "brier": 0.0547,
+  "average_precision": 0.1058,
+  "average_precision_ci95": [
+    0.0532,
+    0.2203
+  ],
+  "prevalence": 0.0446,
+  "ci_method": "cluster bootstrap over 142 source images, 500 resamples, seed 42",
+  "threshold_sweep": [
+    {
+      "threshold": 0.05,
+      "n_flagged": 190,
+      "precision": 0.0789,
+      "recall": 0.4286
+    },
+    {
+      "threshold": 0.1,
+      "n_flagged": 133,
+      "precision": 0.1053,
+      "recall": 0.4
+    },
+    {
+      "threshold": 0.15,
+      "n_flagged": 97,
+      "precision": 0.1237,
+      "recall": 0.3429
+    },
+    {
+      "threshold": 0.2,
+      "n_flagged": 69,
+      "precision": 0.1014,
+      "recall": 0.2
+    },
+    {
+      "threshold": 0.25,
+      "n_flagged": 60,
+      "precision": 0.1,
+      "recall": 0.1714
+    },
+    {
+      "threshold": 0.3,
+      "n_flagged": 50,
+      "precision": 0.12,
+      "recall": 0.1714
+    },
+    {
+      "threshold": 0.35,
+      "n_flagged": 42,
+      "precision": 0.1429,
+      "recall": 0.1714
+    },
+    {
+      "threshold": 0.4,
+      "n_flagged": 37,
+      "precision": 0.1351,
+      "recall": 0.1429
+    },
+    {
+      "threshold": 0.45,
+      "n_flagged": 30,
+      "precision": 0.1,
+      "recall": 0.0857
+    },
+    {
+      "threshold": 0.5,
+      "n_flagged": 21,
+      "precision": 0.1429,
+      "recall": 0.0857
+    },
+    {
+      "threshold": 0.55,
+      "n_flagged": 17,
+      "precision": 0.1765,
+      "recall": 0.0857
+    },
+    {
+      "threshold": 0.6,
+      "n_flagged": 15,
+      "precision": 0.1333,
+      "recall": 0.0571
+    },
+    {
+      "threshold": 0.65,
+      "n_flagged": 14,
+      "precision": 0.1429,
+      "recall": 0.0571
+    },
+    {
+      "threshold": 0.7,
+      "n_flagged": 9,
+      "precision": 0.1111,
+      "recall": 0.0286
+    },
+    {
+      "threshold": 0.75,
+      "n_flagged": 6,
+      "precision": 0.1667,
+      "recall": 0.0286
+    },
+    {
+      "threshold": 0.8,
+      "n_flagged": 3,
+      "precision": 0.3333,
+      "recall": 0.0286
+    },
+    {
+      "threshold": 0.85,
+      "n_flagged": 3,
+      "precision": 0.3333,
+      "recall": 0.0286
+    },
+    {
+      "threshold": 0.9,
+      "n_flagged": 3,
+      "precision": 0.3333,
+      "recall": 0.0286
+    },
+    {
+      "threshold": 0.95,
+      "n_flagged": 1,
+      "precision": 0.0,
+      "recall": 0.0
+    }
+  ],
+  "geometry_verdict": "DIVERGENT -- suspect crop geometry, do not use these crops"
+}

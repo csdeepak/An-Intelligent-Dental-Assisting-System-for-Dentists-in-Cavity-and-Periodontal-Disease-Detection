@@ -1,0 +1,1981 @@
+{
+  "n_images": 164,
+  "n_images_with_caries_lesions": 148,
+  "n_lesions": 479,
+  "n_lesions_matched": 234,
+  "lesion_localization_agreement": 0.4885,
+  "n_predicted_positive_teeth": 859,
+  "n_predicted_positive_matched_to_a_lesion": 234,
+  "predicted_positive_match_rate_DIAGNOSTIC_NOT_PRECISION": 0.2724,
+  "min_iou": 0.3,
+  "target_finding": "\u00e7\u00fcr\u00fck (caries) only, see module docstring",
+  "caveat": "unmatched predicted-positive teeth are NOT confirmed false positives -- disease/ annotates only ~6 of ~30 teeth per image (compare_caries_gates.py); an unmatched positive may be real, unannotated caries.",
+  "weights": {
+    "detector": "C:\\Users\\csdee\\PESU\\capstone\\An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection\\models\\11_yolo_seg_tufts_r1\\best.pt",
+    "detector_sha256": "271316c46caaf4029ea707fa77b6fe30697795e46632e1f6fcae3498c48781ba",
+    "caries_gate": "C:\\Users\\csdee\\PESU\\capstone\\An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection\\models\\09_caries_gate_v3\\caries_gate_v3.pth",
+    "caries_severity": "C:\\Users\\csdee\\PESU\\capstone\\An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection\\models\\07_caries_cascade\\phase2_final_bundle.pth"
+  },
+  "flag_counts": {
+    "caries_uncalibrated": 3344,
+    "caries_confidence_isotonic": 3344
+  },
+  "per_image": [
+    {
+      "image": "test_0",
+      "n_lesions": 3,
+      "n_matched": 1,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 7,
+      "unmatched_positive_gate_confidence": [
+        0.978,
+        0.608,
+        0.544,
+        0.828,
+        0.873,
+        0.799,
+        0.943
+      ]
+    },
+    {
+      "image": "test_1",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 6,
+      "unmatched_positive_gate_confidence": [
+        0.582,
+        0.541,
+        0.782,
+        0.545,
+        0.9,
+        0.889
+      ]
+    },
+    {
+      "image": "test_10",
+      "n_lesions": 2,
+      "n_matched": 1,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 6,
+      "unmatched_positive_gate_confidence": [
+        0.871,
+        0.63,
+        0.709,
+        0.798,
+        0.706,
+        0.852
+      ]
+    },
+    {
+      "image": "test_101",
+      "n_lesions": 4,
+      "n_matched": 1,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 5,
+      "unmatched_positive_gate_confidence": [
+        0.981,
+        0.898,
+        0.935,
+        0.918,
+        0.554
+      ]
+    },
+    {
+      "image": "test_102",
+      "n_lesions": 3,
+      "n_matched": 1,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 6,
+      "unmatched_positive_gate_confidence": [
+        0.942,
+        0.696,
+        0.867,
+        0.961,
+        0.665,
+        0.868
+      ]
+    },
+    {
+      "image": "test_103",
+      "n_lesions": 6,
+      "n_matched": 4,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 4,
+      "unmatched_positive_gate_confidence": [
+        0.672,
+        0.599,
+        0.594,
+        0.59
+      ]
+    },
+    {
+      "image": "test_104",
+      "n_lesions": 3,
+      "n_matched": 1,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 5,
+      "unmatched_positive_gate_confidence": [
+        0.632,
+        0.577,
+        0.87,
+        0.923,
+        0.675
+      ]
+    },
+    {
+      "image": "test_105",
+      "n_lesions": 3,
+      "n_matched": 3,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 5,
+      "unmatched_positive_gate_confidence": [
+        0.59,
+        0.852,
+        0.872,
+        0.878,
+        0.615
+      ]
+    },
+    {
+      "image": "test_106",
+      "n_lesions": 1,
+      "n_matched": 1,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 7,
+      "unmatched_positive_gate_confidence": [
+        0.905,
+        0.511,
+        0.625,
+        0.725,
+        0.514,
+        0.853,
+        0.566
+      ]
+    },
+    {
+      "image": "test_11",
+      "n_lesions": 2,
+      "n_matched": 1,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 3,
+      "unmatched_positive_gate_confidence": [
+        0.756,
+        0.995,
+        0.846
+      ]
+    },
+    {
+      "image": "test_110",
+      "n_lesions": 4,
+      "n_matched": 1,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 4,
+      "unmatched_positive_gate_confidence": [
+        0.998,
+        0.749,
+        0.77,
+        0.814
+      ]
+    },
+    {
+      "image": "test_113",
+      "n_lesions": 2,
+      "n_matched": 0,
+      "n_predicted_positive": 3,
+      "n_predicted_positive_unmatched": 3,
+      "unmatched_positive_gate_confidence": [
+        0.85,
+        0.507,
+        0.816
+      ]
+    },
+    {
+      "image": "test_114",
+      "n_lesions": 13,
+      "n_matched": 7,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 1,
+      "unmatched_positive_gate_confidence": [
+        0.883
+      ]
+    },
+    {
+      "image": "test_119",
+      "n_lesions": 2,
+      "n_matched": 0,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 7,
+      "unmatched_positive_gate_confidence": [
+        0.634,
+        0.903,
+        0.976,
+        0.791,
+        0.859,
+        0.894,
+        0.843
+      ]
+    },
+    {
+      "image": "test_120",
+      "n_lesions": 7,
+      "n_matched": 4,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 3,
+      "unmatched_positive_gate_confidence": [
+        0.799,
+        0.864,
+        0.525
+      ]
+    },
+    {
+      "image": "test_122",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 6,
+      "unmatched_positive_gate_confidence": [
+        0.776,
+        0.692,
+        0.937,
+        0.67,
+        0.532,
+        0.585
+      ]
+    },
+    {
+      "image": "test_123",
+      "n_lesions": 2,
+      "n_matched": 2,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 2,
+      "unmatched_positive_gate_confidence": [
+        0.71,
+        0.518
+      ]
+    },
+    {
+      "image": "test_124",
+      "n_lesions": 9,
+      "n_matched": 2,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 3,
+      "unmatched_positive_gate_confidence": [
+        0.689,
+        0.994,
+        0.76
+      ]
+    },
+    {
+      "image": "test_126",
+      "n_lesions": 2,
+      "n_matched": 0,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 4,
+      "unmatched_positive_gate_confidence": [
+        0.995,
+        0.83,
+        0.921,
+        0.934
+      ]
+    },
+    {
+      "image": "test_127",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 1,
+      "n_predicted_positive_unmatched": 1,
+      "unmatched_positive_gate_confidence": [
+        0.756
+      ]
+    },
+    {
+      "image": "test_131",
+      "n_lesions": 3,
+      "n_matched": 3,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 5,
+      "unmatched_positive_gate_confidence": [
+        0.509,
+        0.907,
+        0.673,
+        0.79,
+        0.534
+      ]
+    },
+    {
+      "image": "test_134",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 2,
+      "n_predicted_positive_unmatched": 2,
+      "unmatched_positive_gate_confidence": [
+        0.596,
+        0.997
+      ]
+    },
+    {
+      "image": "test_135",
+      "n_lesions": 4,
+      "n_matched": 3,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 5,
+      "unmatched_positive_gate_confidence": [
+        0.522,
+        0.531,
+        0.686,
+        0.771,
+        0.646
+      ]
+    },
+    {
+      "image": "test_136",
+      "n_lesions": 2,
+      "n_matched": 1,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 7,
+      "unmatched_positive_gate_confidence": [
+        0.924,
+        0.826,
+        0.903,
+        0.975,
+        0.953,
+        0.553,
+        0.634
+      ]
+    },
+    {
+      "image": "test_137",
+      "n_lesions": 2,
+      "n_matched": 2,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 6,
+      "unmatched_positive_gate_confidence": [
+        0.785,
+        0.534,
+        0.515,
+        0.923,
+        0.5,
+        0.768
+      ]
+    },
+    {
+      "image": "test_138",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 5,
+      "unmatched_positive_gate_confidence": [
+        0.724,
+        0.713,
+        0.735,
+        0.638,
+        0.85
+      ]
+    },
+    {
+      "image": "test_14",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 3,
+      "n_predicted_positive_unmatched": 3,
+      "unmatched_positive_gate_confidence": [
+        0.939,
+        0.997,
+        0.985
+      ]
+    },
+    {
+      "image": "test_140",
+      "n_lesions": 6,
+      "n_matched": 4,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 3,
+      "unmatched_positive_gate_confidence": [
+        0.763,
+        0.543,
+        0.588
+      ]
+    },
+    {
+      "image": "test_141",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 3,
+      "unmatched_positive_gate_confidence": [
+        0.604,
+        0.861,
+        0.729
+      ]
+    },
+    {
+      "image": "test_142",
+      "n_lesions": 1,
+      "n_matched": 1,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 7,
+      "unmatched_positive_gate_confidence": [
+        0.898,
+        0.762,
+        0.56,
+        0.793,
+        0.895,
+        0.611,
+        0.744
+      ]
+    },
+    {
+      "image": "test_143",
+      "n_lesions": 4,
+      "n_matched": 1,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 3,
+      "unmatched_positive_gate_confidence": [
+        0.648,
+        0.914,
+        0.915
+      ]
+    },
+    {
+      "image": "test_146",
+      "n_lesions": 2,
+      "n_matched": 1,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 6,
+      "unmatched_positive_gate_confidence": [
+        0.861,
+        0.897,
+        0.839,
+        0.538,
+        0.71,
+        0.972
+      ]
+    },
+    {
+      "image": "test_147",
+      "n_lesions": 8,
+      "n_matched": 1,
+      "n_predicted_positive": 3,
+      "n_predicted_positive_unmatched": 2,
+      "unmatched_positive_gate_confidence": [
+        0.98,
+        0.904
+      ]
+    },
+    {
+      "image": "test_15",
+      "n_lesions": 2,
+      "n_matched": 0,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 6,
+      "unmatched_positive_gate_confidence": [
+        0.709,
+        0.713,
+        0.839,
+        0.925,
+        0.734,
+        0.965
+      ]
+    },
+    {
+      "image": "test_151",
+      "n_lesions": 4,
+      "n_matched": 4,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 4,
+      "unmatched_positive_gate_confidence": [
+        0.649,
+        0.972,
+        0.989,
+        0.778
+      ]
+    },
+    {
+      "image": "test_152",
+      "n_lesions": 10,
+      "n_matched": 6,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 2,
+      "unmatched_positive_gate_confidence": [
+        0.857,
+        0.6
+      ]
+    },
+    {
+      "image": "test_153",
+      "n_lesions": 7,
+      "n_matched": 3,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 3,
+      "unmatched_positive_gate_confidence": [
+        0.871,
+        0.638,
+        0.957
+      ]
+    },
+    {
+      "image": "test_154",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 3,
+      "n_predicted_positive_unmatched": 3,
+      "unmatched_positive_gate_confidence": [
+        0.91,
+        0.962,
+        0.968
+      ]
+    },
+    {
+      "image": "test_155",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 6,
+      "unmatched_positive_gate_confidence": [
+        0.772,
+        0.566,
+        0.522,
+        0.872,
+        0.981,
+        0.931
+      ]
+    },
+    {
+      "image": "test_156",
+      "n_lesions": 4,
+      "n_matched": 3,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 5,
+      "unmatched_positive_gate_confidence": [
+        0.959,
+        0.98,
+        0.97,
+        0.914,
+        0.503
+      ]
+    },
+    {
+      "image": "test_157",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 3,
+      "n_predicted_positive_unmatched": 3,
+      "unmatched_positive_gate_confidence": [
+        0.51,
+        0.626,
+        0.944
+      ]
+    },
+    {
+      "image": "test_158",
+      "n_lesions": 5,
+      "n_matched": 2,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 3,
+      "unmatched_positive_gate_confidence": [
+        0.723,
+        0.942,
+        0.626
+      ]
+    },
+    {
+      "image": "test_16",
+      "n_lesions": 1,
+      "n_matched": 1,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 5,
+      "unmatched_positive_gate_confidence": [
+        0.547,
+        0.92,
+        0.866,
+        0.526,
+        0.981
+      ]
+    },
+    {
+      "image": "test_160",
+      "n_lesions": 5,
+      "n_matched": 3,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 3,
+      "unmatched_positive_gate_confidence": [
+        0.708,
+        0.535,
+        0.798
+      ]
+    },
+    {
+      "image": "test_161",
+      "n_lesions": 8,
+      "n_matched": 0,
+      "n_predicted_positive": 1,
+      "n_predicted_positive_unmatched": 1,
+      "unmatched_positive_gate_confidence": [
+        0.988
+      ]
+    },
+    {
+      "image": "test_162",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 2,
+      "unmatched_positive_gate_confidence": [
+        0.961,
+        0.644
+      ]
+    },
+    {
+      "image": "test_163",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 6,
+      "unmatched_positive_gate_confidence": [
+        0.624,
+        0.703,
+        0.892,
+        0.682,
+        0.898,
+        0.749
+      ]
+    },
+    {
+      "image": "test_165",
+      "n_lesions": 3,
+      "n_matched": 1,
+      "n_predicted_positive": 3,
+      "n_predicted_positive_unmatched": 2,
+      "unmatched_positive_gate_confidence": [
+        0.635,
+        0.995
+      ]
+    },
+    {
+      "image": "test_166",
+      "n_lesions": 4,
+      "n_matched": 2,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 4,
+      "unmatched_positive_gate_confidence": [
+        0.762,
+        0.715,
+        0.73,
+        0.757
+      ]
+    },
+    {
+      "image": "test_167",
+      "n_lesions": 6,
+      "n_matched": 3,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 4,
+      "unmatched_positive_gate_confidence": [
+        0.568,
+        0.997,
+        0.961,
+        0.954
+      ]
+    },
+    {
+      "image": "test_168",
+      "n_lesions": 2,
+      "n_matched": 1,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 4,
+      "unmatched_positive_gate_confidence": [
+        0.831,
+        0.741,
+        0.723,
+        0.515
+      ]
+    },
+    {
+      "image": "test_17",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 6,
+      "unmatched_positive_gate_confidence": [
+        0.759,
+        0.908,
+        0.761,
+        0.676,
+        0.76,
+        0.584
+      ]
+    },
+    {
+      "image": "test_171",
+      "n_lesions": 3,
+      "n_matched": 1,
+      "n_predicted_positive": 2,
+      "n_predicted_positive_unmatched": 1,
+      "unmatched_positive_gate_confidence": [
+        0.796
+      ]
+    },
+    {
+      "image": "test_172",
+      "n_lesions": 5,
+      "n_matched": 4,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 4,
+      "unmatched_positive_gate_confidence": [
+        0.597,
+        0.698,
+        0.585,
+        0.859
+      ]
+    },
+    {
+      "image": "test_173",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 2,
+      "unmatched_positive_gate_confidence": [
+        0.746,
+        0.989
+      ]
+    },
+    {
+      "image": "test_174",
+      "n_lesions": 2,
+      "n_matched": 0,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 5,
+      "unmatched_positive_gate_confidence": [
+        0.87,
+        0.954,
+        0.947,
+        0.664,
+        0.574
+      ]
+    },
+    {
+      "image": "test_175",
+      "n_lesions": 2,
+      "n_matched": 2,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 6,
+      "unmatched_positive_gate_confidence": [
+        0.715,
+        0.836,
+        0.939,
+        0.693,
+        0.744,
+        0.949
+      ]
+    },
+    {
+      "image": "test_176",
+      "n_lesions": 2,
+      "n_matched": 0,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 8,
+      "unmatched_positive_gate_confidence": [
+        0.729,
+        0.75,
+        0.569,
+        0.53,
+        0.911,
+        0.626,
+        0.618,
+        0.563
+      ]
+    },
+    {
+      "image": "test_177",
+      "n_lesions": 4,
+      "n_matched": 0,
+      "n_predicted_positive": 3,
+      "n_predicted_positive_unmatched": 3,
+      "unmatched_positive_gate_confidence": [
+        0.973,
+        0.529,
+        0.62
+      ]
+    },
+    {
+      "image": "test_178",
+      "n_lesions": 2,
+      "n_matched": 2,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 5,
+      "unmatched_positive_gate_confidence": [
+        0.914,
+        0.894,
+        0.893,
+        0.559,
+        0.807
+      ]
+    },
+    {
+      "image": "test_179",
+      "n_lesions": 1,
+      "n_matched": 1,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 3,
+      "unmatched_positive_gate_confidence": [
+        0.565,
+        0.506,
+        0.56
+      ]
+    },
+    {
+      "image": "test_180",
+      "n_lesions": 1,
+      "n_matched": 1,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 7,
+      "unmatched_positive_gate_confidence": [
+        0.823,
+        0.889,
+        0.956,
+        0.944,
+        0.985,
+        0.933,
+        0.961
+      ]
+    },
+    {
+      "image": "test_182",
+      "n_lesions": 4,
+      "n_matched": 2,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 2,
+      "unmatched_positive_gate_confidence": [
+        0.615,
+        0.96
+      ]
+    },
+    {
+      "image": "test_183",
+      "n_lesions": 1,
+      "n_matched": 1,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 4,
+      "unmatched_positive_gate_confidence": [
+        0.827,
+        0.972,
+        0.994,
+        0.783
+      ]
+    },
+    {
+      "image": "test_185",
+      "n_lesions": 2,
+      "n_matched": 0,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 4,
+      "unmatched_positive_gate_confidence": [
+        0.688,
+        0.983,
+        0.991,
+        0.531
+      ]
+    },
+    {
+      "image": "test_186",
+      "n_lesions": 3,
+      "n_matched": 3,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 4,
+      "unmatched_positive_gate_confidence": [
+        0.562,
+        0.738,
+        0.842,
+        0.787
+      ]
+    },
+    {
+      "image": "test_187",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 6,
+      "unmatched_positive_gate_confidence": [
+        0.655,
+        0.885,
+        0.516,
+        0.733,
+        0.749,
+        0.621
+      ]
+    },
+    {
+      "image": "test_191",
+      "n_lesions": 1,
+      "n_matched": 1,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 5,
+      "unmatched_positive_gate_confidence": [
+        0.597,
+        0.979,
+        0.61,
+        0.903,
+        0.72
+      ]
+    },
+    {
+      "image": "test_193",
+      "n_lesions": 2,
+      "n_matched": 0,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 6,
+      "unmatched_positive_gate_confidence": [
+        0.562,
+        0.597,
+        0.518,
+        0.89,
+        0.586,
+        0.965
+      ]
+    },
+    {
+      "image": "test_194",
+      "n_lesions": 2,
+      "n_matched": 1,
+      "n_predicted_positive": 3,
+      "n_predicted_positive_unmatched": 2,
+      "unmatched_positive_gate_confidence": [
+        0.83,
+        0.86
+      ]
+    },
+    {
+      "image": "test_195",
+      "n_lesions": 2,
+      "n_matched": 2,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 3,
+      "unmatched_positive_gate_confidence": [
+        0.592,
+        0.613,
+        0.585
+      ]
+    },
+    {
+      "image": "test_197",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 7,
+      "unmatched_positive_gate_confidence": [
+        0.631,
+        0.952,
+        0.614,
+        0.6,
+        0.517,
+        0.792,
+        0.682
+      ]
+    },
+    {
+      "image": "test_198",
+      "n_lesions": 2,
+      "n_matched": 0,
+      "n_predicted_positive": 2,
+      "n_predicted_positive_unmatched": 2,
+      "unmatched_positive_gate_confidence": [
+        0.526,
+        0.887
+      ]
+    },
+    {
+      "image": "test_200",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 0,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_201",
+      "n_lesions": 2,
+      "n_matched": 2,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 6,
+      "unmatched_positive_gate_confidence": [
+        0.857,
+        0.854,
+        0.622,
+        0.669,
+        0.705,
+        0.945
+      ]
+    },
+    {
+      "image": "test_205",
+      "n_lesions": 4,
+      "n_matched": 1,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 6,
+      "unmatched_positive_gate_confidence": [
+        0.687,
+        0.931,
+        0.714,
+        0.67,
+        0.933,
+        0.796
+      ]
+    },
+    {
+      "image": "test_208",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 5,
+      "unmatched_positive_gate_confidence": [
+        0.92,
+        0.966,
+        0.522,
+        0.756,
+        0.807
+      ]
+    },
+    {
+      "image": "test_211",
+      "n_lesions": 11,
+      "n_matched": 6,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 1,
+      "unmatched_positive_gate_confidence": [
+        0.966
+      ]
+    },
+    {
+      "image": "test_212",
+      "n_lesions": 6,
+      "n_matched": 3,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 1,
+      "unmatched_positive_gate_confidence": [
+        0.622
+      ]
+    },
+    {
+      "image": "test_213",
+      "n_lesions": 3,
+      "n_matched": 1,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 4,
+      "unmatched_positive_gate_confidence": [
+        0.887,
+        0.721,
+        0.828,
+        0.931
+      ]
+    },
+    {
+      "image": "test_216",
+      "n_lesions": 1,
+      "n_matched": 1,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 7,
+      "unmatched_positive_gate_confidence": [
+        0.963,
+        0.678,
+        0.646,
+        0.81,
+        0.907,
+        0.653,
+        0.728
+      ]
+    },
+    {
+      "image": "test_217",
+      "n_lesions": 5,
+      "n_matched": 4,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 4,
+      "unmatched_positive_gate_confidence": [
+        0.575,
+        0.809,
+        0.783,
+        0.637
+      ]
+    },
+    {
+      "image": "test_218",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 2,
+      "n_predicted_positive_unmatched": 2,
+      "unmatched_positive_gate_confidence": [
+        1.0,
+        0.785
+      ]
+    },
+    {
+      "image": "test_219",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 5,
+      "unmatched_positive_gate_confidence": [
+        0.825,
+        0.964,
+        0.562,
+        0.982,
+        0.729
+      ]
+    },
+    {
+      "image": "test_22",
+      "n_lesions": 2,
+      "n_matched": 2,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 4,
+      "unmatched_positive_gate_confidence": [
+        0.964,
+        0.673,
+        0.981,
+        0.79
+      ]
+    },
+    {
+      "image": "test_220",
+      "n_lesions": 7,
+      "n_matched": 3,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 3,
+      "unmatched_positive_gate_confidence": [
+        0.523,
+        0.964,
+        0.996
+      ]
+    },
+    {
+      "image": "test_222",
+      "n_lesions": 3,
+      "n_matched": 0,
+      "n_predicted_positive": 1,
+      "n_predicted_positive_unmatched": 1,
+      "unmatched_positive_gate_confidence": [
+        0.972
+      ]
+    },
+    {
+      "image": "test_224",
+      "n_lesions": 4,
+      "n_matched": 0,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 4,
+      "unmatched_positive_gate_confidence": [
+        0.992,
+        0.768,
+        0.985,
+        0.869
+      ]
+    },
+    {
+      "image": "test_226",
+      "n_lesions": 3,
+      "n_matched": 1,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 6,
+      "unmatched_positive_gate_confidence": [
+        0.656,
+        0.704,
+        0.608,
+        0.649,
+        0.992,
+        0.97
+      ]
+    },
+    {
+      "image": "test_227",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 5,
+      "unmatched_positive_gate_confidence": [
+        0.904,
+        0.626,
+        0.982,
+        0.923,
+        0.978
+      ]
+    },
+    {
+      "image": "test_228",
+      "n_lesions": 2,
+      "n_matched": 0,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 5,
+      "unmatched_positive_gate_confidence": [
+        0.788,
+        0.663,
+        0.764,
+        0.712,
+        0.702
+      ]
+    },
+    {
+      "image": "test_229",
+      "n_lesions": 1,
+      "n_matched": 1,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 5,
+      "unmatched_positive_gate_confidence": [
+        0.976,
+        0.836,
+        0.632,
+        0.875,
+        0.976
+      ]
+    },
+    {
+      "image": "test_231",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 2,
+      "n_predicted_positive_unmatched": 2,
+      "unmatched_positive_gate_confidence": [
+        0.992,
+        0.881
+      ]
+    },
+    {
+      "image": "test_233",
+      "n_lesions": 8,
+      "n_matched": 3,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 5,
+      "unmatched_positive_gate_confidence": [
+        0.669,
+        0.983,
+        0.959,
+        0.513,
+        0.811
+      ]
+    },
+    {
+      "image": "test_235",
+      "n_lesions": 3,
+      "n_matched": 1,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 3,
+      "unmatched_positive_gate_confidence": [
+        0.781,
+        0.642,
+        0.901
+      ]
+    },
+    {
+      "image": "test_236",
+      "n_lesions": 2,
+      "n_matched": 1,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 7,
+      "unmatched_positive_gate_confidence": [
+        0.845,
+        0.937,
+        0.742,
+        0.876,
+        0.775,
+        0.516,
+        0.726
+      ]
+    },
+    {
+      "image": "test_239",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 3,
+      "unmatched_positive_gate_confidence": [
+        0.865,
+        0.631,
+        0.717
+      ]
+    },
+    {
+      "image": "test_240",
+      "n_lesions": 6,
+      "n_matched": 5,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 3,
+      "unmatched_positive_gate_confidence": [
+        0.679,
+        0.829,
+        0.526
+      ]
+    },
+    {
+      "image": "test_241",
+      "n_lesions": 1,
+      "n_matched": 1,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 6,
+      "unmatched_positive_gate_confidence": [
+        0.956,
+        0.895,
+        0.924,
+        0.533,
+        0.914,
+        0.623
+      ]
+    },
+    {
+      "image": "test_242",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 6,
+      "unmatched_positive_gate_confidence": [
+        0.911,
+        0.705,
+        0.559,
+        0.566,
+        0.599,
+        0.805
+      ]
+    },
+    {
+      "image": "test_243",
+      "n_lesions": 2,
+      "n_matched": 2,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 6,
+      "unmatched_positive_gate_confidence": [
+        0.991,
+        0.801,
+        0.505,
+        0.964,
+        0.689,
+        0.965
+      ]
+    },
+    {
+      "image": "test_246",
+      "n_lesions": 2,
+      "n_matched": 1,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 5,
+      "unmatched_positive_gate_confidence": [
+        0.919,
+        0.852,
+        0.697,
+        0.994,
+        0.921
+      ]
+    },
+    {
+      "image": "test_247",
+      "n_lesions": 8,
+      "n_matched": 4,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 2,
+      "unmatched_positive_gate_confidence": [
+        0.724,
+        0.997
+      ]
+    },
+    {
+      "image": "test_25",
+      "n_lesions": 3,
+      "n_matched": 3,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 4,
+      "unmatched_positive_gate_confidence": [
+        0.543,
+        0.769,
+        0.777,
+        0.919
+      ]
+    },
+    {
+      "image": "test_26",
+      "n_lesions": 2,
+      "n_matched": 1,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 4,
+      "unmatched_positive_gate_confidence": [
+        0.592,
+        0.986,
+        0.992,
+        0.891
+      ]
+    },
+    {
+      "image": "test_27",
+      "n_lesions": 6,
+      "n_matched": 4,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 3,
+      "unmatched_positive_gate_confidence": [
+        0.599,
+        0.544,
+        0.701
+      ]
+    },
+    {
+      "image": "test_29",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 5,
+      "unmatched_positive_gate_confidence": [
+        0.52,
+        0.863,
+        0.875,
+        0.771,
+        0.711
+      ]
+    },
+    {
+      "image": "test_30",
+      "n_lesions": 7,
+      "n_matched": 3,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 4,
+      "unmatched_positive_gate_confidence": [
+        0.945,
+        0.571,
+        0.905,
+        0.626
+      ]
+    },
+    {
+      "image": "test_32",
+      "n_lesions": 6,
+      "n_matched": 4,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 4,
+      "unmatched_positive_gate_confidence": [
+        0.744,
+        0.861,
+        0.837,
+        0.758
+      ]
+    },
+    {
+      "image": "test_35",
+      "n_lesions": 4,
+      "n_matched": 3,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 4,
+      "unmatched_positive_gate_confidence": [
+        0.69,
+        0.514,
+        0.685,
+        0.642
+      ]
+    },
+    {
+      "image": "test_38",
+      "n_lesions": 3,
+      "n_matched": 1,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 3,
+      "unmatched_positive_gate_confidence": [
+        0.951,
+        0.92,
+        0.84
+      ]
+    },
+    {
+      "image": "test_4",
+      "n_lesions": 5,
+      "n_matched": 4,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 3,
+      "unmatched_positive_gate_confidence": [
+        0.639,
+        0.896,
+        0.749
+      ]
+    },
+    {
+      "image": "test_41",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 6,
+      "unmatched_positive_gate_confidence": [
+        0.633,
+        0.778,
+        0.776,
+        0.522,
+        0.842,
+        0.877
+      ]
+    },
+    {
+      "image": "test_43",
+      "n_lesions": 1,
+      "n_matched": 1,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 7,
+      "unmatched_positive_gate_confidence": [
+        0.611,
+        0.761,
+        0.64,
+        0.795,
+        0.588,
+        0.735,
+        0.842
+      ]
+    },
+    {
+      "image": "test_44",
+      "n_lesions": 3,
+      "n_matched": 1,
+      "n_predicted_positive": 3,
+      "n_predicted_positive_unmatched": 2,
+      "unmatched_positive_gate_confidence": [
+        0.94,
+        0.989
+      ]
+    },
+    {
+      "image": "test_46",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 6,
+      "unmatched_positive_gate_confidence": [
+        0.518,
+        0.671,
+        0.682,
+        0.776,
+        0.627,
+        0.784
+      ]
+    },
+    {
+      "image": "test_47",
+      "n_lesions": 1,
+      "n_matched": 1,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 3,
+      "unmatched_positive_gate_confidence": [
+        0.676,
+        0.662,
+        0.536
+      ]
+    },
+    {
+      "image": "test_49",
+      "n_lesions": 2,
+      "n_matched": 1,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 4,
+      "unmatched_positive_gate_confidence": [
+        0.564,
+        0.524,
+        0.818,
+        0.996
+      ]
+    },
+    {
+      "image": "test_5",
+      "n_lesions": 11,
+      "n_matched": 5,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 2,
+      "unmatched_positive_gate_confidence": [
+        0.898,
+        0.927
+      ]
+    },
+    {
+      "image": "test_51",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 8,
+      "unmatched_positive_gate_confidence": [
+        0.527,
+        0.864,
+        0.982,
+        0.59,
+        0.647,
+        0.68,
+        0.727,
+        0.742
+      ]
+    },
+    {
+      "image": "test_52",
+      "n_lesions": 4,
+      "n_matched": 2,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 5,
+      "unmatched_positive_gate_confidence": [
+        0.608,
+        0.576,
+        0.765,
+        0.786,
+        0.531
+      ]
+    },
+    {
+      "image": "test_53",
+      "n_lesions": 4,
+      "n_matched": 0,
+      "n_predicted_positive": 2,
+      "n_predicted_positive_unmatched": 2,
+      "unmatched_positive_gate_confidence": [
+        0.734,
+        0.799
+      ]
+    },
+    {
+      "image": "test_55",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 3,
+      "n_predicted_positive_unmatched": 3,
+      "unmatched_positive_gate_confidence": [
+        0.98,
+        0.96,
+        0.85
+      ]
+    },
+    {
+      "image": "test_57",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 6,
+      "unmatched_positive_gate_confidence": [
+        0.802,
+        0.91,
+        0.558,
+        0.655,
+        0.532,
+        0.996
+      ]
+    },
+    {
+      "image": "test_59",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 1,
+      "n_predicted_positive_unmatched": 1,
+      "unmatched_positive_gate_confidence": [
+        0.982
+      ]
+    },
+    {
+      "image": "test_6",
+      "n_lesions": 1,
+      "n_matched": 1,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 5,
+      "unmatched_positive_gate_confidence": [
+        0.787,
+        0.578,
+        0.923,
+        0.863,
+        0.604
+      ]
+    },
+    {
+      "image": "test_62",
+      "n_lesions": 3,
+      "n_matched": 3,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 5,
+      "unmatched_positive_gate_confidence": [
+        0.721,
+        0.955,
+        0.616,
+        0.695,
+        0.967
+      ]
+    },
+    {
+      "image": "test_63",
+      "n_lesions": 2,
+      "n_matched": 1,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 7,
+      "unmatched_positive_gate_confidence": [
+        0.974,
+        0.793,
+        0.866,
+        0.598,
+        0.5,
+        0.908,
+        0.969
+      ]
+    },
+    {
+      "image": "test_65",
+      "n_lesions": 4,
+      "n_matched": 3,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 5,
+      "unmatched_positive_gate_confidence": [
+        0.975,
+        0.663,
+        0.503,
+        0.6,
+        0.78
+      ]
+    },
+    {
+      "image": "test_68",
+      "n_lesions": 4,
+      "n_matched": 2,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 6,
+      "unmatched_positive_gate_confidence": [
+        0.753,
+        0.645,
+        0.721,
+        0.79,
+        0.767,
+        0.523
+      ]
+    },
+    {
+      "image": "test_69",
+      "n_lesions": 3,
+      "n_matched": 3,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 4,
+      "unmatched_positive_gate_confidence": [
+        0.508,
+        0.77,
+        0.631,
+        0.973
+      ]
+    },
+    {
+      "image": "test_7",
+      "n_lesions": 4,
+      "n_matched": 1,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 6,
+      "unmatched_positive_gate_confidence": [
+        0.789,
+        0.706,
+        0.884,
+        0.506,
+        0.502,
+        0.818
+      ]
+    },
+    {
+      "image": "test_70",
+      "n_lesions": 3,
+      "n_matched": 0,
+      "n_predicted_positive": 1,
+      "n_predicted_positive_unmatched": 1,
+      "unmatched_positive_gate_confidence": [
+        0.935
+      ]
+    },
+    {
+      "image": "test_75",
+      "n_lesions": 1,
+      "n_matched": 1,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 6,
+      "unmatched_positive_gate_confidence": [
+        0.594,
+        0.65,
+        0.907,
+        0.749,
+        0.947,
+        0.631
+      ]
+    },
+    {
+      "image": "test_76",
+      "n_lesions": 2,
+      "n_matched": 1,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 6,
+      "unmatched_positive_gate_confidence": [
+        0.607,
+        0.62,
+        0.785,
+        0.542,
+        0.567,
+        0.735
+      ]
+    },
+    {
+      "image": "test_8",
+      "n_lesions": 6,
+      "n_matched": 2,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 2,
+      "unmatched_positive_gate_confidence": [
+        0.963,
+        0.915
+      ]
+    },
+    {
+      "image": "test_80",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 5,
+      "unmatched_positive_gate_confidence": [
+        0.529,
+        0.879,
+        0.847,
+        0.62,
+        0.821
+      ]
+    },
+    {
+      "image": "test_81",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 7,
+      "unmatched_positive_gate_confidence": [
+        0.798,
+        0.541,
+        0.9,
+        0.582,
+        0.601,
+        0.708,
+        0.975
+      ]
+    },
+    {
+      "image": "test_83",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 3,
+      "n_predicted_positive_unmatched": 3,
+      "unmatched_positive_gate_confidence": [
+        0.658,
+        0.975,
+        0.615
+      ]
+    },
+    {
+      "image": "test_84",
+      "n_lesions": 2,
+      "n_matched": 0,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 4,
+      "unmatched_positive_gate_confidence": [
+        0.985,
+        0.938,
+        0.939,
+        0.693
+      ]
+    },
+    {
+      "image": "test_89",
+      "n_lesions": 6,
+      "n_matched": 2,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 4,
+      "unmatched_positive_gate_confidence": [
+        0.968,
+        0.655,
+        0.924,
+        0.74
+      ]
+    },
+    {
+      "image": "test_9",
+      "n_lesions": 5,
+      "n_matched": 1,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 5,
+      "unmatched_positive_gate_confidence": [
+        0.696,
+        0.971,
+        0.744,
+        0.915,
+        0.85
+      ]
+    },
+    {
+      "image": "test_91",
+      "n_lesions": 2,
+      "n_matched": 0,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 4,
+      "unmatched_positive_gate_confidence": [
+        0.624,
+        0.851,
+        0.596,
+        0.62
+      ]
+    },
+    {
+      "image": "test_92",
+      "n_lesions": 2,
+      "n_matched": 0,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 5,
+      "unmatched_positive_gate_confidence": [
+        0.835,
+        0.954,
+        0.554,
+        0.987,
+        0.891
+      ]
+    },
+    {
+      "image": "test_95",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 6,
+      "unmatched_positive_gate_confidence": [
+        0.676,
+        0.69,
+        0.583,
+        0.906,
+        0.598,
+        0.768
+      ]
+    },
+    {
+      "image": "test_96",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 6,
+      "unmatched_positive_gate_confidence": [
+        0.895,
+        0.524,
+        0.535,
+        0.644,
+        0.984,
+        0.606
+      ]
+    },
+    {
+      "image": "test_97",
+      "n_lesions": 5,
+      "n_matched": 1,
+      "n_predicted_positive": 2,
+      "n_predicted_positive_unmatched": 1,
+      "unmatched_positive_gate_confidence": [
+        0.853
+      ]
+    },
+    {
+      "image": "test_99",
+      "n_lesions": 2,
+      "n_matched": 2,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 5,
+      "unmatched_positive_gate_confidence": [
+        0.593,
+        0.858,
+        0.618,
+        0.545,
+        0.828
+      ]
+    }
+  ]
+}

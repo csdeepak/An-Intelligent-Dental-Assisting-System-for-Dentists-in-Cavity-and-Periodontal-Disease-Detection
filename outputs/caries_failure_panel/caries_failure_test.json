@@ -1,0 +1,145 @@
+{
+  "split": "test",
+  "n": 863,
+  "threshold": 0.5,
+  "tp": 94,
+  "fp": 142,
+  "fn": 33,
+  "tn": 594,
+  "fp_by_subtype": [
+    {
+      "subtype": "healthy",
+      "n_negative": 714,
+      "false_positives": 137,
+      "fp_rate": 0.1919
+    },
+    {
+      "subtype": "impacted",
+      "n_negative": 21,
+      "false_positives": 4,
+      "fp_rate": 0.1905
+    },
+    {
+      "subtype": "periapical",
+      "n_negative": 1,
+      "false_positives": 1,
+      "fp_rate": 1.0
+    }
+  ],
+  "worst_false_positives": [
+    {
+      "crop": "train_405_e1783.png",
+      "subtype": "healthy",
+      "fdi": 45,
+      "p_caries": 0.985383927822113,
+      "p_cal": 1.0
+    },
+    {
+      "crop": "train_405_e1784.png",
+      "subtype": "healthy",
+      "fdi": 46,
+      "p_caries": 0.9726435542106628,
+      "p_cal": 1.0
+    },
+    {
+      "crop": "train_474_e1694.png",
+      "subtype": "healthy",
+      "fdi": 37,
+      "p_caries": 0.9664575457572937,
+      "p_cal": 1.0
+    },
+    {
+      "crop": "train_408_e8927.png",
+      "subtype": "healthy",
+      "fdi": 16,
+      "p_caries": 0.9639396667480469,
+      "p_cal": 1.0
+    },
+    {
+      "crop": "train_277_e5389.png",
+      "subtype": "healthy",
+      "fdi": 22,
+      "p_caries": 0.9588432312011719,
+      "p_cal": 0.8675672405122721
+    },
+    {
+      "crop": "train_28_e13006.png",
+      "subtype": "healthy",
+      "fdi": 46,
+      "p_caries": 0.9562349319458008,
+      "p_cal": 0.800000011920929
+    },
+    {
+      "crop": "train_241_e8358.png",
+      "subtype": "healthy",
+      "fdi": 35,
+      "p_caries": 0.9464591145515442,
+      "p_cal": 0.6911764740943909
+    },
+    {
+      "crop": "train_405_e1782.png",
+      "subtype": "healthy",
+      "fdi": 44,
+      "p_caries": 0.9464529156684875,
+      "p_cal": 0.6911764740943909
+    }
+  ],
+  "worst_false_negatives": [
+    {
+      "crop": "train_501_e13910.png",
+      "subtype": "caries",
+      "fdi": 22,
+      "p_caries": 0.003545531304553151,
+      "p_cal": 0.032608695328235626
+    },
+    {
+      "crop": "train_46_e17067.png",
+      "subtype": "caries",
+      "fdi": 21,
+      "p_caries": 0.017525076866149902,
+      "p_cal": 0.032608695328235626
+    },
+    {
+      "crop": "train_46_e17063.png",
+      "subtype": "caries",
+      "fdi": 13,
+      "p_caries": 0.017906658351421356,
+      "p_cal": 0.032608695328235626
+    },
+    {
+      "crop": "train_46_e17068.png",
+      "subtype": "caries",
+      "fdi": 22,
+      "p_caries": 0.02949804812669754,
+      "p_cal": 0.032608695328235626
+    },
+    {
+      "crop": "train_557_e9224.png",
+      "subtype": "caries",
+      "fdi": 24,
+      "p_caries": 0.03490718454122543,
+      "p_cal": 0.032608695328235626
+    },
+    {
+      "crop": "train_239_e12060.png",
+      "subtype": "caries",
+      "fdi": 11,
+      "p_caries": 0.045200444757938385,
+      "p_cal": 0.032608695328235626
+    },
+    {
+      "crop": "train_320_e10793.png",
+      "subtype": "deep_caries",
+      "fdi": 18,
+      "p_caries": 0.06488646566867828,
+      "p_cal": 0.032608695328235626
+    },
+    {
+      "crop": "train_95_e65.png",
+      "subtype": "caries",
+      "fdi": 23,
+      "p_caries": 0.07531074434518814,
+      "p_cal": 0.032608695328235626
+    }
+  ]
+}
