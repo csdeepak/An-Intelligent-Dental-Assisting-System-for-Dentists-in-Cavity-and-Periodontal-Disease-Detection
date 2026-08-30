@@ -1,0 +1,152 @@
+{
+  "run": "arm_b_smoke",
+  "created": "2026-08-25T00:03:14",
+  "arm": "b",
+  "augmentation": true,
+  "seed": 42,
+  "device": "cpu",
+  "smoke": true,
+  "config": {
+    "crops": "data/dentex",
+    "variant": "crops_v3_phase1",
+    "phase2_crops": null,
+    "phase2_variant": "phase2",
+    "phase1_only": true,
+    "arm": "b",
+    "out": "outputs/caries_v3/smoke",
+    "seed": 42,
+    "batch_size": 32,
+    "p1_epochs": 1,
+    "p1_lr": 0.001,
+    "p2_head_epochs": 1,
+    "p2_head_lr": 0.001,
+    "p2_full_epochs": 1,
+    "p2_full_lr": 3e-05,
+    "smoke": true
+  },
+  "fixes": {
+    "T0.1": "both arms run",
+    "T0.2": "test reported separately, evaluated once",
+    "T0.3": "checkpoint selection on macro-F1",
+    "T0.4": "cosine LR schedule; full config recorded"
+  },
+  "known_limitation": "Phase-1 no_caries = Impacted + Periapical Lesion; contains NO healthy teeth. See RESULTS_LOG 2026-08-21j / 21m.",
+  "phase1": {
+    "class_to_idx": {
+      "caries": 0,
+      "no_caries": 1
+    },
+    "train_counts": [
+      32,
+      32
+    ],
+    "class_weights": [
+      1.0,
+      1.0
+    ],
+    "best_epoch": 1,
+    "best_val_macro_f1": 0.5008805031446542,
+    "val": {
+      "macro_f1": 0.5008805031446542,
+      "accuracy": 0.515625,
+      "confusion_matrix": [
+        [
+          22,
+          10
+        ],
+        [
+          21,
+          11
+        ]
+      ],
+      "report": {
+        "caries": {
+          "precision": 0.5116279069767442,
+          "recall": 0.6875,
+          "f1-score": 0.5866666666666667,
+          "support": 32.0
+        },
+        "no_caries": {
+          "precision": 0.5238095238095238,
+          "recall": 0.34375,
+          "f1-score": 0.41509433962264153,
+          "support": 32.0
+        },
+        "accuracy": 0.515625,
+        "macro avg": {
+          "precision": 0.517718715393134,
+          "recall": 0.515625,
+          "f1-score": 0.5008805031446542,
+          "support": 64.0
+        },
+        "weighted avg": {
+          "precision": 0.517718715393134,
+          "recall": 0.515625,
+          "f1-score": 0.5008805031446542,
+          "support": 64.0
+        }
+      },
+      "report_text": "              precision    recall  f1-score   support\n\n      caries       0.51      0.69      0.59        32\n   no_caries       0.52      0.34      0.42        32\n\n    accuracy                           0.52        64\n   macro avg       0.52      0.52      0.50        64\nweighted avg       0.52      0.52      0.50        64\n",
+      "n": 64,
+      "predicted_class_counts": [
+        43,
+        21
+      ],
+      "true_class_counts": [
+        32,
+        32
+      ]
+    },
+    "test": {
+      "macro_f1": 0.7176470588235294,
+      "accuracy": 0.71875,
+      "confusion_matrix": [
+        [
+          25,
+          7
+        ],
+        [
+          11,
+          21
+        ]
+      ],
+      "report": {
+        "caries": {
+          "precision": 0.6944444444444444,
+          "recall": 0.78125,
+          "f1-score": 0.7352941176470589,
+          "support": 32.0
+        },
+        "no_caries": {
+          "precision": 0.75,
+          "recall": 0.65625,
+          "f1-score": 0.7,
+          "support": 32.0
+        },
+        "accuracy": 0.71875,
+        "macro avg": {
+          "precision": 0.7222222222222222,
+          "recall": 0.71875,
+          "f1-score": 0.7176470588235294,
+          "support": 64.0
+        },
+        "weighted avg": {
+          "precision": 0.7222222222222222,
+          "recall": 0.71875,
+          "f1-score": 0.7176470588235294,
+          "support": 64.0
+        }
+      },
+      "report_text": "              precision    recall  f1-score   support\n\n      caries       0.69      0.78      0.74        32\n   no_caries       0.75      0.66      0.70        32\n\n    accuracy                           0.72        64\n   macro avg       0.72      0.72      0.72        64\nweighted avg       0.72      0.72      0.72        64\n",
+      "n": 64,
+      "predicted_class_counts": [
+        36,
+        28
+      ],
+      "true_class_counts": [
+        32,
+        32
+      ]
+    }
+  }
+}

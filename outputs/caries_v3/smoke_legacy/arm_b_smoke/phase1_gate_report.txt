@@ -1,0 +1,31 @@
+PHASE 1 GATE — arm_b_smoke
+val:
+              precision    recall  f1-score   support
+
+      caries       0.00      0.00      0.00        32
+   no_caries       0.50      1.00      0.67        32
+
+    accuracy                           0.50        64
+   macro avg       0.25      0.50      0.33        64
+weighted avg       0.25      0.50      0.33        64
+
+test:
+              precision    recall  f1-score   support
+
+      caries       0.00      0.00      0.00        32
+   no_caries       0.50      1.00      0.67        32
+
+    accuracy                           0.50        64
+   macro avg       0.25      0.50      0.33        64
+weighted avg       0.25      0.50      0.33        64
+
+extern50:
+              precision    recall  f1-score   support
+
+      caries       0.00      0.00      0.00        32
+   no_caries       0.50      1.00      0.67        32
+
+    accuracy                           0.50        64
+   macro avg       0.25      0.50      0.33        64
+weighted avg       0.25      0.50      0.33        64
+

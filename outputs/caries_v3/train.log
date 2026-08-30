@@ -1,0 +1,26 @@
+device=mps  arm=b  out=outputs/caries_v3/run/arm_b
+
+=== PHASE 1: caries vs no_caries (gate) ===
+  classes {'caries': 0, 'no_caries': 1}  train counts [723, 4027]  weights [3.2849, 0.5898]
+  [phase1] epoch 1/15  val macro-F1 0.6733  acc 0.7807
+     ^ best so far (macro-F1)
+  [phase1] epoch 2/15  val macro-F1 0.6418  acc 0.6879
+  [phase1] epoch 3/15  val macro-F1 0.6067  acc 0.6680
+  [phase1] epoch 4/15  val macro-F1 0.4618  acc 0.4706
+  [phase1] epoch 5/15  val macro-F1 0.7058  acc 0.7936
+     ^ best so far (macro-F1)
+  [phase1] epoch 6/15  val macro-F1 0.6390  acc 0.7488
+  [phase1] epoch 7/15  val macro-F1 0.6980  acc 0.7737
+  [phase1] epoch 8/15  val macro-F1 0.6732  acc 0.7438
+  [phase1] epoch 9/15  val macro-F1 0.6986  acc 0.7787
+  [phase1] epoch 10/15  val macro-F1 0.6852  acc 0.7378
+  [phase1] epoch 11/15  val macro-F1 0.6956  acc 0.7507
+  [phase1] epoch 12/15  val macro-F1 0.7273  acc 0.7956
+     ^ best so far (macro-F1)
+  [phase1] epoch 13/15  val macro-F1 0.7295  acc 0.8056
+     ^ best so far (macro-F1)
+  [phase1] epoch 14/15  val macro-F1 0.7277  acc 0.8046
+  [phase1] epoch 15/15  val macro-F1 0.7350  acc 0.8096
+     ^ best so far (macro-F1)
+
+--phase1-only: wrote outputs/caries_v3/run/arm_b/results.json and phase1_gate_report.txt

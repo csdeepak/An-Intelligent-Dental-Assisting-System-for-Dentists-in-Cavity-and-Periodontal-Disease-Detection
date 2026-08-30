@@ -1,0 +1,19 @@
+{
+  "n_gt_teeth": 1534,
+  "n_images": 249,
+  "recall": 0.7177314211212517,
+  "fdi_exact_of_detected": 0.7057220708446866,
+  "fdi_exact_of_all": 0.5065189048239895,
+  "quadrant_correct_of_detected": 0.9709355131698456,
+  "mean_detections_per_image": 24.140562248995984,
+  "method": "head",
+  "one_to_one": false,
+  "duplicate_fdi_codes": 1013,
+  "conf": 0.25,
+  "imgsz": 1024,
+  "min_iou": 0.3,
+  "det_nms_iou": 0.5,
+  "excluded": [
+    "test_181"
+  ]
+}

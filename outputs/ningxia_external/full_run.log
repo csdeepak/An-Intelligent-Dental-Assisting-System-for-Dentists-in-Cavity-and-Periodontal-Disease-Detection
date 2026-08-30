@@ -1,0 +1,27 @@
+objc[57114]: Class AVFFrameReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x102c7c3a8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x1312ec3a8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[57114]: Class AVFAudioReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x102c7c3f8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x1312ec3f8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+device=mps
+  dental_caries   test1  done (134 images)
+  dental_caries   test2  done (110 images)
+  dental_caries   test3  done (40 images)
+  dental_caries   test4  done (53 images)
+  periodontitis   test1  done (320 images)
+  periodontitis   test2  done (297 images)
+  periodontitis   test3  done (50 images)
+  periodontitis   test4  done (69 images)
+
+==================================================================================
+category        split  centre                 imgs  lesion agree  img sens
+----------------------------------------------------------------------------------
+dental_caries   test1  cross_centre            134   84/316    26.6%     94.0%
+dental_caries   test2  same_centre_as_train    110  151/349    43.3%     96.4%
+dental_caries   test3  cross_centre             40   60/162    37.0%     97.5%
+dental_caries   test4  cross_centre             53   42/186    22.6%     98.1%
+periodontitis   test1  cross_centre            320  121/3274    3.7%     42.5%
+periodontitis   test2  same_centre_as_train    297   17/2072    0.8%      9.8%
+periodontitis   test3  cross_centre             50    5/339     1.5%     26.0%
+periodontitis   test4  cross_centre             69   29/537     5.4%     72.5%
+==================================================================================
+Reported per category and per split, never pooled (§4.3.2).
+Specificity/AUC are NOT computable here -- Ningxia has no healthy controls.
+-> outputs/ningxia_external/full/ningxia_external.json

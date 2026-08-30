@@ -1,0 +1,40 @@
+{
+  "n_val_crops": 2729,
+  "weights": "/Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/models/08_fdi_enumeration_head/enumeration_head_best.pth",
+  "mean_positional_feature": [
+    0.5016520619392395,
+    0.5437392592430115,
+    0.04468883201479912,
+    0.229600727558136
+  ],
+  "results": {
+    "full": {
+      "quadrant_acc": 0.9937706119457677,
+      "jaw_acc": 0.9985342616342983,
+      "side_acc_laterality": 0.9952363503114694,
+      "position_acc": 0.920850128252107,
+      "fdi_exact": 0.9160864785635764
+    },
+    "no_position": {
+      "quadrant_acc": 0.9618908024917552,
+      "jaw_acc": 0.9985342616342983,
+      "side_acc_laterality": 0.9629901062660315,
+      "position_acc": 0.9212165628435325,
+      "fdi_exact": 0.8882374496152436
+    },
+    "no_image": {
+      "quadrant_acc": 0.4657383657017222,
+      "jaw_acc": 0.474899230487358,
+      "side_acc_laterality": 0.9574935873946501,
+      "position_acc": 0.0828142176621473,
+      "fdi_exact": 0.0395749358739465
+    },
+    "shuffled_pos": {
+      "quadrant_acc": 0.7654818614877245,
+      "jaw_acc": 0.9981678270428729,
+      "side_acc_laterality": 0.7662147306705753,
+      "position_acc": 0.9215829974349579,
+      "fdi_exact": 0.7083180652253572
+    }
+  }
+}

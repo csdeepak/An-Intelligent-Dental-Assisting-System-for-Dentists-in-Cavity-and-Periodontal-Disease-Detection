@@ -1,0 +1,102 @@
+{
+  "images": 12,
+  "detected_teeth": 299,
+  "old_gate": {
+    "weights": "/Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/models/07_caries_cascade/final_model.pth",
+    "caries_positive": 254,
+    "rate": 0.8494983277591973
+  },
+  "new_gate": {
+    "weights": "/Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/outputs/caries_v3/run/arm_b/phase1_best.pth",
+    "caries_positive": 57,
+    "rate": 0.19063545150501673
+  },
+  "annotated_caries_teeth": 35,
+  "note": "annotated count is a FLOOR \u2014 DENTEX disease/ labels only diseased teeth. Used to show the order of magnitude of over-calling, not a precision.",
+  "per_image": [
+    {
+      "image": "test_0",
+      "teeth": 18,
+      "old_caries": 13,
+      "new_caries": 2,
+      "annotated_caries": 3
+    },
+    {
+      "image": "test_1",
+      "teeth": 25,
+      "old_caries": 24,
+      "new_caries": 9,
+      "annotated_caries": 3
+    },
+    {
+      "image": "test_10",
+      "teeth": 29,
+      "old_caries": 29,
+      "new_caries": 2,
+      "annotated_caries": 2
+    },
+    {
+      "image": "test_101",
+      "teeth": 17,
+      "old_caries": 16,
+      "new_caries": 3,
+      "annotated_caries": 3
+    },
+    {
+      "image": "test_102",
+      "teeth": 25,
+      "old_caries": 22,
+      "new_caries": 6,
+      "annotated_caries": 3
+    },
+    {
+      "image": "test_103",
+      "teeth": 29,
+      "old_caries": 22,
+      "new_caries": 10,
+      "annotated_caries": 6
+    },
+    {
+      "image": "test_104",
+      "teeth": 26,
+      "old_caries": 24,
+      "new_caries": 13,
+      "annotated_caries": 3
+    },
+    {
+      "image": "test_105",
+      "teeth": 32,
+      "old_caries": 28,
+      "new_caries": 6,
+      "annotated_caries": 3
+    },
+    {
+      "image": "test_106",
+      "teeth": 32,
+      "old_caries": 27,
+      "new_caries": 1,
+      "annotated_caries": 1
+    },
+    {
+      "image": "test_11",
+      "teeth": 17,
+      "old_caries": 15,
+      "new_caries": 0,
+      "annotated_caries": 2
+    },
+    {
+      "image": "test_110",
+      "teeth": 29,
+      "old_caries": 20,
+      "new_caries": 3,
+      "annotated_caries": 4
+    },
+    {
+      "image": "test_113",
+      "teeth": 20,
+      "old_caries": 14,
+      "new_caries": 2,
+      "annotated_caries": 2
+    }
+  ]
+}

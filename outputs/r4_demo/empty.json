@@ -1,0 +1,68 @@
+{
+  "schema_version": "opg-report/1.0",
+  "generated": "2026-08-24T23:09:32",
+  "image": {
+    "path": "/Users/chennupatigunadeep/Downloads/Capstone/DENTEX/disease/input/test_0.png",
+    "width": 2829,
+    "height": 1316
+  },
+  "summary": {
+    "teeth_detected": 0,
+    "teeth_assessable": 0,
+    "distinct_fdi_codes": 0,
+    "duplicate_fdi_codes": 0,
+    "caries_positive": 0,
+    "bone_loss_positive": 0
+  },
+  "teeth": [],
+  "models": {
+    "detector": {
+      "weights": "/Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/models/06_yolo_detection_a100_run/best.pt",
+      "tag": "tooth-detector-a100-1024-v1.0",
+      "imgsz": 1024,
+      "conf": 0.999,
+      "nms_iou": 0.5,
+      "input_rotation": "90 deg counter-clockwise (src/orientation.py)"
+    },
+    "fdi_head": {
+      "weights": "/Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/models/08_fdi_enumeration_head/enumeration_head_best.pth",
+      "tag": "fdi-enumeration-head-resnet18-v1.0",
+      "one_to_one": true,
+      "crop_expand": [
+        1.5,
+        1.5
+      ]
+    },
+    "caries": {
+      "gate": "/Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/models/07_caries_cascade/final_model.pth",
+      "severity": "/Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/models/07_caries_cascade/phase2_final_bundle.pth",
+      "tag": "caries-cascade-resnet18-v1.0",
+      "crop_expand": [
+        1.0,
+        1.0
+      ]
+    },
+    "bone_loss": {
+      "binary": "/Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/models/03_bone_loss_model_training_notebook_models/bone_loss_resnet18_best.pth",
+      "severity": "/Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/models/04_bone_loss_severity_notebook_models/bone_loss_severity_resnet18_best.pth",
+      "crop_expand": [
+        1.5,
+        2.0
+      ],
+      "severity_classes": [
+        "Mild",
+        "Moderate",
+        "Severe"
+      ],
+      "class_order_note": "binary class order derived from the FocalLoss alpha [0.642, 2.258] against counts (2500 normal / 711 diseased); the checkpoint carries no class_to_idx. Inferred, not read."
+    }
+  },
+  "limitations": {
+    "stage1_detector_recall": 0.67,
+    "stage2_fdi_exact_end_to_end": 0.465,
+    "interpretation": "Detection recall and FDI accuracy are measured on DENTEX disease/ (164 leak-free images, RESULTS_LOG 2026-08-22j). A missed tooth is absent from this report; a misnumbered tooth carries correct findings under the wrong FDI code. Expect roughly half the codes in this report to be wrong.",
+    "caries_gate_out_of_distribution": "The caries gate's negative class is Impacted + Periapical Lesion and contains no healthy teeth, while this pipeline feeds it every detected tooth. MEASURED over 12 leak-free DENTEX images (299 detected teeth, RESULTS_LOG 2026-08-24f): it calls 84.9% of teeth carious against 35 annotated carious teeth -- roughly a 7x over-call. An 85% caries rate is not clinically plausible. Treat every caries field in this report as uncalibrated.",
+    "bone_loss_domain_shift": "The bone-loss models were trained on TUFTS radiographs and are applied here to whatever image is supplied; on DENTEX they fire on 0.7% of teeth (2/299) with 0.93-0.999 confidence in 'normal'. The branch is close to inert out of its training domain -- the opposite failure to the caries gate. A 'normal' bone-loss field is therefore weak evidence, not a negative finding.",
+    "not_clinically_validated": true
+  }
+}
