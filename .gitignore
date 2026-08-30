@@ -60,7 +60,6 @@ models/checkpoints/
 models/**/*.pt
 
 # --- Training outputs ---
-outputs/
 runs/
 logs/
 wandb/
@@ -84,6 +83,7 @@ sample_data/
 !data/README.md
 !outputs/.gitkeep
 !outputs/README.md
+!outputs/**
 !docs/architecture/*.svg
 !docs/reports/*.pdf
 !docs/reports/**/*.pdf
