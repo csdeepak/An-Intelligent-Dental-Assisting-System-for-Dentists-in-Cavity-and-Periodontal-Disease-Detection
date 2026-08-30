@@ -63,9 +63,22 @@ models/**/*.pt
 # Ignored by default (these are regenerable evaluation artefacts), EXCEPT the specific runs
 # whitelisted below. Added 30 Aug 2026 so a fresh clone (e.g. a teammate's machine) has every
 # JSON scripts/verify_paper_numbers.py and the manuscript's cited numbers depend on, without
-# a second GPU rental. All whitelisted paths are JSON only, largest is 232 KB. outputs/c1_vlm/
-# is the one that matters most: it is the H100 VLM run (Rs 285) and cannot be regenerated
-# without renting a GPU again. See docs/results/RESULTS_LOG.md for what produced each run.
+# a second GPU rental. All whitelisted paths are JSON/CSV/one PNG, largest 292 KB. outputs/c1_vlm/
+# matters most: it is the H100 VLM run (Rs 285) and cannot be regenerated without renting a GPU
+# again. See docs/results/RESULTS_LOG.md for what produced each run.
+#
+# MERGE NOTE (30 Aug 2026, resolving 322f787 vs f6609b7): f6609b7 replaced this whole block with
+# an unconditional `!outputs/**` further down (still present a few lines below at the old
+# "FILES TO KEEP" section) instead of a curated list. That re-includes literally everything ever
+# written to outputs/ by any script, forever -- exactly what CLAUDE.md rule 4 ("no large binaries
+# in commits") exists to prevent, since nothing then stops a future large or throwaway dump from
+# being silently trackable. Kept the curated form instead and folded in every directory
+# f6609b7's rule would have newly exposed, after checking each was small and a real result
+# artefact (`related_work_extract.csv` is the literature-review extract behind the "49
+# task-relevant papers" citation count -- worth tracking on its own merits). Left OUT:
+# outputs/stage2_control_oldkdet/, whose numbers (163 images / 934 GT teeth) don't match the
+# canonical 164/936 leak-free set cited everywhere else -- unclear provenance, flagged rather
+# than silently included or deleted.
 outputs/*
 !outputs/c1_vlm/
 !outputs/c1_vlm/**
@@ -95,6 +108,28 @@ outputs/*
 !outputs/ningxia_pipeline/**
 !outputs/ningxia_constant-molars/
 !outputs/ningxia_constant-molars/**
+!outputs/bone_loss_eval/
+!outputs/bone_loss_eval/**
+!outputs/bootstrap_ci/
+!outputs/bootstrap_ci/**
+!outputs/caries_failure_panel/
+!outputs/caries_failure_panel/**
+!outputs/eda_tufts/
+outputs/eda_tufts/*
+!outputs/eda_tufts/split_v1.csv
+# Deliberately NOT a blanket unignore -- that directory also holds
+# split_TEMP_not_frozen_do_not_use_for_gpu_run.csv, whose own filename says not to trust it.
+# split_v1.csv is the frozen detector split (transfer.md SS8); it was not tracked anywhere in
+# git before this merge, only the script that regenerates it was. (A bare `!outputs/eda_tufts/`
+# only permits descending into the directory -- it does not re-exclude siblings, so the
+# `outputs/eda_tufts/*` re-ignore above is required before the single-file exception below it.)
+!outputs/lesion_loc_all-teeth/
+!outputs/lesion_loc_all-teeth/**
+!outputs/lesion_loc_constant-molars/
+!outputs/lesion_loc_constant-molars/**
+!outputs/ningxia_external_control_olddet/
+!outputs/ningxia_external_control_olddet/**
+!outputs/related_work_extract.csv
 runs/
 logs/
 wandb/
@@ -118,6 +153,10 @@ sample_data/
 !data/README.md
 !outputs/.gitkeep
 !outputs/README.md
+# NOT `!outputs/**` -- that unconditional override was f6609b7's approach and was removed here
+# during the 30 Aug merge (see the note above the outputs/* block): it silently re-includes
+# every future file under outputs/, bypassing the curated whitelist entirely. The whitelist
+# above the "Training outputs" heading is the single place that grants outputs/ exceptions.
 !docs/architecture/*.svg
 !docs/reports/*.pdf
 !docs/reports/**/*.pdf
