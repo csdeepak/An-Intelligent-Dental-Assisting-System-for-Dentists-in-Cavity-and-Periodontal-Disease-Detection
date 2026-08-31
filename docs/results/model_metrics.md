@@ -3,7 +3,12 @@
 Current best numbers only. One table per model, nothing else. For how a number was
 obtained see `PAPER_MATERIAL.md`; for when and why it changed see `RESULTS_LOG.md`.
 
-**Last updated:** 2026-08-27 (Stage-1 detector swapped to the seg model; every DENTEX-measured Stage-1/Stage-2 figure is consequently STALE — see below)
+**Last updated:** 2026-08-28 (header corrected 2026-08-31). Stage 1 and Stage 2 are **current** on
+the seg detector + FDI head v2.0, re-measured 27 Aug 2026 (recall 70.6%, FDI exact 58.3%
+end-to-end) — the "figures are STALE" warning this line used to carry is retired. 28 Aug added the
+C1-hardened arms (32B / few-shot / image-blind constant), the C4 coverage–accuracy table, the
+Stage-2 head-v3 three-corpus ablation, and the per-stage parameter table (83.6 M total / 61.2 M
+caries path). The 29 Aug README rebuild changed no number here.
 
 ---
 
@@ -53,10 +58,11 @@ otherwise identical config. Adoption ≠ the bar being met; both facts are recor
 **Because the mask bar was missed, this model is used for its BOXES ONLY and R2 (mask-aware
 cropping) stays UNWIRED** — that floor existed to protect R2, and nothing has changed it.
 
-⚠️ **Stage-1 recall (67.0%) and every Stage-2 end-to-end figure below were measured on the
-SUPERSEDED bbox detector and are now STALE.** They need re-measuring on a machine that has
-DENTEX. `run_inference.py` emits them as `null` with a pending note rather than as numbers
-that would misdescribe the running pipeline.
+✅ **Re-measured 27 Aug 2026 on this seg detector** (`DENTEX/disease/` fetched locally, with a
+same-machine control run of the old bbox detector first). Stage-1 recall **67.3% → 70.6%**,
+Stage-2 FDI exact end-to-end **46.3% → 58.3%** — full table in the Stage 2 section below,
+`RESULTS_LOG.md` 2026-08-27e. The earlier "figures are STALE / `run_inference.py` emits them as
+`null`" note is retired.
 
 Note the 3,930-vs-3,924 instance difference below makes the box comparison near-, not exactly,
 like-for-like.

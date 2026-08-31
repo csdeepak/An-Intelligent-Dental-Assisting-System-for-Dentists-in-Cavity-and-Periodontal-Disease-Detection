@@ -1,3 +1,5 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Reading the Radiograph</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -150,11 +152,11 @@
 
 <header class="mast">
   <div class="wrap">
-    <div class="eyebrow">Capstone · Team handbook · 28 August 2026</div>
+    <div class="eyebrow">Capstone · Team handbook · updated 31 August 2026 for Phase 3 Review 1</div>
     <h1>Reading the Radiograph</h1>
     <p class="standfirst">Everything this project has built, measured and learned — including the
     result that changed what the paper is about. Written so someone joining today can be useful
-    by this afternoon.</p>
+    by this afternoon — and, since §00, a script for presenting it at the Phase 3 Review 1 panel.</p>
     <div class="meta">
       <span class="tag">6-stage pipeline</span>
       <span class="tag">5 hospitals</span>
@@ -164,6 +166,202 @@
     </div>
   </div>
 </header>
+
+<!-- 0 ------------------------------------------------------------------ -->
+<section><div class="wrap"><div class="col">
+  <div class="snum">00 — Review 1</div>
+  <h2>Presenting this to the panel</h2>
+  <p class="sublede">UE23CS441A · Capstone Project Phase 3 · Progress Review 1 · 31 August 2026.
+  The slide deck is <code>REVIEW3_PANEL.html</code> (open it in a browser, use the left contents
+  rail). This section is the script behind it.</p>
+
+  <h3>What Review 1 asks for, and where it already is</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Expected in Phase 3</th><th>Where we show it</th><th>One-line status</th></tr></thead>
+    <tbody>
+      <tr><td>System testing</td><td>Panel §06, §07.1</td>
+        <td>Full pipeline runs end to end on real images; output shape-checked (one row per tooth,
+        no duplicate FDI codes, every finding on a real tooth).</td></tr>
+      <tr><td>Validation &amp; verification</td><td>Panel §07.2</td>
+        <td><strong>Verification:</strong> 122 automated tests + 7 data-integrity invariants, all
+        passing. <strong>Validation:</strong> four hospitals in Ningxia the system never trained on.</td></tr>
+      <tr><td>Deployment</td><td>Panel §07.3 + live demo in §06</td>
+        <td>Docker container, made CPU-only (11.2 GB → 4.4 GB), built and verified: starts, app
+        loads, all 7 model files load inside it.</td></tr>
+      <tr><td>Final experimental results</td><td>Panel §08</td>
+        <td>Every headline number with a 95% confidence interval, each traced to a saved file.</td></tr>
+      <tr><td>Performance analysis (tables + graphs)</td><td>Panel §08 (Fig 1–4), §09 (Fig 5 + tables)</td>
+        <td>Failure taxonomy, coverage–accuracy, calibration curves, the baseline ladder, the
+        per-hospital external table — all generated from saved artefacts, never hand-typed.</td></tr>
+      <tr><td>Complete research paper draft</td><td>Panel §10</td>
+        <td>12-page IEEE draft, compiles clean (0 errors, 0 undefined refs), self-audited. Author
+        fields deliberately blank.</td></tr>
+    </tbody>
+  </table></div>
+  <p>Every one of the six is already answerable. The review is not "have you done it" — it is
+  "can you explain it and defend it". That is what to rehearse.</p>
+
+  <h3>Run of show</h3>
+  <p>Aim for ~12–15 minutes of talking, then demo, then questions. Assign one owner per block —
+  a rough split by current ownership, adjust to yours:</p>
+  <div class="tw"><table>
+    <thead><tr><th>Block</th><th>Panel sections</th><th>Owner</th><th>The one thing to land</th></tr></thead>
+    <tbody>
+      <tr><td>Problem &amp; scope</td><td>§01–03</td><td>Archana</td>
+        <td>A per-tooth report needs the tooth <em>numbered</em> — numbering is the load-bearing task,
+        not a side task.</td></tr>
+      <tr><td>Architecture &amp; data</td><td>§04–05</td><td>Srujan</td>
+        <td>Six stages, each trained on the dataset that carries its label; joined at the FDI key.
+        Ningxia is locked external data.</td></tr>
+      <tr><td>Testing, V&amp;V, deployment</td><td>§06–07</td><td>Gunadeep</td>
+        <td>122 tests + 7 invariants + 4 external hospitals + a verified CPU-only container. Then run
+        the live demo.</td></tr>
+      <tr><td>Results &amp; performance analysis</td><td>§08–09</td><td>Deepak</td>
+        <td>Report both numbers for numbering (58.3% end-to-end / 82.6% of detected). Then the
+        constant-baseline finding — our own headline result, stated as a finding about measurement.</td></tr>
+      <tr><td>Paper &amp; what is next</td><td>§10–12</td><td>Deepak / all</td>
+        <td>A 12-page draft exists. The next experiment is a dentist reader study; the blockers left
+        are paperwork, not code.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Numbers to know cold</h3>
+  <p>If a panellist asks for one of these, nobody should have to look it up.</p>
+  <div class="stats">
+    <div class="stat t"><div class="v">0.810</div><div class="k">Detection box mAP@0.5 (Tufts test)</div></div>
+    <div class="stat"><div class="v">58.3%</div><div class="k">FDI numbering, end-to-end — CI [53.9, 62.8]</div></div>
+    <div class="stat t"><div class="v">82.6%</div><div class="k">FDI numbering, of teeth detected — CI [79.1, 85.8]</div></div>
+    <div class="stat c"><div class="v">29.4%</div><div class="k">Teeth never detected — the ceiling on everything</div></div>
+    <div class="stat"><div class="v">44.3%</div><div class="k">Caries lesion agreement (internal) — CI [39.0, 49.3]</div></div>
+    <div class="stat"><div class="v">40.8%</div><div class="k">Caries agreement, 4 external hospitals pooled</div></div>
+    <div class="stat t"><div class="v">0.923</div><div class="k">Bone-loss macro-F1 in-domain (1,558 val crops)</div></div>
+    <div class="stat c"><div class="v">0.7–5.6%</div><div class="k">Bone-loss firing rate out of domain</div></div>
+    <div class="stat c"><div class="v">0.320</div><div class="k">Constant baseline (image never read) — beats us</div></div>
+    <div class="stat t"><div class="v">0.294</div><div class="k">Our pipeline, same caries test</div></div>
+    <div class="stat"><div class="v">83.6 M</div><div class="k">Parameters, 6 models — vs 33.45 B for the VLM</div></div>
+    <div class="stat"><div class="v">2.39 s</div><div class="k">Per image, on a CPU, 0 GPUs</div></div>
+  </div>
+  <p><strong>The three pairs that must always be said together:</strong>
+  numbering is <strong>58.3% end-to-end / 82.6% of detected</strong> (quoting one alone misleads);
+  bone loss is <strong>0.923 in-domain / near-zero out of domain</strong>;
+  the caries comparison is <strong>constant 0.320 / pipeline 0.294 / VLM-32B 0.246</strong> — the
+  order is upside down, and that is the point.</p>
+
+  <h3>If the panel pushes back</h3>
+
+  <details class="todo" open>
+    <summary><span class="sev r"></span>"58% numbering accuracy is low."</summary>
+    <div class="body"><p>It is a <em>detection-bound</em> number. 29.4% of teeth are never detected, and
+    no numbering model can label a tooth that was never found. Of the teeth the detector does find,
+    numbering is right <strong>82.6%</strong> of the time. The binding constraint is detector recall,
+    and swapping to the segmentation-trained detector already lifted end-to-end by +12 points. We
+    report both numbers precisely so the loss is attributed to the right stage.</p></div>
+  </details>
+
+  <details class="todo">
+    <summary><span class="sev r"></span>"A program that ignores the image beats your pipeline?"</summary>
+    <div class="body"><p>Yes — on <em>tooth-level caries set-membership</em>, and only there. Cavities
+    concentrate in the molars, so "always say the molars" scores 0.320 against our 0.294 without ever
+    reading a pixel. That is not our pipeline failing; it is a demonstration that this metric is
+    base-rate dominated and <strong>cannot be interpreted without a baseline</strong>. That is the
+    paper's contribution. The constant <em>cannot</em> name a tooth, know when it is unsure, calibrate
+    a confidence, or hold up per-site on the external hospitals — and it does none of those.</p></div>
+  </details>
+
+  <details class="todo">
+    <summary><span class="sev r"></span>"The bone-loss branch doesn't work."</summary>
+    <div class="body"><p>Correct, out of domain — 0.923 in-domain drops to 0.7–5.6% elsewhere. We
+    tested the obvious explanation (detector upstream) by swapping the detector: it moved numbering
+    +12 and caries +7.7 and bone loss by <strong>nothing</strong>, so that theory is dead. DENTEX
+    carries no bone-loss labels, so the combined-training fix that worked for numbering never
+    existed. We report it as a measured negative result, not hidden in an appendix — a paper arguing
+    that people should publish their baselines cannot bury its own bad result.</p></div>
+  </details>
+
+  <details class="todo">
+    <summary><span class="sev o"></span>"Where is the comparison to a dentist?"</summary>
+    <div class="body"><p>Not done — it is the single largest gap and we say so. It needs ethics
+    approval (not yet started) and 2–3 dentists for ~100 images; the protocol is already written. It
+    is the highest-value experiment left and it turns this from a solid conference paper into a
+    credible journal submission.</p></div>
+  </details>
+
+  <details class="todo">
+    <summary><span class="sev o"></span>"Is Ningxia really external? Any leakage?"</summary>
+    <div class="body"><p>All four splits are external to us — we never trained or tuned on any of
+    them, and every access is counted. Leakage was checked by hash against Tufts and every DENTEX
+    subset separately: <strong>0 of 2,912</strong> test images matched. Ningxia's own README calls one
+    split "same-centre" — that describes <em>their</em> training set, not ours.</p></div>
+  </details>
+
+  <details class="todo">
+    <summary><span class="sev o"></span>"Caries precision is 0.40 — six of ten positives are wrong."</summary>
+    <div class="body"><p>True, and improved from a 7.3&times; over-call to 1.6&times;. 96.5% of the
+    false positives are <em>healthy</em> teeth, not other pathology, which rules out the obvious fix.
+    The gate is also miscalibrated (ECE 0.136); isotonic regression brings it to 0.043, applied to
+    the displayed confidence only so every published verdict stays as measured.</p></div>
+  </details>
+
+  <details class="todo">
+    <summary><span class="sev y"></span>"What is actually novel here?"</summary>
+    <div class="body"><p>Not accuracy — several published numbers on these datasets are higher.
+    The contribution is that our numbers survive an external test set, carry intervals, and come with
+    a stage-by-stage attribution of the error. Specifically: external validation on four hospitals
+    (2 of 49 comparable papers do this), the constant-baseline floor for tooth-level scores,
+    cross-corpus generalisation with paired significance tests, and calibrated abstention with a
+    shuffled-confidence control.</p></div>
+  </details>
+
+  <h3>The live demo</h3>
+  <ol>
+    <li><strong>Before the review:</strong> <code>pip install -r requirements.txt</code>, fetch the
+    two Drive-only checkpoints (<code>docs/EXTERNAL_DRIVE.md</code>), run
+    <code>streamlit run app.py</code>, and confirm it loads at <code>localhost:8501</code>. Do this
+    once the night before and once an hour before — not for the first time in the room.</li>
+    <li>Have <strong>2–3 sample OPGs</strong> on the machine already. <strong>Rotate any non-Tufts
+    image 90° counter-clockwise first</strong> — the detector was trained on sideways panoramics and
+    upright input gives near-zero recall.</li>
+    <li>Upload one → show the <strong>per-tooth JSON</strong> and the <strong>overlay image</strong>.
+    Point at the <code>limitations</code> block the app renders under the result: it is there on
+    purpose and it is part of the honesty story.</li>
+    <li>Keep it to one or two images. The demo proves the pipeline runs; the numbers come from §08.</li>
+  </ol>
+  <div class="plain">
+    <div class="lbl">If the demo will not start</div>
+    <p>Do not fight it live. Panel §06 has the overlay figures and the pipeline description; open a
+    saved <code>report.json</code> from a previous <code>run_inference.py</code> run and walk through
+    that instead. Say plainly that the container is verified and the local Streamlit had an
+    environment hiccup — that is a true and unembarrassing sentence.</p>
+  </div>
+
+  <h3>Future work — the one-minute version</h3>
+  <ul>
+    <li><strong>Dentist reader study</strong> — 2–3 dentists mark caries on 100 of our images, scored
+    with the exact same scorer. Gives the human number this whole comparison is missing. Needs IRB +
+    dentists; protocol written. Highest value.</li>
+    <li><strong>Detection recall</strong> is the ceiling on the whole pipeline — a better detector
+    lifts numbering, caries and everything downstream at once.</li>
+    <li><strong>Bone loss</strong> — a geometry-verified crop rebuild (blocked on the original
+    un-rotated radiographs and on jitter offsets that were never saved), then calibration and
+    intervals.</li>
+    <li><strong>Clinic (SDH) data</strong> — a second external validation stream once the data
+    governance clears.</li>
+    <li><strong>Paper</strong> — grow 26 → ~40 references, state one explicit research question and
+    its hypotheses, add the dataset table and flow diagram, then submit.</li>
+  </ul>
+
+  <div class="plain">
+    <div class="lbl">Say the four blockers before the panel finds them</div>
+    <p>None are engineering, and two are live protocol issues rather than paperwork:
+    <strong>(1)</strong> ethics / IRB approval not started;
+    <strong>(2)</strong> a Tufts data folder is currently viewable without sign-in, which the licence
+    forbids;
+    <strong>(3)</strong> the DENTEX and Ningxia licences have not been formally read and recorded;
+    <strong>(4)</strong> a clinic dataset's patient index sits in the same folder as its images,
+    undoing that copy's de-identification.
+    Naming these first reads as rigour. Being caught out on them reads as the opposite.</p>
+  </div>
+</div></div></section>
 
 <!-- 1 ------------------------------------------------------------------ -->
 <section><div class="wrap"><div class="col">
@@ -517,7 +715,7 @@
 <section><div class="wrap"><div class="col">
   <div class="snum">08 — The manuscript</div>
   <h2>Where the paper stands</h2>
-  <p class="sublede">8 pages, IEEE format, 5 figures, 26 verified references. Author fields are
+  <p class="sublede">12 pages, IEEE format, 5 figures, 26 verified references. Author fields are
   deliberately blank pending the team's decision.</p>
 </div>
 

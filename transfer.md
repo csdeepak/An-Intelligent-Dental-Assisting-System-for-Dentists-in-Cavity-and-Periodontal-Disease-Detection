@@ -6,7 +6,26 @@ It is **rewritten, not appended to** — unlike `docs/results/RESULTS_LOG.md` (a
 history) and `docs/session-memory/` (one file per session, never edited). Those two are the
 record; this is the snapshot.
 
-**Last updated: 28 August 2026.** **A complete manuscript now exists and compiles**, rebuilt from the artefacts after a full evidence audit (`docs/paper/REBUILD_AUDIT.md`, `RESULTS_LOG.md` 2026-08-28). Five defects in the previous draft were found and corrected — the worst was a whole-system parameter count of "~25 M" that was the *superseded detector alone*; the pipeline is **83.6 M across six models, 61.2 M on the caries path**, and that wrong figure had propagated into 9 places across 6 files. **The critical path is no longer "write the draft" — it is the venue-length cut** (12 pages against ISBI's 4) plus the four non-engineering compliance blockers. 122/122 tests, 82 manuscript numbers auto-verified against their JSONs, all invariants hold, ₹~313 GPU balance, nothing running.
+**Last updated: 31 August 2026.** Staleness sweep — no work this session, no new numbers. The
+last working session (**29 August**, `docs/session-memory/2026-08-29-readme-rebuild-svg-assets.md`)
+rebuilt the root **`README.md`** against the artefacts and added `docs/assets/` — seven
+hand-authored animated SVGs (hero, pipeline, error-propagation, C1 baselines, C2 domain shift,
+C4 abstention, repo-structure). It trained nothing (no `RESULTS_LOG.md` entry, by rule 1) and
+re-ran the suite (**122/122**) and `verify_invariants.py` (all hold) only to confirm the README
+badges — the tests badge had said 84 and the file tree 65. **Two things it leaves for the next
+session:** `docs/assets/*.svg` now carry hard-coded headline numbers (edit them when a number
+moves, or generate them from the JSONs); and
+`docs/architecture/corrected_opg_pipeline_architecture.svg` and `docs/assets/pipeline.svg` now
+both claim to describe the pipeline — pick one as authoritative.
+
+> ⚠️ **§8's "Local state that git does NOT carry" table is now partly wrong.** Commits `f6609b7`
+> and `1b430e2` (already on `origin/main`) stopped git-ignoring `outputs/` and committed most
+> training outputs plus the sub-50 MB ResNet18 checkpoints — `.git` is now ~763 MB. Reconcile
+> with `CLAUDE.md` rule 4 (weights gitignored, Drive-only) and rewrite §8 to match, or revert the
+> commits. The two >50 MB detector checkpoints remain Drive-only, and
+> `models/11_yolo_seg_tufts_r1/best.pt` is still not uploaded (§3 item 4).
+
+**Previously: 28 August 2026.** **A complete manuscript now exists and compiles**, rebuilt from the artefacts after a full evidence audit (`docs/paper/REBUILD_AUDIT.md`, `RESULTS_LOG.md` 2026-08-28). Five defects in the previous draft were found and corrected — the worst was a whole-system parameter count of "~25 M" that was the *superseded detector alone*; the pipeline is **83.6 M across six models, 61.2 M on the caries path**, and that wrong figure had propagated into 9 places across 6 files. **The critical path is no longer "write the draft" — it is the venue-length cut** (12 pages against ISBI's 4) plus the four non-engineering compliance blockers. 122/122 tests, 82 manuscript numbers auto-verified against their JSONs, all invariants hold, ₹~313 GPU balance, nothing running.
 
 **Previously: 27 August 2026**, end of a very long session. C1 ran and landed (VLM below a constant guess); the rigor block — confidence intervals, calibration, failure taxonomy, related work, ethics — is done; bone loss is a decided limitation rather than an open problem; DENTEX is local; the environment was rebuilt on Python 3.13 after the 3.11 install lost its interpreter mid-session. `RESULTS_LOG.md` 2026-08-27f … 2026-08-27aa is that day's history.
 
