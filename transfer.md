@@ -24,6 +24,21 @@ both claim to describe the pipeline — pick one as authoritative.
 > with `CLAUDE.md` rule 4 (weights gitignored, Drive-only) and rewrite §8 to match, or revert the
 > commits. The two >50 MB detector checkpoints remain Drive-only, and
 > `models/11_yolo_seg_tufts_r1/best.pt` is still not uploaded (§3 item 4).
+> **Partially addressed, 30 Aug:** the *ignore policy itself* was fixed the same day this landed
+> — `outputs/*` plus a curated per-directory whitelist replaced the blanket `!outputs/**`
+> (`0bda8d5`, `2f436b9`), so future runs no longer become trackable by default, and one
+> already-tracked duplicate checkpoint was caught and kept out. **The existing ~763 MB already in
+> history is untouched** — that still needs a deliberate, team-coordinated history rewrite
+> (everyone re-clones after), or a decision to accept it. Not done, just no longer growing
+> silently.
+
+**Previously: 30 August 2026** — the **SDH clinic track was unblocked**: the clinic gave consent
+(written agreement expected 1 Sep), the data turns out to be on *this* machine, the pipeline runs
+on it unmodified at **2.2 s/image on CPU** (so Tier A needs **no GPU**), and the first pass that
+ever opened all 3,219 files found **six truncated images** — the usable set is **3,213**, and
+`checkpoint.json` had been claiming 3,219 since June. Plan:
+`docs/research/SDH_EXECUTION_PLAN.md`; numbers: `RESULTS_LOG.md` 2026-08-30. **It is not on the
+critical path** — see §3 item 10. Nothing below this paragraph changed on 30 Aug.
 
 **Previously: 28 August 2026.** **A complete manuscript now exists and compiles**, rebuilt from the artefacts after a full evidence audit (`docs/paper/REBUILD_AUDIT.md`, `RESULTS_LOG.md` 2026-08-28). Five defects in the previous draft were found and corrected — the worst was a whole-system parameter count of "~25 M" that was the *superseded detector alone*; the pipeline is **83.6 M across six models, 61.2 M on the caries path**, and that wrong figure had propagated into 9 places across 6 files. **The critical path is no longer "write the draft" — it is the venue-length cut** (12 pages against ISBI's 4) plus the four non-engineering compliance blockers. 122/122 tests, 82 manuscript numbers auto-verified against their JSONs, all invariants hold, ₹~313 GPU balance, nothing running.
 
@@ -298,6 +313,15 @@ both inversions.
 8. **`docker build` is verified and the demo runs** — but the image predates the confidence-only
    isotonic wiring, so rebuild it before any Review-1 demo.
 9. **IRB paperwork** — longest lead time of anything open, still not begun.
+10. **SDH clinic track — unblocked 30 Aug, and it is NOT on the critical path.** Consent from the
+    clinic was obtained (written agreement expected 1 Sep), closing `PUBLICATION_TODO.md` T1.2's
+    governance block. The data is on **this** machine (§8), the pipeline runs on it unmodified at
+    **2.2 s/image on CPU**, so a full-set pass is a ~2-hour unattended job needing **no GPU**.
+    Plan, tiers, filter design, pre-registered criteria: **`docs/research/SDH_EXECUTION_PLAN.md`**;
+    first measurements: `RESULTS_LOG.md` 2026-08-30. **If item 1 slips, this is what gets
+    deferred.** Two things must happen before any SDH number is produced: repair or exclude the
+    six truncated images (`001970`–`001975`, found 30 Aug — the usable set is **3,213**, not
+    3,219), and freeze `data/sdh/splits_v1.json` before a single filter threshold is chosen.
 
 **Do NOT do:** train on Ningxia, or iterate against it. It is locked external test data and it is
 the single strongest thing this paper has (`MASTER_PLAN_2026H2.md` §4.1). A tune-against-it loop
@@ -488,7 +512,7 @@ fresh clone after `git push`), read this section in full before assuming anythin
 | Tufts raw + rotated radiographs | `_repo_archive/datasets_workspace/` | 1,000 each; `Radiographs_rotated/` is what the detector-training scripts expect. **⚠️ See the licence warning in `docs/EXTERNAL_DRIVE.md` before re-sharing any of this.** |
 | Tufts frozen split | `_repo_archive/datasets_workspace/outputs/eda_tufts/split_v1.csv` | Gitignored — which is why a previous session wrongly declared it lost. Contains a known train/test leak (`590.JPG`/`591.JPG`), see §4. |
 | **Ningxia** | `~/Downloads/Capstone/ningxia_local/` (test splits, 2.4 GB) | Connected, copied, evaluated. Train (11.2 GB) deliberately left on the pen drive — locked external data, never train on it. |
-| Clinic (SDH) data | Not on this machine | Governance-blocked |
+| Clinic (SDH) data | ~~Not on this machine~~ **Wrong — struck 30 Aug 2026.** It is on the **Windows** machine, on `D:` — see the Windows table below | Consent obtained 30 Aug (written agreement expected 1 Sep). Plan: `docs/research/SDH_EXECUTION_PLAN.md` |
 | Python env (macOS, as of 26 Aug — historical) | `/opt/anaconda3` (python 3.12) | **65/65 tests, 7/7 invariants** *(that machine, that date; this machine is now Python 3.13 with 84/84 — see the Windows table below)*. torch 2.2.0 + MPS, cv2 5.0.0, ultralytics 8.4.127, scipy, sklearn, streamlit 1.37.1. ⚠️ **`numpy` must stay `<2`** — pinned 1.26.4 in `requirements.txt`; numpy 2.x silently breaks `scipy.optimize` (the Hungarian FDI assignment) at import. A fresh machine should `pip install -r requirements.txt` into a venv rather than assume any particular Python distribution. |
 | **Model checkpoints — what `git clone` alone gets you, and what it does not.** | `docs/EXTERNAL_DRIVE.md` | **Only two files, unchanged from before, need a manual fetch**: `models/06_yolo_detection_a100_run/best.pt` (detector, Tufts drive) and `models/09_caries_gate_v3/caries_gate_v3.pth` (caries gate, DENTEX drive) — both >50 MB, gitignored per `CLAUDE.md` rule 4. **Everything else `run_inference.py` needs, including the new Stage-2 head v2.0 (`models/10_fdi_head_dentex_tufts_v2/enumeration_head_best.pth`, 43 MB), is committed to git and needs no Drive fetch.** `docs/EXTERNAL_DRIVE.md` has exact restore steps and a runnable smoke-test command. |
 | Docker daemon | Not verified this session either | `docker build` has never actually executed — see §3 item 7. |
@@ -510,6 +534,7 @@ holds a strictly smaller set. Check this before concluding anything is lost:
 | DENTEX `disease/` (250 img + 250 labels, 1,023 MB) | ✅ | At `~/Downloads/Capstone/DENTEX/disease/` — fetched 27 Aug for the Stage-2 re-measurement. All 500 files integrity-checked (every PNG opened, every JSON parsed). **This is the subset the Stage-2 eval needs**, and it is enough to re-run `validate_fdi_assignment.py` here. |
 | DENTEX `training_data/` + `validation_data/` — **the subsets this repo uses** | ✅ **fetched 27 Aug** | **1,390 images + 3 annotation JSONs, 6.0 GB**, every file integrity-checked on download (`scripts/dentex/fetch_dentex_subsets.py`). 705 `quadrant-enumeration-disease/xrays` (caries cascade) + 634 `quadrant_enumeration/xrays` (Stage-2 head) + 51 `validation_data/.../xrays` (extern50). **`verify_invariants.py`'s leakage check and caries v3 MD5 join now RUN rather than SKIP** — the join reproduces the documented 98.28% FDI agreement over 260 shared images. `quadrant/xrays` (693) and `unlabelled/xrays` (1,571) deliberately NOT fetched: `data/README.md` records both as unused. |
 | Ningxia | ❌ | `data/ningxia/` holds `manifest.csv` only |
+| **Clinic (SDH), all three stages** | ✅ **verified 30 Aug 2026** | `D:\raw data\` (4,433 `.pano`), `D:\dataset_audit\` (Stage-1 conversion + the audit CSVs), `D:\SDH dataset\dataset\` (3,219 enhanced 8-bit PNGs, 3.72 GB, **3,213 readable** — six are truncated, `RESULTS_LOG.md` 2026-08-30). One image per patient, 3,220 distinct patient folders. **Never on the macOS machine.** Metrics-only artefacts are tracked at `data/sdh/`; no pixel leaves `D:`. Plan: `docs/research/SDH_EXECUTION_PLAN.md` |
 | Tufts bone-loss crops | ❌ | metadata CSVs only, no images. **The pixels cannot be rebuilt here (27 Aug):** they were made from `Radiographs/Radiographs/` — the ORIGINAL un-rotated radiographs — which this machine does not have, and **49.6% of the val crops carry unsaved jitter offsets and are irreproducible by anyone**. A best-effort rebuild from the rotated copies scored sensitivity 0.40 vs a documented 0.83 and was rejected. Blocks bone-loss calibration, CIs and all three §9 ablations. `RESULTS_LOG.md` 2026-08-27u |
 | `_repo_archive/datasets_workspace/` | ⚠️ partial | Has the EDA/conversion notebooks (incl. `week1_tufts_eda_v2.ipynb`), **not** `Radiographs_rotated/`, `dataset/` or `outputs/` |
 | Python env | ✅ **REBUILT 27 Aug 2026** | **Python 3.13.7**, numpy **2.5.2**, scipy 1.18.1, sklearn 1.7.1, torch **2.8.0+cpu**, ultralytics 8.4.130, streamlit 1.62.0, opencv 4.11.0. **79/79 tests pass, all invariants hold** — including the two that used to SKIP for want of DENTEX. CPU-only torch — no local GPU, no CUDA, no MPS, so even ResNet18 jobs are slow here. **The previous 3.11.9 install lost its interpreter mid-session** (`python.exe` and the DLLs vanished while `Lib/site-packages` remained); rebuilt on 3.13. ⚠️ **Python 3.13 cannot satisfy `requirements.txt`'s `numpy<2` pin** — there is no numpy 1.x wheel for cp313, and pip silently builds it from source with MSYS2's MinGW toolchain, producing a numpy that prints "CRASHES ARE TO BE EXPECTED" and emits invalid-value warnings at import. Use numpy 2.x on 3.13 (verified working, below), or install 3.11/3.12 if you want the pin honoured literally. |
