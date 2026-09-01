@@ -1,0 +1,91 @@
+================================================================================
+13_detector_multicorpus_lever1 — Lever 1: multi-corpus detector retrain
+================================================================================
+Status:   ABLATION. NOT adopted. Pipeline default detector stays
+          models/11_yolo_seg_tufts_r1 (tooth-detector-seg-tufts-1024-v1.0).
+Date:     1 September 2026
+Pre-reg:  outputs/detector_multicorpus/PRE_REGISTRATION.md  (+ two-arm amendment)
+Hardware: JarvisLabs RTX PRO 6000 Blackwell 96 GB, IN1, instance 491623
+          (destroyed after download). Spend ₹267.84 (balance ₹1,084.54 -> ₹816.70).
+Trainer:  scripts/yolo/train_multicorpus_detector.py  (config copied verbatim
+          from train_yolo_seg.py / the canonical bbox run; only deliberate
+          changes: yolo11l.pt detect head, and the train split)
+Data:     data/detector_multicorpus/  (built + triple-gated locally AND re-gated
+          on the rented box; see scripts/yolo/build_multicorpus_detector_dataset.py)
+ultralytics 8.4.127 (pinned to match the canonical run and the Mac), torch 2.11+cu130.
+
+--------------------------------------------------------------------------------
+WEIGHTS (both >48 MB, gitignored per CLAUDE.md rule 4 — kept on local disk)
+--------------------------------------------------------------------------------
+controlB_tuftsonly_best.pt   sha256 104564f30c4e8e857df73ad38af5c7737dbf68775b71effb211687dcd8028f75
+  Control B — YOLOv11l DETECT, Tufts only (700 img / 18,221 boxes). Isolates the
+  seg->detect head change. Best epoch 106 of 136 (early-stopped, patience 30).
+arm_multicorpus_best.pt      sha256 5bc24b7130bead884eb777fa8fbefc9d0d257fe75d76408599bfb8443f8778be
+  Arm — YOLOv11l DETECT, Tufts + DENTEX quadrant_enumeration (1,334 img / 36,316
+  boxes). Isolates the added data. Best epoch 105 of 135 (early-stopped).
+
+--------------------------------------------------------------------------------
+RESULTS  (primary = FDI exact end-to-end on the 164 leak-free DENTEX images,
+          method=head, head=models/10; guard = Tufts frozen TEST box mAP@0.5)
+--------------------------------------------------------------------------------
+                         recall   of-detected   end-to-end   Tufts test box mAP@0.5
+Control A (deployed seg)   0.708      0.825         0.5844          0.810  (frozen)
+Control B (Tufts detect)   0.831      0.724         0.6015          0.724
+Arm (Tufts+DENTEX detect)  0.995      0.939         0.9338          0.647
+
+Paired cluster bootstrap over the 164 images, 10,000 resamples, seed 42:
+  Arm - Control A   Δ end-to-end  +34.9 pp  [+30.8, +39.0]   excludes 0
+  Arm - Control B   Δ end-to-end  +33.2 pp  [+29.5, +37.0]   excludes 0   <- the DATA effect
+  Control B - Control A  Δ end-to-end  +1.7 pp [-3.4, +6.8]  INCLUDES 0   <- seg->detect is n.s.
+
+--------------------------------------------------------------------------------
+VERDICT (pre-registered rule, bar NOT moved)
+--------------------------------------------------------------------------------
+PRIMARY: SUCCEEDS overwhelmingly — CI excludes zero, +34.9 pp.
+GUARD:   FAILS — Tufts test box mAP@0.5 = 0.647 < 0.75.
+=> ABLATION. Adoption requires BOTH. Pipeline default unchanged, exactly as
+   Stage-2 head v3 (models/12) and caries gate v4 were handled.
+
+Why the guard fails (the pre-registered "domain dilution" risk #2, confirmed):
+  Adding DENTEX training data costs Tufts test box mAP@0.5 by ~7.7 points
+  (Arm - Control B on the guard metric: 0.724 -> 0.647). Even correcting for the
+  ~5 pt Control-B-vs-canonical run-level shift (0.782 canonical -> 0.724 here,
+  attributed to A100->Blackwell + torch 2.2->2.11 training variance; the shift is
+  uniform across val AND test, consistent with run noise not a data defect), the
+  Arm would sit near ~0.705 — still under 0.75.
+
+--------------------------------------------------------------------------------
+WHAT THE 93.4% IS, AND IS NOT
+--------------------------------------------------------------------------------
+IS:   an IN-DOMAIN number. The Arm's detector is now DENTEX-trained and the head
+      (models/10) was already DENTEX+Tufts-trained, evaluated on held-out DENTEX.
+      It confirms the paper's thesis in the strongest form: the 58.3% headline is
+      detector-DOMAIN-limited, not numbering-limited — a same-domain detector on
+      the same metric nearly doubles end-to-end.
+IS NOT: image-level leakage. The 164 eval images were checked against the 634
+      quadrant_enumeration training images THREE ways — 0 byte-identical (MD5),
+      0 filename match, 0 perceptual near-duplicate (aHash 16x16, min Hamming 22,
+      median 40; calibration: byte-identical pairs = Hamming 0, intra-corpus
+      different-patient NN median = 32). Disjoint patients, same institution.
+IS NOT: metric-gaming. Rendered detections are ~1 box per tooth following the
+      arch, not a carpet. The eval metric is genuinely generous (IoU 0.30 match,
+      scores only the ~5.7 annotated pathological/prominent teeth per image).
+CAVEAT for the manuscript: 93.4% is Tufts-detector-free IN-domain; the 58.3% is
+      Tufts->DENTEX CROSS-domain on the detector. Different generalisation
+      scenarios. Do not present 93.4% as "the pipeline now works everywhere."
+
+--------------------------------------------------------------------------------
+REPRODUCE
+--------------------------------------------------------------------------------
+  # dataset (local):
+  python scripts/yolo/build_multicorpus_detector_dataset.py
+  # train (GPU box), both arms:
+  python scripts/yolo/train_multicorpus_detector.py --arm tuftsonly
+  python scripts/yolo/train_multicorpus_detector.py --arm multicorpus
+  # guard (GPU box): yolo val model=<arm>/weights/best.pt data=data_<arm>.yaml split=test
+  # primary (this machine):
+  python scripts/eval/validate_fdi_assignment.py --weights <arm>_best.pt \
+      --method head --head-weights models/10_fdi_head_dentex_tufts_v2/enumeration_head_best.pth \
+      --out outputs/detector_multicorpus/<arm>
+  python scripts/eval/score_lever1_arm.py --arm-rows outputs/detector_multicorpus/<arm>/stage2_rows_head.json \
+      --guard-map50 <n> --label <arm>

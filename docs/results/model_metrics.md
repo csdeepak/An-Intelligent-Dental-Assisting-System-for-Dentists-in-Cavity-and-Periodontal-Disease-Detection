@@ -113,6 +113,30 @@ cleaner boxes lift FDI-exact-of-detected by 13.9 points on top of the recall gai
 > than that drift, so it is not an artefact of it — but the control is **not** an exact
 > reproduction and is not presented as one.
 
+### Lever 1 — multi-corpus detector retrain (1 Sep 2026) — **ABLATION, NOT adopted**
+
+Detector re-trained on Tufts + DENTEX `quadrant_enumeration` (`models/13_detector_multicorpus_lever1/`,
+`RESULTS_LOG` 2026-09-01h, pre-registered). Two arms + a same-day control, primary = FDI exact
+end-to-end on the 164 leak-free DENTEX images, guard = Tufts frozen **test** box mAP@0.5 ≥ 0.75.
+
+| arm | detector train set | recall | of-detected | **end-to-end** | Tufts test box mAP@0.5 |
+|---|---|---|---|---|---|
+| Control A (deployed seg) | Tufts seg (frozen) | 0.708 | 0.825 | **0.5844** | **0.810** |
+| Control B | Tufts detect | 0.831 | 0.724 | 0.6015 | 0.724 |
+| **Arm** | Tufts + DENTEX detect | 0.995 | 0.939 | **0.9338** | **0.647** |
+
+Paired cluster bootstrap over the 164 images (10k, seed 42): **Arm − Control A Δ end-to-end
++34.9 pp [+30.8, +39.0]**; Arm − Control B +33.2 pp [+29.5, +37.0] (the pure data effect);
+Control B − Control A +1.7 pp [−3.4, +6.8] (**n.s.** — seg→detect head change does nothing).
+
+**Verdict (pre-registered rule, bar not moved): primary SUCCEEDS, guard FAILS (0.647 < 0.75)
+→ ABLATION.** Pipeline default detector stays `tooth-detector-seg-tufts-1024-v1.0`. The guard
+failure is the pre-registered "domain dilution" risk, confirmed: adding DENTEX costs Tufts test
+box mAP ~7.7 pt. **The 93.4% is an in-domain number** (DENTEX-trained detector + DENTEX+Tufts
+head, on held-out DENTEX; leakage ruled out three ways) — it confirms that the 58.3% headline is
+**detector-domain-limited, not numbering-limited**, but it is not the same generalisation
+scenario as the cross-domain 58.3% and must not be quoted as if it were.
+
 ---
 
 ### Historical — the three-head comparison, all on the SUPERSEDED bbox detector

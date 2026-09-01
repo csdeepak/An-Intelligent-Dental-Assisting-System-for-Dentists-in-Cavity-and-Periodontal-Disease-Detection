@@ -204,6 +204,14 @@ What survives:
 never detected and cannot be numbered at all. **Of the 661 teeth Stage 1 does find, Stage 2 numbers
 82.6% correctly.** Both figures belong in any honest report of this system.
 
+**And it is the detector's *domain* that binds, not its architecture (Lever 1, 1 Sep).** Re-training
+the detector on Tufts + DENTEX and running the *same frozen head* lifts end-to-end to **93.4%** on
+held-out DENTEX (recall 70.8% → 99.5%; Δ +34.9 pp [+30.8, +39.0]; leakage ruled out three ways).
+This is an **in-domain** number — the detector is now DENTEX-trained, where 58.3% was Tufts→DENTEX
+cross-domain — and the multi-corpus detector is a pre-registered **ablation** (it fails the Tufts
+box-mAP guard, 0.810 → 0.647). It is not adopted, but it pins the ceiling: numbering is not the
+problem.
+
 The errors that remain are overwhelmingly benign: **89 of 115 wrong codes (77.4%) are off-by-one** —
 right quadrant, adjacent position, usually the same tooth type. Only **16 of 661 detected teeth
 (2.4%)** are category errors. The off-by-one drift splits 53 mesial / 36 distal, which is *not* the
@@ -301,7 +309,9 @@ checkpoints. Every one is version-tagged and SHA-256 pinned, and
 (three-corpus head — an **ablation**: +1.14 pp on DENTEX val, significant; +0.74 pp on Tufts, not
 significant; the +15.45 pp Kaggle cell is *not* a generalisation result because v3 trained on that
 corpus) and [`models/12a_fdi_head_v2_control_rebuilt/`](models/12a_fdi_head_v2_control_rebuilt/)
-(its same-day control), plus [`models/05_cej_estimation_v2_models/`](models/05_cej_estimation_v2_models/)
+(its same-day control); [`models/13_detector_multicorpus_lever1/`](models/13_detector_multicorpus_lever1/)
+(Lever 1 — the multi-corpus detector, an **ablation**: +34.9 pp end-to-end FDI on DENTEX but fails
+the Tufts guard, `RESULTS_LOG` 2026-09-01h); plus [`models/05_cej_estimation_v2_models/`](models/05_cej_estimation_v2_models/)
 (the exploratory CEJ negative result).
 
 ### Architecture specifications
@@ -816,10 +826,15 @@ manual title lookup before submission (`outputs/citation_audit/FINDINGS.md`).
 
 **A second track opened on 1 Sep: lift the numbers, not just the methodology.** Seven caries
 experiments across three cohorts had left the paper resting on a negative headline, so a
-three-lever plan runs in parallel with the write-up, funded from the ₹1,084.54 GPU balance:
-Lever 1 (multi-corpus detector retrain — dataset built and geometry-gated, GPU run pending),
-Lever 2 (caries lesion detector on CariesXrays, against its published baselines), Lever 3 (caries
-gate retrain). If the tracks conflict for time, the write-up wins. [`transfer.md`](transfer.md) §3.
+three-lever plan runs in parallel with the write-up. **Lever 1 (multi-corpus detector retrain)
+ran 1 Sep and is an ABLATION** — FDI end-to-end on DENTEX **0.584 → 0.934** (Δ +34.9 pp
+[+30.8, +39.0], all from the added data), but the pre-registered Tufts guard fails
+(box mAP 0.810 → 0.647, domain dilution) so the pipeline default is unchanged. The 93.4% is an
+*in-domain* number and is the strongest evidence that the 58.3% headline is
+detector-**domain**-limited, not numbering-limited (`models/13_detector_multicorpus_lever1/`,
+[`RESULTS_LOG`](docs/results/RESULTS_LOG.md) 2026-09-01h). Lever 2 (caries lesion detector on
+CariesXrays vs its published baselines) is the remaining lever; Lever 3 (gate retrain) follows it.
+If the tracks conflict for time, the write-up wins. [`transfer.md`](transfer.md) §3.
 
 **Where this stands, honestly.** Not on the strength of any single model swap, but on: cross-corpus
 generalisation measured with paired significance tests, external validation on **four hospitals and

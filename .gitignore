@@ -114,6 +114,12 @@ outputs/caries_arms/**/*.pth
 # submission blocker and must travel with the repo.
 !outputs/citation_audit/
 !outputs/citation_audit/**
+# Lever 1 multi-corpus detector retrain (1 Sep 2026). Pre-registration, same-day control,
+# both arms' per-image/summary JSONs and the paired-bootstrap scores. ~650 KB, JSON/MD/CSV
+# only (no weights, no images) -- the evidence behind the ABLATION verdict; must travel.
+!outputs/detector_multicorpus/
+!outputs/detector_multicorpus/**
+outputs/detector_multicorpus/**/*.pt
 !outputs/lesion_loc_pipeline/
 !outputs/lesion_loc_pipeline/**
 !outputs/lesion_localization_segdet/

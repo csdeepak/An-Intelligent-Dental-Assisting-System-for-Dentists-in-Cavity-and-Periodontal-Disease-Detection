@@ -26,9 +26,12 @@ THE THREE THINGS THIS SCRIPT REFUSES TO GET WRONG
    inside the existing 86-image exclusion list -- so this guard should be a no-op. It runs anyway,
    because a guard that only runs when you expect it to fail is not a guard.)
 
-Tufts boxes are DERIVED from `data/tufts/dataset_seg`'s polygon labels (min/max of each polygon)
-rather than re-converted from source: that corpus is already verified aligned, so the only new
-geometry risk is the DENTEX side, which is re-scored below.
+Tufts boxes come from `_repo_archive/datasets_workspace/Segmentation/teeth_bbox.json` -- the
+annotation the canonical 0.7824 detector was trained on, already in the portrait/rotated frame.
+(This was CORRECTED on 1 Sep 2026: the first build derived them from `data/tufts/dataset_seg`'s
+polygons, which is the WITHDRAWN pre-fix corpus from the void 26 Aug run -- 90 deg out, off the
+dentition. RESULTS_LOG 2026-09-01e/f.) Both corpora are geometry-checked below: DENTEX by IoU
+re-score vs source, Tufts by exact reproduction of the frozen detector's canonical box counts.
 
 FORMAT NOTE: rotated DENTEX images are written as JPEG q95. Tufts -- the corpus the detector was
 actually trained on -- is already JPEG, so this is the *consistent* choice, and it cuts the
@@ -291,8 +294,10 @@ def main():
         "pre_registration": "outputs/detector_multicorpus/PRE_REGISTRATION.md",
         "rotation": f"DENTEX rotated 90 deg {ROT_DIR} into the detector frame via "
                     f"src.orientation.rot_box; Tufts already in that frame",
-        "tufts_boxes_from": "min/max of dataset_seg polygon labels (that corpus is already "
-                            "geometry-verified; no re-conversion, no new risk)",
+        "tufts_boxes_from": "_repo_archive/datasets_workspace/Segmentation/teeth_bbox.json "
+                            "(the canonical detector's own ground truth; NOT dataset_seg, which "
+                            "is the void pre-fix corpus -- RESULTS_LOG 2026-09-01e/f). Verified "
+                            "by exact reproduction of the frozen detector's val/test box counts.",
         "val_test_policy": "TUFTS ONLY and unchanged, so the frozen-test guard stays comparable",
         "leakage_guard": f"{len(leakfree)} leak-free eval images hashed; "
                          f"{stats['dentex_REFUSED_leakage']} DENTEX images refused",

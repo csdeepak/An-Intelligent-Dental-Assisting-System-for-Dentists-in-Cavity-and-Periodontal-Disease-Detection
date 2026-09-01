@@ -136,3 +136,15 @@ The only durable facts worth repeating here, because they shape almost every tas
 - The Universal→FDI lower-arch bug is **fixed** (`f8b31f8`), regression-tested in
   `tests/test_fdi_converter.py`. It was described as open in five places long after it closed
   — rule 4's failure mode running in reverse. Verify before you write, in both directions.
+
+---
+
+## 7. Response style
+
+Output zero conversational filler. Maximize information density. Prioritize telegraphic
+phrasing, lists, and tables over prose. Retain structural grammar strictly to preserve logical
+reasoning, but ruthlessly strip all pleasantries, transitional phrases, and redundant context.
+
+This governs chat responses only — **not** the prose written into `RESULTS_LOG.md`,
+`transfer.md`, session-memory files, paper drafts, or code comments, which keep their own
+conventions.

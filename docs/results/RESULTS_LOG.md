@@ -5648,3 +5648,71 @@ identical matcher to the Ningxia arm:
   same-day control (end-to-end 0.5844) per `outputs/detector_multicorpus/PRE_REGISTRATION.md`.
   (3) The `jl` CLI and this machine's `macos-m4pro` SSH key are now registered, so the next
   attempt starts from provisioning, not setup.
+
+## 2026-09-01h — Lever 1 trained: +34.9 pp end-to-end FDI on DENTEX, but the Tufts guard fails → ABLATION
+
+- **What was done:** Ran the pre-registered two-arm Lever-1 detector retrain
+  (`outputs/detector_multicorpus/PRE_REGISTRATION.md`) on a rented RTX PRO 6000 Blackwell
+  (JarvisLabs 491623, IN1, ₹179/hr). Dataset `data/detector_multicorpus/` was re-gated **on the
+  rented box** after upload — canonical Tufts box counts (3,794 / 3,924) reproduced exactly,
+  DENTEX round-trip IoU 1.0, aspect ratios consistent, renders inspected. (One tar-hygiene bug
+  caught here: macOS `tar` shipped AppleDouble `._*` files that doubled the file counts and would
+  have fed YOLO garbage — deleted, re-verified PASS.) Both arms trained with the canonical config
+  verbatim (`scripts/yolo/train_multicorpus_detector.py`, ultralytics pinned 8.4.127), early-stopped
+  at epoch 106 / 105 of 150. Scored on **this machine** against the same-day control with
+  `scripts/eval/validate_fdi_assignment.py --head-weights models/10/...` +
+  `scripts/eval/score_lever1_arm.py` (paired cluster bootstrap over the 164 images, 10k, seed 42).
+- **Dataset / config:** Control B = YOLOv11l **detect**, Tufts only (700 img / 18,221 boxes).
+  Arm = YOLOv11l **detect**, Tufts + DENTEX `quadrant_enumeration` (1,334 img / 36,316 boxes).
+  Both val/test are Tufts-only and canonical. Only deliberate deviations from the frozen detector:
+  detect head (DENTEX has no polygons) and the train split.
+- **Metrics** (primary = FDI exact end-to-end on 164 leak-free DENTEX images; guard = Tufts frozen
+  TEST box mAP@0.5):
+
+  | | recall | of-detected | end-to-end | Tufts test mAP@0.5 |
+  |---|---|---|---|---|
+  | Control A (deployed seg, same-day) | 0.708 | 0.825 | **0.5844** | 0.810 |
+  | Control B (Tufts detect) | 0.831 | 0.724 | 0.6015 | 0.724 |
+  | Arm (Tufts+DENTEX detect) | 0.995 | 0.939 | **0.9338** | **0.647** |
+
+  Paired Δ end-to-end, 95% CI: **Arm − Control A +34.9 pp [+30.8, +39.0]** (excludes 0);
+  **Arm − Control B +33.2 pp [+29.5, +37.0]** (excludes 0 — the pure data effect);
+  Control B − Control A +1.7 pp [−3.4, +6.8] (**includes 0** — the seg→detect head change is n.s.).
+- **Key decision or insight:** **ABLATION. NOT adopted; pipeline default detector unchanged.**
+  The pre-registered rule requires BOTH primary significant AND guard met. Primary succeeds
+  overwhelmingly; **the guard fails (0.647 < 0.75)** — this is exactly the pre-registered
+  "domain dilution" risk #2, now confirmed: adding DENTEX training data costs Tufts test box
+  mAP@0.5 ~7.7 points (Arm − Control B on the guard metric). Same disposition as Stage-2 head v3
+  (2026-08-28c) and caries gate v4 (2026-08-31). **The bar was not moved.**
+  - **The entire Lever-1 gain is the added DATA, not the head change.** Control B (detect,
+    Tufts-only) vs Control A (seg): end-to-end delta is not significant. Arm vs Control B: +33.2 pp.
+  - **What the 93.4% is:** an **in-domain** number — the Arm's detector is now DENTEX-trained and
+    the head (models/10) was already DENTEX+Tufts-trained, evaluated on held-out DENTEX. It
+    confirms the paper's core thesis in its strongest form: **the 58.3% headline is
+    detector-DOMAIN-limited, not numbering-limited.** A same-domain detector on the same metric
+    nearly doubles end-to-end.
+  - **What it is NOT:** image-level leakage. The 164 eval images were checked against the 634
+    training images three ways — 0 byte-identical (MD5), 0 filename match, 0 perceptual
+    near-duplicate (aHash 16×16: min Hamming 22, median 40; byte-identical calibration = 0,
+    intra-corpus different-patient NN median = 32). Disjoint patients, same institution. Nor is it
+    metric-gaming: rendered detections are ~1 box/tooth along the arch, and the eval metric is
+    genuinely generous (IoU 0.30 match, scores only the ~5.7 annotated pathological teeth/image).
+  - **Manuscript caveat:** 93.4% is Tufts-detector-free **in-domain**; 58.3% is Tufts→DENTEX
+    **cross-domain** on the detector. Different generalisation scenarios — do not present 93.4%
+    as "the pipeline works everywhere."
+  - **A run-reproducibility note:** Control B's Tufts val mAP@0.5 best = 0.782, matching the
+    canonical bbox detector's *test* 0.7824 — but Control B's own *test* came in at 0.724, a
+    ~5 pt val→test drop consistent with the canonical run's own noted drop, and Control B sits
+    ~5 pt below canonical on **both** val and test uniformly. Attributed to A100→Blackwell +
+    torch 2.2→2.11 training variance, not a data defect. Even correcting for it, the Arm's
+    guard would be ~0.705 — still under 0.75.
+- **Source:** `models/13_detector_multicorpus_lever1/run_summary.txt` (+ weights, gitignored,
+  sha256 recorded there); `outputs/detector_multicorpus/{multicorpus,tuftsonly}/`,
+  `*_scored.json`; `scripts/yolo/train_multicorpus_detector.py`,
+  `scripts/yolo/build_multicorpus_detector_dataset.py`, `scripts/eval/score_lever1_arm.py`.
+  Spend ₹267.84 (balance ₹1,084.54 → ₹816.70); instance destroyed, nothing running.
+- **Follow-ups:** (1) Fold into `PAPER_MATERIAL.md` §8.16 as the measured confirmation that
+  detection domain, not the numbering head, is the 58.3% ceiling — with the in-domain/cross-domain
+  caveat stated. (2) Lever 2 (caries lesion detector on CariesXrays) is the remaining score lever;
+  it needs its own pre-registration and the AAAI baselines read first. (3) Do NOT chase adoption
+  of the Arm by relaxing the guard — the Tufts cost is real and pre-registered.

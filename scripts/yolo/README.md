@@ -20,7 +20,7 @@ toolchain. Both sets are live; they simply serve different halves of the pipelin
 | train | `train_yolo.py` | `train_yolo_seg.py` | `train_multicorpus_detector.py` |
 | evaluate | `evaluate_yolo.py` | — (use Ultralytics val) | `scripts/eval/validate_fdi_assignment.py` + the pre-registration |
 | dataset | `_repo_archive/datasets_workspace/dataset/` | `data/tufts/dataset_seg_v2/` (corrected build) | `data/detector_multicorpus/` (built + gated, ~816 MB, gitignored) |
-| status | **frozen**, `tooth-detector-a100-1024-v1.0` (val 0.834 / test 0.782) | **frozen + adopted 27 Aug**, `models/11_yolo_seg_tufts_r1/best.pt` (`tooth-detector-seg-tufts-1024-v1.0`, box test 0.810). Boxes only — masks failed §2's bar, R2 stays unwired | **dataset ready, GPU run pending.** Two arms pre-registered in `outputs/detector_multicorpus/PRE_REGISTRATION.md`; first A30 attempt 1 Sep aborted mid-upload |
+| status | **frozen**, `tooth-detector-a100-1024-v1.0` (val 0.834 / test 0.782) | **frozen + adopted 27 Aug**, `models/11_yolo_seg_tufts_r1/best.pt` (`tooth-detector-seg-tufts-1024-v1.0`, box test 0.810). Boxes only — masks failed §2's bar, R2 stays unwired | **DONE 1 Sep — ABLATION, not adopted** (`models/13_detector_multicorpus_lever1/`, `RESULTS_LOG.md` 2026-09-01h). Ran on RTX PRO 6000, ₹268. FDI end-to-end on DENTEX **0.584 → 0.934** (Δ +34.9 pp, all from the added data), **but** the Tufts guard fails (box mAP 0.810 → 0.647 — domain dilution). 93.4% is an in-domain number. |
 
 **Lever 1 in one line:** pool the 700 Tufts detection images with DENTEX `quadrant_enumeration`
 (634 images / 18,095 boxes) to lift detector **recall** (70.6%), which is the measured binding

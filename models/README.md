@@ -24,6 +24,12 @@ One numbered directory per trained stage, each with a `*summary*.txt` beside the
 | `05_cej_estimation_v2_models/` | Exploratory CEJ (negative result, not in the pipeline) | summary only | n/a |
 | `08_fdi_enumeration_head/` | Stage 2 — FDI head **v1.0** (DENTEX only). Superseded as the pipeline default 26 Aug, **retained and still hash-pinned** — every Stage-2 number published before that date was measured on it. | `enumeration_head_best.pth` (43 MB) | **Yes** |
 | `10_fdi_head_dentex_tufts_v2/` | Stage 2 — FDI head **v2.0** (DENTEX + Tufts). **Current pipeline default (`DEF_FDI_HEAD`).** Adopted for cross-domain robustness, not in-domain accuracy — see below. | `enumeration_head_best.pth` (43 MB) | **Yes** |
+| `12_fdi_head_v3_3corpus/` + `12a_fdi_head_v2_control_rebuilt/` | Stage 2 — FDI head **v3** (DENTEX + Tufts + Kaggle) and its same-day control. **ABLATION, not the default** — `RESULTS_LOG.md` 2026-08-28c. | `.pth` (43 MB) | Weights gitignored; summaries tracked |
+| `13_detector_multicorpus_lever1/` | Stage 1 — **Lever 1** multi-corpus detector retrain (Tufts + DENTEX). Two arms + a same-day control. **ABLATION, not the default** — primary passes (FDI end-to-end 0.584 → 0.934 on DENTEX) but the pre-registered Tufts guard fails (box mAP 0.810 → 0.647). `run_summary.txt`, `RESULTS_LOG.md` 2026-09-01h. | `controlB_tuftsonly_best.pt`, `arm_multicorpus_best.pt` (49 MB each) | **No** — gitignored; SHA-256 in `run_summary.txt`, local disk only |
+
+> **Adopted vs ablation:** dirs `06`–`11` are pipeline components (current or hash-pinned
+> superseded); `05`, `12`, `12a`, `13` are ablations / negative results kept per `CLAUDE.md`
+> rule 3, none in the runtime pipeline.
 
 > The previous version of this file claimed "**Model files (.pth, .pt) are git-ignored** due
 > to file size" and showed a flat `models/*.pth` layout. Both were wrong: the ResNet18 `.pth`

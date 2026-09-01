@@ -1,0 +1,48 @@
+{
+  "label": "tuftsonly",
+  "n_images": 164,
+  "n_gt_teeth": 936,
+  "n_boot": 10000,
+  "seed": 42,
+  "control": {
+    "e2e": 0.5844,
+    "recall": 0.7083,
+    "of_detected": 0.825
+  },
+  "arm": {
+    "e2e": 0.6015,
+    "recall": 0.8312,
+    "of_detected": 0.7237
+  },
+  "deltas": {
+    "e2e": {
+      "point_pp": 1.71,
+      "ci95_pp": [
+        -3.4,
+        6.83
+      ],
+      "frac_resamples_le_0": 0.2658,
+      "verdict": "INCLUDES 0"
+    },
+    "recall": {
+      "point_pp": 12.29,
+      "ci95_pp": [
+        8.09,
+        16.67
+      ],
+      "frac_resamples_le_0": 0.0,
+      "verdict": "excludes 0"
+    },
+    "of_detected": {
+      "point_pp": -10.14,
+      "ci95_pp": [
+        -14.41,
+        -5.92
+      ],
+      "frac_resamples_le_0": 1.0,
+      "verdict": "excludes 0"
+    }
+  },
+  "guard_map50": 0.724,
+  "verdict": "NULL -- primary CI includes zero; reported as a result, bar not moved"
+}

@@ -6,21 +6,26 @@ It is **rewritten, not appended to** — unlike `docs/results/RESULTS_LOG.md` (a
 history) and `docs/session-memory/` (one file per session, never edited). Those two are the
 record; this is the snapshot.
 
-**Last updated: 1 September 2026 (evening).** **The plan gained a second track today: improve the
-numbers, not just the methodology.** Seven failed caries experiments across three cohorts had left
-the paper resting on a negative headline (an image-blind constant ties or beats the pipeline). The
-user's decision — pursue score gains in parallel with the write-up, using the
-**₹1,105.99 JarvisLabs balance** (now **₹1,084.54**; **nothing running, nothing paused**) —
-produced a three-lever plan:
+**Last updated: 1 September 2026 (late evening). Work pauses here; resumes tomorrow (2 Sep).**
+Where the next session picks up: **§5 has a fresh publication council** — Framing A (evaluation/
+protocol paper) is the working spine, Lever 2 is a 1-day-timeboxed bonus, and the critical path is
+now **entirely Track A** (§3): venue decision, the 4-page cut, the four compliance blockers, the
+22 broken DOIs. Nothing is running; the GPU balance is ₹816.70.
+
+**The plan gained a second track on 1 Sep: improve the numbers, not just the methodology** — and
+**Lever 1 ran to a verdict (ABLATION).** Seven failed caries experiments across three cohorts had
+left the paper resting on a negative headline (an image-blind constant ties or beats the pipeline).
+The score-improvement track, funded from the JarvisLabs balance (**₹1,105.99 → ₹816.70** after the
+Lever-1 run; **nothing running, nothing paused**), is a three-lever plan:
 
 - **Lever 1 — multi-corpus detector retrain.** Detector recall (70.6%) is the *measured* binding
   constraint on the 58.3% Stage-2 headline: `end-to-end = recall × of-detected = 0.706 × 0.826`.
   Pooling DENTEX `quadrant_enumeration` (634 images / 18,095 tooth boxes, already local) with the
   700 Tufts images is **1.9× the detection supervision** — the same move DentFound used (2,698
-  images) for its tooth-identification model. **Pre-registered**
-  (`outputs/detector_multicorpus/PRE_REGISTRATION.md` + a two-arm amendment), dataset **built and
-  geometry-gated locally**, same-day control measured (**end-to-end 0.5844**). **The GPU run was
-  rented and then aborted mid-upload — nothing trained.** See the ⚠️ notes below.
+  images) for its tooth-identification model. **DONE 1 Sep — see §3 Track B B1 and `RESULTS_LOG.md`
+  2026-09-01h. Result: FDI end-to-end 0.5844 → 0.9338 [Δ +34.9 pp], but the Tufts guard fails
+  (0.810 → 0.647) → ABLATION, detector default unchanged.** The 93.4% is in-domain and confirms
+  the 58.3% headline is detector-domain-limited, not numbering-limited.
 - **Lever 2 — caries lesion detector** trained on the CariesXrays benchmark (6,000 images /
   13,783 lesion boxes), which ships its own published FPCL baselines. This would give the project
   its first number placeable *beside a published result on the same data* — the thing a
@@ -36,13 +41,13 @@ val/test box counts (**3,794 / 3,924**) *exactly*, and the build aborts if it do
 `RESULTS_LOG.md` 2026-09-01e/f. Lesson twinned with the DOI one below: **a gate that only checks
 the half you already suspect is not a gate.**
 
-**⚠️ The A30 GPU run was created, then terminated by the user during a slow 816 MB rsync upload —
-₹21.45 spent, nothing trained, no instances left.** `jl create --gpu A100` had returned "not
-available", so an **A30 (24 GB, ₹38.88/hr)** was used instead — it holds R1's `batch 32 @ 1024`
-config unchanged. Next attempt: **tar the dataset and upload one file** — rsync of 3,268 small
-files was the bottleneck (~19 MB/min). The `jl` CLI is now installed and authenticated on this
-Mac, this machine's SSH key is registered as `macos-m4pro`, and live pricing + macOS setup notes
-are in `GPU_SETUP.md` §0.
+**The GPU workflow that finally worked (after an aborted A30 attempt on the first pass):** `tar`
+the dataset to **one** file (`jl upload` of 3,268 small files was the bottleneck — the abort cost
+₹21.45), sha256-verify both ends, extract, **delete the macOS `._*` AppleDouble files** (they
+double every file count and would feed YOLO garbage — caught by the on-box gate), re-run the
+geometry gate **on the rented box**, then train. Lever 1 ran on an **RTX PRO 6000 Blackwell**
+(A100/H100 containers were unavailable; ₹179/hr, ~1.5 h, ₹267.84). `jl` CLI authenticated on this
+Mac, SSH key `macos-m4pro` registered, live pricing + macOS notes in `GPU_SETUP.md` §0.
 
 **The sixth-cohort result stands — it is the strongest form of the paper's central claim.**
 CariesXrays (Chen et al., **AAAI 2024**, DOI 10.1609/aaai.v38i20.30196), evaluated with the
@@ -372,12 +377,16 @@ not, and would have been quietly wrong if the second measurement had not been as
 
 ---
 
-## 3. What is NEXT — two tracks now: finish the paper, and lift the numbers
+## 3. What is NEXT — the critical path is now entirely Track A
 
-**Track A (write-up) was the whole plan until 1 Sep; Track B (score improvement) was added by
-explicit user decision that day.** They run in parallel — Track B is funded from the GPU balance
-and owned by whoever is at the terminal; Track A is mostly account-owner paperwork. If they
-conflict for time, Track A wins: a clean submission beats a better number that misses the venue.
+**Track B (score improvement) largely resolved on 1 Sep:** Lever 1 ran → ABLATION (below);
+the §5 council put Framing A as the paper's spine and capped Lever 2 at a 1-day go/no-go. So the
+**critical path is Track A** — venue decision, the 4-page cut, the four compliance blockers, the
+22 broken DOIs. Track B's only live item is the Lever-2 timebox, and it must not block Track A.
+
+**Next session (2 Sep) starts here:** (1) venue decision — ISBI vs journal (user call); (2) hand
+the compliance list (Track A items 4–5, 9) to the account owner; (3) read the AAAI CariesXrays
+FPCL baselines → Lever 2 go/no-go; (4) begin the 22 DOI fixes.
 
 ### Track A — get the manuscript submittable
 
@@ -422,18 +431,25 @@ because the two failure modes that have cost this project real time (R1's misali
 the void `dataset_seg` used for Lever 1's first build) both produced *smoothly-falling loss on
 garbage* and errored nowhere.
 
-- **B1 — Lever 1 detector retrain (Tufts + DENTEX).** Dataset is **built, gated, and correct**
-  (`data/detector_multicorpus/`, 1,334 train / 150 val / 150 test, val/test Tufts-only and
-  canonical). Same-day control measured: end-to-end **0.5844**. Two arms, pre-registered:
-  Control B = Tufts-only `detect` (isolates the `seg → detect` head change, since DENTEX has no
-  polygons), Arm = Tufts + DENTEX `detect` (isolates the data). Adoption requires the paired ΔFDI
-  CI to exclude zero **and** Tufts test box mAP@0.5 ≥ 0.75. **Only the GPU run remains** — tar the
-  dataset, upload once, train both arms (~₹210 on an A30, ~5 h). `scripts/yolo/train_multicorpus_detector.py`.
-- **B2 — Lever 2 caries lesion detector on CariesXrays.** Not started. Needs its own
-  pre-registration and its own image-level split; the AAAI paper's FPCL baselines are the
-  comparison target (**not yet read — quote nothing from them until they are**).
-- **B3 — Lever 3 caries gate v5** on CariesXrays-derived tooth labels. Blocked on B1 (needs the
-  better detector to assign lesion boxes to teeth). Cheap.
+- **B1 — Lever 1 detector retrain (Tufts + DENTEX). DONE 1 Sep — ABLATION, not adopted.**
+  Ran on a rented RTX PRO 6000 (₹267.84, `RESULTS_LOG.md` 2026-09-01h,
+  `models/13_detector_multicorpus_lever1/`). **Primary succeeds overwhelmingly:** FDI exact
+  end-to-end on the 164 leak-free DENTEX images **0.5844 → 0.9338**, paired Δ **+34.9 pp
+  [+30.8, +39.0]** — the entire gain is the added DENTEX data (the seg→detect head change on its
+  own is n.s.). **Guard fails:** Tufts frozen test box mAP@0.5 **0.810 → 0.647** (the
+  pre-registered "domain dilution" risk, confirmed). Pre-registered rule needs BOTH → **ablation,
+  pipeline default detector unchanged.** The 93.4% is an *in-domain* number (DENTEX detector +
+  DENTEX head on held-out DENTEX; leakage ruled out three ways) — it is the strongest evidence
+  yet that the 58.3% headline is **detector-domain-limited, not numbering-limited**, but it is
+  not the cross-domain scenario 58.3% measures and must not be quoted as if it were.
+- **B2 — Lever 2 caries lesion detector on CariesXrays. Timeboxed by the §5 council: 1 day to
+  read the AAAI FPCL baselines → go/no-go.** Go only if their test split is reproducible AND the
+  numbers look beatable; then pre-register, ~1 GPU-day (~₹300), and it is a *bonus section that
+  does not block Track A*. Otherwise drop it. **Quote nothing from the AAAI baselines until read.**
+- **B3 — Lever 3 caries gate v5** on CariesXrays-derived tooth labels. Re-scoped 1 Sep: it can use
+  `models/13/arm_multicorpus_best.pt` purely to assign lesion boxes to teeth for label generation
+  (not adopting it into the pipeline). Cheap, but **below Track A** — likely not for this
+  submission.
 - **NOT a lever, and decided against:** a 4th caries-gate arm chasing CLAHE's +0.049 AP
   near-miss. Its CI includes zero and the blocker is 34 source images, not method
   (`RESULTS_LOG.md` 2026-08-31b).
@@ -496,8 +512,38 @@ submission, these move):**
 | Newly-launched venues (e.g. an event advertised as a 1st-edition conference) | 1st | varies | B |
 
 **ISBI 2027 is the named target** (`MASTER_PLAN_2026H2.md`, W8 = ISBI submission window) and
-is verified as an S-grade venue by edition count. As of this update: **~2 months to the
-deadline.**
+is verified as an S-grade venue by edition count. As of this update: **~8 weeks to the deadline
+(26 Oct), ~6 to the 14 Oct implementation freeze.** Re-verify ISBI's current Scopus indexing on
+the official source list before committing.
+
+### 1 September 2026 — publication framing council
+
+**Two framings were weighed; Framing A is the working spine.**
+
+| | Framing A — evaluation / protocol paper | Framing B — systems paper with a positive number |
+|---|---|---|
+| Core | Tooth-level caries scores are base-rate dominated; an image-blind constant ties/beats the pipeline across **6 cohorts**; stage-wise decomposition locates the ceiling (detector *domain*, quantified by Lever 1: 58 → 93 %). | Needs Lever 2 to land a caries-lesion mAP near CariesXrays' published FPCL baselines. |
+| Readiness | Everything exists. 8 wks covers cut + compliance + polish. | 1.5–3 wks of research (VOC→YOLO conversion, pre-reg, training, eval) with a real chance of nothing usable. |
+| Novelty | Methodological: only 2/49 task-relevant papers do genuine external validation. "Are we making progress?" critiques publish at good venues. | Off-the-shelf YOLO on a public benchmark — weak standalone contribution; reviewers ask "what's novel?" |
+| Does it fix the finding? | It **is** the finding, framed constructively (protocol + deployed system + Lever-1 mechanism result). | **No** — the constant beats the *tooth-level* metric because of base-rate dominance, not model quality. Lever 2 improves a *different* (lesion-level) metric. |
+
+**Decision:** ship **A**. Run **Lever 2 in parallel, hard-capped at 1 day** (read the AAAI FPCL
+baselines → go/no-go). Clean reproducible split + beatable numbers → a 3-day bonus section that
+does **not** block the core. Otherwise drop it same day. Never let B be load-bearing.
+
+**A is not a "negative-result paper"** — its positive deliverables are (1) a reusable evaluation
+protocol the field lacks, (2) the Lever-1 mechanism result (the 58.3 % ceiling is the detector's
+domain — same-domain detector nearly doubles end-to-end), (3) a deployed, reproducible pipeline
+(Docker, pinned env, 90 auto-verified numbers).
+
+**Venue:** target ISBI (deadline forcing function + S-grade); **commit a journal as the fallback**
+if rejected (IEEE JBHI / *Diagnostics* / *Medical Image Analysis* — journal = S regardless of
+edition). Do **not** drop to a 1st-edition conference (B) — the work is above that.
+
+**Grade expectation, honest:** ISBI accept → S (realistic, ~60 % base rate, rigour helps). ISBI
+reject → journal resubmit → S (slower). The real blocker is not paper quality — it is whichever
+co-author controls the Tufts Drive / IRB / dataset accounts doing the compliance work in the next
+~2 weeks.
 
 ### Is this project publishable there, honestly assessed
 
@@ -515,10 +561,16 @@ internal checkpoint choice). What is actually competitive:
   33-point in-domain/out-of-domain gap, from a different Q1 paper, matching what this project
   measured for its own Stage 2 and bone-loss branches. `RESULTS_LOG.md` 2026-08-26a §3.
 
+- **External validation on 4 hospitals + the CariesXrays benchmark = 6 independent cohorts**,
+  zero leakage verified per corpus. This is the differentiator.
+- **Lever 1's quantified decomposition** (1 Sep): the 58.3 % end-to-end ceiling is the detector's
+  *domain*, not the numbering head — a same-domain detector reaches 93.4 % on the same metric
+  (in-domain; ablation, not adopted). Shows exactly what to fix and by how much.
+
 **What will draw reviewer pushback, and should be framed rather than hidden:**
-- **46.6% Stage-2 end-to-end** is not a strong headline number by itself — it is a fair
-  end-to-end number *including* the detector's recall, which most comparable work does not
-  report on. R1 is the lever that actually raises it.
+- **58.3% Stage-2 end-to-end** (cross-domain) is not a strong headline number by itself — it is a
+  fair end-to-end number *including* the detector's recall, which most comparable work does not
+  report on. Lever 1 shows the ceiling is domain, not method — report both.
 - **Bone loss collapsing out-of-domain** (0.92 → 0.7–5.4%) reads badly presented as a bug; it
   reads as a genuine, well-measured finding presented as one, since it is corroborated on two
   independent external datasets.
@@ -529,25 +581,26 @@ contribution (a public dataset error nobody else has flagged); until then it bel
 paper only as "a labelling convention this pipeline had to detect and correct," not as
 "discovered a previously unreported dataset defect."
 
-**Bottom line:** ISBI 2027 (S-grade) is a realistic target if R1 lands and moves the headline
-number, and a defensible one even if it does not, on the strength of the generalisation and
-external-validation results already in hand. Nobody can promise acceptance; the honest
-framing above is what gives it the best odds.
+**Bottom line:** ISBI 2027 (S-grade) is a realistic target on Framing A — the 6-cohort external
+validation, the Lever-1 decomposition and the reproducible deployed system are competitive
+independent of any single score. Nobody can promise acceptance; a journal fallback keeps S in
+reach either way. The odds are set by whether the compliance blockers close, not by the numbers.
 
 ---
 
 ## 6. The R1 GPU session — run order, JarvisLabs
 
-> ✅ **R1 IS DONE (27 Aug 2026) and no instance is running.** This section is retained as the
-> validated runbook for the *next* rented job, not as an outstanding task. What it cost in
-> practice: **₹249.19 across two runs** (one void, one real), against the ~₹210–280 estimated
-> for a single run — i.e. the estimate was right, and the overrun was entirely the withdrawn
-> run. **₹650.81 remained then; the current balance is ₹1,084.54 (§8).**
+> ✅ **R1 IS DONE (27 Aug 2026) and Lever 1 is DONE (1 Sep 2026). No instance is running.** This
+> section is retained as the validated runbook for the *next* rented job. R1 cost **₹249.19**
+> across two runs; Lever 1 cost **₹267.84** on an RTX PRO 6000 (one aborted A30 attempt first,
+> ₹21.45). **Balance now ₹816.70 (§8).**
 >
-> **The next rented job is Lever 1 / B1** (multi-corpus detector, §3 Track B). Its dataset is
-> built and gated; a first A30 attempt on 1 Sep was aborted mid-upload (₹21.45, nothing trained).
-> The macOS `jl` runbook is `GPU_SETUP.md` §0. Same rule as R1 applies: re-run the geometry gate
-> **on the rented box** after upload, before launch.
+> **The runbook that worked for Lever 1, added to the R1 rules below:** `tar` the dataset to ONE
+> file (per-file upload is the bottleneck), sha256 both ends, extract, **`find … -name '._*'
+> -delete`** (macOS tar ships AppleDouble files that double the counts), re-run the geometry gate
+> **on the rented box**, pin `ultralytics` to the training version that produced the frozen
+> models (8.4.127) so downloaded `best.pt` loads on the Mac, score arms **on the Mac** (same
+> machine as the same-day control), destroy the instance the moment weights are down.
 >
 > **Two things this runbook did NOT say, learned the hard way — do them next time:**
 > 1. **Verify data geometry against an independent reference BEFORE renting.** The first run
@@ -637,8 +690,9 @@ fresh clone after `git push`), read this section in full before assuming anythin
 | **Model checkpoints — what `git clone` alone gets you, and what it does not.** | `docs/EXTERNAL_DRIVE.md` | **Only two files, unchanged from before, need a manual fetch**: `models/06_yolo_detection_a100_run/best.pt` (detector, Tufts drive) and `models/09_caries_gate_v3/caries_gate_v3.pth` (caries gate, DENTEX drive) — both >50 MB, gitignored per `CLAUDE.md` rule 4. **Everything else `run_inference.py` needs, including the new Stage-2 head v2.0 (`models/10_fdi_head_dentex_tufts_v2/enumeration_head_best.pth`, 43 MB), is committed to git and needs no Drive fetch.** `docs/EXTERNAL_DRIVE.md` has exact restore steps and a runnable smoke-test command. |
 | Docker daemon | Not verified this session either | `docker build` has never actually executed — see §3 item 7. |
 | **CariesXrays dataset** (~2 GB) | `~/Downloads/Capstone/CariesXrays_Dataset/` | AAAI 2024 (Chen et al.), 6,000 panoramic images + Pascal-VOC lesion boxes. Used **frozen-pipeline only** as the 6th external cohort (`scripts/eval/cariesxrays_external.py`); a random seed-42 draw of 1,500 was scored. No LICENSE file ships with it — recorded in `main.tex` §8.25. Not needed for inference. |
-| **Multi-corpus detector dataset** (Lever 1 / B1) | `data/detector_multicorpus/` (~816 MB, gitignored) | Built + geometry-gated 1 Sep by `scripts/yolo/build_multicorpus_detector_dataset.py` (Tufts 700 + DENTEX `quadrant_enumeration` 634 → YOLO `detect`, detector-rotated frame). 1,334 train / 150 val / 150 test; val+test are Tufts-only and reproduce the canonical **3,794 / 3,924** box counts exactly. Regenerable; never commit the images. |
-| JarvisLabs instances | Account-level | **None running, none paused — verified 1 Sep.** History: both R1 instances destroyed 27 Aug (balance then ₹650.81); balance later topped up to **₹1,105.99**; on 1 Sep an **A30 24 GB** instance was created for Lever 1 (`jl create --gpu A100` returned "not available"), then **terminated by the user during a slow rsync upload before any training started** — **₹21.45 spent, nothing trained**. Balance now **₹1,084.54**. Next attempt: `tar` the dataset and upload one file (rsync of 3,268 small files was the bottleneck). |
+| **Multi-corpus detector dataset** (Lever 1 / B1) | `data/detector_multicorpus/` (~816 MB, gitignored) | Built + geometry-gated 1 Sep by `scripts/yolo/build_multicorpus_detector_dataset.py` (Tufts 700 + DENTEX `quadrant_enumeration` 634 → YOLO `detect`, detector-rotated frame). 1,334 train / 150 val / 150 test; val+test are Tufts-only and reproduce the canonical **3,794 / 3,924** box counts exactly. Regenerable; never commit the images. A `detector_multicorpus.tar` for upload = 817 MB one file. |
+| **Lever 1 detector weights** (ABLATION) | `models/13_detector_multicorpus_lever1/*.pt` (2 × 49 MB, gitignored) | `controlB_tuftsonly_best.pt` (sha256 `104564f3…`) and `arm_multicorpus_best.pt` (sha256 `5bc24b71…`). NOT the pipeline default — see `run_summary.txt`. Kept on local disk only. |
+| JarvisLabs instances | Account-level | **None running, none paused — verified 1 Sep.** History: R1 instances destroyed 27 Aug; balance topped up to **₹1,105.99**; an A30 attempt for Lever 1 aborted mid-upload (₹21.45, nothing trained); **Lever 1 then ran to completion 1 Sep on an RTX PRO 6000 Blackwell** (instance 491623, IN1, `jl create --gpu` returned A100/H100 unavailable as containers), **₹267.84**, both arms trained + guard-valued, weights downloaded, **instance destroyed**. Balance now **₹816.70**. |
 | SSH keys | `~/.ssh/id_ed25519_jarvis` (+ a copy at `~/.ssh/id_ed25519`, since `jl` passes no `-i` and relies on OpenSSH's default lookup); this Mac's own key at `~/.ssh/id_ed25519` | Two keys registered with JarvisLabs: `r1-seg-windows` (the Windows box) and **`macos-m4pro`** (this machine, added 1 Sep). The `jl` CLI (0.2.17) is installed and authenticated here — the user ran `jl setup` themselves; the token is not in this repo or any session. The **E2E** `.pem` pasted into a chat on 20 Aug is still to be treated as compromised — different provider, unrelated key. |
 
 ### The Windows machine — a different inventory, verified 26 Aug 2026

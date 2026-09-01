@@ -1464,6 +1464,33 @@ statistically significant, this says the seg detector's contribution is box *qua
 That is a mechanism claim with evidence behind it, and it is the kind of stage-wise error
 attribution contribution [C3] promises.
 
+**Direct confirmation that detection DOMAIN is the ceiling (1 Sep 2026, `RESULTS_LOG` 2026-09-01h).**
+Lever 1 re-trained the detector on Tufts **+ DENTEX** `quadrant_enumeration` (disjoint patients
+from the 164-image benchmark — leakage ruled out by MD5, filename and perceptual hash). Against
+a same-day control and with the identical frozen head, primary metric FDI exact end-to-end on the
+164, paired cluster bootstrap over images:
+
+| detector | recall | of detected | **end-to-end** | Tufts frozen test box mAP@0.5 |
+|---|---|---|---|---|
+| deployed seg (Tufts only) | 70.8% | 82.5% | **58.4%** | **0.810** |
+| Tufts-only, detect head | 83.1% | 72.4% | 60.1% | 0.724 |
+| **Tufts + DENTEX, detect head** | 99.5% | 93.9% | **93.4%** | **0.647** |
+
+Δ end-to-end vs the deployed detector **+34.9 pp [+30.8, +39.0]** (CI excludes zero); the seg→detect
+head change on its own is not significant (+1.7 pp [−3.4, +6.8]), so the entire gain is the added
+data. **This is the strongest evidence in the paper that the 58.3% headline is
+detector-*domain*-limited, not numbering-limited** — put a same-domain detector in front of the
+same head and end-to-end nearly doubles.
+
+**Two things must be stated with it, and neither is optional.** (1) 93.4% is an **in-domain**
+number — detector and head both trained on DENTEX-style data, evaluated on held-out DENTEX —
+whereas 58.3% is a **cross-domain** number for the detector (trained on Tufts, tested on DENTEX).
+They answer different questions and 93.4% is not "the pipeline now works everywhere." (2) The
+multi-corpus detector was **pre-registered as an ablation and stays one**: it fails the
+pre-registered Tufts guard (test box mAP@0.5 0.810 → 0.647), which is the "domain dilution" risk
+the pre-registration named in advance. Adopting it would trade the Tufts benchmark every earlier
+number rests on. `models/13_detector_multicorpus_lever1/run_summary.txt`.
+
 ---
 
 ### 8.17 Caries failure panel — what the 0.40 precision is actually made of
