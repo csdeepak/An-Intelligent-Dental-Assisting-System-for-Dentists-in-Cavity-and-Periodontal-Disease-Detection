@@ -1,6 +1,7 @@
 # `data/` — datasets
 
-**Last verified: 26 August 2026 (Tufts enumeration corpus added)** against the working tree.
+**Last verified: 1 September 2026** against the working tree (added the Lever 1 multi-corpus
+detector dataset and the CariesXrays external cohort; earlier: 26 Aug, Tufts enumeration corpus).
 Everything of size here is git-ignored; what *is* tracked is the small, high-value metadata
 that makes a run reproducible — split manifests and index CSVs.
 
@@ -19,7 +20,10 @@ this machine.
 data/
 ├── tufts/                     2.2 GB   Stage 1 detection + Stage 4 bone loss + Stage 2 (second corpus)
 │   ├── ZIP/                   291 MB   raw Tufts release (teeth_polygon.json, teeth_bbox.json, …)
-│   ├── dataset_seg/           474 MB   [R1] YOLO-seg training set — 26,005 instances, 700/150/150
+│   ├── dataset_seg/           474 MB   ⚠️ SUPERSEDED, labels 90° off (the withdrawn pre-fix R1
+│   │                                   corpus). NOT what the adopted detector trained on — see §1a
+│   │                                   of transfer.md. `dataset_seg_v2/` (the corrected build R1
+│   │                                   actually used) is regenerable but NOT on this machine.
 │   ├── enumeration_v1/        1.5 GB   [Stage 2] FDI-labelled crops (42,755) + manifest — Tufts'
 │   │                                   numbering is left-right MIRRORED and corrected before use;
 │   │                                   see scripts/tufts/README.md before touching this data
@@ -32,10 +36,21 @@ data/
 │   │                                   reporting any Stage-2 number.
 │   ├── raw/                   6.9 MB   COCO annotation JSONs (gitignored, re-downloadable)
 │   ├── crops_v2/              1.2 GB   Stage-3 caries crops + manifest
+│   ├── crops_v3_phase1/                pinned v3.0 caries-gate corpus (gitignored)
+│   ├── crops_v4_phase1/                31 Aug — v3 + 444 disease-only images (negative result; gitignored)
+│   ├── crops_clahe_phase1/             31 Aug — CLAHE arm (gitignored)
+│   ├── crops_exp125_phase1/            31 Aug — 1.25× crop arm (gitignored)
 │   └── enumeration_v1/        1.7 GB   Stage-2 enumeration-head crops (33,461) + manifest
+├── detector_multicorpus/     816 MB   [Lever 1 / B1] Tufts + DENTEX YOLO-detect set — 1,334/150/150,
+│                                      val+test Tufts-only + canonical. Built + geometry-gated 1 Sep.
+│                                      Gitignored; rebuild with scripts/yolo/build_multicorpus_detector_dataset.py
 └── ningxia/                   1.7 MB   primary EXTERNAL validation
     └── manifest.csv           1.7 MB   ** TRACKED ** — 13,160 rows; the images are NOT here
 ```
+
+**Caries crop variants (`crops_v3` … `crops_exp125`):** the default `build_caries_phase1_v3.py`
+path reproduces `crops_v3_phase1` exactly; the other three are opt-in experiment builds from
+31 Aug and are **not** part of any shipped model (`RESULTS_LOG.md` 2026-08-31 / 08-31b).
 
 ## Where the bulk data actually lives
 
@@ -45,7 +60,8 @@ data/
 | **Tufts** frozen split | `_repo_archive/datasets_workspace/outputs/eda_tufts/split_v1.csv` | The split behind every reported detector number. Gitignored, which is why a previous search declared it lost. |
 | **DENTEX** full release | `~/Downloads/Capstone/DENTEX/` | Outside the repo. See below. |
 | **Ningxia** images | `~/Downloads/Capstone/ningxia_local/` (test splits only, 2.4 GB) | **Connected and evaluated 25 Aug.** Train split (11.2 GB) deliberately left on the pen drive — Ningxia is locked external test data, never trained on. Zero leakage verified against all 5 other corpora, each checked separately. `docs/EXTERNAL_DRIVE.md` has the drive links; `RESULTS_LOG.md` 2026-08-25d has the numbers. |
-| **Clinic (SDH)** | Not on this machine | Governance-blocked — `docs/research/clinical_dataset_provenance.md` §4a. |
+| **CariesXrays** (AAAI 2024, Chen et al.) | `~/Downloads/Capstone/CariesXrays_Dataset/` (~2 GB) | 6,000 panoramic images + Pascal-VOC per-lesion boxes. Used **frozen-pipeline only** as the 6th external cohort (a seed-42 random 1,500-image draw scored; `scripts/eval/cariesxrays_external.py`). No LICENSE file ships with it — flagged in `main.tex` §8.25. Never trained on. Constant beats pipeline by **+0.252 [+0.232, +0.273]** — the strongest form of the paper's central claim. |
+| **Clinic (SDH)** | On the **Windows** machine, `D:\` (struck 30 Aug — not the macOS machine) | Consent obtained 30 Aug; `docs/research/SDH_EXECUTION_PLAN.md`. Metrics-only artefacts tracked at `data/sdh/`; no pixel leaves `D:`. |
 
 ## The DENTEX release, mapped
 

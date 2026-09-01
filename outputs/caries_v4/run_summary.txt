@@ -1,0 +1,130 @@
+CARIES PHASE-1 GATE — v4, EXPANDED POSITIVE CLASS
+Trained: 31 August 2026 · macOS M4 Pro / MPS · 8 min 16 s
+Status:  NOT ADOPTED. This is a documented NEGATIVE RESULT, kept as evidence.
+         The pipeline default remains caries-gate-resnet18-v3.0
+         (models/09_caries_gate_v3/), unchanged and still hash-pinned.
+
+--------------------------------------------------------------------------------
+WHAT WAS TESTED
+--------------------------------------------------------------------------------
+Whether the caries gate's precision (0.398) and recall (0.740) are limited by the
+amount of caries supervision it sees.
+
+Measured first: DENTEX's disease subset carries 2,767 Caries + Deep Caries
+annotations across 705 images. `crops_v3_phase1` uses 1,049 of them, because the
+MD5 join that makes healthy teeth derivable only covers the 260 images with an
+enumeration twin. 62% of the available caries supervision was unused.
+
+v4 adds the 445 disease-only images as POSITIVES ONLY (plus their impacted /
+periapical teeth as negatives). It deliberately adds NO healthy teeth: without an
+enumeration twin there is no list of which teeth are present, and deriving
+negatives by running the detector would inject detector false positives into the
+negative class. The healthy negative class is therefore byte-identical to v3's.
+
+--------------------------------------------------------------------------------
+DATA
+--------------------------------------------------------------------------------
+  build   python scripts/dentex/build_caries_phase1_v3.py --include-disease-only \
+              --out data/dentex/crops_v4_phase1
+
+                        v3              v4          delta
+  train           4,750           6,332
+      caries        723           1,928          +2.67x
+      no_caries   4,027           4,404
+  val             1,003           1,288
+  test              863           1,218
+  healthy negatives 5,366         5,366          UNCHANGED by design
+  impacted            179           596
+  periapical           22           151
+
+  Class ratio (train, caries:no_caries)  1:5.57  ->  1:2.28
+
+  445 disease-only images available; 444 used. ONE was refused: train_332.png is
+  byte-identical to test_181.png in the DENTEX/disease/ evaluation pool, and is
+  already recorded in data/dentex/disease_leaked_images.json as
+  leaked_into_detector_training. The v3 corpus never contained it either.
+
+  Verified before training:
+    * default build (no flag) reproduces the frozen v3 corpus EXACTLY
+      (4,750 / 1,003 / 863; healthy 5,366; ambiguous 856) — the change is additive
+    * 0 source images span two splits (688 images checked)
+    * 0 v3-test images appear in v4 train or val
+    * v3's 863 test crops are all present in v4's test split
+
+--------------------------------------------------------------------------------
+TRAINING — one variable changed against v3
+--------------------------------------------------------------------------------
+  python scripts/dentex/train_caries_cascade.py --crops data/dentex \
+      --variant crops_v4_phase1 --arm b --phase1-only --out outputs/caries_v4
+
+  ResNet18 (ImageNet), fc->2, arm B (augmented), 15 epochs, batch 32, lr 1e-3,
+  cosine, class weights [1.6421, 0.7189] (inverse frequency on 1928/4404),
+  seed 42, MPS. Best epoch 12 by val macro-F1 (0.8090).
+  Identical to v3's command except --variant.
+
+--------------------------------------------------------------------------------
+RESULT — both gates on the SAME published 863-crop test set
+--------------------------------------------------------------------------------
+                   P        R       F1       AP      AUC
+  v3 (shipped)  0.3983   0.7402   0.5179   0.5503   0.8548
+  v4            0.4346   0.6535   0.5220   0.5496   0.8599
+
+  Paired cluster bootstrap over the 34 source images, 5,000 resamples, seed 42:
+
+    average precision   -0.0015   [-0.0886, +0.0821]   not significant
+    ROC AUC             +0.0053   [-0.0227, +0.0365]   not significant
+    F1 @0.5             +0.0035   [-0.0651, +0.0740]   not significant
+    precision @0.5      +0.0358   [-0.0272, +0.0991]   not significant
+    recall @0.5         -0.0881   [-0.1923, +0.0233]   not significant
+
+  EVERY interval spans zero. Average precision -- the threshold-independent
+  measure of the whole PR curve -- did not move. The precision gain and the
+  recall loss are a shift ALONG the same curve, caused by the changed class
+  balance moving what the 0.50 threshold means, not by better discrimination.
+
+  CONCLUSION: 2.67x more caries training data did not improve the gate.
+  The bottleneck is not the quantity of positive supervision.
+
+--------------------------------------------------------------------------------
+⚠ THE NUMBER IN phase1_gate_report.txt THAT MUST NOT BE QUOTED
+--------------------------------------------------------------------------------
+arm_b/phase1_gate_report.txt reports, on v4's OWN test split, caries
+precision 0.71 / recall 0.80. Against v3's published 0.398 / 0.740 that reads as
+a transformation. IT IS NOT ONE, and it must never be quoted that way:
+
+                        n      prevalence   sens    spec    precision
+  v4 on v3-test (863)   863      0.147      0.654   0.853     0.435
+  v4 on v4-test (1218) 1218      0.324      0.800   0.843     0.710
+
+Specificity -- the model-intrinsic quantity -- is essentially unchanged
+(0.853 vs 0.843). Precision moved because v4's test split has 2.2x the caries
+prevalence, since the disease-only images contribute positives and no healthy
+teeth. Precision is a function of prevalence; comparing it across two test sets
+with different prevalence measures the sets, not the models.
+
+The only valid comparison is the like-for-like one above, on the shared
+863-crop set, and it says the gate did not improve.
+
+--------------------------------------------------------------------------------
+WHY IT DID NOT WORK — stated as hypotheses, not conclusions
+--------------------------------------------------------------------------------
+1. The NEGATIVE class did not grow. A decision boundary between caries and
+   healthy is set as much by the negatives as the positives, and v4 saw the same
+   5,366 healthy teeth as v3. This follows directly from the positives-only
+   design and is the most likely explanation.
+2. Presumed-negative label noise, already recorded in crops meta.json: DENTEX
+   annotates only diseased teeth, so a tooth with no annotation is PRESUMED
+   healthy. Any lesion the annotators missed sits in the negative class as a
+   false negative, capping achievable precision. Unmeasurable inside DENTEX.
+3. The task may simply be near its headroom at this crop geometry. The tight
+   1.0x crop cuts at the tooth boundary, and interproximal caries sits at the
+   contact point between two teeth.
+
+--------------------------------------------------------------------------------
+FILES
+--------------------------------------------------------------------------------
+  arm_b/phase1_best.pth          43 MB, gitignored, regenerable by the command above
+  arm_b/results.json             full config + per-epoch log
+  arm_b/phase1_gate_report.txt   sklearn reports on v4's own val/test (see the warning)
+
+Full record: docs/results/RESULTS_LOG.md 2026-08-31, PAPER_MATERIAL.md §8.24.

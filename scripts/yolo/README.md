@@ -1,25 +1,31 @@
 # `scripts/yolo/` — Stage 1 tooth-detection scripts
 
-**Last verified: 22 August 2026.**
+**Last verified: 1 September 2026.**
 
 Three of these were recovered from the ad-hoc `DataSets/` exploration workspace that used to
 sit at the repo root (relocated to `_repo_archive/datasets_workspace/`, a sibling of this repo
 — nothing was deleted). Two more were added in August 2026 for the **R1 bbox → instance-mask
-upgrade** (`docs/research/MASTER_PLAN_2026H2.md` §3 R1).
+upgrade** (`docs/research/MASTER_PLAN_2026H2.md` §3 R1), and two more on 1 Sep for
+**Lever 1 / B1** — the multi-corpus detector retrain (`transfer.md` §3 Track B).
 
 They are the **Stage 1 (YOLOv11 tooth detection)** toolchain and are kept separate from the
 scripts in `scripts/` one level up, which belong to the **Stage 2–5 crop/classifier**
 toolchain. Both sets are live; they simply serve different halves of the pipeline.
 
-## The two toolchains here
+## The toolchains here
 
-| | bbox (current canonical) | seg (R1 upgrade, prepared not run) |
-|---|---|---|
-| convert | `convert_tufts_to_yolo.py` | `convert_tufts_to_yolo_seg.py` |
-| train | `train_yolo.py` | `train_yolo_seg.py` |
-| evaluate | `evaluate_yolo.py` | — (use Ultralytics val) |
-| dataset | `_repo_archive/datasets_workspace/dataset/` | `data/tufts/dataset_seg/` (built, 26,005 instances) |
-| status | **frozen**, `tooth-detector-a100-1024-v1.0` | **needs GPU only** — data ready, criterion pre-registered in `T0.6_detector_reconciliation.md` §2 |
+| | bbox (superseded baseline) | seg (**current pipeline default**) | multi-corpus (Lever 1 / B1) |
+|---|---|---|---|
+| convert | `convert_tufts_to_yolo.py` | `convert_tufts_to_yolo_seg.py` | `build_multicorpus_detector_dataset.py` |
+| train | `train_yolo.py` | `train_yolo_seg.py` | `train_multicorpus_detector.py` |
+| evaluate | `evaluate_yolo.py` | — (use Ultralytics val) | `scripts/eval/validate_fdi_assignment.py` + the pre-registration |
+| dataset | `_repo_archive/datasets_workspace/dataset/` | `data/tufts/dataset_seg_v2/` (corrected build) | `data/detector_multicorpus/` (built + gated, ~816 MB, gitignored) |
+| status | **frozen**, `tooth-detector-a100-1024-v1.0` (val 0.834 / test 0.782) | **frozen + adopted 27 Aug**, `models/11_yolo_seg_tufts_r1/best.pt` (`tooth-detector-seg-tufts-1024-v1.0`, box test 0.810). Boxes only — masks failed §2's bar, R2 stays unwired | **dataset ready, GPU run pending.** Two arms pre-registered in `outputs/detector_multicorpus/PRE_REGISTRATION.md`; first A30 attempt 1 Sep aborted mid-upload |
+
+**Lever 1 in one line:** pool the 700 Tufts detection images with DENTEX `quadrant_enumeration`
+(634 images / 18,095 boxes) to lift detector **recall** (70.6%), which is the measured binding
+constraint on the 58.3% Stage-2 headline. DENTEX ships no polygons, so this is a `detect` (not
+`-seg`) run — hence the separate `yolo11l.pt` base and the Tufts-only, canonical val/test split.
 
 `rotate_tufts_radiographs.py` sits upstream of both: the raw Tufts release ships **landscape
 1615×840**, and every converter expects portrait 840×1615. That rotation is **90° counter-clockwise** —
@@ -33,6 +39,8 @@ and tooth detection is largely indifferent to a 180° flip.
 | `convert_tufts_to_yolo.py` | Converts Tufts annotations to YOLO format. Reads `Radiographs_rotated/` (portrait 840×1615), `Segmentation/teeth_bbox.json` and the frozen 70/15/15 split CSV; writes `dataset/images/{train,val,test}`, `dataset/labels/{train,val,test}` (`0 cx cy w h`, normalised) and `dataset/data.yaml`. Single-class detection (`tooth`), primary/letter teeth **included**, degenerate boxes (w<2 or h<2) dropped, unlabelled images skipped. |
 | `train_yolo.py` | Fine-tunes YOLOv11l on the converted dataset. Locked config: imgsz 1024, AdamW, cosine LR 1e-3 → 1e-5, 150 epochs with early-stopping patience 30, clinically-valid augmentation only (no vertical flip, no mosaic). Writes `runs/detect/<name>/weights/{best,last}.pt`, `results.csv` and training curves. |
 | `evaluate_yolo.py` | Runs the trained `best.pt` against the held-out **test** split, writes an eval run directory with metric plots, prediction visualisations on 20 test images, and an `eval_summary.txt`. |
+| `build_multicorpus_detector_dataset.py` | **Lever 1 (1 Sep).** Builds `data/detector_multicorpus/` — Tufts (700 train, keyed by `outputs/eda_tufts/split_v1.csv`) + DENTEX `quadrant_enumeration` (634 imgs, all → train), converted into the detector's 90°-CCW frame via `src.orientation.rot_box`. **Three gates, all must pass or it aborts:** canonical box-count reproduction (Tufts val 3,794 / test 3,924, matching the frozen detector's GT), a geometry re-score of all 18,095 DENTEX boxes against source COCO (median IoU ≥ 0.99 — measured 1.0000), and an MD5 leakage guard vs the 164 leak-free eval images. Val/test are **Tufts-only** so box mAP stays comparable to the frozen detector. Tufts half is sourced from `_repo_archive/datasets_workspace/Segmentation/teeth_bbox.json` + `Radiographs_rotated/` — **not** `data/tufts/dataset_seg`, which is the withdrawn void corpus (`RESULTS_LOG.md` 2026-09-01e/f). |
+| `train_multicorpus_detector.py` | **Lever 1 (1 Sep).** `--arm {tuftsonly, multicorpus}`. Config copied verbatim from `train_yolo_seg.py` (epochs 150, patience 30, batch 32, imgsz 1024, seed 42, deterministic, AdamW, cos_lr) — the **only** deliberate differences are `yolo11l.pt` (detect, not seg) and the train split. `tuftsonly` derives a 700-image Tufts-only train split from the same uploaded tree and is Control B (isolates the seg→detect head change); `multicorpus` is the Arm (isolates the data). Writes `data_<arm>.yaml` at runtime; refuses CPU. |
 
 ## Relationship to the rest of the repo
 

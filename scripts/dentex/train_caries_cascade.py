@@ -96,7 +96,45 @@ def build_transforms(augment: bool):
     return train_tf, eval_tf
 
 
-def load_splits(crops_root: Path, variant: str, train_tf, eval_tf, batch_size, smoke=False):
+def position_balanced_sampler(ds, crops_root: Path, variant: str):
+    """Equalise every (tooth type x label) cell in the training stream.
+
+    RESULTS_LOG 2026-08-31 measured that the gate's score on GENUINELY HEALTHY teeth tracks the
+    training caries base rate for that tooth position (0.017 incisor -> 0.343 molar), i.e. the
+    position prior is predictive and the model uses it. Sampling each (tooth type x label) cell
+    at equal rate makes position carry no information about the label, so the prior stops paying.
+
+    NOTE, recorded in advance in outputs/caries_arms/PRE_REGISTRATION.md: this may LOWER pooled
+    AP, because the evaluation population really does have more caries in molars. A drop is
+    evidence that the reported score leans on the prior, not automatically a failed arm.
+    """
+    import csv
+    from collections import Counter
+    from torch.utils.data import WeightedRandomSampler
+
+    fdi_of = {r["crop"]: int(r["fdi"])
+              for r in csv.DictReader(open(crops_root / variant / "manifest.csv"))}
+
+    def ttype(f):
+        pos = f % 10
+        return "incisor" if pos <= 2 else "canine" if pos == 3 else \
+               "premolar" if pos in (4, 5) else "molar"
+
+    cells = []
+    for path, y in ds.samples:
+        name = Path(path).name
+        if name not in fdi_of:
+            raise SystemExit(f"{name} is not in the manifest — cannot position-balance")
+        cells.append((ttype(fdi_of[name]), y))
+    counts = Counter(cells)
+    weights = [1.0 / counts[c] for c in cells]
+    print(f"  position-balanced sampler over {len(counts)} (tooth type x label) cells: "
+          + ", ".join(f"{t}/{y}={n}" for (t, y), n in sorted(counts.items())))
+    return WeightedRandomSampler(weights, num_samples=len(ds), replacement=True)
+
+
+def load_splits(crops_root: Path, variant: str, train_tf, eval_tf, batch_size, smoke=False,
+                balance_position=False):
     from torch.utils.data import DataLoader, Subset
     from torchvision import datasets
 
@@ -125,8 +163,14 @@ def load_splits(crops_root: Path, variant: str, train_tf, eval_tf, batch_size, s
                 per_class.setdefault(y, []).append(i)
             keep = [i for ys in per_class.values() for i in ys[:32]]
             ds = Subset(ds, sorted(keep))
-        out[split] = DataLoader(ds, batch_size=batch_size, shuffle=(split == "train"),
-                                num_workers=0)
+        sampler = None
+        if split == "train" and balance_position:
+            if smoke:
+                raise SystemExit("--balance-position needs the full train split, not --smoke")
+            sampler = position_balanced_sampler(ds, crops_root, variant)
+        out[split] = DataLoader(ds, batch_size=batch_size,
+                                shuffle=(split == "train" and sampler is None),
+                                sampler=sampler, num_workers=0)
     assert "train" in out and "val" in out, f"need train/ and val/ under {base}"
     return out, class_to_idx
 
@@ -247,6 +291,8 @@ def main():
     ap.add_argument("--p2-head-lr", type=float, default=1e-3)
     ap.add_argument("--p2-full-epochs", type=int, default=12)
     ap.add_argument("--p2-full-lr", type=float, default=3e-5)
+    ap.add_argument("--balance-position", action="store_true",
+                    help="equalise each (tooth type x label) cell in training (signal arm C)")
     ap.add_argument("--smoke", action="store_true",
                     help="1 epoch per stage on <=64 images per split — verifies the code path")
     args = ap.parse_args()
@@ -284,7 +330,8 @@ def main():
 
     # ---------------- Phase 1 ----------------
     print("\n=== PHASE 1: caries vs no_caries (gate) ===")
-    l1, c2i1 = load_splits(args.crops, args.variant, train_tf, eval_tf, args.batch_size, args.smoke)
+    l1, c2i1 = load_splits(args.crops, args.variant, train_tf, eval_tf, args.batch_size,
+                           args.smoke, balance_position=args.balance_position)
     names1 = [k for k, _ in sorted(c2i1.items(), key=lambda kv: kv[1])]
     w1, counts1 = class_weights_from_loader(l1["train"], len(names1))
     print(f"  classes {c2i1}  train counts {counts1}  weights {[round(x,4) for x in w1.tolist()]}")

@@ -8,7 +8,9 @@ well-formed and still support nothing.
 import re
 from pathlib import Path
 
-D = Path(r"C:\Users\csdee\PESU\capstone\An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection\paper")
+# Repo-relative: the previous absolute Windows path meant this script could not run on
+# any other machine, which is why it had not been re-run since (RESULTS_LOG 2026-09-01d).
+D = Path(__file__).resolve().parents[1] / "paper"
 tex = (D / "main.tex").read_text(encoding="utf-8")
 bib = (D / "source.bib").read_text(encoding="utf-8")
 

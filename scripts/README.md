@@ -4,11 +4,11 @@ Four families. The library they call is `src/`; see `src/README.md`.
 
 | Path | Stage | See |
 |---|---|---|
-| `yolo/` | 1 — tooth detection (bbox + the R1 seg upgrade) | `yolo/README.md` |
-| `dentex/` | 2 and 3 — the enumeration head, plus caries data + training | `dentex/README.md` |
+| `yolo/` | 1 — tooth detection (bbox baseline, the adopted seg detector, the Lever 1 multi-corpus retrain) | `yolo/README.md` |
+| `dentex/` | 2 and 3 — the enumeration head, plus caries data + training (incl. the 31 Aug signal arms) | `dentex/README.md` |
 | `tufts/` | 2 — Tufts as a **second** FDI-numbering corpus (its labels are mirrored) | `tufts/README.md` |
-| `eval/` | evaluation and error propagation (C3) | `eval/README.md` |
-| *(top level)* | Stage 4 bone-loss dataset/training, and the full-pipeline entry point | below |
+| `eval/` | evaluation and error propagation (C3), plus the external-cohort evals (Ningxia, CariesXrays) | `eval/README.md` |
+| *(top level)* | Stage 4 bone-loss dataset/training, the full-pipeline entry point, and the paper-number / citation verifiers | below |
 
 ## Top-level scripts
 
@@ -17,6 +17,9 @@ Four families. The library they call is `src/`; see `src/README.md`.
 | `build_dataset.py` | Builds the bone-loss training crops from Tufts | ✅ used |
 | `train_model.py` | Trains the bone-loss ResNet18 | ✅ used |
 | `run_inference.py` | **The full-pipeline entry point: OPG in → per-tooth JSON + overlay out** | ✅ **Built 24 Aug** — all six stages; see `src/classifiers.py` for Stages 3–4 |
+| `verify_paper_numbers.py` | Asserts every number in `paper/main.tex` against its saved JSON artefact | ✅ **90 claims** (was 82; +8 for the CariesXrays cohort, 1 Sep) |
+| `audit_citations.py` | Offline structural check of `paper/source.bib` (fields present, formatting) | ✅ hardcoded Windows path fixed 1 Sep — now repo-relative |
+| `verify_citations_crossref.py` | **Dereferences every DOI against the registry** (doi.org content negotiation + `doiRA` agency lookup) | ⚠️ **1 Sep: 22 of 63 checkable DOIs broken** — 11 resolve to a different paper, 11 unregistered. Submission blocker, `outputs/citation_audit/FINDINGS.md` |
 
 `run_inference.py`'s `main()` now delegates to `load_models()` + `run_pipeline()` (refactored
 25 Aug, verified byte-identical) so the CLI and `../app.py` (the Streamlit deployment demo,

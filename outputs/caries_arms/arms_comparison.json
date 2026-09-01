@@ -1,0 +1,159 @@
+{
+  "split": "test",
+  "n": 863,
+  "n_positive": 127,
+  "n_source_images": 34,
+  "primary_metric": "average precision on the 863-crop held-out test split",
+  "acceptance_rule": "paired AP delta vs control, 95% CI excluding zero (pre-registered in PRE_REGISTRATION.md before any arm was trained)",
+  "ci_method": "paired cluster bootstrap over 34 source images, 5000 usable resamples, seed 42",
+  "arms": {
+    "control": {
+      "precision": 0.3983,
+      "recall": 0.7402,
+      "f1": 0.5179,
+      "average_precision": 0.5503,
+      "roc_auc": 0.8548,
+      "within_type_auc": 0.7454,
+      "tp": 94,
+      "fp": 142,
+      "fn": 33
+    },
+    "clahe": {
+      "precision": 0.4545,
+      "recall": 0.7087,
+      "f1": 0.5538,
+      "average_precision": 0.5977,
+      "roc_auc": 0.8741,
+      "within_type_auc": 0.7887,
+      "tp": 90,
+      "fp": 108,
+      "fn": 37
+    },
+    "exp125": {
+      "precision": 0.4541,
+      "recall": 0.6614,
+      "f1": 0.5385,
+      "average_precision": 0.5684,
+      "roc_auc": 0.8524,
+      "within_type_auc": 0.7406,
+      "tp": 84,
+      "fp": 101,
+      "fn": 43
+    },
+    "balance": {
+      "precision": 0.4244,
+      "recall": 0.685,
+      "f1": 0.5241,
+      "average_precision": 0.5943,
+      "roc_auc": 0.8577,
+      "within_type_auc": 0.7662,
+      "tp": 87,
+      "fp": 118,
+      "fn": 40
+    }
+  },
+  "deltas_vs_control": {
+    "clahe": {
+      "average precision": {
+        "point": 0.0488,
+        "ci95": [
+          -0.0031,
+          0.0993
+        ],
+        "significant": false
+      },
+      "F1 @0.5": {
+        "point": 0.0357,
+        "ci95": [
+          -0.0185,
+          0.0896
+        ],
+        "significant": false
+      },
+      "precision @0.5": {
+        "point": 0.0558,
+        "ci95": [
+          0.0106,
+          0.1008
+        ],
+        "significant": true
+      },
+      "recall @0.5": {
+        "point": -0.0314,
+        "ci95": [
+          -0.1095,
+          0.05
+        ],
+        "significant": false
+      }
+    },
+    "exp125": {
+      "average precision": {
+        "point": 0.0198,
+        "ci95": [
+          -0.0367,
+          0.081
+        ],
+        "significant": false
+      },
+      "F1 @0.5": {
+        "point": 0.0198,
+        "ci95": [
+          -0.0331,
+          0.0701
+        ],
+        "significant": false
+      },
+      "precision @0.5": {
+        "point": 0.0549,
+        "ci95": [
+          0.0114,
+          0.0977
+        ],
+        "significant": true
+      },
+      "recall @0.5": {
+        "point": -0.0794,
+        "ci95": [
+          -0.1567,
+          -0.0078
+        ],
+        "significant": true
+      }
+    },
+    "balance": {
+      "average precision": {
+        "point": 0.0432,
+        "ci95": [
+          -0.0328,
+          0.1157
+        ],
+        "significant": false
+      },
+      "F1 @0.5": {
+        "point": 0.006,
+        "ci95": [
+          -0.0637,
+          0.074
+        ],
+        "significant": false
+      },
+      "precision @0.5": {
+        "point": 0.0256,
+        "ci95": [
+          -0.0322,
+          0.0824
+        ],
+        "significant": false
+      },
+      "recall @0.5": {
+        "point": -0.0549,
+        "ci95": [
+          -0.1508,
+          0.0395
+        ],
+        "significant": false
+      }
+    }
+  }
+}

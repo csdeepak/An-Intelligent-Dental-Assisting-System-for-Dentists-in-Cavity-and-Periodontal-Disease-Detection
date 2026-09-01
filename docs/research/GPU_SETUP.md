@@ -12,6 +12,50 @@ this project's own A100 bbox run, not vendor claims.
 
 ---
 
+## 0. macOS setup — verified 1 September 2026, from the authenticated account
+
+The CLI now runs on the **macOS M4 Pro** machine, not just Windows. Everything below was read
+from `jl` against the live account, not estimated.
+
+```bash
+pip install jarvislabs        # installed jl 0.2.17 — same build §2a documents
+jl setup --token <API_TOKEN> --yes
+```
+
+* **The Windows Unicode crash does NOT occur on macOS.** `jl --help`, `gpus`, `status` and
+  `ssh-key list` all render normally. The `PYTHONIOENCODING=utf-8 TERM=dumb NO_COLOR=1` prefix
+  in §2a is a **Windows/Git Bash workaround only** and is unnecessary here.
+* **SSH keys now registered: two.** `r1-seg-windows` (`tLWX5gX9`, the original) and
+  **`macos-m4pro` (`o3VKRmM3`)**, added 1 Sep so this machine can drive instances. Register
+  keys *before* `jl create` — §2b's gotcha still applies: a key added to an already-running
+  instance does not take effect until pause/resume.
+* **Account state at setup:** balance **₹1,105.99**, grants ₹0, **0 running / 0 paused**
+  instances, 0 deployments, 0 filesystems. Nothing is billing.
+
+### Live pricing, read from `jl gpus` on 1 Sep 2026 (supersedes the 26 Aug figures)
+
+| GPU | Region | VRAM | ₹/hr on-demand | ₹/hr **spot** | available? |
+|---|---|---|---|---|---|
+| A30 | IN2 | 24 GB | 38.88 | 27.54 | ✅ |
+| **A100** | **IN2** | **40 GB** | **84.24** | 74.52 | ✅ |
+| A100-80GB | IN2 | 80 GB | 140.94 | **84.24** | ✅ |
+| RTX-PRO6000 | IN1 | 96 GB | 179.01 | 93.96 | ✅ |
+| H100 | EU1 | 80 GB | 283.50 | — | ✅ |
+| H200 | IN2 | 141 GB | 378.27 | 188.73 | ✅ |
+| L4 | IN2 | 24 GB | 41.31 | 27.54 | ❌ **unavailable** |
+| H100 | IN2 | 80 GB | 255.15 | 112.59 | ❌ unavailable |
+
+Three things worth acting on:
+
+1. **A100-80GB on spot costs ₹84.24 — identical to A100-40GB on-demand.** 80 GB for the price
+   of 40, if the job tolerates preemption. YOLO checkpoints every epoch, so it usually does.
+2. **L4 is currently unavailable.** Any plan that assumed L4 for cheap ResNet18 work (head v3
+   cost ₹64.64 on one) should substitute **A30 at ₹38.88**, which is cheaper and available.
+3. **A100-40GB at ₹84.24 is the right default for this project's YOLO jobs.** R1 held batch 32
+   @ 1024 in ~17.9 GB, so 40 GB is ample and the 80 GB card is not worth ₹140.94 on-demand.
+
+The 26 Aug A100-80GB figure of ₹140.94 is unchanged and remains correct.
+
 ## 1. The instance, and what it costs
 
 **Verified 26 Aug 2026 against `jarvislabs.ai/in` (INR pricing page):**

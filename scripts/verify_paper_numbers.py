@@ -192,6 +192,27 @@ check("bone-loss external range",
 
 # ------------------------------------------------------- parameter counts
 # Counted from the checkpoints on 28 Aug 2026; see docs/paper/REBUILD_AUDIT.md.
+# --------------------------------------------------- CariesXrays (Table IV)
+# Sixth cohort, frozen pipeline. Both arms scored the SAME seed-fixed random draw,
+# so the paired delta below is recomputed here rather than copied from the manuscript.
+cx_p = load("outputs/cariesxrays_external_rand/cariesxrays_external_pipeline.json")
+cx_c = load("outputs/cariesxrays_external_rand/cariesxrays_external_constant-molars.json")
+assert cx_p["counts"]["lesions"] == cx_c["counts"]["lesions"], "arms are not paired"
+check("CariesXrays lesions", f"{cx_p['counts']['lesions']:,}", "cariesxrays_external_rand")
+check("CariesXrays images", f"{cx_p['n_images_scored']:,}", "cariesxrays_external_rand")
+check("CariesXrays pipeline", f"{cx_p['agreement_covered']:.3f}", "cariesxrays_external_rand")
+check("CariesXrays constant", f"{cx_c['agreement_covered']:.3f}", "cariesxrays_external_rand")
+check("CariesXrays delta pp",
+      f"{(cx_c['agreement_covered'] - cx_p['agreement_covered']) * 100:.1f}", "recomputed")
+check("CariesXrays pipeline match rate",
+      f"{cx_p['match_rate_DIAGNOSTIC_not_precision']:.3f}", "cariesxrays_external_rand")
+check("CariesXrays constant match rate",
+      f"{cx_c['match_rate_DIAGNOSTIC_not_precision']:.3f}", "cariesxrays_external_rand")
+# the constant flags more teeth -- the manuscript states 64%, recompute it
+_fl_p = cx_p["counts"]["teeth_flagged"]; _fl_c = cx_c["counts"]["teeth_flagged"]
+check("CariesXrays constant flags more by",
+      f"{(_fl_c / _fl_p - 1) * 100:.0f}%", "recomputed")
+
 for label, val in (("total params", "83.56 M"), ("caries-path params", "61.20 M"),
                    ("detector params", "27.62 M")):
     check(label, val, "torch.load over models/*/")

@@ -6,8 +6,97 @@ It is **rewritten, not appended to** — unlike `docs/results/RESULTS_LOG.md` (a
 history) and `docs/session-memory/` (one file per session, never edited). Those two are the
 record; this is the snapshot.
 
-**Last updated: 31 August 2026.** Staleness sweep — no work this session, no new numbers. The
-last working session (**29 August**, `docs/session-memory/2026-08-29-readme-rebuild-svg-assets.md`)
+**Last updated: 1 September 2026 (evening).** **The plan gained a second track today: improve the
+numbers, not just the methodology.** Seven failed caries experiments across three cohorts had left
+the paper resting on a negative headline (an image-blind constant ties or beats the pipeline). The
+user's decision — pursue score gains in parallel with the write-up, using the
+**₹1,105.99 JarvisLabs balance** (now **₹1,084.54**; **nothing running, nothing paused**) —
+produced a three-lever plan:
+
+- **Lever 1 — multi-corpus detector retrain.** Detector recall (70.6%) is the *measured* binding
+  constraint on the 58.3% Stage-2 headline: `end-to-end = recall × of-detected = 0.706 × 0.826`.
+  Pooling DENTEX `quadrant_enumeration` (634 images / 18,095 tooth boxes, already local) with the
+  700 Tufts images is **1.9× the detection supervision** — the same move DentFound used (2,698
+  images) for its tooth-identification model. **Pre-registered**
+  (`outputs/detector_multicorpus/PRE_REGISTRATION.md` + a two-arm amendment), dataset **built and
+  geometry-gated locally**, same-day control measured (**end-to-end 0.5844**). **The GPU run was
+  rented and then aborted mid-upload — nothing trained.** See the ⚠️ notes below.
+- **Lever 2 — caries lesion detector** trained on the CariesXrays benchmark (6,000 images /
+  13,783 lesion boxes), which ships its own published FPCL baselines. This would give the project
+  its first number placeable *beside a published result on the same data* — the thing a
+  conference reviewer can evaluate. Not started.
+- **Lever 3 — caries gate retrain** on CariesXrays-derived tooth labels (13× the DENTEX
+  positives, a different domain). Cheap follow-on once Lever 1's detector exists. Not started.
+
+**⚠️ Lever 1's first dataset build was VOID and was caught before any GPU spend.** Its Tufts half
+was derived from `data/tufts/dataset_seg`, which is the **withdrawn pre-fix corpus from the void
+26 Aug R1 run** — labels 90° out, sitting off the dentition. Rebuilt from `Segmentation/teeth_bbox.json`
+(the annotation the canonical 0.7824 detector trained on); it now reproduces that detector's
+val/test box counts (**3,794 / 3,924**) *exactly*, and the build aborts if it does not.
+`RESULTS_LOG.md` 2026-09-01e/f. Lesson twinned with the DOI one below: **a gate that only checks
+the half you already suspect is not a gate.**
+
+**⚠️ The A30 GPU run was created, then terminated by the user during a slow 816 MB rsync upload —
+₹21.45 spent, nothing trained, no instances left.** `jl create --gpu A100` had returned "not
+available", so an **A30 (24 GB, ₹38.88/hr)** was used instead — it holds R1's `batch 32 @ 1024`
+config unchanged. Next attempt: **tar the dataset and upload one file** — rsync of 3,268 small
+files was the bottleneck (~19 MB/min). The `jl` CLI is now installed and authenticated on this
+Mac, this machine's SSH key is registered as `macos-m4pro`, and live pricing + macOS setup notes
+are in `GPU_SETUP.md` §0.
+
+**The sixth-cohort result stands — it is the strongest form of the paper's central claim.**
+CariesXrays (Chen et al., **AAAI 2024**, DOI 10.1609/aaai.v38i20.30196), evaluated with the
+**frozen** pipeline, randomised 1,500 images / **3,421 lesions** (more than DENTEX and Ningxia
+combined): **pipeline 0.309 vs constant 0.561, paired Δ +0.252 [+0.232, +0.273]** — the constant
+wins outright. Mechanism measured: **72.0% of lesions on molars, 60.2% on the eight constant
+teeth**. Across cohorts: +0.046 (DENTEX), −0.009 (Ningxia, tie), **+0.252** (CariesXrays). Folded
+into `main.tex` as a new Table + §8.25; provenance verified against AAAI OJS / ACM DL / DBLP
+(licence not stated by the authors). `verify_paper_numbers.py` now asserts **90** claims (was 82).
+
+**⚠️ NEW SUBMISSION BLOCKER — 22 of 63 checkable DOIs in `source.bib` are broken.** Every DOI was
+dereferenced against the registry: **11 resolve to a *different paper*** (e.g.
+`karamuftuo2025panoramic` → *Foundations of Pediatric Lifestyle Medicine*), **11 are not
+registered with any agency**, and 19 further entries carry no DOI and were not checkable. This
+does **not** prove the papers are fabricated — a real paper can carry a mistyped identifier — but
+**each of the 22 needs a manual title lookup before submission**. It survived the 28 Aug audit
+because `audit_citations.py` makes no network call and had a hardcoded Windows path (fixed).
+`outputs/citation_audit/FINDINGS.md`, `RESULTS_LOG.md` 2026-09-01c/d,
+`scripts/verify_citations_crossref.py`. One 8th citation error was *fixed*: `chen2024cariesxrays`
+pointed at the adjacent AAAI article (30197, an unrelated fairness paper); corrected to 30196.
+
+**Previously: 31 August 2026.** Two things landed today. **(a) The caries branch was diagnosed
+and three fixes were tried; all three failed and are recorded** — `RESULTS_LOG.md` 2026-08-31,
+`PAPER_MATERIAL.md` §8.24, `docs/session-memory/2026-08-31-caries-position-bias-and-v4.md`. The
+finding: **the gate scores teeth partly by which tooth it is.** Its mean score on *genuinely
+healthy* teeth tracks the training base rate for that position (0.075 healthy incisors → **0.478
+healthy molars**), so **48.2% of healthy molars are flagged** — 79 of the 142 false positives —
+while only **1 of 8 incisor lesions** is found. Real signal survives removing the prior
+(**within-type AUC 0.7454 [0.6604, 0.8420]**), so the gate is not blind, but its reported score is
+substantially an anatomical prior. **This is the mechanism behind §8.22's constant baseline** and
+upgrades that finding from a claim about the metric to a measurement of the system. What failed:
+threshold tuning (0.50 already F1-optimal), per-tooth-type thresholds (F1 +0.006, CI spans zero),
+and **gate v4 trained on 2.67× the positives** after finding **62% of DENTEX's caries supervision
+unused** (2,767 annotations available, 1,049 used) — **AP 0.5503 → 0.5496, paired delta −0.0015
+[−0.0886, +0.0821]. v4 NOT adopted;** v3.0 remains the pinned default. Raising resolution was also
+ruled out by measurement (median box 170×287 vs the 224² already fed in). ⚠ **v4's own report shows
+P 0.71 / R 0.80 on its own test split — that is a 2.2× prevalence difference, not an improvement
+(specificity unchanged, 0.853 vs 0.843). Never quote it against v3's 0.398.**
+**Then three further arms were pre-registered and run (`RESULTS_LOG.md` 2026-08-31b): CLAHE, a
+1.25× crop expansion, and position-balanced sampling, each against a same-day control that
+reproduced v3's val macro-F1 exactly (0.7350). ΔAP: CLAHE +0.0488 [−0.0031, +0.0993] — **misses the
+pre-registered bar by 0.0031**; crop 1.25× +0.0198, position-balanced +0.0432, both n.s. **The bar
+was not moved and nothing was adopted.** One real secondary effect: **CLAHE gains precision +5.6 pp
+[+0.011, +0.101] with no significant recall cost.** **Five independent attempts have now failed to
+lift this curve, so "the caries branch is at its headroom on DENTEX" is the supported reading, not
+a worry — it is a citable result.** The blocker on settling CLAHE is statistical, not
+methodological: 863 test crops but only **34 source images**, so a +0.049 effect cannot be
+separated from zero. All of it ran **locally on MPS in ~35 min; no GPU was rented** (§6's rule).
+**(b) Staleness sweep + Review-1 prep. Earlier on 31 Aug:**
+relabelled the panel deck `REVIEW3_PANEL.html` for **Phase 3 / Progress Review 1** (course code
+`UE23CS441A`, Semester VII, left contents navbar, two pre-existing render bugs), added a
+"00 — Review 1" prep section to `TEAM_HANDBOOK.html`, and corrected the stale `model_metrics.md`
+header (`docs/session-memory/2026-08-31-review1-panel-prep.md`). The **29 August** session
+(`docs/session-memory/2026-08-29-readme-rebuild-svg-assets.md`)
 rebuilt the root **`README.md`** against the artefacts and added `docs/assets/` — seven
 hand-authored animated SVGs (hero, pipeline, error-propagation, C1 baselines, C2 domain shift,
 C4 abstention, repo-structure). It trained nothing (no `RESULTS_LOG.md` entry, by rule 1) and
@@ -40,7 +129,7 @@ ever opened all 3,219 files found **six truncated images** — the usable set is
 `docs/research/SDH_EXECUTION_PLAN.md`; numbers: `RESULTS_LOG.md` 2026-08-30. **It is not on the
 critical path** — see §3 item 10. Nothing below this paragraph changed on 30 Aug.
 
-**Previously: 28 August 2026.** **A complete manuscript now exists and compiles**, rebuilt from the artefacts after a full evidence audit (`docs/paper/REBUILD_AUDIT.md`, `RESULTS_LOG.md` 2026-08-28). Five defects in the previous draft were found and corrected — the worst was a whole-system parameter count of "~25 M" that was the *superseded detector alone*; the pipeline is **83.6 M across six models, 61.2 M on the caries path**, and that wrong figure had propagated into 9 places across 6 files. **The critical path is no longer "write the draft" — it is the venue-length cut** (12 pages against ISBI's 4) plus the four non-engineering compliance blockers. 122/122 tests, 82 manuscript numbers auto-verified against their JSONs, all invariants hold, ₹~313 GPU balance, nothing running.
+**Previously: 28 August 2026.** **A complete manuscript now exists and compiles**, rebuilt from the artefacts after a full evidence audit (`docs/paper/REBUILD_AUDIT.md`, `RESULTS_LOG.md` 2026-08-28). Five defects in the previous draft were found and corrected — the worst was a whole-system parameter count of "~25 M" that was the *superseded detector alone*; the pipeline is **83.6 M across six models, 61.2 M on the caries path**, and that wrong figure had propagated into 9 places across 6 files. **The critical path is no longer "write the draft" — it is the venue-length cut** (12 pages against ISBI's 4) plus the four non-engineering compliance blockers. 122/122 tests, 82 manuscript numbers auto-verified against their JSONs, all invariants hold, ₹~313 GPU balance at the time (now ₹1105.99), nothing running.
 
 **Previously: 27 August 2026**, end of a very long session. C1 ran and landed (VLM below a constant guess); the rigor block — confidence intervals, calibration, failure taxonomy, related work, ethics — is done; bone loss is a decided limitation rather than an open problem; DENTEX is local; the environment was rebuilt on Python 3.13 after the 3.11 install lost its interpreter mid-session. `RESULTS_LOG.md` 2026-08-27f … 2026-08-27aa is that day's history.
 
@@ -67,10 +156,12 @@ added; full README + checkpoint-continuity audit for a machine handoff.)
 
 **Everything is measured AND written. What is left is a length cut and paperwork.** The six-stage
 pipeline runs end to end, is deployed in a verified Docker image, and has been evaluated on four
-hospitals it never trained on. The results block is complete — C1, C2, C3-style error attribution,
+hospitals *and* a second public benchmark (CariesXrays, AAAI 2024) it never trained on — **six
+independent cohorts**. The results block is complete — C1, C2, C3-style error attribution,
 confidence intervals, calibration and a failure taxonomy all exist as numbers with saved artefacts
 behind them — and as of 28 August those numbers are assembled into a **complete manuscript that
-compiles clean** (0 errors, 0 overfull boxes, 0 undefined references, 12 pages).
+compiles clean** (0 errors, 0 overfull boxes, 0 undefined references, 12 pages; §8.25 + the
+3-cohort table added 1 Sep, so re-compile and re-measure length).
 
 **The manuscript's title changed on 28 Aug, and the reason matters.** It was *"What Does 44 %
 Mean?"* — but 44.3 % is 212/479, the *pipeline's own* lesion-localisation agreement: one row of one
@@ -83,8 +174,8 @@ because the result does **not** replicate externally.
 described everywhere as "~25 M parameters". That is the **superseded bbox detector alone**. Counted
 from the checkpoints: **83.56 M across six models, 61.19 M on the caries path** (per-stage table in
 `model_metrics.md`). Corrected in 5 files; `RESULTS_LOG.md` records it rather than being edited.
-`scripts/verify_paper_numbers.py` now asserts 82 manuscript numbers against their artefacts so this
-class of drift fails loudly next time.
+`scripts/verify_paper_numbers.py` now asserts **90** manuscript numbers against their artefacts (was
+82; +8 for the CariesXrays cohort, 1 Sep) so this class of drift fails loudly next time.
 
 **The headline: Stage-2 FDI is 58.3% end-to-end [53.9, 62.8], and that is a DETECTION-bound
 number.** 29.4% of ground-truth teeth are never detected; **of the 661 teeth Stage 1 does find,
@@ -105,7 +196,9 @@ and bone loss by **nothing**, which falsified the shared-root-cause hypothesis; 
 no bone-loss labels, so the combined-training lever never existed. Written up as `PAPER_MATERIAL.md`
 §8.13. **Its crops cannot be rebuilt on this machine** (§8, and `RESULTS_LOG.md` 2026-08-27u).
 
-**122/122 tests pass, `verify_invariants.py` all-hold with 3 previously-skipping checks now live.**
+**159/159 tests pass** (122 → 159: +37 orientation round-trip property tests added 1 Sep with
+`src.orientation.rot_box`/`rot_boxes`, for Lever 1's DENTEX→detector-frame box conversion),
+**`verify_invariants.py` all-hold** with 3 previously-skipping checks now live.
 We are past W2 of the 8-week plan on results and, as of 28 Aug, **no longer behind on prose**;
 implementation freeze **14 Oct**, ISBI **26 Oct**.
 
@@ -250,8 +343,8 @@ vs bbox's 3,924 (+0.15%), so near-, not exactly, like-for-like.
 | **The frozen Tufts split is now derived from code**, not a file carried between laptops — reproduces byte-for-byte (SHA-256 verified) | `scripts/tufts/regenerate_split_v1.py`; `RESULTS_LOG.md` 2026-08-26c |
 | **R2 mask-aware cropping** implemented + unit-tested (**unwired** — needs R1's masks) | `src/crop_generator.py`, `tests/test_crop_generator.py` |
 | **Environment fixed and pinned** — numpy<2, or `scipy.optimize` (the Hungarian assignment) silently breaks | `requirements.txt`, `RESULTS_LOG.md` 2026-08-24b |
-| **All READMEs + this file** swept for staleness (three passes across two sessions) | `RESULTS_LOG.md` 2026-08-25e/f, 2026-08-26b, this rewrite |
-| Test suite | **122/122 pass**; `verify_invariants.py` all-hold, with **3 checks that used to SKIP now live** (leakage exclusion, caries-v3 MD5 join at 98.28%, caries-v3 dataset hygiene) since DENTEX is local |
+| **All READMEs + this file** swept for staleness (four passes across three sessions; last 1 Sep — 159 tests, 90 paper numbers, CariesXrays cohort, DOI blocker, Lever 1 scripts) | `RESULTS_LOG.md` 2026-08-25e/f, 2026-08-26b, this rewrite |
+| Test suite | **159/159 pass** (122 + 37 orientation round-trip tests, `tests/test_orientation_roundtrip.py`, 1 Sep); `verify_invariants.py` all-hold, with **3 checks that used to SKIP now live** (leakage exclusion, caries-v3 MD5 join at 98.28%, caries-v3 dataset hygiene) since DENTEX is local |
 | **C1 — VLM baseline** (27 Aug) | Qwen2.5-VL-7B zero-shot F1 **0.143** vs our **0.294**, and **below a constant guess (0.204)**; blank/noise images give the same answer. `RESULTS_LOG.md` 2026-08-27aa, `PAPER_MATERIAL.md` §8.20 |
 | **Confidence intervals** (27 Aug) | Cluster-bootstrap over images for Stage-2, lesion agreement and Ningxia caries, plus paired CIs on the detector-swap deltas. **Two of that day's own claims failed their intervals and were withdrawn.** §8.14 |
 | **Calibration** (27 Aug) | Caries gate ECE **0.136**, systematically overconfident; temperature scaling made it worse (structural, not scale); isotonic fixes it (**0.043**) and is wired **confidence-only**, verdicts byte-identical. §8.15 |
@@ -279,49 +372,71 @@ not, and would have been quietly wrong if the second measurement had not been as
 
 ---
 
-## 3. What is NEXT — the draft is now the critical path
+## 3. What is NEXT — two tracks now: finish the paper, and lift the numbers
 
-**Everything measurable has been measured, and the draft is written.** The ordering below reflects
-both inversions.
+**Track A (write-up) was the whole plan until 1 Sep; Track B (score improvement) was added by
+explicit user decision that day.** They run in parallel — Track B is funded from the GPU balance
+and owned by whoever is at the terminal; Track A is mostly account-owner paperwork. If they
+conflict for time, Track A wins: a clean submission beats a better number that misses the venue.
 
-1. **CUT THE MANUSCRIPT TO VENUE LENGTH.** `paper/main.tex` is complete, compiles clean and is
-   **12 pages**; ISBI allows 4. Pick the venue first, because the cut differs — a journal with room
-   for the full version needs no cut at all. **This is the only thing on the critical path.**
-   Everything the cut needs is already written; `docs/paper/REBUILD_AUDIT.md` Deliverable 4 gives
-   the section-by-section purpose so nothing load-bearing gets removed by accident.
-2. **Authors and affiliations are still `Unknown`** in `main.tex`. Blocking, not engineering.
-3. **The four compliance blockers** (§1, `PAPER_MATERIAL.md` §8.19). Zero compute, all
+### Track A — get the manuscript submittable
+
+1. **CUT THE MANUSCRIPT TO VENUE LENGTH.** `paper/main.tex` compiles clean (last verified 28 Aug;
+   **re-compile — no LaTeX toolchain on this Mac**, and §8.25 + the 3-cohort table were added
+   1 Sep, so it is now longer than 12 pages). ISBI allows 4. Pick the venue first — a journal
+   needs no cut. `docs/paper/REBUILD_AUDIT.md` Deliverable 4 maps section purpose.
+2. **⚠️ FIX THE 22 BROKEN DOIs** (`outputs/citation_audit/FINDINGS.md`). Per entry: look the work
+   up by title, then correct the DOI or drop the reference. Cannot be automated. Also decide what
+   to do about the 19 DOI-less entries. Re-run `scripts/verify_citations_crossref.py` after.
+3. **Authors and affiliations are still `Unknown`** in `main.tex`. Blocking, not engineering.
+4. **The four compliance blockers** (§1, `PAPER_MATERIAL.md` §8.19). Zero compute, all
    account-owner actions, and (1) and (3) are live protocol breaches rather than paperwork.
-4. **Upload `models/11_yolo_seg_tufts_r1/best.pt` to Drive.** Still the only thing standing
+5. **Upload `models/11_yolo_seg_tufts_r1/best.pt` to Drive.** Still the only thing standing
    between this repo and a working fresh clone. Recipe and hash in `docs/EXTERNAL_DRIVE.md`.
-5. ~~**Stage-2 head v3 on a third FDI corpus.**~~ **DONE 28 Aug** — ran, and stayed an ablation.
-   DENTEX val +1.14 pp [+0.33, +1.95] against a same-day control; Tufts flat; the Kaggle +15.45 pp
-   is not a generalisation result because v3 trained on that corpus. **Pipeline default remains
-   v2.0** — adopting v3 would invalidate the 58.3 % / 82.6 % Stage-2 headline, the coverage curves
-   and the failure taxonomy, all measured against v2. Two data corrections came out of it: the
-   corpus is **500 images, not 2,000**, and its numbering is standard FDI, verified by arbiter
-   (80.3 % direct vs 1.7 % mirrored) rather than assumed. `PAPER_MATERIAL.md` §8.23.
-5. **Bone-loss calibration / CIs / the three §9 ablations** — all blocked on the same thing:
+6. **Bone-loss calibration / CIs / the three §9 ablations** — all blocked on the same thing:
    `Radiographs/Radiographs/`, the ORIGINAL un-rotated Tufts radiographs, which are not on this
    machine. Note that even with them, **49.6% of the val crops carry unsaved jitter offsets and
    are irreproducible by anyone**, so any future bone-loss number is on a 785-crop subset and must
    say so.
-6. **Remaining CI coverage** — Ningxia periodontitis, detection mAP and both ResNet18s have no
+7. **Remaining CI coverage** — Ningxia periodontitis, detection mAP and both ResNet18s have no
    intervals because no per-item prediction dumps are saved. Adding those dumps is cheap CPU work.
-7. **Re-run `lesion_localization.py`/C2 only if a model changes.** Ningxia has now been touched
-   three times (25 Aug, 27 Aug ×2); budget one final look for the paper and no more.
 8. **`docker build` is verified and the demo runs** — but the image predates the confidence-only
    isotonic wiring, so rebuild it before any Review-1 demo.
 9. **IRB paperwork** — longest lead time of anything open, still not begun.
 10. **SDH clinic track — unblocked 30 Aug, and it is NOT on the critical path.** Consent from the
     clinic was obtained (written agreement expected 1 Sep), closing `PUBLICATION_TODO.md` T1.2's
-    governance block. The data is on **this** machine (§8), the pipeline runs on it unmodified at
-    **2.2 s/image on CPU**, so a full-set pass is a ~2-hour unattended job needing **no GPU**.
+    governance block. The data is on the **Windows** machine's `D:` (§8), the pipeline runs on it
+    unmodified at **2.2 s/image on CPU**, so a full-set pass is a ~2-hour unattended job needing
+    **no GPU**.
     Plan, tiers, filter design, pre-registered criteria: **`docs/research/SDH_EXECUTION_PLAN.md`**;
     first measurements: `RESULTS_LOG.md` 2026-08-30. **If item 1 slips, this is what gets
     deferred.** Two things must happen before any SDH number is produced: repair or exclude the
     six truncated images (`001970`–`001975`, found 30 Aug — the usable set is **3,213**, not
     3,219), and freeze `data/sdh/splits_v1.json` before a single filter threshold is chosen.
+
+### Track B — lift the numbers (funded from the GPU balance)
+
+**Pre-condition, learned twice on 1 Sep:** every dataset built for a rented run is verified
+locally first — round-trip geometry, canonical-count reproduction, and a render inspected by eye —
+because the two failure modes that have cost this project real time (R1's misaligned masks, and
+the void `dataset_seg` used for Lever 1's first build) both produced *smoothly-falling loss on
+garbage* and errored nowhere.
+
+- **B1 — Lever 1 detector retrain (Tufts + DENTEX).** Dataset is **built, gated, and correct**
+  (`data/detector_multicorpus/`, 1,334 train / 150 val / 150 test, val/test Tufts-only and
+  canonical). Same-day control measured: end-to-end **0.5844**. Two arms, pre-registered:
+  Control B = Tufts-only `detect` (isolates the `seg → detect` head change, since DENTEX has no
+  polygons), Arm = Tufts + DENTEX `detect` (isolates the data). Adoption requires the paired ΔFDI
+  CI to exclude zero **and** Tufts test box mAP@0.5 ≥ 0.75. **Only the GPU run remains** — tar the
+  dataset, upload once, train both arms (~₹210 on an A30, ~5 h). `scripts/yolo/train_multicorpus_detector.py`.
+- **B2 — Lever 2 caries lesion detector on CariesXrays.** Not started. Needs its own
+  pre-registration and its own image-level split; the AAAI paper's FPCL baselines are the
+  comparison target (**not yet read — quote nothing from them until they are**).
+- **B3 — Lever 3 caries gate v5** on CariesXrays-derived tooth labels. Blocked on B1 (needs the
+  better detector to assign lesion boxes to teeth). Cheap.
+- **NOT a lever, and decided against:** a 4th caries-gate arm chasing CLAHE's +0.049 AP
+  near-miss. Its CI includes zero and the blocker is 34 source images, not method
+  (`RESULTS_LOG.md` 2026-08-31b).
 
 **Do NOT do:** train on Ningxia, or iterate against it. It is locked external test data and it is
 the single strongest thing this paper has (`MASTER_PLAN_2026H2.md` §4.1). A tune-against-it loop
@@ -427,7 +542,12 @@ framing above is what gives it the best odds.
 > validated runbook for the *next* rented job, not as an outstanding task. What it cost in
 > practice: **₹249.19 across two runs** (one void, one real), against the ~₹210–280 estimated
 > for a single run — i.e. the estimate was right, and the overrun was entirely the withdrawn
-> run. **₹650.81 remains.**
+> run. **₹650.81 remained then; the current balance is ₹1,084.54 (§8).**
+>
+> **The next rented job is Lever 1 / B1** (multi-corpus detector, §3 Track B). Its dataset is
+> built and gated; a first A30 attempt on 1 Sep was aborted mid-upload (₹21.45, nothing trained).
+> The macOS `jl` runbook is `GPU_SETUP.md` §0. Same rule as R1 applies: re-run the geometry gate
+> **on the rented box** after upload, before launch.
 >
 > **Two things this runbook did NOT say, learned the hard way — do them next time:**
 > 1. **Verify data geometry against an independent reference BEFORE renting.** The first run
@@ -516,8 +636,10 @@ fresh clone after `git push`), read this section in full before assuming anythin
 | Python env (macOS, as of 26 Aug — historical) | `/opt/anaconda3` (python 3.12) | **65/65 tests, 7/7 invariants** *(that machine, that date; this machine is now Python 3.13 with 84/84 — see the Windows table below)*. torch 2.2.0 + MPS, cv2 5.0.0, ultralytics 8.4.127, scipy, sklearn, streamlit 1.37.1. ⚠️ **`numpy` must stay `<2`** — pinned 1.26.4 in `requirements.txt`; numpy 2.x silently breaks `scipy.optimize` (the Hungarian FDI assignment) at import. A fresh machine should `pip install -r requirements.txt` into a venv rather than assume any particular Python distribution. |
 | **Model checkpoints — what `git clone` alone gets you, and what it does not.** | `docs/EXTERNAL_DRIVE.md` | **Only two files, unchanged from before, need a manual fetch**: `models/06_yolo_detection_a100_run/best.pt` (detector, Tufts drive) and `models/09_caries_gate_v3/caries_gate_v3.pth` (caries gate, DENTEX drive) — both >50 MB, gitignored per `CLAUDE.md` rule 4. **Everything else `run_inference.py` needs, including the new Stage-2 head v2.0 (`models/10_fdi_head_dentex_tufts_v2/enumeration_head_best.pth`, 43 MB), is committed to git and needs no Drive fetch.** `docs/EXTERNAL_DRIVE.md` has exact restore steps and a runnable smoke-test command. |
 | Docker daemon | Not verified this session either | `docker build` has never actually executed — see §3 item 7. |
-| JarvisLabs instances | Account-level | **None running, none paused — verified 27 Aug.** Both R1 instances (482754 void run, 482810 the real one) were destroyed after artefacts were downloaded and checksum-verified. Balance **₹650.81** of the original ₹900. |
-| SSH keys | `~/.ssh/id_ed25519_jarvis` (+ a copy at `~/.ssh/id_ed25519`, since `jl` passes no `-i` and relies on OpenSSH's default lookup) | Registered with JarvisLabs as `r1-seg-windows`. The **E2E** `.pem` pasted into a chat on 20 Aug is still to be treated as compromised — different provider, unrelated key. |
+| **CariesXrays dataset** (~2 GB) | `~/Downloads/Capstone/CariesXrays_Dataset/` | AAAI 2024 (Chen et al.), 6,000 panoramic images + Pascal-VOC lesion boxes. Used **frozen-pipeline only** as the 6th external cohort (`scripts/eval/cariesxrays_external.py`); a random seed-42 draw of 1,500 was scored. No LICENSE file ships with it — recorded in `main.tex` §8.25. Not needed for inference. |
+| **Multi-corpus detector dataset** (Lever 1 / B1) | `data/detector_multicorpus/` (~816 MB, gitignored) | Built + geometry-gated 1 Sep by `scripts/yolo/build_multicorpus_detector_dataset.py` (Tufts 700 + DENTEX `quadrant_enumeration` 634 → YOLO `detect`, detector-rotated frame). 1,334 train / 150 val / 150 test; val+test are Tufts-only and reproduce the canonical **3,794 / 3,924** box counts exactly. Regenerable; never commit the images. |
+| JarvisLabs instances | Account-level | **None running, none paused — verified 1 Sep.** History: both R1 instances destroyed 27 Aug (balance then ₹650.81); balance later topped up to **₹1,105.99**; on 1 Sep an **A30 24 GB** instance was created for Lever 1 (`jl create --gpu A100` returned "not available"), then **terminated by the user during a slow rsync upload before any training started** — **₹21.45 spent, nothing trained**. Balance now **₹1,084.54**. Next attempt: `tar` the dataset and upload one file (rsync of 3,268 small files was the bottleneck). |
+| SSH keys | `~/.ssh/id_ed25519_jarvis` (+ a copy at `~/.ssh/id_ed25519`, since `jl` passes no `-i` and relies on OpenSSH's default lookup); this Mac's own key at `~/.ssh/id_ed25519` | Two keys registered with JarvisLabs: `r1-seg-windows` (the Windows box) and **`macos-m4pro`** (this machine, added 1 Sep). The `jl` CLI (0.2.17) is installed and authenticated here — the user ran `jl setup` themselves; the token is not in this repo or any session. The **E2E** `.pem` pasted into a chat on 20 Aug is still to be treated as compromised — different provider, unrelated key. |
 
 ### The Windows machine — a different inventory, verified 26 Aug 2026
 
@@ -561,7 +683,7 @@ still protects the environment every published number was produced in. `GPU_SETU
 1. `git clone`, `pip install -r requirements.txt` (venv recommended).
 2. Fetch the two Drive-only checkpoints per `docs/EXTERNAL_DRIVE.md` — everything else is
    already in git.
-3. `python -m pytest tests/ -q` → should read 65 passed.
+3. `python -m pytest tests/ -q` → should read 159 passed.
 4. `python scripts/eval/verify_invariants.py` → should read `all invariants hold` (checks both
    Stage-2 head hashes and the caries gate hash).
 5. `python scripts/run_inference.py --image <any_opg.png> --output report.json` → should

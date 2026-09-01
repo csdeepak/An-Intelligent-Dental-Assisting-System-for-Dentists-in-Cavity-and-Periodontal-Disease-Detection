@@ -78,7 +78,9 @@ versus our pipeline's 0.294), and a second metric that requires the flagged
 tooth to sit where the lesion actually is produced the same ordering (0.488
 versus 0.443). On 337 radiographs from four hospitals that contributed no
 training data, the comparison produced no separation at all, and the difference
-between the two systems swung 26 percentage points across sites. Both language
+between the two systems swung 26 percentage points across sites; on a second,
+larger external benchmark of 3{,}421 lesions the constant won outright, by 25
+percentage points. Both language
 models returned confident, correctly formatted tooth lists for an image
 containing pure random noise. The bone-loss branch scored 0.923 macro-F1 on the
 data it was developed on and 1.4--5.6\,\% sensitivity on the external hospitals.
@@ -196,11 +198,11 @@ variation the exercise exists to expose.
 \begin{enumerate}
   \item An \textbf{image-blind constant-baseline protocol} for tooth-level OPG
         evaluation, fitted without leakage and applied across two unrelated
-        metric families and five institutions.
+        metric families and six independent cohorts.
   \item A \textbf{vision--language-model baseline with the controls that make it
         interpretable}, including what these models answer when shown an image
         containing no anatomy at all.
-  \item \textbf{External validation on four hospitals}, reported per site, with
+  \item \textbf{External validation on four hospitals and a second public benchmark}, reported per site, with
         the spread that pooling conceals.
   \item \textbf{Calibration and selective-prediction} results, each with a
         control that isolates the mechanism responsible, and each reported with
@@ -364,6 +366,8 @@ Kaggle dual-labelled & Numbering ablation & 499 &
 per-tooth boxes, FDI & 18{,}372/1{,}961/1{,}994 crops & no & no \\
 Ningxia & External test, locked & 337\,$^{b}$ &
 raster lesion masks & test1--test4, all scored & \textbf{yes} & no \\
+CariesXrays~\cite{chen2024cariesxrays} & External test & 6{,}000\,$^{c}$ &
+per-lesion boxes & random 1{,}500 scored & \textbf{yes} & no \\
 \bottomrule
 \end{tabular}
 
@@ -372,7 +376,9 @@ raster lesion masks & test1--test4, all scored & \textbf{yes} & no \\
 $^{a}$ The DENTEX \texttt{disease/} subset, which is the portion carrying
 per-lesion annotation. \quad
 $^{b}$ Caries-annotated subset; the periodontal subset of the same cohort is 736
-images.
+images. \quad
+$^{c}$ 13{,}783 annotated caries instances; we score a seed-fixed random 1{,}500
+images carrying 3{,}421 lesions.
 \end{table*}
 
 \subsection{Development corpora}
@@ -429,6 +435,20 @@ data}, so all four splits are equally external to our system; the label
 describes the source cohort's design, not our exposure. We report it because
 test2 is also the site where our pipeline scores highest, and a reader is
 entitled to know that the two facts coincide.
+
+A second external cohort is the published \textbf{CariesXrays}
+benchmark~\cite{chen2024cariesxrays}: 6{,}000 hospital-scale panoramic radiographs
+with 13{,}783 caries instances annotated by dental professionals, released with
+its own detection baselines. We score a seed-fixed random sample of 1{,}500 images
+carrying \textbf{3{,}421 lesions}---more than the development and first external
+cohorts combined---and verified it leakage-free against every corpus above, both
+byte-wise and perceptually, before use. Its licence is not stated by its authors;
+it is released publicly alongside the work cited here and used under that
+citation. Two properties bound what it can support and are reported rather than
+omitted: the corpus does not document whether its annotation is
+\emph{exhaustive}, so a flagged tooth carrying no annotated lesion is not a
+confirmed false positive; and \textbf{22.1\,\%} of its lesions fall inside no
+detected tooth at all, which caps every tooth-level arm on it, ours included.
 
 \subsection{Crop geometry and pre-registration}
 Classifier inputs are expanded crops resized to $224\times224$. Expansion is
@@ -702,10 +722,54 @@ test1 is simultaneously the pipeline's worst site and the constant's best. We do
 not have an explanation for that, and we report it unexplained rather than omit
 it.
 
-Across all five institutions the defensible claim is that a purpose-built
-pipeline and an image-blind prior \textbf{cannot be reliably told apart by these
-metrics}. That is weaker than the development-set result alone would support, and
-it is the claim the full evidence sustains.
+\textbf{A second external cohort makes the point sharper still.} We repeated the
+identical comparison, with the same matcher and the same frozen system, on the
+published CariesXrays benchmark~\cite{chen2024cariesxrays}---a seed-fixed random
+1{,}500 images carrying 3{,}421 lesions, more than the development and Ningxia
+cohorts combined (Table~\ref{tab:cohorts}). There the constant does not merely
+tie: it wins by \textbf{25.2 percentage points}, 95\,\% CI $[+23.2, +27.3]$.
+
+\begin{table}[t]
+\caption{The same comparison across three cohorts. \textbf{Metric:} lesion
+agreement by centroid containment for the two external rows; the development row
+uses the matcher of Table~\ref{tab:lesion} and is not comparable in absolute
+value. \textbf{Unit:} lesion. Intervals are paired cluster bootstraps over
+images.}
+\label{tab:cohorts}
+\centering
+\small
+\begin{tabular}{lrrrl}
+\toprule
+Cohort & Lesions & Pipeline & Constant & $\Delta$ (pp), 95\,\% CI \\
+\midrule
+DENTEX (development) & 479   & 0.443 & \textbf{0.488} & $+4.6\ [+0.6, +8.9]$ \\
+Ningxia (4 hospitals) & 1{,}013 & 0.408 & 0.399 & $-0.9\ [-4.9, +3.0]$ \\
+CariesXrays & 3{,}421 & 0.309 & \textbf{0.561} & $\mathbf{+25.2\ [+23.2, +27.3]}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two observations follow, and the second is the one that matters. First, the
+\textbf{brute-force explanation fails here}. On the development set the constant
+flagged only 14\,\% more teeth at an equal hit rate, so volume did not account
+for its lead. On CariesXrays it flags 64\,\% more teeth \emph{and} attains the
+higher hit rate (0.206 against 0.190): it is ahead on both axes.
+
+Second, \textbf{the size of the gap is a property of the cohort, not of the
+systems}. Assigning every CariesXrays lesion to the tooth containing it,
+\textbf{72.0\,\%} sit on molars and \textbf{60.2\,\%} on precisely the eight
+codes the constant emits---against a structural ceiling near 0.60 for that
+constant. Where caries concentrates in the molars, an anatomical prior is close
+to optimal by construction.
+
+Taken together the three cohorts do not support the claim that our pipeline
+outperforms an image-blind prior on these metrics, and they place the margin
+anywhere between a tie and 25 points depending only on which cohort is scored.
+The swing across a single cohort's four sites is 26 points; the swing across
+cohorts is 25. \textbf{A tooth-level agreement figure reported on one cohort
+therefore carries almost no information about a system's perceptual ability},
+which is a stronger and better-supported statement than the development set alone
+would license.
 
 \subsection{What the constant cannot do}
 \label{sec:numbering}

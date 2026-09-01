@@ -1,0 +1,125 @@
+CARIES GATE — THREE SIGNAL ARMS vs A SAME-DAY CONTROL
+Trained: 31 August 2026 · macOS M4 Pro / MPS · ~8 min per run, 4 runs
+Status:  NO ARM MET THE PRE-REGISTERED BAR. Nothing adopted.
+         Pipeline default remains caries-gate-resnet18-v3.0, unchanged.
+
+--------------------------------------------------------------------------------
+WHAT WAS TESTED, AND UNDER WHAT RULE
+--------------------------------------------------------------------------------
+outputs/caries_arms/PRE_REGISTRATION.md was written and committed BEFORE any arm
+was trained. It fixed, in advance:
+
+  primary metric   average precision on the 863-crop held-out test split
+  comparator       a same-day control (v3 config, frozen crops_v3_phase1, today)
+  success          paired AP delta vs control with a 95% CI EXCLUDING zero
+  interval         paired cluster bootstrap over the 34 source images,
+                   5,000 resamples, seed 42
+
+AP rather than precision/recall because the v4 experiment had just shown why:
+there, precision rose 3.6 pp and recall fell 8.7 pp while AP did not move at all.
+The operating point had slid along an unchanged curve. AP is the only one of the
+four that answers "did the curve lift".
+
+  arm A  CLAHE      clip 2.0, 8x8 tiles, applied to the source radiograph
+  arm B  exp125     crop box grown 1.25x about its centre before the 224 resize
+  arm C  balance    WeightedRandomSampler equalising each (tooth type x label) cell
+
+--------------------------------------------------------------------------------
+THE CONTROL IS FAITHFUL
+--------------------------------------------------------------------------------
+Control best val macro-F1 = 0.7350, which is EXACTLY v3's published val macro-F1
+(model_metrics.md, arm B). Environment and torch-version drift are therefore not
+confounding the arm deltas.
+
+--------------------------------------------------------------------------------
+PRECONDITIONS — verified before training, all passed
+--------------------------------------------------------------------------------
+Arms A and B rebuild the pixels, so the comparison is only paired if the crop SETS
+are identical. Checked for both rebuilt corpora:
+  * 6,616 crops; test split 863 with 127 positive
+  * identical (crop, split, label, fdi) composition to crops_v3_phase1
+  * identical set of source_image_md5
+  * pixels genuinely differ: CLAHE mean abs diff 16.96 (contrast std 44.3 -> 62.0);
+    exp125 mean abs diff 32.22
+This is what makes the comparison item-for-item, and is exactly what the v4
+experiment could NOT claim (its test split had 1,218 items, not 863).
+
+--------------------------------------------------------------------------------
+RESULTS — all four on the SAME 863-crop test set
+--------------------------------------------------------------------------------
+  arm            P        R       F1       AP      AUC   withinAUC
+  control    0.3983   0.7402   0.5179   0.5503   0.8548     0.7454
+  clahe      0.4545   0.7087   0.5538   0.5977   0.8741     0.7887
+  exp125     0.4541   0.6614   0.5385   0.5684   0.8524     0.7406
+  balance    0.4244   0.6850   0.5241   0.5943   0.8577     0.7662
+
+PAIRED DELTAS vs control (5,000 resamples over 34 source images, seed 42):
+
+  arm      metric               point            95% CI          verdict
+  clahe    AVERAGE PRECISION   +0.0488   [-0.0031, +0.0993]   MISS by 0.0031
+  clahe    F1 @0.5             +0.0357   [-0.0185, +0.0896]   not significant
+  clahe    precision @0.5      +0.0558   [+0.0106, +0.1008]   REAL
+  clahe    recall @0.5         -0.0314   [-0.1095, +0.0500]   not significant
+  clahe    within-type AUC     +0.0435   [-0.0160, +0.0988]   not significant
+
+  exp125   AVERAGE PRECISION   +0.0198   [-0.0367, +0.0810]   not significant
+  exp125   precision @0.5      +0.0549   [+0.0114, +0.0977]   REAL
+  exp125   recall @0.5         -0.0794   [-0.1567, -0.0078]   REAL (a pure trade)
+
+  balance  AVERAGE PRECISION   +0.0432   [-0.0328, +0.1157]   not significant
+  balance  within-type AUC     +0.0194   [-0.0692, +0.1303]   not significant
+  balance  (nothing else significant)
+
+--------------------------------------------------------------------------------
+VERDICT — the bar was not met and was NOT moved
+--------------------------------------------------------------------------------
+NO ARM SUCCEEDS. All three AP intervals span zero.
+
+**CLAHE misses by 0.0031** on the lower bound. It is recorded as a miss, in the
+same terms as R1's mask bar (0.6383 against a pre-registered 0.65, missed by
+0.0117, adopted anyway by a separate dated decision and never described as a pass).
+The bar is not adjusted after seeing the number.
+
+What IS real, and is reported as a secondary result:
+  * CLAHE buys precision (+5.6 pp, CI excludes zero) with NO significant recall
+    cost -- the only arm where that is true. Its FP rate falls in every stratum
+    (premolar 0.268 -> 0.137, molar 0.482 -> 0.457).
+  * exp125's precision gain is offset by a REAL recall loss. That is a shift along
+    the curve, not a lift, which the flat AP confirms.
+
+What did NOT happen, and was pre-registered as a possibility:
+  * Arm C did NOT collapse. PRE_REGISTRATION.md warned that removing the position
+    prior might LOWER AP, since the test population genuinely has 3.4x more caries
+    in molars. It did not: AP +0.043, CI spanning zero. The prior is apparently not
+    load-bearing for AP in the way the warning anticipated.
+
+What CLAHE does NOT fix: the anterior blindness. Incisor recall stays 0.125 and
+canine recall goes 0.200 -> 0.000. The position prior is still plainly present
+(mean P on healthy teeth 0.037 incisor -> 0.443 molar). CLAHE reduces false
+positives; it does not make the model see anterior lesions.
+
+--------------------------------------------------------------------------------
+THE HONEST LIMITATION OF THIS EXPERIMENT
+--------------------------------------------------------------------------------
+It is UNDERPOWERED. The test split has 863 crops but only **34 source images**, and
+the intervals are clustered over images because teeth within a radiograph are not
+independent. That is the correct choice and it is why the CIs are wide: a +0.049 AP
+point estimate cannot be separated from zero at n=34. A larger held-out image set
+would resolve CLAHE one way or the other; nothing else here will.
+
+--------------------------------------------------------------------------------
+REPRODUCE
+--------------------------------------------------------------------------------
+  python scripts/dentex/build_caries_phase1_v3.py --clahe \
+      --out data/dentex/crops_clahe_phase1
+  python scripts/dentex/build_caries_phase1_v3.py --crop-expand 1.25 \
+      --out data/dentex/crops_exp125_phase1
+  python scripts/dentex/train_caries_cascade.py --crops data/dentex \
+      --variant crops_v3_phase1 --arm b --phase1-only --out outputs/caries_arms/control
+  # ... clahe / exp125 variants; balance adds --balance-position on crops_v3_phase1
+  python scripts/eval/caries_arms_compare.py
+
+Files: PRE_REGISTRATION.md, arms_comparison.json, {control,clahe,exp125,balance}/arm_b/.
+The four 43 MB checkpoints are gitignored and regenerable from the commands above.
+
+Full record: docs/results/RESULTS_LOG.md 2026-08-31, PAPER_MATERIAL.md §8.24.

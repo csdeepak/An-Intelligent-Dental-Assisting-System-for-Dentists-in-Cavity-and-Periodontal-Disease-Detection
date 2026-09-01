@@ -238,6 +238,45 @@ Weights: `models/09_caries_gate_v3/caries_gate_v3.pth` (gitignored, 43 MB — se
 `docs/EXTERNAL_DRIVE.md`), sha256 `8f4a99ba412c…`, verified loadable and reproduced live
 through `scripts/run_inference.py` (not just structurally checked).
 
+**Where the 0.398 precision goes — stratified by tooth type (31 Aug 2026).** Held-out test, 863
+crops, shipped v3.0 gate at its 0.50 operating point. `scripts/eval/caries_position_bias.py`;
+full reading in `PAPER_MATERIAL.md` §8.24.
+
+| tooth type | n | pos | precision | recall | FP rate | mean P(caries) on *healthy* | train base rate | within-type AUC |
+|---|---|---|---|---|---|---|---|---|
+| incisor | 266 | 8 | 0.091 | 0.125 | 0.039 | 0.075 | 0.017 | 0.681 |
+| canine | 129 | 5 | 0.333 | 0.200 | 0.016 | 0.087 | 0.023 | 0.748 |
+| premolar | 221 | 31 | 0.292 | 0.677 | 0.268 | 0.273 | 0.157 | 0.781 |
+| molar | 247 | 83 | 0.473 | 0.855 | **0.482** | **0.478** | **0.343** | 0.781 |
+
+**The gate's score on genuinely healthy teeth tracks the training base rate for that position** —
+48.2% of healthy molars are flagged (79 of the 142 false positives), while only 1 of 8 incisor
+lesions is found. Real lesion signal nonetheless survives removing the prior: **within-type AUC
+0.7454 [0.6604, 0.8420]**, against a position-only baseline at AP 0.2962 and the model's 0.5503.
+
+**FIVE attempted fixes, none adopted, all reported.** Primary metric throughout is **average
+precision** on the 863-crop test split — threshold-independent, so it distinguishes "the curve
+lifted" from "the operating point slid". Paired cluster bootstrap over the 34 source images.
+
+| attempt | AP | ΔAP vs control | verdict |
+|---|---|---|---|
+| shipped v3.0 / same-day control | 0.5503 | — | — |
+| per-tooth-type thresholds | — | F1 +0.006 [−0.034, +0.041] | n.s. |
+| **v4 — 2.67× the positives** | 0.5496 | −0.0015 [−0.0886, +0.0821] | n.s. |
+| **CLAHE** | 0.5977 | **+0.0488 [−0.0031, +0.0993]** | **misses by 0.0031** |
+| crop expand 1.25× | 0.5684 | +0.0198 [−0.0367, +0.0810] | n.s. |
+| position-balanced sampling | 0.5943 | +0.0432 [−0.0328, +0.1157] | n.s. |
+
+Bars pre-registered before each run (`outputs/caries_arms/PRE_REGISTRATION.md`) and **not moved**.
+One real secondary effect: **CLAHE gains precision +5.6 pp [+0.011, +0.101] with no significant
+recall cost.** The experiment is underpowered — 863 crops but only **34 source images** — so a
++0.049 AP effect cannot be separated from zero. `outputs/caries_v4/`, `outputs/caries_arms/`.
+
+⚠ **Two numbers here that must not be quoted as improvements.** (1) v4's own report shows P 0.71 /
+R 0.80 on *its own* test split — a 2.2× prevalence difference, not a gain; specificity is unchanged
+(0.853 vs 0.843). (2) The 1.25× arm's precision gain is offset by a *real* recall loss
+(−0.079 [−0.157, −0.008]) — a slide along an unchanged curve.
+
 **Phase 2 severity (caries vs deep_caries), validation, 133 crops — unchanged, still
 `phase1_legacy`-era:**
 
@@ -464,6 +503,27 @@ domain-shift failure is now measured on **two** independent external datasets.
 **Specificity/AUC are not computable on Ningxia** — it has no healthy controls. They come from
 Tufts. See `PAPER_MATERIAL.md` §8.12 for the withdrawn first-pass periodontitis figures and why
 the metric had to differ by category.
+
+## Constant-baseline vs pipeline — all three caries cohorts (1 Sep 2026)
+
+Focal-lesion **centroid containment**, one matcher (`ningxia_external.match_by_centroid`) shared
+by every row. Paired cluster bootstrap over images, 10,000 resamples, seed 42.
+
+| cohort | n | pipeline | constant | constant − pipeline | verdict |
+|---|---|---|---|---|---|
+| DENTEX (internal) | 164 img / 479 lesions | 0.443 | 0.488 | +0.046 [+0.006, +0.089] | constant wins |
+| Ningxia, 4 hospitals | 337 img / 1,013 lesions | 0.408 | 0.399 | −0.009 [−0.049, +0.030] | indistinguishable |
+| **CariesXrays** | **1,500 img / 3,421 lesions** | **0.309** | **0.561** | **+0.252 [+0.232, +0.273]** | **constant wins decisively** |
+
+Frozen pipeline throughout — nothing trained, no checkpoint changed. CariesXrays is the largest
+cohort in the project by lesion count (more than DENTEX and Ningxia combined). Mechanism measured:
+**72.0% of its lesions are on molars and 60.2% on exactly the eight constant teeth**, against the
+constant's ~0.60 structural ceiling. Unlike DENTEX, the brute-force defence fails — the constant
+flags 64% more teeth *and* has the higher match rate (0.207 vs 0.190). 22.1% of lesions fall
+inside no detected tooth, bounding every tooth-level arm here.
+
+**CariesXrays is a peer-reviewed public benchmark** — Chen et al., *CariesXrays: Enhancing Caries Detection in Hospital-Scale Panoramic Dental X-rays via Feature Pyramid Contrastive Learning*, **AAAI 2024**, 38(20) 21940–21948, DOI 10.1609/aaai.v38i20.30196 — verified against AAAI OJS, ACM DL and DBLP. 6,000 images matches their count exactly; 13,784 non-degenerate boxes vs their stated 13,783 is a +1 convention difference. Licence not stated. Leakage verified three ways (0 MD5 vs all corpora; positive control at distance 0; 1.5M-pair distribution).
+`RESULTS_LOG.md` 2026-09-01, `PAPER_MATERIAL.md` §8.25, `outputs/cariesxrays_external_rand/`.
 
 ## C4 — abstention / coverage-accuracy (28 Aug 2026)
 

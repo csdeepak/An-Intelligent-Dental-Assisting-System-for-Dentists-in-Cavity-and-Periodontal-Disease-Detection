@@ -179,6 +179,37 @@ not substitute for Turnitin/iThenticate.
 
 ---
 
+## 🔴 NEW BLOCKER (1 Sep 2026) — 22 of 63 checkable DOIs are broken
+
+Every DOI in `source.bib` was dereferenced against the DOI registry
+(`scripts/verify_citations_crossref.py`, read-only). **Nothing was fixed — this is the saved
+work item.**
+
+| category | count |
+|---|---|
+| clean | 40 |
+| **DOI resolves to a DIFFERENT paper** | **11** |
+| **DOI not registered with any agency** | **11** |
+| no DOI, unverifiable by this method | 19 |
+
+Full list and per-entry evidence: `outputs/citation_audit/FINDINGS.md`.
+
+**To do, per entry, for all 22:** look the work up by title, then either correct the DOI or drop
+the reference. This cannot be automated — the audit can prove a DOI is wrong but not what the
+right one is. It does **not** follow that the papers are fabricated; a real paper can carry a
+wrong identifier, and that distinction has to be made by hand.
+
+Then decide what to do about the 19 entries carrying no DOI at all.
+
+**Why this is a blocker:** a reviewer who dereferences one bad DOI checks the rest. The 28 Aug
+audit found 7 citation errors including two invented titles and still passed all 22 of these,
+because `audit_citations.py` makes no network call — it prints citations for eye-review. An audit
+that cannot fail is not an audit.
+
+Re-run: `python scripts/verify_citations_crossref.py`
+
+---
+
 ## The four items that block submission regardless of the above
 
 None are engineering, and all are account-owner actions:

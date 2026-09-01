@@ -92,6 +92,28 @@ outputs/*
 !outputs/c4_abstention/**
 !outputs/calibration/
 !outputs/calibration/**
+!outputs/caries_position_bias/
+!outputs/caries_position_bias/**
+# v4 caries gate: the negative result of 2026-08-31. JSON/txt evidence tracked, .pth is not
+# (43 MB, regenerable from crops_v4 with the command in run_summary.txt).
+!outputs/caries_v4/
+!outputs/caries_v4/**
+outputs/caries_v4/**/*.pth
+# Caries signal arms (31 Aug 2026): pre-registration, comparison JSON and summary tracked;
+# the four 43 MB checkpoints are not (regenerable, commands in run_summary.txt).
+!outputs/caries_arms/
+!outputs/caries_arms/**
+outputs/caries_arms/**/*.pth
+# CariesXrays as a 6th external cohort (1 Sep 2026). Frozen pipeline, no training; the JSONs
+# carry per-image records so the paired bootstrap between arms is reproducible.
+!outputs/cariesxrays_external/
+!outputs/cariesxrays_external/**
+!outputs/cariesxrays_external_rand/
+!outputs/cariesxrays_external_rand/**
+# DOI verification against the registry (1 Sep 2026). Small text; the finding is a
+# submission blocker and must travel with the repo.
+!outputs/citation_audit/
+!outputs/citation_audit/**
 !outputs/lesion_loc_pipeline/
 !outputs/lesion_loc_pipeline/**
 !outputs/lesion_localization_segdet/
@@ -220,6 +242,9 @@ yolo11l-seg.pt
 # v3 caries gate weights (43 MB) — summary and reports are tracked
 models/09_caries_gate_v3/*.pth
 data/dentex/crops_v3_phase1/
+# v4 caries crops — same contract, plus the 445 disease-only images (RESULTS_LOG 2026-08-31).
+# Regenerable: build_caries_phase1_v3.py --include-disease-only --out data/dentex/crops_v4_phase1
+data/dentex/crops_v4_phase1/
 
 # Bone-loss crops rebuilt on 27 Aug 2026 (103 MB, 785 PNGs x3 rotation arms). Regenerable
 # with scripts/tufts/rebuild_bone_loss_crops.py -- but note they are NOT faithful to the
@@ -227,3 +252,8 @@ data/dentex/crops_v3_phase1/
 # on this machine, and the rebuild fails its own geometry check (RESULTS_LOG 2026-08-27u).
 # Kept locally as the evidence for that finding; never commit.
 data/tufts/bone_loss_crops_rebuilt/
+data/dentex/crops_clahe_phase1/
+data/dentex/crops_exp125_phase1/
+# Multi-corpus detector dataset (Lever 1) — regenerable with
+# scripts/yolo/build_multicorpus_detector_dataset.py; never commit the images.
+data/detector_multicorpus/

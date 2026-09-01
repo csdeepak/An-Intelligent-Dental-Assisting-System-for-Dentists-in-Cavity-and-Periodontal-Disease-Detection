@@ -1,0 +1,5427 @@
+{
+  "cohort": "CariesXrays \u2014 Chen et al., AAAI 2024, 38(20) 21940-21948, DOI 10.1609/aaai.v38i20.30196 (licence not stated)",
+  "decision": "pipeline",
+  "n_images_scored": 600,
+  "counts": {
+    "images": 600,
+    "unreadable": 0,
+    "no_xml": 0,
+    "xml_size_mismatch": 493,
+    "lesions": 1620,
+    "lesions_covered": 500,
+    "lesions_strict": 460,
+    "teeth_detected": 15831,
+    "teeth_flagged": 2608,
+    "flagged_hitting_a_lesion": 525
+  },
+  "agreement_covered": 0.3086,
+  "agreement_strict": 0.284,
+  "match_rate_DIAGNOSTIC_not_precision": 0.2013,
+  "mean_teeth_detected_per_image": 26.39,
+  "mean_teeth_flagged_per_image": 4.35,
+  "matcher": "centroid containment, imported from ningxia_external.match_by_centroid",
+  "geometry": "width/height read from the DECODED IMAGE; XML <size> deliberately ignored (27.3% of them are wrong)",
+  "caveat": "annotation exhaustiveness is unknown, so match_rate is a diagnostic and a flagged tooth with no lesion is NOT a confirmed false positive",
+  "per_image": [
+    {
+      "image": "000415.jpg",
+      "lesions": 4,
+      "covered": 0,
+      "strict": 0,
+      "detected": 22,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000420.jpg",
+      "lesions": 2,
+      "covered": 2,
+      "strict": 2,
+      "detected": 31,
+      "flagged": 8,
+      "flagged_hits": 3
+    },
+    {
+      "image": "000421.jpg",
+      "lesions": 2,
+      "covered": 2,
+      "strict": 2,
+      "detected": 32,
+      "flagged": 8,
+      "flagged_hits": 3
+    },
+    {
+      "image": "000423.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 30,
+      "flagged": 13,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000427.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 28,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000434.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 28,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000438.jpg",
+      "lesions": 7,
+      "covered": 1,
+      "strict": 1,
+      "detected": 27,
+      "flagged": 2,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000439.jpg",
+      "lesions": 11,
+      "covered": 0,
+      "strict": 0,
+      "detected": 4,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000441.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 15,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000442.jpg",
+      "lesions": 4,
+      "covered": 1,
+      "strict": 1,
+      "detected": 17,
+      "flagged": 2,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000443.jpg",
+      "lesions": 7,
+      "covered": 2,
+      "strict": 1,
+      "detected": 22,
+      "flagged": 1,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000450.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 30,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000461.jpg",
+      "lesions": 2,
+      "covered": 2,
+      "strict": 1,
+      "detected": 33,
+      "flagged": 13,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000463.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 25,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000464.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 29,
+      "flagged": 6,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000465.jpg",
+      "lesions": 4,
+      "covered": 2,
+      "strict": 2,
+      "detected": 25,
+      "flagged": 3,
+      "flagged_hits": 2
+    },
+    {
+      "image": "000474.jpg",
+      "lesions": 3,
+      "covered": 2,
+      "strict": 2,
+      "detected": 27,
+      "flagged": 3,
+      "flagged_hits": 2
+    },
+    {
+      "image": "000475.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 23,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000477.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 24,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000482.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 30,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000483.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 27,
+      "flagged": 5,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000485.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 31,
+      "flagged": 5,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000490.jpg",
+      "lesions": 4,
+      "covered": 2,
+      "strict": 2,
+      "detected": 36,
+      "flagged": 6,
+      "flagged_hits": 2
+    },
+    {
+      "image": "000491.jpg",
+      "lesions": 4,
+      "covered": 2,
+      "strict": 2,
+      "detected": 28,
+      "flagged": 3,
+      "flagged_hits": 2
+    },
+    {
+      "image": "000492.jpg",
+      "lesions": 4,
+      "covered": 3,
+      "strict": 2,
+      "detected": 20,
+      "flagged": 2,
+      "flagged_hits": 2
+    },
+    {
+      "image": "000493.jpg",
+      "lesions": 4,
+      "covered": 2,
+      "strict": 2,
+      "detected": 31,
+      "flagged": 5,
+      "flagged_hits": 2
+    },
+    {
+      "image": "000501.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 8,
+      "flagged_hits": 2
+    },
+    {
+      "image": "000507.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 25,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000520.jpg",
+      "lesions": 4,
+      "covered": 1,
+      "strict": 1,
+      "detected": 14,
+      "flagged": 1,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000522.jpg",
+      "lesions": 5,
+      "covered": 3,
+      "strict": 3,
+      "detected": 32,
+      "flagged": 8,
+      "flagged_hits": 3
+    },
+    {
+      "image": "000523.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 31,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000530.jpg",
+      "lesions": 2,
+      "covered": 2,
+      "strict": 2,
+      "detected": 32,
+      "flagged": 7,
+      "flagged_hits": 2
+    },
+    {
+      "image": "000543.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 35,
+      "flagged": 9,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000547.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 28,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000554.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 28,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000558.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 26,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000565.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 2,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000566.jpg",
+      "lesions": 5,
+      "covered": 1,
+      "strict": 1,
+      "detected": 30,
+      "flagged": 7,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000575.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 30,
+      "flagged": 6,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000583.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 28,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000587.jpg",
+      "lesions": 5,
+      "covered": 0,
+      "strict": 0,
+      "detected": 18,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000588.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 28,
+      "flagged": 8,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000589.jpg",
+      "lesions": 4,
+      "covered": 1,
+      "strict": 1,
+      "detected": 21,
+      "flagged": 2,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000596.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 27,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000605.jpg",
+      "lesions": 4,
+      "covered": 1,
+      "strict": 1,
+      "detected": 29,
+      "flagged": 5,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000608.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 28,
+      "flagged": 8,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000610.jpg",
+      "lesions": 7,
+      "covered": 1,
+      "strict": 1,
+      "detected": 13,
+      "flagged": 1,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000612.jpg",
+      "lesions": 12,
+      "covered": 2,
+      "strict": 2,
+      "detected": 24,
+      "flagged": 5,
+      "flagged_hits": 2
+    },
+    {
+      "image": "000616.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 29,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000622.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 30,
+      "flagged": 5,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000623.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 29,
+      "flagged": 5,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000625.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 32,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000626.jpg",
+      "lesions": 2,
+      "covered": 2,
+      "strict": 2,
+      "detected": 29,
+      "flagged": 5,
+      "flagged_hits": 2
+    },
+    {
+      "image": "000627.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 30,
+      "flagged": 16,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000628.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 15,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000630.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 5,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000631.jpg",
+      "lesions": 5,
+      "covered": 2,
+      "strict": 2,
+      "detected": 33,
+      "flagged": 8,
+      "flagged_hits": 2
+    },
+    {
+      "image": "000633.jpg",
+      "lesions": 6,
+      "covered": 0,
+      "strict": 0,
+      "detected": 25,
+      "flagged": 5,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000635.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 28,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000636.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 32,
+      "flagged": 7,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000641.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 28,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000643.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 24,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000646.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 31,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000650.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000651.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 29,
+      "flagged": 12,
+      "flagged_hits": 2
+    },
+    {
+      "image": "000652.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 32,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000661.jpg",
+      "lesions": 6,
+      "covered": 0,
+      "strict": 0,
+      "detected": 4,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000663.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 30,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000672.jpg",
+      "lesions": 4,
+      "covered": 4,
+      "strict": 3,
+      "detected": 32,
+      "flagged": 12,
+      "flagged_hits": 4
+    },
+    {
+      "image": "000680.jpg",
+      "lesions": 5,
+      "covered": 3,
+      "strict": 3,
+      "detected": 33,
+      "flagged": 13,
+      "flagged_hits": 3
+    },
+    {
+      "image": "000682.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 23,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000685.jpg",
+      "lesions": 4,
+      "covered": 0,
+      "strict": 0,
+      "detected": 13,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000688.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 25,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000694.jpg",
+      "lesions": 2,
+      "covered": 2,
+      "strict": 2,
+      "detected": 29,
+      "flagged": 3,
+      "flagged_hits": 2
+    },
+    {
+      "image": "000695.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 27,
+      "flagged": 8,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000696.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 28,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000698.jpg",
+      "lesions": 3,
+      "covered": 1,
+      "strict": 1,
+      "detected": 11,
+      "flagged": 3,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000724.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 32,
+      "flagged": 5,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000725.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 25,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000726.jpg",
+      "lesions": 3,
+      "covered": 3,
+      "strict": 3,
+      "detected": 31,
+      "flagged": 8,
+      "flagged_hits": 3
+    },
+    {
+      "image": "000732.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 26,
+      "flagged": 8,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000733.jpg",
+      "lesions": 4,
+      "covered": 1,
+      "strict": 1,
+      "detected": 30,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000734.jpg",
+      "lesions": 3,
+      "covered": 2,
+      "strict": 2,
+      "detected": 29,
+      "flagged": 7,
+      "flagged_hits": 2
+    },
+    {
+      "image": "000752.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 26,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000757.jpg",
+      "lesions": 2,
+      "covered": 2,
+      "strict": 2,
+      "detected": 30,
+      "flagged": 6,
+      "flagged_hits": 2
+    },
+    {
+      "image": "000758.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 5,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000776.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 32,
+      "flagged": 6,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000787.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 8,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000788.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 24,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000789.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 31,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000793.jpg",
+      "lesions": 6,
+      "covered": 1,
+      "strict": 1,
+      "detected": 5,
+      "flagged": 1,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000812.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 22,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000813.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 32,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000814.jpg",
+      "lesions": 5,
+      "covered": 0,
+      "strict": 0,
+      "detected": 5,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000824.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 18,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000828.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 31,
+      "flagged": 8,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000830.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 29,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000831.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 27,
+      "flagged": 7,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000832.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 28,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000834.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 31,
+      "flagged": 12,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000850.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 7,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000851.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 26,
+      "flagged": 7,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000852.jpg",
+      "lesions": 4,
+      "covered": 1,
+      "strict": 1,
+      "detected": 26,
+      "flagged": 9,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000855.jpg",
+      "lesions": 5,
+      "covered": 2,
+      "strict": 1,
+      "detected": 23,
+      "flagged": 3,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000858.jpg",
+      "lesions": 7,
+      "covered": 3,
+      "strict": 2,
+      "detected": 25,
+      "flagged": 2,
+      "flagged_hits": 2
+    },
+    {
+      "image": "000859.jpg",
+      "lesions": 8,
+      "covered": 2,
+      "strict": 1,
+      "detected": 25,
+      "flagged": 3,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000865.jpg",
+      "lesions": 4,
+      "covered": 2,
+      "strict": 2,
+      "detected": 31,
+      "flagged": 12,
+      "flagged_hits": 3
+    },
+    {
+      "image": "000869.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 19,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000873.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 7,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000874.jpg",
+      "lesions": 5,
+      "covered": 2,
+      "strict": 2,
+      "detected": 24,
+      "flagged": 4,
+      "flagged_hits": 2
+    },
+    {
+      "image": "000879.jpg",
+      "lesions": 5,
+      "covered": 1,
+      "strict": 1,
+      "detected": 28,
+      "flagged": 2,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000880.jpg",
+      "lesions": 2,
+      "covered": 2,
+      "strict": 2,
+      "detected": 30,
+      "flagged": 6,
+      "flagged_hits": 3
+    },
+    {
+      "image": "000883.jpg",
+      "lesions": 4,
+      "covered": 0,
+      "strict": 0,
+      "detected": 18,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000886.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 10,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000895.jpg",
+      "lesions": 5,
+      "covered": 0,
+      "strict": 0,
+      "detected": 18,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000897.jpg",
+      "lesions": 16,
+      "covered": 5,
+      "strict": 3,
+      "detected": 24,
+      "flagged": 5,
+      "flagged_hits": 3
+    },
+    {
+      "image": "000907.jpg",
+      "lesions": 7,
+      "covered": 4,
+      "strict": 3,
+      "detected": 28,
+      "flagged": 8,
+      "flagged_hits": 5
+    },
+    {
+      "image": "000909.jpg",
+      "lesions": 2,
+      "covered": 2,
+      "strict": 2,
+      "detected": 27,
+      "flagged": 13,
+      "flagged_hits": 2
+    },
+    {
+      "image": "000910.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 31,
+      "flagged": 10,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000911.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 7,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000916.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 30,
+      "flagged": 10,
+      "flagged_hits": 2
+    },
+    {
+      "image": "000934.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 27,
+      "flagged": 7,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000949.jpg",
+      "lesions": 3,
+      "covered": 2,
+      "strict": 2,
+      "detected": 26,
+      "flagged": 5,
+      "flagged_hits": 2
+    },
+    {
+      "image": "000951.jpg",
+      "lesions": 14,
+      "covered": 3,
+      "strict": 3,
+      "detected": 20,
+      "flagged": 6,
+      "flagged_hits": 3
+    },
+    {
+      "image": "000955.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 29,
+      "flagged": 5,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000957.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 23,
+      "flagged": 2,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000959.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 28,
+      "flagged": 6,
+      "flagged_hits": 2
+    },
+    {
+      "image": "000960.jpg",
+      "lesions": 8,
+      "covered": 0,
+      "strict": 0,
+      "detected": 30,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000970.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 27,
+      "flagged": 9,
+      "flagged_hits": 1
+    },
+    {
+      "image": "000971.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 25,
+      "flagged": 10,
+      "flagged_hits": 2
+    },
+    {
+      "image": "000989.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 9,
+      "flagged_hits": 2
+    },
+    {
+      "image": "000990.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 31,
+      "flagged": 7,
+      "flagged_hits": 0
+    },
+    {
+      "image": "000995.jpg",
+      "lesions": 3,
+      "covered": 1,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001002.jpg",
+      "lesions": 4,
+      "covered": 3,
+      "strict": 1,
+      "detected": 24,
+      "flagged": 6,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001005.jpg",
+      "lesions": 2,
+      "covered": 2,
+      "strict": 2,
+      "detected": 27,
+      "flagged": 5,
+      "flagged_hits": 3
+    },
+    {
+      "image": "001008.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 32,
+      "flagged": 10,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001009.jpg",
+      "lesions": 5,
+      "covered": 0,
+      "strict": 0,
+      "detected": 23,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001012.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 27,
+      "flagged": 9,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001015.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 27,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001021.jpg",
+      "lesions": 4,
+      "covered": 1,
+      "strict": 1,
+      "detected": 25,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001025.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 30,
+      "flagged": 15,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001037.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 27,
+      "flagged": 5,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001038.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 24,
+      "flagged": 3,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001045.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 29,
+      "flagged": 6,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001072.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 21,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001077.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 25,
+      "flagged": 4,
+      "flagged_hits": 2
+    },
+    {
+      "image": "001078.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 10,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001083.jpg",
+      "lesions": 10,
+      "covered": 1,
+      "strict": 1,
+      "detected": 31,
+      "flagged": 3,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001098.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 29,
+      "flagged": 6,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001107.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 24,
+      "flagged": 8,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001108.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 29,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001118.jpg",
+      "lesions": 9,
+      "covered": 1,
+      "strict": 1,
+      "detected": 13,
+      "flagged": 1,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001122.jpg",
+      "lesions": 4,
+      "covered": 2,
+      "strict": 2,
+      "detected": 30,
+      "flagged": 9,
+      "flagged_hits": 2
+    },
+    {
+      "image": "001125.jpg",
+      "lesions": 5,
+      "covered": 2,
+      "strict": 2,
+      "detected": 23,
+      "flagged": 5,
+      "flagged_hits": 2
+    },
+    {
+      "image": "001132.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 29,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001135.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 29,
+      "flagged": 5,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001144.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 26,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001145.jpg",
+      "lesions": 2,
+      "covered": 2,
+      "strict": 2,
+      "detected": 28,
+      "flagged": 10,
+      "flagged_hits": 3
+    },
+    {
+      "image": "001151.jpg",
+      "lesions": 3,
+      "covered": 1,
+      "strict": 1,
+      "detected": 30,
+      "flagged": 9,
+      "flagged_hits": 2
+    },
+    {
+      "image": "001153.jpg",
+      "lesions": 3,
+      "covered": 3,
+      "strict": 3,
+      "detected": 24,
+      "flagged": 6,
+      "flagged_hits": 4
+    },
+    {
+      "image": "001160.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 26,
+      "flagged": 6,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001165.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 31,
+      "flagged": 6,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001166.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 25,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001168.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 30,
+      "flagged": 7,
+      "flagged_hits": 2
+    },
+    {
+      "image": "001169.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 32,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001171.jpg",
+      "lesions": 4,
+      "covered": 0,
+      "strict": 0,
+      "detected": 31,
+      "flagged": 5,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001175.jpg",
+      "lesions": 4,
+      "covered": 2,
+      "strict": 2,
+      "detected": 28,
+      "flagged": 9,
+      "flagged_hits": 2
+    },
+    {
+      "image": "001178.jpg",
+      "lesions": 2,
+      "covered": 2,
+      "strict": 2,
+      "detected": 28,
+      "flagged": 5,
+      "flagged_hits": 2
+    },
+    {
+      "image": "001180.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 27,
+      "flagged": 6,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001194.jpg",
+      "lesions": 3,
+      "covered": 2,
+      "strict": 2,
+      "detected": 26,
+      "flagged": 4,
+      "flagged_hits": 2
+    },
+    {
+      "image": "001199.jpg",
+      "lesions": 4,
+      "covered": 0,
+      "strict": 0,
+      "detected": 11,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001205.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 5,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001207.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 30,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001213.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 21,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001215.jpg",
+      "lesions": 5,
+      "covered": 2,
+      "strict": 2,
+      "detected": 28,
+      "flagged": 3,
+      "flagged_hits": 3
+    },
+    {
+      "image": "001231.jpg",
+      "lesions": 4,
+      "covered": 0,
+      "strict": 0,
+      "detected": 29,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001238.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 30,
+      "flagged": 6,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001242.jpg",
+      "lesions": 4,
+      "covered": 2,
+      "strict": 2,
+      "detected": 31,
+      "flagged": 8,
+      "flagged_hits": 2
+    },
+    {
+      "image": "001245.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 13,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001246.jpg",
+      "lesions": 5,
+      "covered": 0,
+      "strict": 0,
+      "detected": 13,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001251.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 24,
+      "flagged": 7,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001255.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 29,
+      "flagged": 6,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001256.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 25,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001257.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 8,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001260.jpg",
+      "lesions": 5,
+      "covered": 0,
+      "strict": 0,
+      "detected": 27,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001263.jpg",
+      "lesions": 5,
+      "covered": 5,
+      "strict": 3,
+      "detected": 25,
+      "flagged": 8,
+      "flagged_hits": 3
+    },
+    {
+      "image": "001265.jpg",
+      "lesions": 4,
+      "covered": 2,
+      "strict": 2,
+      "detected": 26,
+      "flagged": 5,
+      "flagged_hits": 2
+    },
+    {
+      "image": "001270.jpg",
+      "lesions": 5,
+      "covered": 4,
+      "strict": 4,
+      "detected": 32,
+      "flagged": 13,
+      "flagged_hits": 6
+    },
+    {
+      "image": "001277.jpg",
+      "lesions": 5,
+      "covered": 0,
+      "strict": 0,
+      "detected": 12,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001280.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 30,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001283.jpg",
+      "lesions": 3,
+      "covered": 2,
+      "strict": 2,
+      "detected": 31,
+      "flagged": 6,
+      "flagged_hits": 3
+    },
+    {
+      "image": "001289.jpg",
+      "lesions": 6,
+      "covered": 3,
+      "strict": 2,
+      "detected": 26,
+      "flagged": 5,
+      "flagged_hits": 2
+    },
+    {
+      "image": "001291.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 24,
+      "flagged": 7,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001302.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 31,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001303.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 23,
+      "flagged": 1,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001305.jpg",
+      "lesions": 5,
+      "covered": 5,
+      "strict": 3,
+      "detected": 32,
+      "flagged": 9,
+      "flagged_hits": 3
+    },
+    {
+      "image": "001317.jpg",
+      "lesions": 4,
+      "covered": 3,
+      "strict": 3,
+      "detected": 34,
+      "flagged": 10,
+      "flagged_hits": 5
+    },
+    {
+      "image": "001403.jpg",
+      "lesions": 5,
+      "covered": 2,
+      "strict": 2,
+      "detected": 23,
+      "flagged": 5,
+      "flagged_hits": 3
+    },
+    {
+      "image": "001456.jpg",
+      "lesions": 5,
+      "covered": 0,
+      "strict": 0,
+      "detected": 13,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001502.jpg",
+      "lesions": 2,
+      "covered": 2,
+      "strict": 2,
+      "detected": 27,
+      "flagged": 5,
+      "flagged_hits": 2
+    },
+    {
+      "image": "001510.jpg",
+      "lesions": 3,
+      "covered": 1,
+      "strict": 1,
+      "detected": 29,
+      "flagged": 7,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001519.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 26,
+      "flagged": 11,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001520.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 30,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001523.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 27,
+      "flagged": 8,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001527.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 27,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001539.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 13,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001543.jpg",
+      "lesions": 7,
+      "covered": 0,
+      "strict": 0,
+      "detected": 4,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001562.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 26,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001565.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 26,
+      "flagged": 4,
+      "flagged_hits": 2
+    },
+    {
+      "image": "001566.jpg",
+      "lesions": 4,
+      "covered": 0,
+      "strict": 0,
+      "detected": 31,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001591.jpg",
+      "lesions": 4,
+      "covered": 0,
+      "strict": 0,
+      "detected": 14,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001595.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 22,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001601.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 31,
+      "flagged": 10,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001624.jpg",
+      "lesions": 2,
+      "covered": 2,
+      "strict": 2,
+      "detected": 26,
+      "flagged": 3,
+      "flagged_hits": 2
+    },
+    {
+      "image": "001637.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 29,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001661.jpg",
+      "lesions": 5,
+      "covered": 0,
+      "strict": 0,
+      "detected": 21,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001664.jpg",
+      "lesions": 4,
+      "covered": 0,
+      "strict": 0,
+      "detected": 14,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001680.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 7,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001686.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 23,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001687.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 26,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001689.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 22,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001691.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 12,
+      "flagged_hits": 2
+    },
+    {
+      "image": "001700.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 26,
+      "flagged": 5,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001715.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 31,
+      "flagged": 9,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001716.jpg",
+      "lesions": 4,
+      "covered": 1,
+      "strict": 1,
+      "detected": 27,
+      "flagged": 3,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001721.jpg",
+      "lesions": 4,
+      "covered": 0,
+      "strict": 0,
+      "detected": 21,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001726.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 30,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001728.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 7,
+      "flagged_hits": 2
+    },
+    {
+      "image": "001742.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 27,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001743.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 21,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001746.jpg",
+      "lesions": 6,
+      "covered": 1,
+      "strict": 1,
+      "detected": 28,
+      "flagged": 7,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001749.jpg",
+      "lesions": 7,
+      "covered": 4,
+      "strict": 3,
+      "detected": 27,
+      "flagged": 7,
+      "flagged_hits": 4
+    },
+    {
+      "image": "001752.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 27,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001754.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 29,
+      "flagged": 5,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001761.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 27,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001778.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 6,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001780.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 28,
+      "flagged": 9,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001782.jpg",
+      "lesions": 3,
+      "covered": 1,
+      "strict": 1,
+      "detected": 23,
+      "flagged": 3,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001787.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 20,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001817.jpg",
+      "lesions": 6,
+      "covered": 1,
+      "strict": 1,
+      "detected": 29,
+      "flagged": 5,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001831.jpg",
+      "lesions": 5,
+      "covered": 1,
+      "strict": 1,
+      "detected": 30,
+      "flagged": 6,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001840.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 21,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001845.jpg",
+      "lesions": 5,
+      "covered": 3,
+      "strict": 2,
+      "detected": 16,
+      "flagged": 3,
+      "flagged_hits": 2
+    },
+    {
+      "image": "001857.jpg",
+      "lesions": 5,
+      "covered": 0,
+      "strict": 0,
+      "detected": 20,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001863.jpg",
+      "lesions": 4,
+      "covered": 0,
+      "strict": 0,
+      "detected": 23,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001866.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 21,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001873.jpg",
+      "lesions": 3,
+      "covered": 2,
+      "strict": 1,
+      "detected": 30,
+      "flagged": 11,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001890.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 28,
+      "flagged": 9,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001912.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 27,
+      "flagged": 5,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001921.jpg",
+      "lesions": 3,
+      "covered": 1,
+      "strict": 1,
+      "detected": 25,
+      "flagged": 3,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001923.jpg",
+      "lesions": 3,
+      "covered": 1,
+      "strict": 1,
+      "detected": 31,
+      "flagged": 10,
+      "flagged_hits": 1
+    },
+    {
+      "image": "001957.jpg",
+      "lesions": 4,
+      "covered": 0,
+      "strict": 0,
+      "detected": 26,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "001998.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 20,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "002000.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 29,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "002007.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 29,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "002023.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 31,
+      "flagged": 6,
+      "flagged_hits": 0
+    },
+    {
+      "image": "002027.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 21,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "002030.jpg",
+      "lesions": 8,
+      "covered": 5,
+      "strict": 5,
+      "detected": 32,
+      "flagged": 8,
+      "flagged_hits": 5
+    },
+    {
+      "image": "002044.jpg",
+      "lesions": 7,
+      "covered": 0,
+      "strict": 0,
+      "detected": 19,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "002045.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 31,
+      "flagged": 5,
+      "flagged_hits": 1
+    },
+    {
+      "image": "002047.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 25,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "002050.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 28,
+      "flagged": 6,
+      "flagged_hits": 1
+    },
+    {
+      "image": "002051.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 26,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "002052.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 31,
+      "flagged": 6,
+      "flagged_hits": 0
+    },
+    {
+      "image": "002056.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 26,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "002059.jpg",
+      "lesions": 7,
+      "covered": 0,
+      "strict": 0,
+      "detected": 24,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "002076.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 32,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "002077.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 23,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "002078.jpg",
+      "lesions": 4,
+      "covered": 1,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 6,
+      "flagged_hits": 1
+    },
+    {
+      "image": "002084.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 28,
+      "flagged": 8,
+      "flagged_hits": 1
+    },
+    {
+      "image": "002085.jpg",
+      "lesions": 4,
+      "covered": 0,
+      "strict": 0,
+      "detected": 23,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "002121.jpg",
+      "lesions": 7,
+      "covered": 2,
+      "strict": 2,
+      "detected": 21,
+      "flagged": 6,
+      "flagged_hits": 3
+    },
+    {
+      "image": "002125.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 25,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "002212.jpg",
+      "lesions": 3,
+      "covered": 1,
+      "strict": 1,
+      "detected": 19,
+      "flagged": 6,
+      "flagged_hits": 1
+    },
+    {
+      "image": "002372.jpg",
+      "lesions": 5,
+      "covered": 1,
+      "strict": 1,
+      "detected": 26,
+      "flagged": 3,
+      "flagged_hits": 1
+    },
+    {
+      "image": "003085.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 14,
+      "flagged": 2,
+      "flagged_hits": 1
+    },
+    {
+      "image": "003175.jpg",
+      "lesions": 3,
+      "covered": 1,
+      "strict": 1,
+      "detected": 29,
+      "flagged": 6,
+      "flagged_hits": 1
+    },
+    {
+      "image": "003251.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 20,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "003619.jpg",
+      "lesions": 4,
+      "covered": 1,
+      "strict": 1,
+      "detected": 26,
+      "flagged": 3,
+      "flagged_hits": 1
+    },
+    {
+      "image": "003663.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 31,
+      "flagged": 7,
+      "flagged_hits": 0
+    },
+    {
+      "image": "004159.jpg",
+      "lesions": 3,
+      "covered": 3,
+      "strict": 3,
+      "detected": 27,
+      "flagged": 5,
+      "flagged_hits": 3
+    },
+    {
+      "image": "004475.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 28,
+      "flagged": 5,
+      "flagged_hits": 0
+    },
+    {
+      "image": "004735.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 27,
+      "flagged": 9,
+      "flagged_hits": 1
+    },
+    {
+      "image": "005053.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 27,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005401.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 30,
+      "flagged": 7,
+      "flagged_hits": 1
+    },
+    {
+      "image": "005445.jpg",
+      "lesions": 4,
+      "covered": 0,
+      "strict": 0,
+      "detected": 31,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005467.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 14,
+      "flagged_hits": 2
+    },
+    {
+      "image": "005522.jpg",
+      "lesions": 3,
+      "covered": 3,
+      "strict": 2,
+      "detected": 27,
+      "flagged": 4,
+      "flagged_hits": 2
+    },
+    {
+      "image": "005583.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 31,
+      "flagged": 8,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005608.jpg",
+      "lesions": 3,
+      "covered": 1,
+      "strict": 1,
+      "detected": 30,
+      "flagged": 6,
+      "flagged_hits": 1
+    },
+    {
+      "image": "005609.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 26,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005610.jpg",
+      "lesions": 4,
+      "covered": 0,
+      "strict": 0,
+      "detected": 23,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005611.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 28,
+      "flagged": 8,
+      "flagged_hits": 1
+    },
+    {
+      "image": "005612.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 18,
+      "flagged": 1,
+      "flagged_hits": 1
+    },
+    {
+      "image": "005613.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 28,
+      "flagged": 6,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005629.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 24,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005637.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 28,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005641.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 30,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005642.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 32,
+      "flagged": 7,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005643.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 31,
+      "flagged": 8,
+      "flagged_hits": 1
+    },
+    {
+      "image": "005655.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 29,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "005675.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 28,
+      "flagged": 5,
+      "flagged_hits": 1
+    },
+    {
+      "image": "005676.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 27,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005679.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 28,
+      "flagged": 6,
+      "flagged_hits": 2
+    },
+    {
+      "image": "005680.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 33,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005683.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 12,
+      "flagged_hits": 2
+    },
+    {
+      "image": "005692.jpg",
+      "lesions": 6,
+      "covered": 5,
+      "strict": 5,
+      "detected": 30,
+      "flagged": 5,
+      "flagged_hits": 5
+    },
+    {
+      "image": "005694.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 25,
+      "flagged": 6,
+      "flagged_hits": 1
+    },
+    {
+      "image": "005699.jpg",
+      "lesions": 4,
+      "covered": 1,
+      "strict": 1,
+      "detected": 33,
+      "flagged": 10,
+      "flagged_hits": 1
+    },
+    {
+      "image": "005702.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 22,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005718.jpg",
+      "lesions": 4,
+      "covered": 0,
+      "strict": 0,
+      "detected": 28,
+      "flagged": 6,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005720.jpg",
+      "lesions": 4,
+      "covered": 4,
+      "strict": 3,
+      "detected": 21,
+      "flagged": 3,
+      "flagged_hits": 3
+    },
+    {
+      "image": "005729.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 29,
+      "flagged": 7,
+      "flagged_hits": 1
+    },
+    {
+      "image": "005738.jpg",
+      "lesions": 7,
+      "covered": 0,
+      "strict": 0,
+      "detected": 23,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005739.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 20,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005740.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 31,
+      "flagged": 5,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005751.jpg",
+      "lesions": 3,
+      "covered": 2,
+      "strict": 1,
+      "detected": 15,
+      "flagged": 1,
+      "flagged_hits": 1
+    },
+    {
+      "image": "005758.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 27,
+      "flagged": 5,
+      "flagged_hits": 2
+    },
+    {
+      "image": "005761.jpg",
+      "lesions": 5,
+      "covered": 4,
+      "strict": 4,
+      "detected": 30,
+      "flagged": 9,
+      "flagged_hits": 4
+    },
+    {
+      "image": "005762.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 31,
+      "flagged": 4,
+      "flagged_hits": 2
+    },
+    {
+      "image": "005777.jpg",
+      "lesions": 5,
+      "covered": 0,
+      "strict": 0,
+      "detected": 21,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005786.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 28,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005801.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 28,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005803.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 7,
+      "flagged_hits": 1
+    },
+    {
+      "image": "005804.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 22,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005805.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 25,
+      "flagged": 6,
+      "flagged_hits": 2
+    },
+    {
+      "image": "005806.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 29,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005811.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 34,
+      "flagged": 6,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005816.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 20,
+      "flagged": 2,
+      "flagged_hits": 1
+    },
+    {
+      "image": "005820.jpg",
+      "lesions": 4,
+      "covered": 1,
+      "strict": 1,
+      "detected": 27,
+      "flagged": 3,
+      "flagged_hits": 1
+    },
+    {
+      "image": "005833.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 16,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005838.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 28,
+      "flagged": 2,
+      "flagged_hits": 1
+    },
+    {
+      "image": "005840.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 25,
+      "flagged": 2,
+      "flagged_hits": 1
+    },
+    {
+      "image": "005844.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 29,
+      "flagged": 3,
+      "flagged_hits": 2
+    },
+    {
+      "image": "005845.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 28,
+      "flagged": 6,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005853.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 28,
+      "flagged": 3,
+      "flagged_hits": 1
+    },
+    {
+      "image": "005855.jpg",
+      "lesions": 7,
+      "covered": 3,
+      "strict": 3,
+      "detected": 33,
+      "flagged": 13,
+      "flagged_hits": 3
+    },
+    {
+      "image": "005856.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 23,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005858.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 31,
+      "flagged": 7,
+      "flagged_hits": 1
+    },
+    {
+      "image": "005859.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 5,
+      "flagged_hits": 1
+    },
+    {
+      "image": "005867.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 32,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005870.jpg",
+      "lesions": 3,
+      "covered": 1,
+      "strict": 1,
+      "detected": 28,
+      "flagged": 6,
+      "flagged_hits": 1
+    },
+    {
+      "image": "005874.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 22,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005882.jpg",
+      "lesions": 2,
+      "covered": 2,
+      "strict": 2,
+      "detected": 27,
+      "flagged": 6,
+      "flagged_hits": 2
+    },
+    {
+      "image": "005883.jpg",
+      "lesions": 6,
+      "covered": 0,
+      "strict": 0,
+      "detected": 17,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005894.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 33,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005898.jpg",
+      "lesions": 6,
+      "covered": 0,
+      "strict": 0,
+      "detected": 20,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005909.jpg",
+      "lesions": 3,
+      "covered": 1,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 9,
+      "flagged_hits": 1
+    },
+    {
+      "image": "005910.jpg",
+      "lesions": 4,
+      "covered": 2,
+      "strict": 2,
+      "detected": 25,
+      "flagged": 8,
+      "flagged_hits": 2
+    },
+    {
+      "image": "005923.jpg",
+      "lesions": 4,
+      "covered": 0,
+      "strict": 0,
+      "detected": 23,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005924.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 27,
+      "flagged": 5,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005932.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 28,
+      "flagged": 9,
+      "flagged_hits": 2
+    },
+    {
+      "image": "005944.jpg",
+      "lesions": 5,
+      "covered": 2,
+      "strict": 2,
+      "detected": 18,
+      "flagged": 2,
+      "flagged_hits": 2
+    },
+    {
+      "image": "005952.jpg",
+      "lesions": 4,
+      "covered": 2,
+      "strict": 2,
+      "detected": 26,
+      "flagged": 4,
+      "flagged_hits": 3
+    },
+    {
+      "image": "005954.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 25,
+      "flagged": 5,
+      "flagged_hits": 1
+    },
+    {
+      "image": "005958.jpg",
+      "lesions": 4,
+      "covered": 1,
+      "strict": 1,
+      "detected": 20,
+      "flagged": 2,
+      "flagged_hits": 1
+    },
+    {
+      "image": "005961.jpg",
+      "lesions": 3,
+      "covered": 2,
+      "strict": 1,
+      "detected": 29,
+      "flagged": 9,
+      "flagged_hits": 2
+    },
+    {
+      "image": "005965.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 29,
+      "flagged": 6,
+      "flagged_hits": 1
+    },
+    {
+      "image": "005968.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 32,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005969.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 16,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005971.jpg",
+      "lesions": 3,
+      "covered": 2,
+      "strict": 2,
+      "detected": 30,
+      "flagged": 8,
+      "flagged_hits": 2
+    },
+    {
+      "image": "005977.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 27,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005989.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 2,
+      "flagged_hits": 1
+    },
+    {
+      "image": "005991.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 29,
+      "flagged": 5,
+      "flagged_hits": 0
+    },
+    {
+      "image": "005998.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 28,
+      "flagged": 2,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006000.jpg",
+      "lesions": 3,
+      "covered": 1,
+      "strict": 1,
+      "detected": 27,
+      "flagged": 1,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006001.jpg",
+      "lesions": 6,
+      "covered": 3,
+      "strict": 2,
+      "detected": 27,
+      "flagged": 6,
+      "flagged_hits": 2
+    },
+    {
+      "image": "006003.jpg",
+      "lesions": 9,
+      "covered": 0,
+      "strict": 0,
+      "detected": 16,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006005.jpg",
+      "lesions": 3,
+      "covered": 2,
+      "strict": 1,
+      "detected": 26,
+      "flagged": 6,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006007.jpg",
+      "lesions": 3,
+      "covered": 1,
+      "strict": 1,
+      "detected": 30,
+      "flagged": 5,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006011.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 32,
+      "flagged": 5,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006013.jpg",
+      "lesions": 2,
+      "covered": 2,
+      "strict": 2,
+      "detected": 28,
+      "flagged": 5,
+      "flagged_hits": 2
+    },
+    {
+      "image": "006021.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 27,
+      "flagged": 8,
+      "flagged_hits": 2
+    },
+    {
+      "image": "006023.jpg",
+      "lesions": 3,
+      "covered": 1,
+      "strict": 1,
+      "detected": 27,
+      "flagged": 6,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006029.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 31,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006031.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 30,
+      "flagged": 3,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006038.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 33,
+      "flagged": 5,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006040.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 24,
+      "flagged": 3,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006044.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 32,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006045.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 30,
+      "flagged": 5,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006049.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 17,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006053.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 34,
+      "flagged": 2,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006054.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 29,
+      "flagged": 5,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006055.jpg",
+      "lesions": 3,
+      "covered": 2,
+      "strict": 2,
+      "detected": 26,
+      "flagged": 4,
+      "flagged_hits": 2
+    },
+    {
+      "image": "006056.jpg",
+      "lesions": 3,
+      "covered": 3,
+      "strict": 3,
+      "detected": 32,
+      "flagged": 7,
+      "flagged_hits": 3
+    },
+    {
+      "image": "006058.jpg",
+      "lesions": 3,
+      "covered": 2,
+      "strict": 2,
+      "detected": 31,
+      "flagged": 9,
+      "flagged_hits": 3
+    },
+    {
+      "image": "006061.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 30,
+      "flagged": 3,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006063.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 33,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006070.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 23,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006073.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 8,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006075.jpg",
+      "lesions": 6,
+      "covered": 0,
+      "strict": 0,
+      "detected": 22,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006076.jpg",
+      "lesions": 8,
+      "covered": 5,
+      "strict": 4,
+      "detected": 19,
+      "flagged": 7,
+      "flagged_hits": 4
+    },
+    {
+      "image": "006077.jpg",
+      "lesions": 3,
+      "covered": 3,
+      "strict": 3,
+      "detected": 29,
+      "flagged": 7,
+      "flagged_hits": 3
+    },
+    {
+      "image": "006078.jpg",
+      "lesions": 3,
+      "covered": 1,
+      "strict": 1,
+      "detected": 24,
+      "flagged": 2,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006107.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 29,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006109.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 31,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006112.jpg",
+      "lesions": 4,
+      "covered": 1,
+      "strict": 1,
+      "detected": 29,
+      "flagged": 5,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006116.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 28,
+      "flagged": 6,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006117.jpg",
+      "lesions": 2,
+      "covered": 2,
+      "strict": 2,
+      "detected": 33,
+      "flagged": 3,
+      "flagged_hits": 2
+    },
+    {
+      "image": "006124.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 28,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006127.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 28,
+      "flagged": 2,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006130.jpg",
+      "lesions": 3,
+      "covered": 2,
+      "strict": 2,
+      "detected": 28,
+      "flagged": 6,
+      "flagged_hits": 3
+    },
+    {
+      "image": "006143.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006144.jpg",
+      "lesions": 3,
+      "covered": 1,
+      "strict": 1,
+      "detected": 30,
+      "flagged": 5,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006149.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 29,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006151.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 28,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006153.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 29,
+      "flagged": 10,
+      "flagged_hits": 2
+    },
+    {
+      "image": "006158.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 18,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006164.jpg",
+      "lesions": 4,
+      "covered": 1,
+      "strict": 1,
+      "detected": 29,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006165.jpg",
+      "lesions": 6,
+      "covered": 1,
+      "strict": 1,
+      "detected": 26,
+      "flagged": 2,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006174.jpg",
+      "lesions": 4,
+      "covered": 0,
+      "strict": 0,
+      "detected": 32,
+      "flagged": 5,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006198.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 30,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006199.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 14,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006200.jpg",
+      "lesions": 5,
+      "covered": 0,
+      "strict": 0,
+      "detected": 23,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006206.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 28,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006210.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 25,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006225.jpg",
+      "lesions": 7,
+      "covered": 2,
+      "strict": 1,
+      "detected": 26,
+      "flagged": 1,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006226.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 25,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006227.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 30,
+      "flagged": 6,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006248.jpg",
+      "lesions": 2,
+      "covered": 2,
+      "strict": 2,
+      "detected": 31,
+      "flagged": 6,
+      "flagged_hits": 3
+    },
+    {
+      "image": "006249.jpg",
+      "lesions": 4,
+      "covered": 0,
+      "strict": 0,
+      "detected": 25,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006250.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 30,
+      "flagged": 5,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006261.jpg",
+      "lesions": 4,
+      "covered": 0,
+      "strict": 0,
+      "detected": 15,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006268.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 20,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006274.jpg",
+      "lesions": 6,
+      "covered": 1,
+      "strict": 1,
+      "detected": 22,
+      "flagged": 2,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006314.jpg",
+      "lesions": 5,
+      "covered": 2,
+      "strict": 2,
+      "detected": 24,
+      "flagged": 2,
+      "flagged_hits": 2
+    },
+    {
+      "image": "006316.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 24,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006317.jpg",
+      "lesions": 3,
+      "covered": 1,
+      "strict": 1,
+      "detected": 21,
+      "flagged": 2,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006325.jpg",
+      "lesions": 4,
+      "covered": 1,
+      "strict": 1,
+      "detected": 26,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006338.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 7,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006340.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 24,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006341.jpg",
+      "lesions": 4,
+      "covered": 0,
+      "strict": 0,
+      "detected": 23,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006343.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 31,
+      "flagged": 9,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006344.jpg",
+      "lesions": 3,
+      "covered": 2,
+      "strict": 2,
+      "detected": 29,
+      "flagged": 9,
+      "flagged_hits": 2
+    },
+    {
+      "image": "006345.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 30,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006349.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 22,
+      "flagged": 6,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006350.jpg",
+      "lesions": 5,
+      "covered": 0,
+      "strict": 0,
+      "detected": 26,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006353.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 26,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006357.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 31,
+      "flagged": 5,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006358.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 31,
+      "flagged": 6,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006370.jpg",
+      "lesions": 4,
+      "covered": 1,
+      "strict": 1,
+      "detected": 23,
+      "flagged": 3,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006383.jpg",
+      "lesions": 4,
+      "covered": 2,
+      "strict": 2,
+      "detected": 30,
+      "flagged": 6,
+      "flagged_hits": 2
+    },
+    {
+      "image": "006392.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 5,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006393.jpg",
+      "lesions": 3,
+      "covered": 2,
+      "strict": 2,
+      "detected": 22,
+      "flagged": 7,
+      "flagged_hits": 2
+    },
+    {
+      "image": "006395.jpg",
+      "lesions": 3,
+      "covered": 2,
+      "strict": 1,
+      "detected": 26,
+      "flagged": 3,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006398.jpg",
+      "lesions": 3,
+      "covered": 2,
+      "strict": 1,
+      "detected": 28,
+      "flagged": 3,
+      "flagged_hits": 2
+    },
+    {
+      "image": "006404.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 29,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006418.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 33,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006419.jpg",
+      "lesions": 3,
+      "covered": 2,
+      "strict": 2,
+      "detected": 24,
+      "flagged": 4,
+      "flagged_hits": 2
+    },
+    {
+      "image": "006421.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 31,
+      "flagged": 1,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006422.jpg",
+      "lesions": 3,
+      "covered": 1,
+      "strict": 1,
+      "detected": 25,
+      "flagged": 3,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006423.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 28,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006424.jpg",
+      "lesions": 3,
+      "covered": 1,
+      "strict": 1,
+      "detected": 25,
+      "flagged": 7,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006426.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 28,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006430.jpg",
+      "lesions": 4,
+      "covered": 1,
+      "strict": 1,
+      "detected": 20,
+      "flagged": 1,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006433.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 25,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006457.jpg",
+      "lesions": 4,
+      "covered": 1,
+      "strict": 1,
+      "detected": 28,
+      "flagged": 5,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006460.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 26,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006463.jpg",
+      "lesions": 8,
+      "covered": 1,
+      "strict": 1,
+      "detected": 20,
+      "flagged": 2,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006471.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 31,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006474.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 28,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006478.jpg",
+      "lesions": 2,
+      "covered": 2,
+      "strict": 2,
+      "detected": 28,
+      "flagged": 10,
+      "flagged_hits": 4
+    },
+    {
+      "image": "006480.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 21,
+      "flagged": 6,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006482.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 28,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006483.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 31,
+      "flagged": 10,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006485.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 33,
+      "flagged": 10,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006500.jpg",
+      "lesions": 4,
+      "covered": 0,
+      "strict": 0,
+      "detected": 25,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006501.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 20,
+      "flagged": 1,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006530.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 31,
+      "flagged": 7,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006536.jpg",
+      "lesions": 3,
+      "covered": 3,
+      "strict": 3,
+      "detected": 31,
+      "flagged": 10,
+      "flagged_hits": 5
+    },
+    {
+      "image": "006537.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 25,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006550.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 30,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006555.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 27,
+      "flagged": 5,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006556.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 28,
+      "flagged": 7,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006559.jpg",
+      "lesions": 2,
+      "covered": 2,
+      "strict": 2,
+      "detected": 31,
+      "flagged": 7,
+      "flagged_hits": 3
+    },
+    {
+      "image": "006561.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 31,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006562.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 30,
+      "flagged": 11,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006563.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 19,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006566.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 29,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006570.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006573.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 22,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006574.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 34,
+      "flagged": 6,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006575.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 2,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006576.jpg",
+      "lesions": 4,
+      "covered": 0,
+      "strict": 0,
+      "detected": 21,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006577.jpg",
+      "lesions": 6,
+      "covered": 3,
+      "strict": 2,
+      "detected": 15,
+      "flagged": 7,
+      "flagged_hits": 4
+    },
+    {
+      "image": "006578.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 24,
+      "flagged": 5,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006579.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 33,
+      "flagged": 8,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006580.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 30,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006592.jpg",
+      "lesions": 2,
+      "covered": 2,
+      "strict": 2,
+      "detected": 29,
+      "flagged": 4,
+      "flagged_hits": 2
+    },
+    {
+      "image": "006593.jpg",
+      "lesions": 4,
+      "covered": 1,
+      "strict": 1,
+      "detected": 25,
+      "flagged": 3,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006597.jpg",
+      "lesions": 2,
+      "covered": 2,
+      "strict": 2,
+      "detected": 31,
+      "flagged": 9,
+      "flagged_hits": 4
+    },
+    {
+      "image": "006599.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 24,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006600.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 10,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006616.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 29,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006620.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 30,
+      "flagged": 5,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006626.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 28,
+      "flagged": 5,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006628.jpg",
+      "lesions": 3,
+      "covered": 1,
+      "strict": 1,
+      "detected": 23,
+      "flagged": 2,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006632.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 27,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006635.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 31,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006639.jpg",
+      "lesions": 6,
+      "covered": 2,
+      "strict": 2,
+      "detected": 27,
+      "flagged": 6,
+      "flagged_hits": 3
+    },
+    {
+      "image": "006642.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 32,
+      "flagged": 6,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006643.jpg",
+      "lesions": 4,
+      "covered": 2,
+      "strict": 2,
+      "detected": 24,
+      "flagged": 3,
+      "flagged_hits": 2
+    },
+    {
+      "image": "006644.jpg",
+      "lesions": 3,
+      "covered": 1,
+      "strict": 1,
+      "detected": 26,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006648.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 28,
+      "flagged": 8,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006649.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 29,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006664.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 31,
+      "flagged": 6,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006667.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 28,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006668.jpg",
+      "lesions": 5,
+      "covered": 0,
+      "strict": 0,
+      "detected": 7,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006675.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 26,
+      "flagged": 5,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006680.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 28,
+      "flagged": 6,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006694.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 25,
+      "flagged": 6,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006695.jpg",
+      "lesions": 3,
+      "covered": 2,
+      "strict": 1,
+      "detected": 29,
+      "flagged": 5,
+      "flagged_hits": 2
+    },
+    {
+      "image": "006699.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 25,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006700.jpg",
+      "lesions": 6,
+      "covered": 0,
+      "strict": 0,
+      "detected": 29,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006705.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 28,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006708.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 29,
+      "flagged": 8,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006710.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 29,
+      "flagged": 2,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006711.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 9,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006714.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 31,
+      "flagged": 13,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006718.jpg",
+      "lesions": 2,
+      "covered": 2,
+      "strict": 2,
+      "detected": 27,
+      "flagged": 4,
+      "flagged_hits": 2
+    },
+    {
+      "image": "006719.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 27,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006721.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 29,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006724.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 26,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006728.jpg",
+      "lesions": 4,
+      "covered": 0,
+      "strict": 0,
+      "detected": 30,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006747.jpg",
+      "lesions": 9,
+      "covered": 4,
+      "strict": 4,
+      "detected": 28,
+      "flagged": 5,
+      "flagged_hits": 4
+    },
+    {
+      "image": "006748.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 25,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006749.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 23,
+      "flagged": 6,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006750.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 28,
+      "flagged": 5,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006752.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 27,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006753.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 24,
+      "flagged": 6,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006763.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 31,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006766.jpg",
+      "lesions": 3,
+      "covered": 2,
+      "strict": 1,
+      "detected": 26,
+      "flagged": 5,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006774.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 26,
+      "flagged": 2,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006779.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 24,
+      "flagged": 2,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006789.jpg",
+      "lesions": 2,
+      "covered": 2,
+      "strict": 1,
+      "detected": 31,
+      "flagged": 5,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006791.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 31,
+      "flagged": 8,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006793.jpg",
+      "lesions": 2,
+      "covered": 2,
+      "strict": 2,
+      "detected": 32,
+      "flagged": 7,
+      "flagged_hits": 2
+    },
+    {
+      "image": "006794.jpg",
+      "lesions": 3,
+      "covered": 1,
+      "strict": 1,
+      "detected": 31,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006802.jpg",
+      "lesions": 2,
+      "covered": 2,
+      "strict": 2,
+      "detected": 33,
+      "flagged": 10,
+      "flagged_hits": 3
+    },
+    {
+      "image": "006803.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 10,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006804.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 25,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006810.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 30,
+      "flagged": 7,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006811.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 31,
+      "flagged": 11,
+      "flagged_hits": 1
+    },
+    {
+      "image": "006909.jpg",
+      "lesions": 4,
+      "covered": 2,
+      "strict": 2,
+      "detected": 30,
+      "flagged": 3,
+      "flagged_hits": 2
+    },
+    {
+      "image": "006958.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 28,
+      "flagged": 5,
+      "flagged_hits": 0
+    },
+    {
+      "image": "006981.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 25,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "007002.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 26,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "007003.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 8,
+      "flagged_hits": 1
+    },
+    {
+      "image": "007005.jpg",
+      "lesions": 6,
+      "covered": 1,
+      "strict": 1,
+      "detected": 25,
+      "flagged": 1,
+      "flagged_hits": 1
+    },
+    {
+      "image": "007013.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 27,
+      "flagged": 2,
+      "flagged_hits": 1
+    },
+    {
+      "image": "007014.jpg",
+      "lesions": 3,
+      "covered": 1,
+      "strict": 1,
+      "detected": 31,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "007016.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 30,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "007017.jpg",
+      "lesions": 4,
+      "covered": 1,
+      "strict": 1,
+      "detected": 21,
+      "flagged": 2,
+      "flagged_hits": 1
+    },
+    {
+      "image": "007019.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 26,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "007020.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 23,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "007025.jpg",
+      "lesions": 2,
+      "covered": 2,
+      "strict": 2,
+      "detected": 30,
+      "flagged": 8,
+      "flagged_hits": 4
+    },
+    {
+      "image": "007027.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 22,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "007047.jpg",
+      "lesions": 3,
+      "covered": 2,
+      "strict": 2,
+      "detected": 30,
+      "flagged": 9,
+      "flagged_hits": 2
+    },
+    {
+      "image": "007051.jpg",
+      "lesions": 9,
+      "covered": 6,
+      "strict": 4,
+      "detected": 28,
+      "flagged": 5,
+      "flagged_hits": 4
+    },
+    {
+      "image": "007063.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 23,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "007069.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 23,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "007070.jpg",
+      "lesions": 1,
+      "covered": 1,
+      "strict": 1,
+      "detected": 30,
+      "flagged": 12,
+      "flagged_hits": 2
+    },
+    {
+      "image": "007071.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 16,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "007074.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 29,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "007076.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 30,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "007078.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 32,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "007084.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 31,
+      "flagged": 7,
+      "flagged_hits": 0
+    },
+    {
+      "image": "007086.jpg",
+      "lesions": 4,
+      "covered": 1,
+      "strict": 1,
+      "detected": 30,
+      "flagged": 5,
+      "flagged_hits": 1
+    },
+    {
+      "image": "007089.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 30,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "007090.jpg",
+      "lesions": 3,
+      "covered": 1,
+      "strict": 1,
+      "detected": 33,
+      "flagged": 9,
+      "flagged_hits": 1
+    },
+    {
+      "image": "007095.jpg",
+      "lesions": 3,
+      "covered": 1,
+      "strict": 1,
+      "detected": 30,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "007096.jpg",
+      "lesions": 6,
+      "covered": 5,
+      "strict": 4,
+      "detected": 26,
+      "flagged": 6,
+      "flagged_hits": 4
+    },
+    {
+      "image": "007110.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 21,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "007112.jpg",
+      "lesions": 4,
+      "covered": 1,
+      "strict": 1,
+      "detected": 31,
+      "flagged": 7,
+      "flagged_hits": 1
+    },
+    {
+      "image": "007182.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 31,
+      "flagged": 5,
+      "flagged_hits": 1
+    },
+    {
+      "image": "007184.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 24,
+      "flagged": 1,
+      "flagged_hits": 0
+    },
+    {
+      "image": "007191.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 30,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "007200.jpg",
+      "lesions": 4,
+      "covered": 3,
+      "strict": 2,
+      "detected": 32,
+      "flagged": 5,
+      "flagged_hits": 2
+    },
+    {
+      "image": "007209.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 14,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "007213.jpg",
+      "lesions": 3,
+      "covered": 1,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "007215.jpg",
+      "lesions": 6,
+      "covered": 2,
+      "strict": 1,
+      "detected": 29,
+      "flagged": 3,
+      "flagged_hits": 1
+    },
+    {
+      "image": "007222.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 31,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "007235.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 28,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "007241.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 29,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "007245.jpg",
+      "lesions": 4,
+      "covered": 0,
+      "strict": 0,
+      "detected": 21,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "007253.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 30,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "007256.jpg",
+      "lesions": 3,
+      "covered": 1,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "007268.jpg",
+      "lesions": 3,
+      "covered": 2,
+      "strict": 2,
+      "detected": 28,
+      "flagged": 8,
+      "flagged_hits": 3
+    },
+    {
+      "image": "007269.jpg",
+      "lesions": 3,
+      "covered": 1,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 2,
+      "flagged_hits": 1
+    },
+    {
+      "image": "007273.jpg",
+      "lesions": 6,
+      "covered": 2,
+      "strict": 2,
+      "detected": 32,
+      "flagged": 7,
+      "flagged_hits": 4
+    },
+    {
+      "image": "007276.jpg",
+      "lesions": 6,
+      "covered": 0,
+      "strict": 0,
+      "detected": 15,
+      "flagged": 0,
+      "flagged_hits": 0
+    },
+    {
+      "image": "007281.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 30,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "007285.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 29,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "007290.jpg",
+      "lesions": 3,
+      "covered": 0,
+      "strict": 0,
+      "detected": 20,
+      "flagged": 2,
+      "flagged_hits": 0
+    },
+    {
+      "image": "007291.jpg",
+      "lesions": 3,
+      "covered": 1,
+      "strict": 1,
+      "detected": 22,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "007295.jpg",
+      "lesions": 2,
+      "covered": 0,
+      "strict": 0,
+      "detected": 23,
+      "flagged": 3,
+      "flagged_hits": 0
+    },
+    {
+      "image": "007297.jpg",
+      "lesions": 1,
+      "covered": 0,
+      "strict": 0,
+      "detected": 29,
+      "flagged": 4,
+      "flagged_hits": 0
+    },
+    {
+      "image": "007298.jpg",
+      "lesions": 2,
+      "covered": 1,
+      "strict": 1,
+      "detected": 27,
+      "flagged": 4,
+      "flagged_hits": 1
+    },
+    {
+      "image": "007300.jpg",
+      "lesions": 5,
+      "covered": 2,
+      "strict": 1,
+      "detected": 32,
+      "flagged": 6,
+      "flagged_hits": 1
+    },
+    {
+      "image": "007305.jpg",
+      "lesions": 4,
+      "covered": 0,
+      "strict": 0,
+      "detected": 26,
+      "flagged": 3,
+      "flagged_hits": 0
+    }
+  ]
+}

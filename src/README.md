@@ -1,18 +1,19 @@
 # `src/` — the pipeline library
 
-**Last verified: 26 August 2026 (Stage 2 head v2.0 adopted).** Importable modules that implement pipeline stages. The
-runnable entry points live in `scripts/`; these are the pieces they call. Everything here is
-covered by `tests/` (65 tests, all passing).
+**Last verified: 1 September 2026** (Stage 2 head v2.0 still the default; `orientation.rot_box`
+added for Lever 1). Importable modules that implement pipeline stages. The runnable entry points
+live in `scripts/`; these are the pieces they call. Everything here is covered by `tests/`
+(159 tests, all passing).
 
 ## Modules, by pipeline stage
 
 | Module | Stage | What it does | Status |
 |---|---|---|---|
-| `orientation.py` | 1 (input) | **The detector's input-orientation contract.** Rotate 90° CCW for the detector, un-rotate immediately. | ✅ tested |
+| `orientation.py` | 1 (input) | **The detector's input-orientation contract.** Rotate 90° CCW for the detector, un-rotate immediately. `rot_point`/`unrot_point`/`unrot_box` bring detector predictions back to the upright frame; **`rot_box`/`rot_boxes` (added 1 Sep) go the other way** — upright annotations → detector frame, needed to build Lever 1's DENTEX detection-training data. | ✅ tested (6 + 37 round-trip) |
 | `utils/fdi_converter.py` | 2 | Universal ↔ FDI lookup *table* (32 permanent teeth), **plus `tufts_title_to_fdi()`** — Tufts' numbering is left-right mirrored (its "1" is FDI 28, not 18) and must go through this, never through `universal_to_fdi()` directly. | ✅ tested (13 tests), bug fixed `f8b31f8`; mirror correction added 25 Aug — `RESULTS_LOG.md` 2026-08-25h |
 | `fdi_assignment.py` | 2 | Positional (rank-order) FDI assignment | ⚠️ **SUPERSEDED** — kept as the measured baseline, not the pipeline default |
 | `fdi_head_inference.py` | 2 | **The current method** — runs the learned enumeration head over detector boxes, with Hungarian one-to-one assignment | ✅ **use this** |
-| `classifiers.py` | 3/4 | **Caries + bone-loss cascades.** Owns the per-branch crop contract — caries **1.0× tight**, bone loss **1.5×W/2.0×H** — and the class orders. | ✅ tested (14) |
+| `classifiers.py` | 3/4 | **Caries + bone-loss cascades.** Owns the per-branch crop contract — caries **1.0× tight**, bone loss **1.5×W/2.0×H** — and the class orders. | ✅ tested (17) |
 | `crop_generator.py` | 3/4 | Expanded-bbox geometry, ±15% jitter, mask-aware cropping (R2). | ✅ tested; mask-aware path **unwired** (needs R1 masks) |
 | `label_assigner.py` | 4 (training) | Pixel-overlap-ratio labelling for bone-loss crops. **Not** inference numbering. | ✅ tested |
 | `data_loader.py` | — | Tufts expert/bbox/mask JSON parsing and joining. | ✅ tested |

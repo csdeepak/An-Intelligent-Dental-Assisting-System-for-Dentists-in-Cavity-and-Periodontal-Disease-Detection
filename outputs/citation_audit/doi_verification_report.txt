@@ -1,0 +1,152 @@
+82 entries | 63 with a DOI | checking 63
+unverifiable (no DOI): 19 -> bai2025qwen25vl, bizjak2024advancing, cao2024dpml, gamal2025automated, geirhos2020shortcut, guo2017calibration, hamamci2023dentex, hao2025mmoral, he2016resnet, jocher2024yolo11, kaushik2025densenet201, kuhn1955hungarian, mutlu2026comparison, panetta2022tufts, sastika2025ai, vickram2025extraction, yaswanth2025automated, zadrozny2002isotonic, zhou2025deep
+========================================================================
+[1/63] BAD adnan2024orthopantomogram  (title overlap 0.00)
+        TITLE overlap 0.00
+        bib: Orthopantomogram teeth segmentation and numbering dataset
+        DOI: Coronavirus awareness and household hardship survey data for the CHAMPS HDSS network: Da
+        FIRST AUTHOR bib=Adnan DOI=Muir
+[2/63] OK  albano2024artificial  (title overlap 1.00)
+[3/63] OK  alharbi2023detection  (title overlap 1.00)
+[4/63] OK  alnasser2026advanced  (title overlap 1.00)
+[5/63] GONE ameli2025automated
+        DOI IS NOT REGISTERED WITH ANY AGENCY: 10.5624/isd.20240141
+[6/63] OK  ardila2026algorithmic  (title overlap 1.00)
+[7/63] GONE asadi2024detection
+        DOI IS NOT REGISTERED WITH ANY AGENCY: 10.1145/3704000.3704017
+[8/63] OK  asci2024deep  (title overlap 1.00)
+[9/63] OK  asif2026yolo26  (title overlap 1.00)
+[10/63] OK  ayhan2025detection  (title overlap 1.00)
+[11/63] OK  balel2026hybrid  (title overlap 1.00)
+[12/63] GONE bhoopalan2026self
+        DOI IS NOT REGISTERED WITH ANY AGENCY: 10.1038/s41598-025-88069-y
+[13/63] GONE bilal2024pdcnet
+        DOI IS NOT REGISTERED WITH ANY AGENCY: 10.1109/ACCESS.2024.3352398
+[14/63] BAD bonfanti2025deep  (title overlap 0.00)
+        TITLE overlap 0.00
+        bib: Deep learning for tooth detection and segmentation in panoramic radiographs: a systemati
+        DOI: Effect of 3D-printing assisted micro-osteoperforations on the rate of canine retraction:
+        FIRST AUTHOR bib=Bonfanti-Gris DOI=Zhou
+[15/63] BAD cerda2024determining  (title overlap 0.00)
+        TITLE overlap 0.00
+        bib: Determining the efficacy of a machine learning model for measuring periodontal bone loss
+        DOI: Assessment of MMP levels in reversible and irreversible pulpitis and a randomized contro
+        FIRST AUTHOR bib=Cerda Mardini DOI=Gerihan
+[16/63] OK  chen2023deep  (title overlap 1.00)
+[17/63] OK  chen2024cariesxrays  (title overlap 1.00)
+[18/63] OK  chmielewski20252018  (title overlap 1.00)
+[19/63] BAD delamare2024panoramic  (title overlap 0.00)
+        TITLE overlap 0.00
+        bib: Panoramic imaging errors in machine learning model development: a systematic review
+        DOI: Ultra-low-dose photon-counting CT of paranasal sinus: an <i>in vivo</i> comparison of ra
+        FIRST AUTHOR bib=Delamare DOI=Kaatsch
+        note: YEAR bib=2024 DOI=2023
+[20/63] OK  eftimie2025tooth  (title overlap 1.00)
+[21/63] GONE ferrara2025applications
+        DOI IS NOT REGISTERED WITH ANY AGENCY: 10.21037/jmai-24-187
+[22/63] OK  george2026explainable  (title overlap 1.00)
+[23/63] OK  ghimire2025cnns  (title overlap 1.00)
+[24/63] OK  guner2026fractal  (title overlap 1.00)
+[25/63] OK  hao2026robust  (title overlap 1.00)
+[26/63] OK  iacob2025automated  (title overlap 1.00)
+[27/63] OK  jha2026dentiask  (title overlap 1.00)
+[28/63] OK  jundaeng2025advanced  (title overlap 1.00)
+[29/63] BAD karamuftuo2025panoramic  (title overlap 0.00)
+        TITLE overlap 0.00
+        bib: Panoramic Radiograph-Based Deep Learning Models for Diagnosis and Clinical Decision Supp
+        DOI: Foundations of Pediatric Lifestyle Medicine
+        FIRST AUTHOR bib=Karamuftuoglu DOI=Gaínza-Lein
+[30/63] OK  khubrani2025detection  (title overlap 1.00)
+        note: YEAR bib=2025 DOI=2024
+[31/63] GONE khuwaja2024ai
+        DOI IS NOT REGISTERED WITH ANY AGENCY: 10.1109/INMIC63993.2024.10815494
+[32/63] GONE kim2024unsupervised
+        DOI IS NOT REGISTERED WITH ANY AGENCY: 10.1038/s41598-024-57430-6
+[33/63] OK  kim2026automated  (title overlap 1.00)
+[34/63] BAD kong2024integrating  (title overlap 0.00)
+        TITLE overlap 0.00
+        bib: Integrating Super-Resolution with Deep Learning for Enhanced Periodontal Bone Loss Segme
+        DOI: Intraoperative Optical Coherence Tomography (OCT)-Guided Femtosecond Laser-Assisted Desc
+        FIRST AUTHOR bib=Kong DOI=Lim
+[35/63] OK  le2026automated  (title overlap 1.00)
+[36/63] GONE lee2025evaluation
+        DOI IS NOT REGISTERED WITH ANY AGENCY: 10.1186/s12903-025-05618-1
+[37/63] OK  lee2025radiographic  (title overlap 1.00)
+[38/63] OK  li2025novel  (title overlap 1.00)
+[39/63] OK  li2026pandent  (title overlap 1.00)
+[40/63] BAD lim2024dual  (title overlap 0.00)
+        TITLE overlap 0.00
+        bib: Dual convolutional neural network framework for segmenting dental caries in panoramic ra
+        DOI: Digitally versus conventionally fabricated complete dentures: A systematic review on cos
+        FIRST AUTHOR bib=Lim DOI=Tew
+        note: YEAR bib=2024 DOI=2025
+[41/63] OK  luke2025accuracy  (title overlap 1.00)
+[42/63] GONE mathur2025comparative
+        DOI IS NOT REGISTERED WITH ANY AGENCY: 10.3390/engproc2025082026
+[43/63] OK  mehta2026explainability  (title overlap 1.00)
+[44/63] OK  meng2026dentvlm  (title overlap 1.00)
+[45/63] OK  muresanu2024automating  (title overlap 1.00)
+[46/63] OK  nassiri2025yolo  (title overlap 1.00)
+[47/63] OK  ozdemir2026enhanced  (title overlap 1.00)
+[48/63] OK  perez2024ai  (title overlap 1.00)
+[49/63] OK  pornprasertsuk2025clinical  (title overlap 1.00)
+[50/63] OK  ren2026dualbranch  (title overlap 1.00)
+[51/63] OK  schwendicke2021cost  (title overlap 1.00)
+        note: YEAR bib=2021 DOI=2020
+[52/63] GONE tian2025development
+        DOI IS NOT REGISTERED WITH ANY AGENCY: 10.1186/s12903-025-05525-3
+[53/63] BAD vannistelrooij2024combining  (title overlap 0.00)
+        TITLE overlap 0.00
+        bib: Combining public datasets for automated tooth assessment in panoramic radiographs
+        DOI: Impact of repeated preheating of bulk-fill resin composite on postoperative hypersensiti
+        FIRST AUTHOR bib=van Nistelrooij DOI=Elkady
+[54/63] OK  wang2026artificial  (title overlap 1.00)
+[55/63] OK  wang2026transformer  (title overlap 1.00)
+[56/63] BAD waqas2025synthetic  (title overlap 0.00)
+        TITLE overlap 0.00
+        bib: Synthetic Orthopantomography Image Generation Using Generative Adversarial Networks for 
+        DOI: An Ultrastructural, In-Situ Study on the Impact of Desensitizing Agents on Dentin
+        FIRST AUTHOR bib=Waqas DOI=Schestakow
+[57/63] OK  wimalasiri2025ai  (title overlap 1.00)
+[58/63] OK  xia2025brar  (title overlap 1.00)
+[59/63] BAD yalim2026comparative  (title overlap 1.00)
+        FIRST AUTHOR bib=Yalim DOI=Yalım
+[60/63] BAD zancan2025ai  (title overlap 0.00)
+        TITLE overlap 0.00
+        bib: {AI}-powered precision in dental radiographic analysis using tailored {CNNs} for tooth n
+        DOI: Clinical validation of a novel hand dexterity measurement device
+        FIRST AUTHOR bib=Zancan DOI=Hayden
+[61/63] BAD zanini2024systematic  (title overlap 0.00)
+        TITLE overlap 0.00
+        bib: A Systematic Review on Caries Detection, Classification, and Segmentation from {X}-Ray I
+        DOI: Super-resolution Deep Learning Reconstruction Cervical Spine 1.5T MRI: Improved Interobs
+        FIRST AUTHOR bib=Zanini DOI=Yasaka
+[62/63] GONE zhang2025reliable
+        DOI IS NOT REGISTERED WITH ANY AGENCY: 10.1109/JBHI.2025.3526198
+[63/63] OK  zhu2026dentfound  (title overlap 1.00)
+========================================================================
+checked 63  |  clean 40  |  WRONG PAPER 12  |  DOI NOT REGISTERED 11  |  metadata unavailable 0
+  NOT REGISTERED  ameli2025automated  10.5624/isd.20240141
+  NOT REGISTERED  asadi2024detection  10.1145/3704000.3704017
+  NOT REGISTERED  bhoopalan2026self  10.1038/s41598-025-88069-y
+  NOT REGISTERED  bilal2024pdcnet  10.1109/ACCESS.2024.3352398
+  NOT REGISTERED  ferrara2025applications  10.21037/jmai-24-187
+  NOT REGISTERED  khuwaja2024ai  10.1109/INMIC63993.2024.10815494
+  NOT REGISTERED  kim2024unsupervised  10.1038/s41598-024-57430-6
+  NOT REGISTERED  lee2025evaluation  10.1186/s12903-025-05618-1
+  NOT REGISTERED  mathur2025comparative  10.3390/engproc2025082026
+  NOT REGISTERED  tian2025development  10.1186/s12903-025-05525-3
+  NOT REGISTERED  zhang2025reliable  10.1109/JBHI.2025.3526198
+NOT CHECKED (no DOI): 19 -- absence of a check is not a pass
+  MISMATCH  adnan2024orthopantomogram  10.1016/j.dib.2024.110654
+  MISMATCH  bonfanti2025deep  10.1186/s12903-025-05939-x
+  MISMATCH  cerda2024determining  10.1186/s12903-024-04795-5
+  MISMATCH  delamare2024panoramic  10.1093/dmfr/twad010
+  MISMATCH  karamuftuo2025panoramic  10.3390/children12030304
+  MISMATCH  kong2024integrating  10.3390/bioengineering11121192
+  MISMATCH  lim2024dual  10.1016/j.prosdent.2023.10.028
+  MISMATCH  vannistelrooij2024combining  10.1186/s12903-024-04170-4
+  MISMATCH  waqas2025synthetic  10.1016/j.identj.2024.09.027
+  MISMATCH  yalim2026comparative  10.3390/diagnostics16020336
+  MISMATCH  zancan2025ai  10.1371/journal.pdig.0000744
+  MISMATCH  zanini2024systematic  10.1007/s10278-024-01112-y

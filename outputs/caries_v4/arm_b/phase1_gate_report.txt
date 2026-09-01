@@ -1,0 +1,21 @@
+PHASE 1 GATE — arm_b
+val:
+              precision    recall  f1-score   support
+
+      caries       0.72      0.77      0.74       402
+   no_caries       0.89      0.86      0.88       886
+
+    accuracy                           0.83      1288
+   macro avg       0.80      0.81      0.81      1288
+weighted avg       0.84      0.83      0.83      1288
+
+test:
+              precision    recall  f1-score   support
+
+      caries       0.71      0.80      0.75       395
+   no_caries       0.90      0.84      0.87       823
+
+    accuracy                           0.83      1218
+   macro avg       0.80      0.82      0.81      1218
+weighted avg       0.84      0.83      0.83      1218
+

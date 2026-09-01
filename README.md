@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/assets/hero.svg" width="100%" alt="Dental AI Pipeline — six-stage OPG analysis. Detection mAP@0.5 0.810, FDI exact 58.3% end-to-end, bone-loss macro F1 0.9233, four external hospitals, 83.6 M parameters across six models.">
+<img src="docs/assets/hero.svg" width="100%" alt="Dental AI Pipeline — six-stage OPG analysis. Detection mAP@0.5 0.810, FDI exact 58.3% end-to-end, bone-loss macro F1 0.9233, four external hospitals plus a second public benchmark, 83.6 M parameters across six models.">
 
 <br>
 
@@ -9,9 +9,9 @@
 [![Ultralytics](https://img.shields.io/badge/YOLOv11l--seg-Ultralytics-0B0B0B?logo=yolo&logoColor=white)](https://docs.ultralytics.com/)
 [![Streamlit](https://img.shields.io/badge/Demo-Streamlit-FF4B4B?logo=streamlit&logoColor=white)](app.py)
 [![Docker](https://img.shields.io/badge/Container-CPU--only-2496ED?logo=docker&logoColor=white)](Dockerfile)
-[![Tests](https://img.shields.io/badge/tests-122%20passing-2ea043)](tests/)
+[![Tests](https://img.shields.io/badge/tests-159%20passing-2ea043)](tests/)
 [![Invariants](https://img.shields.io/badge/invariants-all%20hold-2ea043)](scripts/eval/verify_invariants.py)
-[![External validation](https://img.shields.io/badge/external%20validation-4%20hospitals-1f6feb)](#c2--external-validation-on-four-hospitals)
+[![External validation](https://img.shields.io/badge/external%20validation-4%20hospitals%20%2B%201%20benchmark-1f6feb)](#c2--external-validation-on-four-hospitals)
 [![Stages](https://img.shields.io/badge/pipeline-6%2F6%20stages%20running-2ea043)](#system-architecture)
 [![License](https://img.shields.io/badge/License-MIT-777)](LICENSE)
 
@@ -33,7 +33,7 @@ Detect every tooth · number it in FDI notation · classify two pathologies per 
 > |---|---|
 > | What are the current numbers? | [`docs/results/model_metrics.md`](docs/results/model_metrics.md) |
 > | Full technical story + honest limitations (the paper is written from this) | [`docs/results/PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) |
-> | Why is it like this? What happened when? | [`docs/results/RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) — 100 dated entries, append-only |
+> | Why is it like this? What happened when? | [`docs/results/RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) — 109 dated entries, append-only |
 > | What should I work on? | [`docs/research/PUBLICATION_TODO.md`](docs/research/PUBLICATION_TODO.md), sequenced by [`MASTER_PLAN_2026H2.md`](docs/research/MASTER_PLAN_2026H2.md) |
 > | How is the documentation laid out? | [`docs/README.md`](docs/README.md) |
 > | What does the code do? | [`src/README.md`](src/README.md), [`scripts/README.md`](scripts/README.md) |
@@ -159,7 +159,7 @@ pipeline, and it follows directly from anatomy — see
 Full tables and provenance: [`docs/results/model_metrics.md`](docs/results/model_metrics.md).
 Every number below traces to a saved artefact under `outputs/`, a
 `models/<NN>_<name>/*summary*.txt`, or a run `results.csv`.
-[`scripts/verify_paper_numbers.py`](scripts/verify_paper_numbers.py) asserts 82 manuscript numbers
+[`scripts/verify_paper_numbers.py`](scripts/verify_paper_numbers.py) asserts 90 manuscript numbers
 against those artefacts, so numeric drift fails loudly.
 
 | Model | Dataset | Split | Headline metric |
@@ -173,6 +173,7 @@ against those artefacts, so numeric drift fails loudly.
 | Bone-loss severity (3-class) | Tufts | val (52) | macro F1 **0.7208** |
 | **C1 — VLM baseline** | DENTEX | 164 leak-free | ours **F1 0.294** vs Qwen2.5-VL-32B **0.246** — and vs an image-blind constant **0.320** that beats both |
 | **C2 — external validation** | Ningxia ×4 hospitals | locked, evaluated once | caries agreement **40.8%** pooled vs **44.3%** internal |
+| **C2b — sixth cohort** | CariesXrays (AAAI 2024), 1,500 random images / 3,421 lesions | frozen pipeline, scored once | pipeline **0.309** vs image-blind constant **0.561** — paired Δ **+0.252 [+0.232, +0.273]**, the constant wins outright |
 | CEJ estimation (exploratory) | Tufts | 296 crops | 15.1% agreement — negative result |
 
 ### C1 — the constant baseline that beats everything
@@ -232,6 +233,14 @@ hypothesis was **tested and falsified**: swapping the detector moved Stage 2 by 
 caries by +7.7 points, and bone loss by *nothing* — 168 affected teeth flagged before, 165 after,
 while the denominator grew 9%. DENTEX carries no bone-loss labels, so the combined-training lever
 never existed either. Full write-up: [`PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) §8.13.
+
+**A sixth cohort (1 Sep) makes the central claim its strongest.** The frozen pipeline was scored
+on **CariesXrays** (Chen et al., AAAI 2024) — a random seed-fixed 1,500-image draw, **3,421 lesions**,
+more than DENTEX and Ningxia combined. Against the image-blind molar constant: **pipeline 0.309,
+constant 0.561, paired Δ +0.252 [+0.232, +0.273]** — the constant wins outright, and the mechanism
+is visible (72.0% of lesions on molars, 60.2% on the eight constant teeth). Across all three
+cohorts the constant is +0.046 (DENTEX), −0.009 (Ningxia, tie), **+0.252** (CariesXrays).
+[`PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) §8.25.
 
 ### C4 — abstention: the system knows when to decline
 
@@ -415,9 +424,10 @@ Each of those four rows is a bug that was found the hard way. See
 │
 ├── scripts/
 │   ├── run_inference.py         ← ★ CLI: all six stages, OPG in → JSON + overlay out
-│   ├── verify_paper_numbers.py  ← asserts 82 manuscript numbers against artefacts
+│   ├── verify_paper_numbers.py  ← asserts 90 manuscript numbers against artefacts
+│   ├── verify_citations_crossref.py  ← dereferences every DOI against the registry (22 broken, 1 Sep)
 │   ├── audit_citations.py · check_text_reuse.py · build_handbook.py
-│   ├── eval/                    ← 18 evaluation + invariant scripts (+ README)
+│   ├── eval/                    ← 21 evaluation + invariant scripts (+ README)
 │   ├── yolo/                    ← Stage-1 detection toolchain (+ README)
 │   ├── dentex/ · tufts/ · kaggle_dual/   ← per-corpus data toolchains (+ READMEs)
 │   └── figures/                 ← paper figure generators
@@ -428,17 +438,17 @@ Each of those four rows is a bug that was found the hard way. See
 │   └── bone_loss/               ← Stage 4 — 6 notebooks, exploration → CEJ
 │
 ├── models/                      ← one numbered dir per trained stage (see models/README.md)
-├── data/                        ← tufts · dentex · ningxia · kaggle_dual (large files gitignored)
-├── outputs/                     ← 22 saved run directories — every number traces here
+├── data/                        ← tufts · dentex · ningxia · kaggle_dual · detector_multicorpus (large files gitignored)
+├── outputs/                     ← saved run directories — every number traces here
 ├── paper/                       ← main.tex · main.pdf · source.bib · figures
-├── tests/                       ← 122 tests
+├── tests/                       ← 159 tests
 │
 └── docs/                        ← ★ start at docs/README.md
     ├── assets/                  ← the animated SVG diagrams in this README
     ├── architecture/            ← pipeline diagrams (+ drawio source)
     ├── results/
     │   ├── PAPER_MATERIAL.md    ← ★ master paper-writing document
-    │   ├── RESULTS_LOG.md       ← append-only journal, 100 entries
+    │   ├── RESULTS_LOG.md       ← append-only journal, 109 entries
     │   ├── model_metrics.md     ← one-page scoreboard
     │   ├── METHODOLOGY_CHANGELOG.md
     │   └── figures/paper/       ← 17 paper/review figures
@@ -505,7 +515,7 @@ python -m pytest tests/ -q
 python scripts/eval/verify_invariants.py
 ```
 
-The first should report `122 passed`. The second should print `all invariants hold` — it re-checks
+The first should report `159 passed`. The second should print `all invariants hold` — it re-checks
 frozen weight hashes, checkpoint class orders, crop-contract distinctness, caries dataset hygiene,
 the leakage exclusion list, and the MD5 join behind the v3 negative class.
 
@@ -582,7 +592,9 @@ python scripts/train_model.py   --config configs/dataset_config.yaml   # Stage 4
 | Confidence intervals (all of the above) | `scripts/eval/bootstrap_ci.py` | `outputs/bootstrap_ci/` |
 | Bone-loss evaluation | `scripts/eval/bone_loss_eval.py` | `outputs/bone_loss_eval/` |
 | Frozen hashes, class orders, crop contracts, leakage | `scripts/eval/verify_invariants.py` | — |
-| The 82 manuscript numbers | `scripts/verify_paper_numbers.py` | `paper/main.tex` |
+| **C2b** — CariesXrays sixth cohort | `scripts/eval/cariesxrays_external.py` | `outputs/cariesxrays_external*/` |
+| DOI integrity of every citation | `scripts/verify_citations_crossref.py` | `outputs/citation_audit/` |
+| The 90 manuscript numbers | `scripts/verify_paper_numbers.py` | `paper/main.tex` |
 
 Paper figures regenerate from **saved run artefacts only, never re-measured**:
 `scripts/figures/make_paper_figures.py`, `make_baseline_figure.py`,
@@ -636,11 +648,14 @@ and treating the gap as *a defect to explain* rather than a disappointing number
 Geometry is now verified against an independent annotation source **before** training, in code that
 exits non-zero rather than in a doc that can go stale.
 
-**Numbers are pinned to artefacts.** `verify_paper_numbers.py` asserts 82 manuscript numbers
+**Numbers are pinned to artefacts.** `verify_paper_numbers.py` asserts 90 manuscript numbers
 against their JSONs; `verify_invariants.py` asserts frozen weight hashes and dataset hygiene;
-122 unit tests cover the coordinate conversions, the FDI table, the crop contracts and the
-orientation contract. A wrong parameter count once propagated into nine places across six files
+159 unit tests cover the coordinate conversions, the FDI table, the crop contracts and the
+orientation contract (both directions — including the `rot_box` inverse added for the Lever 1
+detector retrain). A wrong parameter count once propagated into nine places across six files
 before it was caught — these checks exist so that class of drift fails loudly next time.
+**Citations are dereferenced too:** a 1 Sep audit against the DOI registry found 22 of 63
+checkable DOIs broken (`verify_citations_crossref.py`) — a submission blocker, not yet fixed.
 
 ---
 
@@ -696,7 +711,7 @@ exist. The full 25-item treatment is [`PAPER_MATERIAL.md`](docs/results/PAPER_MA
 | 2 | **Caries precision is 0.40** — roughly six of ten positives are wrong. | Improved from a 7.3× over-call to 1.6×, not solved. 96.5% of false positives are *healthy* teeth, not other pathology — which rules out the obvious remedy. |
 | 3 | **Detector recall 70.6% caps everything downstream.** 29.4% of teeth are never detected. | Binding constraint, measured. Detection 0.810 sits below the 0.90–0.97 reported for similar tasks. |
 | 4 | **Severity heads rest on tiny validation sets** — 52 crops (bone loss), 133 (caries depth). | Provisional. The 0.72 target was met by 0.0008 on 52 samples. |
-| 5 | **Tooth-level FDI-set F1 is base-rate dominated** — an image-blind constant beats the pipeline. | Reported as the headline control, not buried. |
+| 5 | **Tooth-level scores are base-rate dominated** — an image-blind molar constant beats the pipeline on FDI-set F1 (C1) *and* on caries lesion agreement across three cohorts (Δ up to **+0.252** on CariesXrays, 3,421 lesions). | Reported as the headline finding, not buried. This is what the paper is *about*. |
 | 6 | **The caries gate is miscalibrated** (ECE 0.136, systematically overconfident). | Isotonic fixes it to 0.043, applied to reported confidence only; verdicts unchanged so published numbers stay valid. |
 | 7 | **The negative class rests on presumed-negative labelling.** DENTEX "healthy" means *no disease annotation*; several high-confidence false positives visibly carry restorations — and a restored tooth has already been treated for caries. | Flagged as an observation for a clinician to confirm, **not yet a claim**. |
 | 8 | **The bone-loss classifier has no calibration analysis.** Its metadata carries no bounding boxes, so the crops need a geometry-verified rebuild first. | Open. A silent crop-geometry mismatch is exactly what voided the R1 run. |
@@ -704,6 +719,7 @@ exist. The full 25-item treatment is [`PAPER_MATERIAL.md`](docs/results/PAPER_MA
 | 10 | **CEJ estimation is a negative result** (15.1% agreement). | Not integrated; reported as a negative result. |
 | 11 | **Mask-aware cropping is unwired** because the mask bar was missed. | Deliberate consequence of the pre-registered bar. |
 | 12 | **No clinical validation, no IRB, and four non-engineering compliance items are open.** | ⛔ **Blocking for publication.** See below. |
+| 13 | **22 of 63 checkable DOIs in `source.bib` are broken** (11 wrong paper, 11 unregistered; found 1 Sep). | ⛔ **Blocking.** Manual per-citation title lookup required — `outputs/citation_audit/FINDINGS.md`. |
 
 ### Compliance status — read before redistributing anything
 
@@ -794,14 +810,23 @@ The title changed on 28 Aug, and the reason matters: the previous title led on a
 names the *contribution* rather than a number.
 
 **The critical path is no longer writing — it is the venue-length cut** (12 pages against ISBI's 4)
-plus the four compliance blockers above.
+plus the four compliance blockers above, and now a fifth: **a 1 Sep DOI audit found 22 of 63
+checkable citations broken** (11 resolve to a different paper, 11 unregistered) — each needs a
+manual title lookup before submission (`outputs/citation_audit/FINDINGS.md`).
+
+**A second track opened on 1 Sep: lift the numbers, not just the methodology.** Seven caries
+experiments across three cohorts had left the paper resting on a negative headline, so a
+three-lever plan runs in parallel with the write-up, funded from the ₹1,084.54 GPU balance:
+Lever 1 (multi-corpus detector retrain — dataset built and geometry-gated, GPU run pending),
+Lever 2 (caries lesion detector on CariesXrays, against its published baselines), Lever 3 (caries
+gate retrain). If the tracks conflict for time, the write-up wins. [`transfer.md`](transfer.md) §3.
 
 **Where this stands, honestly.** Not on the strength of any single model swap, but on: cross-corpus
-generalisation measured with paired significance tests, external validation on four hospitals never
-trained on, a visibly-corrected result (a leaked evaluation set found and fixed *before*
-publication), and controls that make our own headline look worse than it otherwise would. Of 49
-task-relevant papers in this project's own literature review, **2 (4%) do genuine external
-validation** — that is the gap this work fills.
+generalisation measured with paired significance tests, external validation on **four hospitals and
+a second public benchmark** never trained on, a visibly-corrected result (a leaked evaluation set
+found and fixed *before* publication), and controls that make our own headline look worse than it
+otherwise would. Of 49 task-relevant papers in this project's own literature review, **2 (4%) do
+genuine external validation** — that is the gap this work fills.
 
 Current assessment, kept current: [`transfer.md`](transfer.md) §5.
 

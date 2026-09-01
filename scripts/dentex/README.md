@@ -1,6 +1,6 @@
 # `scripts/dentex/` — Stage 2 enumeration head + Stage 3 caries toolchain
 
-**Written 22 August 2026.** These four scripts replace a set of Google Drive notebooks that
+**Written 22 August 2026; caries-signal section updated 1 September 2026.** These scripts replace a set of Google Drive notebooks that
 were the only way the DENTEX caries data had ever been built — they existed nowhere in this
 repo despite being the provenance of every reported caries number. Those notebooks are now
 preserved at `notebooks/caries/dataset_construction/`.
@@ -51,10 +51,22 @@ which head a given number came from.
 
 | Script | Status | What it does |
 |---|---|---|
+| `fetch_dentex_subsets.py` | ✅ run 27 Aug | Downloads + integrity-checks the exact DENTEX subsets this repo uses (`quadrant-enumeration-disease`, `quadrant_enumeration`, `validation_data/.../xrays`). Every PNG opened, every JSON parsed on download. |
 | `build_dentex_split_from_raw.py` | ✅ run, output committed | Draws the frozen image-level 70/15/15 split from the raw 705 disease X-rays. Stratified on each image's 4-bit disease presence-vector; largest-remainder allocation per stratum. Output `data/dentex/splits_v2.json` (**tracked**). |
 | `build_dentex_crops.py` | ✅ run, output gitignored | Regenerates every caries crop honouring that split. Output `data/dentex/crops_v2/`. |
-| `train_caries_cascade.py` | ⏳ smoke-tested, **needs GPU** | The T0.1–T0.4 re-run block in one artifact: both augmentation arms, macro-F1 selection, cosine schedule, val/test reported separately, gate report saved. |
+| `build_caries_phase1_v3.py` | ✅ run — default path reproduces the frozen v3 corpus exactly | Builds the Phase-1 caries-gate crops. Default output is byte-for-byte the pinned v3.0 corpus (4,750/1,003/863, 5,366 healthy). **Opt-in flags added 31 Aug for the signal experiments** (all default off): `--include-disease-only` (adds the 444 disease-only images as positives), `--clahe` (CLAHE clip 2.0, 8×8 on source), `--crop-expand 1.25`, `--eval-pool` (MD5 leakage guard — refuses `train_332.png` ≡ `test_181.png`). |
+| `train_caries_cascade.py` | ✅ run locally on MPS (31 Aug); no GPU needed — ResNet18 @ 224 over ~6.6k crops is not compute-bound | The T0.1–T0.4 re-run block in one artifact: both augmentation arms, macro-F1 selection, cosine schedule, val/test reported separately, gate report saved. **`--balance-position` added 31 Aug** — a `WeightedRandomSampler` equalising each (tooth type × label) cell, one of the three signal arms. |
 | `split_dentex_holdout.py` | ❌ **SUPERSEDED — do not run** | The old carve-a-test-set-out-of-val fallback, written when raw DENTEX was believed unreachable. Kept per `CLAUDE.md` rule 3; its docstring explains the soft leak it carried. |
+
+**Caries signal experiments, 31 Aug – 1 Sep — 7 attempts, all negative, all recorded.** The
+caries branch precision/recall question was diagnosed (`scripts/eval/caries_position_bias.py`:
+the gate scores teeth partly by *which tooth it is* — 48.2% of healthy molars flagged) and then
+attacked: threshold tuning, per-stratum thresholds, gate v4 on 2.67× the positives, CLAHE, a
+1.25× crop, position-balanced sampling. Every paired ΔAP/ΔF1 CI spans zero. **Nothing was
+adopted; v3.0 stays pinned.** The DENTEX blocker is ~34 held-out source images, not method —
+`RESULTS_LOG.md` 2026-08-31 / 08-31b, `PAPER_MATERIAL.md` §8.24,
+`docs/session-memory/2026-08-31-caries-position-bias-and-v4.md`. The follow-on (Lever 2/3 on the
+13× larger CariesXrays corpus) is `transfer.md` §3 Track B, not started.
 
 ## Why the split was rebuilt rather than carved
 

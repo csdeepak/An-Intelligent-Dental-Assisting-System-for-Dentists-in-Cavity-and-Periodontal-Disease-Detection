@@ -76,6 +76,28 @@ def unrot_box(box, orig_w, orig_h, direction=DEFAULT):
     return [min(ax, bx), min(ay, by), max(ax, bx), max(ay, by)]
 
 
+def rot_box(box, orig_w, orig_h, direction=DEFAULT):
+    """
+    Upright (x1, y1, x2, y2) -> rotated frame, corners re-ordered so x1<x2, y1<y2.
+
+    The inverse of `unrot_box`, and needed to build TRAINING data: converting an upright corpus
+    (DENTEX is ~2872x1504 landscape) into the frame the frozen detector was trained on requires
+    rotating the annotations with the pixels. Corners are mapped then min/max'd for the same
+    reason `unrot_box` does it -- a 90 deg rotation sends the top-left corner elsewhere, so
+    reusing the original corner order yields an inverted box.
+
+    `unrot_box(rot_box(b)) == b` is asserted in tests/test_orientation_roundtrip.py.
+    """
+    x1, y1, x2, y2 = box
+    ax, ay = rot_point(x1, y1, orig_w, orig_h, direction)
+    bx, by = rot_point(x2, y2, orig_w, orig_h, direction)
+    return [min(ax, bx), min(ay, by), max(ax, bx), max(ay, by)]
+
+
+def rot_boxes(boxes, orig_w, orig_h, direction=DEFAULT):
+    return [rot_box(b, orig_w, orig_h, direction) for b in boxes]
+
+
 def unrot_boxes(boxes, orig_w, orig_h, direction=DEFAULT):
     return [unrot_box(b, orig_w, orig_h, direction) for b in boxes]
 

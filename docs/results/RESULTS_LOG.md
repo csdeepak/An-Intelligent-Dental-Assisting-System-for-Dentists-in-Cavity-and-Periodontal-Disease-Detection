@@ -5005,3 +5005,646 @@ and gate, so no drift is folded into the comparison. Caries only; periodontitis 
   Bioengineering journal record with a Springer *chapter* DOI; uncited, so not blocking, but
   fix before it is used. (3) `c1_constant_baseline.py:78` docstring says 86 where the fitting
   set is 78.
+
+---
+
+## 2026-08-31 — The caries gate reads POSITION as much as lesion; and 2.7x more data does not fix it
+
+- **What was done:** two experiments on the caries branch, prompted by "precision and recall are
+  very low, how do we improve them". First a diagnostic of *where* the errors are; then the
+  highest-value fix the diagnostic implied. **The diagnostic is a finding. The fix is a negative
+  result.** No model was adopted; `caries-gate-resnet18-v3.0` remains the pipeline default,
+  unchanged and hash-pinned.
+
+### 1. The gate has partially absorbed the molar prior — measured
+
+- **New script:** `scripts/eval/caries_position_bias.py`, read-only, re-runnable. It reproduces
+  the published test confusion matrix exactly (TP 94 / FP 142 / FN 33 / TN 594) before drawing
+  any conclusion, so the analysis path is validated against a known reference.
+- **Mean P(caries) on teeth that are genuinely HEALTHY tracks the training base rate for that
+  tooth position** — held-out test, 863 crops, 34 source images:
+
+| tooth type | n | pos | precision | recall | FP rate | mean P on *healthy* | train base rate | within-type AUC |
+|---|---|---|---|---|---|---|---|---|
+| incisor | 266 | 8 | 0.091 | **0.125** | 0.039 | 0.075 | 0.017 | 0.681 |
+| canine | 129 | 5 | 0.333 | **0.200** | 0.016 | 0.087 | 0.023 | 0.748 |
+| premolar | 221 | 31 | 0.292 | 0.677 | 0.268 | 0.273 | 0.157 | 0.781 |
+| molar | 247 | 83 | 0.473 | 0.855 | **0.482** | **0.478** | **0.343** | 0.781 |
+
+- **48.2% of healthy molars are flagged carious**; 79 of the 142 false positives are healthy
+  molars. That is where the 0.398 precision goes. In the other direction the gate is close to
+  blind on anterior teeth — **1 of 8 incisor lesions found**.
+- **But the lesion signal is real.** Ranking *within* a tooth type removes the shortcut, and
+  **within-type AUC is 0.7454, 95% CI [0.6604, 0.8420]** — excludes 0.5. Pooled AUC (0.8548) is
+  inflated by the prior, because ranking a molar above an incisor is free. A position-only
+  predictor that never sees the image scores **AP 0.2962** against the model's 0.5503 and a
+  0.1472 chance line.
+- **This is the mechanism behind §8.22.** That section shows an image-blind molar constant beats
+  the pipeline (F1 0.320 vs 0.294) and reports it as a property of the metric. This entry shows
+  the caries gate *itself* has partially become that constant, and quantifies how much.
+- **Threshold fixes are exhausted, and this was tested rather than assumed.** The shipped 0.50 is
+  already F1-optimal across a 19-point sweep. Per-tooth-type thresholds fitted on val and applied
+  once to test give **F1 +0.006, 95% CI [-0.034, +0.041]** — not significant, and no better than
+  re-fitting a single global threshold. Anterior thresholds are fitted on 13 positives and are
+  noise. **The curve has to be lifted; the decision rule cannot be tuned into a better one.**
+
+### 2. Caries gate v4 — 2.67x the positives, and nothing moved
+
+- **The gap that motivated it:** DENTEX's disease subset carries **2,767** Caries + Deep Caries
+  annotations; `crops_v3_phase1` uses **1,049**. The MD5 join that makes healthy teeth derivable
+  only covers 260 of 705 images, so **62% of the available caries supervision was unused**.
+- **Build:** `build_caries_phase1_v3.py --include-disease-only` (new flag; the default path is
+  unchanged and was verified to reproduce the frozen v3 corpus **exactly** — 4,750/1,003/863,
+  healthy 5,366, ambiguous 856). Adds the 445 disease-only images as **positives only**; it adds
+  no healthy teeth, because without an enumeration twin there is no list of which teeth exist,
+  and deriving negatives from the detector would inject detector false positives into the
+  negative class. Train positives **723 → 1,928**; healthy negatives unchanged at 5,366; class
+  ratio 1:5.57 → 1:2.28.
+- **Leakage:** exactly one image refused — `train_332.png` is byte-identical to `test_181.png`
+  in the evaluation pool, already on record as `leaked_into_detector_training`. Also verified:
+  0 images span two splits, 0 v3-test images in v4 train/val, all 863 v3 test crops present in
+  v4's test split.
+- **Training:** identical to v3's shipped command except `--variant`. 15 epochs, batch 32,
+  lr 1e-3, seed 42, MPS, 8 min 16 s. Best epoch 12, val macro-F1 0.8090.
+- **Metrics — both gates on the SAME published 863-crop test set:**
+
+| | P | R | F1 | AP | AUC |
+|---|---|---|---|---|---|
+| v3 (shipped) | 0.3983 | 0.7402 | 0.5179 | **0.5503** | 0.8548 |
+| v4 (2.67x positives) | 0.4346 | 0.6535 | 0.5220 | **0.5496** | 0.8599 |
+
+  Paired cluster bootstrap over the 34 source images, 5,000 resamples, seed 42:
+
+| paired delta (v4 − v3) | point | 95% CI | verdict |
+|---|---|---|---|
+| average precision | −0.0015 | [−0.0886, +0.0821] | **not significant** |
+| ROC AUC | +0.0053 | [−0.0227, +0.0365] | not significant |
+| F1 @0.5 | +0.0035 | [−0.0651, +0.0740] | not significant |
+| precision @0.5 | +0.0358 | [−0.0272, +0.0991] | not significant |
+| recall @0.5 | −0.0881 | [−0.1923, +0.0233] | not significant |
+
+- **Every interval spans zero.** Average precision — threshold-independent, the whole PR curve —
+  **did not move**. The precision gain and recall loss are a shift *along* the same curve, caused
+  by the changed class balance moving what a 0.50 threshold means. **The bottleneck is not the
+  quantity of positive supervision.**
+- ⚠ **A number in this run that must never be quoted.** `outputs/caries_v4/arm_b/phase1_gate_report.txt`
+  reports caries **P 0.71 / R 0.80** on v4's *own* test split. Against v3's published 0.398/0.740
+  that reads as a transformation. It is not one: v4's test split has **2.2x the caries prevalence**
+  (0.324 vs 0.147) because disease-only images contribute positives and no healthy teeth, and
+  precision is a function of prevalence. Specificity — the model-intrinsic quantity — is
+  essentially unchanged (**0.853 vs 0.843**). Comparing precision across two test sets of
+  different prevalence measures the sets, not the models.
+- **Key decision:** **v4 is NOT adopted.** It is not better, and swapping it would invalidate the
+  44.3% lesion agreement, the C1 comparison, the C4 coverage curves, the calibration analysis and
+  the Ningxia externals — all measured on v3 — in exchange for nothing. Same reasoning that kept
+  Stage-2 head v3 an ablation (2026-08-28c).
+- **Also ruled out by measurement, not argument:** raising input resolution. The median tooth box
+  is 170x287 px = 46,288 against the 224x224 = 50,176 the model already sees — a 1.04x linear
+  resize, and **58% of boxes are already being upsampled**. There is no detail to recover. A prior
+  hypothesis that the square resize leaks tooth identity through aspect ratio was also **falsified**:
+  crops are stored pre-squared, so no shape cue exists in the input; the model reads tooth type
+  from genuine appearance.
+- **Source:** `scripts/eval/caries_position_bias.py`,
+  `outputs/caries_position_bias/caries_position_bias_test.json`,
+  `outputs/caries_v4/run_summary.txt`, `outputs/caries_v4/arm_b/results.json`.
+- **Follow-ups:** (1) The remaining untested levers all target *signal* rather than data volume:
+  CLAHE contrast normalisation, a slightly expanded crop (interproximal caries sits at the contact
+  point, which a 1.0x crop cuts through), and position-balanced sampling — the last attacks the
+  measured shortcut directly but may *lower* pooled F1, since that metric rewards using the prior.
+  (2) The negative class cannot grow inside DENTEX without new assumptions: enumeration images
+  without a disease twin are not evidence of health. (3) The stratified table above belongs in the
+  paper beside §8.22 — it is the mechanism behind the headline finding.
+
+---
+
+## 2026-08-31b — Three signal arms on the caries gate: none met the pre-registered bar
+
+- **What was done:** the three levers left after 2026-08-31 ruled out threshold tuning, data
+  volume and resolution — **CLAHE**, a **1.25× crop expansion**, and **position-balanced
+  sampling** — each trained against a **same-day control** and scored under a rule written down
+  before any arm ran (`outputs/caries_arms/PRE_REGISTRATION.md`). **No arm succeeded. Nothing was
+  adopted.** Run locally on MPS, ~8 min per run; no GPU rented, because a ResNet18 at 224 px over
+  6,616 crops is not a compute-bound job (`transfer.md` §6).
+- **Pre-registered in advance:** primary metric **average precision** on the 863-crop held-out
+  test split; comparator a same-day control (v3 config, frozen `crops_v3_phase1`, this
+  environment); success = **paired AP delta vs control with a 95% CI excluding zero**, from a
+  paired cluster bootstrap over the **34 source images**, 5,000 resamples, seed 42. AP rather
+  than P/R because the v4 experiment had just demonstrated the failure mode: precision +3.6 pp
+  and recall −8.7 pp while **AP did not move**.
+- **The control is faithful:** best val macro-F1 **0.7350**, exactly v3's published figure, so
+  environment drift is not confounding the deltas.
+- **Preconditions verified before training** (arms A and B rebuild the pixels, so the pairing is
+  only valid if the crop *sets* match): both rebuilt corpora have 6,616 crops, test 863/127,
+  **identical (crop, split, label, fdi) composition and identical source images** to
+  `crops_v3_phase1`, and the pixels genuinely differ (CLAHE mean abs diff 16.96, contrast std
+  44.3 → 62.0; exp125 32.22). This is precisely what the v4 experiment could not claim.
+- **Metrics — all four on the same 863-crop test split:**
+
+| arm | P | R | F1 | **AP** | AUC | within-type AUC |
+|---|---|---|---|---|---|---|
+| control | 0.3983 | 0.7402 | 0.5179 | **0.5503** | 0.8548 | 0.7454 |
+| clahe | 0.4545 | 0.7087 | 0.5538 | **0.5977** | 0.8741 | 0.7887 |
+| exp125 | 0.4541 | 0.6614 | 0.5385 | **0.5684** | 0.8524 | 0.7406 |
+| balance | 0.4244 | 0.6850 | 0.5241 | **0.5943** | 0.8577 | 0.7662 |
+
+| arm | metric | point | 95% CI | verdict |
+|---|---|---|---|---|
+| clahe | **average precision** | **+0.0488** | **[−0.0031, +0.0993]** | **MISS by 0.0031** |
+| clahe | precision @0.5 | +0.0558 | [+0.0106, +0.1008] | **REAL** |
+| clahe | recall @0.5 | −0.0314 | [−0.1095, +0.0500] | not significant |
+| clahe | within-type AUC | +0.0435 | [−0.0160, +0.0988] | not significant |
+| exp125 | **average precision** | +0.0198 | [−0.0367, +0.0810] | not significant |
+| exp125 | precision @0.5 | +0.0549 | [+0.0114, +0.0977] | REAL |
+| exp125 | recall @0.5 | −0.0794 | [−0.1567, −0.0078] | REAL — **a pure trade** |
+| balance | **average precision** | +0.0432 | [−0.0328, +0.1157] | not significant |
+| balance | within-type AUC | +0.0194 | [−0.0692, +0.1303] | not significant |
+
+- **Key decision: the bar was missed and was NOT moved.** CLAHE's AP interval misses by
+  **0.0031** on the lower bound. Recorded as a miss, in the same terms as R1's mask bar (0.6383
+  against a pre-registered 0.65). **No arm is adopted; `caries-gate-resnet18-v3.0` remains the
+  pipeline default.**
+- **What is real, as a secondary result:** **CLAHE buys precision (+5.6 pp, CI excludes zero)
+  with no significant recall cost** — the only arm for which that holds. Its false-positive rate
+  falls in every stratum (premolar 0.268 → 0.137, molar 0.482 → 0.457). exp125's precision gain
+  is cancelled by a *real* recall loss, which is a slide along the curve, not a lift — the flat
+  AP confirms it.
+- **A pre-registered warning that did not materialise.** `PRE_REGISTRATION.md` recorded, in
+  advance, that arm C might *lower* AP because the test population genuinely carries 3.4× more
+  caries in molars and AP rewards exploiting that prior. **It did not** (AP +0.043, CI spans
+  zero). The prior is not load-bearing for AP in the way anticipated. Recording this because the
+  warning was written to be falsifiable, and it was falsified.
+- **What CLAHE does NOT fix:** the anterior blindness. Incisor recall stays 0.125, canine recall
+  goes 0.200 → 0.000, and the position prior is still plainly present (mean P on healthy teeth
+  0.037 incisor → 0.443 molar). CLAHE suppresses false positives; it does not make the model see
+  anterior lesions.
+- **The honest limitation of this experiment: it is underpowered.** 863 crops but only **34
+  source images**, and intervals are clustered over images because teeth in one radiograph are
+  not independent. That is the correct choice and is why the intervals are wide — a +0.049 AP
+  point estimate cannot be separated from zero at n=34. **Only a larger held-out image set
+  resolves CLAHE**; no further modelling arm on this split will.
+- **Source:** `outputs/caries_arms/PRE_REGISTRATION.md`, `outputs/caries_arms/run_summary.txt`,
+  `outputs/caries_arms/arms_comparison.json`, `scripts/eval/caries_arms_compare.py`.
+  New builder flags `--clahe` / `--crop-expand` and trainer flag `--balance-position`; the
+  default paths are unchanged and still reproduce the frozen v3 corpus exactly.
+- **Follow-ups:** (1) **CLAHE is the one candidate worth a confirmatory run**, and the only thing
+  that would settle it is more held-out images — e.g. scoring it on the larger v4 test split
+  (1,218 crops from more images), which is a *different* item set and so needs its own control.
+  (2) Five independent attempts have now failed to lift this curve (thresholds, per-stratum
+  thresholds, 2.67× data, and these three). **That the caries branch is at its headroom on DENTEX
+  is now the leading hypothesis, not a worry** — and it is a legitimate, citable result for §8.24.
+
+---
+
+## 2026-09-01 — A sixth cohort, and the constant beats the pipeline by 25 points
+
+- **What was done:** a 6,000-image caries corpus (`CariesXrays_Dataset`, supplied by the user)
+  was verified for leakage and geometry, then the **frozen** pipeline was evaluated on it as an
+  independent external cohort, against the image-blind molar constant. **Nothing was trained and
+  no checkpoint changed.** New script: `scripts/eval/cariesxrays_external.py`, which imports
+  `ningxia_external.match_by_centroid` rather than reimplementing it, so the cohorts stay
+  comparable. Prompted by a request to use DentFound (Zhu et al., *Nat. Biomed. Eng.* 2026,
+  doi:10.1038/s41551-026-01713-8) plus this dataset to improve the caries score.
+
+### The corpus, and why it is not yet citable
+
+- 6,000 images (**5,992 unique**, 8 internal duplicates), **13,785** boxes, single class `Decay`,
+  Pascal VOC, panoramic, all height 1280; median lesion **62×74 px = 0.145%** of image area;
+  34 images carry zero boxes. That is **13.1× the positive supervision and 23.1× the images** of
+  `crops_v3_phase1`.
+- **Provenance is UNRESOLVED and this blocks publication.** No README, no licence;
+  `<source><database>` is the LabelImg default `Unknown`; the XML `<path>` fields point at
+  `F:\datasets\labeled\source6000-label1-all\all-6021\img` — a private Windows working
+  directory, not a released dataset. File IDs run **415–30,664 for 6,000 files**, i.e. a
+  caries-selected subset of a ~30k pool, and the corpus carries an internal `img`/`test` split
+  (5,208 / 792). Searches for `"source6000-label1-all"` and `"all-6021"` return nothing.
+  **It cannot enter a Data Availability statement until someone identifies it.**
+- **Leakage: none, verified three ways.** (1) 0 MD5 overlap against the DENTEX evaluation pool
+  (250), both DENTEX training subsets (705, 623) and Ningxia (4,478). (2) A **positive control** —
+  the known byte-identical pair `train_332` ≡ `test_181` — scores dHash distance **0**, so the
+  perceptual method detects real duplicates. (3) The dHash distribution over **1.5M** pairs has
+  min 2, mean 23.7, and only **36 pairs ≤ 5**; one caries image matched **three different**
+  DENTEX images at distance 2–3, which a true duplicate cannot do, and visual inspection
+  confirmed different patients, dentition stages and restorations.
+
+### A geometry defect caught before it cost anything
+
+- **27.3% of the XMLs (1,637 files, 4,055 boxes) carry a WRONG `<size>`** — always the width,
+  stated 2648 where the image is really 2440 / 2324 / 2444; height always correct. **A converter
+  that normalises by the XML `<size>` silently corrupts a quarter of the corpus**, which is how a
+  90-epoch A100 run was voided on 2026-08-27a.
+- The **coordinates are in the true image frame**, established two ways: **0 of 4,055** boxes
+  exceed the actual width (max `xmax/width` = 0.809), and rendering boxes onto mismatched images
+  places them **on teeth** rather than displaced right by the ~8.5% the stale width implies.
+  **Rule now enforced in code: read width/height from the decoded image, never the XML.**
+- **Detector transfer gate PASSED** before any evaluation: **26.08 teeth/image** against DENTEX's
+  22.0 and Tufts' ~26. The Tufts-trained detector generalises to this cohort.
+
+### The result
+
+Frozen pipeline vs the image-blind constant `{16,17,26,27,36,37,46,47}`, centroid containment,
+identical matcher to the Ningxia arm:
+
+| run | n images | n lesions | pipeline | constant | paired delta | 95% CI |
+|---|---|---|---|---|---|---|
+| first 600 by id | 600 | 1,620 | 0.3086 | 0.5488 | **+0.2401** | [+0.2110, +0.2690] |
+| **random 1,500, seed 42** | **1,500** | **3,421** | **0.3090** | **0.5612** | **+0.2523** | **[+0.2321, +0.2726]** |
+
+- The two draws' intervals overlap heavily, so **the prefix sample carried no ordering bias** —
+  checked because file IDs are not shuffled and a `[:N]` prefix could have been one acquisition
+  batch. The randomised run is the number of record.
+- **The constant does not win by brute force.** It flags 6.45 teeth/image against the pipeline's
+  3.94 (+64%), but its **match rate is also higher** (0.2065 vs 0.1895), so it wins on
+  per-flagged-tooth efficiency too. On DENTEX the brute-force defence held (859 vs 755 teeth at
+  the same match rate, 2026-08-28d); **here it does not.**
+- **Mechanism, measured rather than asserted** (300 images, 859 lesions, each mapped to the
+  detected tooth containing it): **72.0% of lesions sit on molars** (premolar 20.5%, canine 3.7%,
+  incisor 3.7%), and **60.2% land on exactly the eight teeth the constant flags**. The constant's
+  0.561 is near its structural ceiling of ~0.60 on this cohort. It is exploiting an extremely
+  molar-concentrated caries distribution, not reading anything.
+- **A ceiling that binds every tooth-level arm here:** **22.1% of lesions fall inside no detected
+  tooth at all.**
+
+### Where this leaves the three cohorts
+
+| cohort | n | constant − pipeline | verdict |
+|---|---|---|---|
+| DENTEX | 164 img / 479 lesions | +0.046 [+0.006, +0.089] | constant wins |
+| Ningxia, 4 hospitals | 337 img / 1,013 lesions | −0.009 [−0.049, +0.030] | indistinguishable |
+| **CariesXrays** | **1,500 img / 3,421 lesions** | **+0.252 [+0.232, +0.273]** | **constant wins decisively** |
+
+- **Key decision / insight — and it corrects a claim made in this session.** A lesion-detector
+  proposal (Path B) was argued partly on the premise that "a constant cannot win at lesion level,
+  because it would have to place boxes". **This cohort falsifies that premise**: a constant wins
+  at lesion level by 25 points. The premise was stated as a conclusion without being tested,
+  which is the error this project's own §8.22 exists to criticise. Any future lesion-detector
+  work must be justified against a much stronger constant than was assumed.
+- **For the paper this is the strongest evidence yet for the central thesis.** *"A tooth-level
+  score cannot establish that a system reads the radiograph"* is now supported on **five
+  institutions plus a 6,000-image independent cohort**, with the mechanism quantified (72% molar
+  concentration) rather than asserted, and with the largest lesion count of any cohort — 3,421,
+  more than DENTEX and Ningxia combined.
+- **DentFound — what was verified and what transfers.** Identity confirmed from the PDF metadata
+  and text. Its Kaggle sources are named in Data Availability and are the *dual-labeled* corpus
+  (stated as **2,000 images**; this repo measured **500 images / 2,066 labels** on 2026-08-28c —
+  a discrepancy worth a footnote if cited) and *Teeth Segmentation on Dental X-ray Images* (598
+  images / 15,318 polygons), plus 100 hand-labelled mixed-dentition images, **2,698 total, used
+  only to train their tooth-identification model**. Two of their ablations are relevant:
+  instance masks give **+20.35/+23.01/+23.11% relative** P/R/F1 on diseased-tooth identification
+  (P<0.001) — evidence for wiring R2, though measured against a VLM with *no* tooth grounding, so
+  not directly transferable to a pipeline that already crops per tooth; and **resolution gains
+  were NOT significant** (336→1024, P>0.05), independently corroborating this project's own
+  measurement that resolution is a no-op here.
+- **Source:** `scripts/eval/cariesxrays_external.py`,
+  `outputs/cariesxrays_external_rand/cariesxrays_external_{pipeline,constant-molars}.json`,
+  `outputs/cariesxrays_external/` (the prefix run, retained as the ordering-bias control).
+- **Follow-ups:** (1) **Identify the dataset's provenance and licence** — free, and it gates
+  everything downstream including whether this result is publishable at all. (2) The full 6,000
+  are available if a tighter interval is ever needed; 1,500 already gives ±2 pp. (3) Path B (a
+  trained lesion detector) is **not** retired but must now clear a constant scoring 0.561, and
+  needs its own pre-registered bar. (4) `run_inference.py` was never touched; the pipeline is
+  byte-identical and all invariants still hold.
+
+---
+
+## 2026-09-01b — CariesXrays provenance RESOLVED: it is a peer-reviewed AAAI 2024 benchmark
+
+- **What was done:** the 2026-09-01 entry recorded the 6,000-image caries corpus as having
+  **unidentified provenance**, and flagged that as a hard blocker on publishing anything measured
+  on it. The user supplied the source repository. **It is identified, peer-reviewed and citable.
+  The blocker is cleared.** This entry supersedes that caveat; the measurements themselves are
+  unchanged.
+- **The dataset:**
+
+  > Chen, B., Fu, S., Liu, Y., Pan, J., Lu, G., Zhang, Z. **"CariesXrays: Enhancing Caries
+  > Detection in Hospital-Scale Panoramic Dental X-rays via Feature Pyramid Contrastive
+  > Learning."** *Proceedings of the AAAI Conference on Artificial Intelligence*, vol. 38,
+  > no. 20, pp. 21940–21948, 2024. DOI **10.1609/aaai.v38i20.30196**.
+  > Code/data: `github.com/Binz-Chen/AAAI2024_CariesXrays`
+
+- **Verified independently four ways** rather than trusting the repository README: AAAI's own OJS
+  (`ojs.aaai.org/index.php/AAAI/article/view/30196`), ACM DL (which supplies the DOI), DBLP
+  (`conf/aaai/ChenFLPLZ24`), and AAAI's Underline session page. The paper is real, peer-reviewed
+  and in the AAAI 2024 proceedings.
+- **Their stated counts vs what this repo measured on the local copy:**
+
+| | paper states | measured here | note |
+|---|---|---|---|
+| images | 6,000 | **6,000** | exact match |
+| caries instances | 13,783 | **13,785** raw `<object>` entries | **+2** |
+| — after removing 1 degenerate box (x2≤x1 or y2≤y1) | | 13,784 | **+1** |
+| exact-duplicate boxes within a file | | **0** | not the cause |
+
+  The residual **+1 (0.007%)** is a counting-convention difference, not a data problem. Recorded
+  because this project does not round discrepancies away — the same discipline that caught the
+  "2,000 vs 500 images" gap in the Kaggle dual-labeled corpus (2026-08-28c).
+- **Licence: still not stated.** The repository has **no LICENSE file** (HTTP 404) and the GitHub
+  API reports `license: null`. It is a public research benchmark released alongside a
+  peer-reviewed paper with an explicit citation request, which is ordinary academic practice —
+  but the Data Availability statement should say "released publicly by the authors; no explicit
+  licence stated; cited as requested" rather than assert a licence that does not exist.
+- **What this changes for the paper.** §8.25's result — the constant beating the pipeline by
+  **+0.252 [+0.232, +0.273]** on 1,500 images / 3,421 lesions — was measured on what was then an
+  anonymous folder. It is now a measurement on a **published, peer-reviewed, hospital-scale
+  benchmark with its own baselines**, annotated by dental professionals. That is a materially
+  stronger exhibit: the cohort is independently described, citable, and reproducible by others.
+- **Key decision or insight:** nothing measured changes. What changes is that the single largest
+  caveat on the session's headline finding is removed. The **remaining** caveat is unchanged and
+  still real — the corpus's annotation *exhaustiveness* is not documented, so `match_rate` stays
+  a diagnostic and a flagged tooth with no box is still not a confirmed false positive.
+- **Source:** `github.com/Binz-Chen/AAAI2024_CariesXrays`, AAAI OJS 30196, DOI
+  10.1609/aaai.v38i20.30196, DBLP `conf/aaai/ChenFLPLZ24`.
+- **Follow-ups:** (1) Add the citation to `paper/source.bib` when §8.25 is folded into
+  `main.tex`. (2) The AAAI paper reports FPCL baselines on this benchmark — **not read here, and
+  no number from it should be quoted until it is**. It would give any future lesion detector
+  (Path B) a published comparison point. (3) The forensic path evidence
+  (`F:\datasets\labeled\source6000-label1-all\all-6021`) is consistent with the authors' own
+  working directory and is no longer a concern.
+
+---
+
+## 2026-09-01c — §8.25 folded into the manuscript; an 8th citation error found and fixed
+
+- **What was done:** the CariesXrays cohort was written into `paper/main.tex` and the AAAI
+  citation corrected. **No measurement changed.** `scripts/verify_paper_numbers.py` grew from
+  **82 to 90** asserted claims and passes with no drift.
+- **⚠️ AN INCORRECT CITATION WAS ALREADY IN THE MANUSCRIPT, CITED TWICE.** `source.bib` already
+  held a `chen2024cariesxrays` entry (used at `main.tex` lines 136 and 234) with the **right
+  title and pages** but pointing at the **adjacent AAAI article id**:
+
+| field | was | corrected to |
+|---|---|---|
+| DOI | `10.1609/aaai.v38i20.30197` | `10.1609/aaai.v38i20.30196` |
+| URL | `.../article/view/30197` | `.../article/view/30196` |
+| author | Fu, **Shuai** | Fu, **Sisi** |
+
+  Verified by fetching AAAI OJS **30197** directly: it is *"Referee-Meta-Learning for Fast
+  Adaptation of Locational Fairness"* (Weiye Chen et al., pp. 21949–21957) — an unrelated paper on
+  spatial fairness. The correct record is **30196**, pp. 21940–21948, confirmed against AAAI OJS,
+  ACM DL and DBLP. **The 2026-08-28 citation audit found 7 errors including 4 wrong DOIs; this is
+  an 8th that survived it**, and it was only found because the dataset was independently
+  identified. Worth re-running `scripts/audit_citations.py` against publisher records, not just
+  internal consistency.
+- **What was added to `main.tex`:** a corpus-table row and footnote; a paragraph in
+  §Data/External data stating the benchmark, the seed-fixed 1,500-image draw, the unverified
+  annotation exhaustiveness and the 22.1% of lesions inside no detected tooth; a new
+  **Table~\ref{tab:cohorts}** giving the three-cohort comparison; and a rewritten closing
+  paragraph for the external-results subsection. Abstract and the contributions list updated for
+  consistency ("five institutions" → "six independent cohorts").
+- **The claim in the paper changed, and strengthened.** It previously read *"a purpose-built
+  pipeline and an image-blind prior cannot be reliably told apart by these metrics"*, resting on
+  DENTEX (+4.6) and a Ningxia tie (−0.9). With CariesXrays at **+25.2 pp [+23.2, +27.3]** the
+  supported statement is stronger: **the three cohorts do not support the claim that the pipeline
+  outperforms an image-blind prior, and the margin runs from a tie to 25 points depending only on
+  which cohort is scored** — 26 points of swing across one cohort's sites, 25 across cohorts. The
+  brute-force defence that held on DENTEX (14% more teeth at equal hit rate) is explicitly
+  retired for this cohort, where the constant flags **64% more teeth and still has the higher hit
+  rate (0.206 vs 0.190)**.
+- **The number checker caught a transcription error of mine.** I wrote the constant's match rate
+  as 0.207; the artefact is 0.2065, which formats to **0.206**. Corrected in favour of the
+  artefact. This is the checker doing precisely the job it was built for on 2026-08-28.
+- **⚠️ COMPILATION IS NOT VERIFIED.** There is **no LaTeX toolchain on this machine** (no
+  `pdflatex`, `bibtex`, `latexmk` or `tectonic`; no MacTeX or TeX Live anywhere). Edits used only
+  constructs already present in the file, and every static check available was run and passes:
+  brace balance (433/433), all 9 environment pairs matched, **all `\cite` keys resolve**, all
+  `\ref` targets have labels, per-tabular column arity correct for all six tabulars, and no
+  unescaped `%`. **Someone must compile before submitting** — the previously verified
+  "0 errors / 0 overfull boxes / 12 pages" no longer holds without a rebuild, and the paper is now
+  **longer**, which matters against the outstanding venue-length cut.
+- **Source:** `paper/main.tex`, `paper/source.bib`, `scripts/verify_paper_numbers.py`
+  (82 → 90 claims), AAAI OJS 30196 / 30197, DBLP `conf/aaai/ChenFLPLZ24`.
+- **Follow-ups:** (1) **Compile the manuscript and re-check page count and overfull boxes.**
+  (2) Re-run `scripts/audit_citations.py` with publisher lookups — one wrong DOI survived a full
+  audit. (3) The AAAI paper's own FPCL baselines on this benchmark are **still unread**; no number
+  from it may be quoted until they are.
+
+---
+
+## 2026-09-01d — DOI audit against the registry: 22 of 63 checkable citations are broken
+
+- **What was done:** every DOI in `paper/source.bib` was dereferenced against the DOI registry.
+  **Read-only; no citation was changed** — the user asked for the audit to be saved and acted on
+  separately. New script `scripts/verify_citations_crossref.py`; findings in
+  `outputs/citation_audit/FINDINGS.md`, raw log alongside it.
+- **Two defects in `audit_citations.py` fixed first.** It carried a **hardcoded Windows path**
+  (`C:\Users\csdee\...`), so it could not run on this machine at all — which is why it had never
+  actually been re-run — and it makes **no network call**, so it can only catch a citation that
+  supports the wrong claim, never one whose DOI points at the wrong paper. Path is now
+  repo-relative; the verification lives in the new script.
+- **Method, and why the first attempt was wrong.** A Crossref-only version reported 16 failures
+  that were false: **arXiv DOIs are registered with DataCite**, so Crossref 404s them. The final
+  version resolves twice against `doi.org` itself — `doiRA` for the registering agency (where
+  *"DOI does not exist"* is decisive) and **content negotiation** for CSL-JSON metadata, which
+  works whichever agency registered it. That correction removed every arXiv false positive.
+  LaTeX accent macros are stripped before author comparison, and year gaps of 1 are notes rather
+  than errors (online-first vs issue year).
+- **Validated against a known answer before being trusted:** the corrected `chen2024cariesxrays`
+  DOI scores title overlap **1.00**; the wrong DOI it replaced scores **0.05** and correctly
+  names the unrelated paper it resolves to. The tool catches what the 2026-08-28 manual audit
+  missed.
+- **Result — 63 entries carry a DOI, 19 do not:**
+
+| category | count |
+|---|---|
+| clean | **40** |
+| **DOI resolves to a DIFFERENT paper** (title overlap 0.00) | **11** |
+| **DOI not registered with any agency** | **11** |
+| author notation only (`Yalım`/`Yalim`) — cosmetic | 1 |
+| no DOI, not checkable by this method | 19 |
+
+  **22 of 63 checkable entries (35%) have a broken DOI.** Examples of the first kind:
+  `karamuftuo2025panoramic` resolves to *Foundations of Pediatric Lifestyle Medicine*;
+  `kong2024integrating` to OCT-guided femtosecond laser keratoplasty; `zanini2024systematic` to
+  super-resolution cervical-spine MRI; `adnan2024orthopantomogram` to a COVID household-survey
+  dataset.
+- **What this establishes, stated precisely.** These 22 DOIs **do not identify the works the
+  bibliography claims**, verified against the agency-agnostic registry rather than one provider.
+  It does **not** establish that the cited papers are fabricated — a real paper can carry a
+  mistyped or hallucinated identifier. **Separating "real paper, wrong DOI" from "no such paper"
+  requires a manual title lookup for each of the 22 and is deliberately not attempted here.**
+  The 19 DOI-less entries were not checked by any means; absence of a check is not a pass.
+- **Key decision or insight:** **this blocks submission**, and it is the same failure class the
+  2026-08-28 audit found (7 errors including two invented titles) without clearing. A reviewer who
+  dereferences one bad DOI will check the rest. The lesson worth carrying is narrower than "audit
+  citations": **an audit that cannot fail is not an audit** — the old script printed 26 citations
+  for eye-review and passed a DOI pointing at a different paper, twice, because nothing in it ever
+  dereferenced anything.
+- **Source:** `scripts/verify_citations_crossref.py`, `outputs/citation_audit/FINDINGS.md`,
+  `outputs/citation_audit/doi_verification_report.txt`, `scripts/audit_citations.py` (path fix).
+- **Follow-ups:** (1) **Manually resolve each of the 22 by title** and decide per entry: correct
+  the DOI, or remove the reference. (2) Decide what to do about the 19 unverifiable entries.
+  (3) Add `verify_citations_crossref.py` to whatever pre-submission checklist exists, so this
+  cannot regress. (4) Nothing here changes any measurement; the pipeline and all results are
+  untouched.
+
+---
+
+## 2026-09-01e — Lever 1 pre-registered; multi-corpus detector dataset built and geometry-gated
+
+- **What was done:** the acceptance bar for the multi-corpus detector retrain was written down
+  **before** any data was converted, and the dataset was then built and passed a three-part
+  geometry gate. **No GPU was rented and nothing was trained** — this is the local half that the
+  pre-registration requires to pass first.
+- **The hypothesis, and why it is not merely "more data":** Stage-2 decomposes exactly as
+  `recall × of-detected` = 0.706 × 0.826 = **0.583**. The numbering half is strong; **detector
+  recall is the binding constraint**, with 29.4 % of teeth never reaching Stage 2. The detector
+  trains on 700 Tufts images; `quadrant_enumeration` adds 634 panoramics with 18,095 tooth boxes,
+  already local. Precedent: DentFound pooled corpora the same way (2,698 images) for its
+  tooth-identification model.
+- **Leakage gate — run before the pre-registration was written, because it could have voided the
+  whole experiment.** The Stage-2 benchmark is 164 leak-free `DENTEX/disease/` images. By MD5:
+  **85 of the 250 pool images are in `quadrant_enumeration`, and all 85 sit inside the existing
+  86-image exclusion list**, so **overlap with the 164 is 0**. Training the detector on that
+  corpus does not touch the benchmark.
+- **Pre-registered, in `outputs/detector_multicorpus/PRE_REGISTRATION.md`:**
+  **PRIMARY** — FDI exact end-to-end on the 164, paired cluster bootstrap over images (10,000
+  resamples, seed 42) against a **same-day control**; succeeds only if the 95 % CI **excludes
+  zero**. **GUARD** — Tufts frozen test box mAP@0.5 **≥ 0.75**, which is `T0.6` §2's *existing*
+  pre-registered floor reused verbatim rather than a number invented for this arm. **Adoption
+  requires both.** Three risks recorded in advance, the sharpest being that recall and
+  of-detected can move in opposite directions and cancel — R1 showed spurious boxes perturb the
+  Hungarian assignment across a whole quadrant — so the decomposition is reported, not just the
+  product.
+- **New code:** `src/orientation.rot_box` / `rot_boxes` (upright → rotated), the missing inverse
+  of the existing `unrot_box`. Put in the module that owns rotation rather than duplicated in a
+  converter, and covered by `tests/test_orientation_roundtrip.py` — 37 property tests asserting
+  `unrot_box(rot_box(b)) == b` across both rotation directions, four frame geometries and edge
+  boxes. Suite is now **159 tests**.
+- **Dataset:** `scripts/yolo/build_multicorpus_detector_dataset.py` →
+  `data/detector_multicorpus/` (gitignored, regenerable).
+
+| split | images | boxes | composition |
+|---|---|---|---|
+| train | **1,334** | 28,832 | 700 Tufts + 634 DENTEX — **1.91× the current 700** |
+| val | 150 | 2,256 | **Tufts only, unchanged** |
+| test | 150 | 2,309 | **Tufts only, unchanged — the frozen guard** |
+
+  Keeping val/test Tufts-only is deliberate: it keeps `Tufts test box mAP@0.5` directly
+  comparable to the frozen detector's 0.810, which is what the guard measures.
+- **Geometry gate, three parts, all passed.** (1) Per-box round trip on every converted
+  annotation. (2) **18,095 DENTEX boxes re-scored against their source COCO boxes: median IoU
+  1.0000** against a 0.99 abort threshold. (3) Rendered samples from both corpora inspected —
+  both now sit in the detector's frame with the jaw vertical, DENTEX boxes tracking every tooth,
+  and the rotated vendor watermark confirming the pixels turned with the labels.
+- **The gate fired once, and the defect was mine, not the data's.** The first run aborted on
+  `train_217.png` with a round-trip mismatch. Investigated rather than loosened: the coordinates
+  agreed to **1.1e-13**, and the failure was my equality test using `round()` across a `.5`
+  boundary — `round(999.5) = 1000` under banker's rounding but
+  `round(999.4999999999999) = 999`. Replaced with a 1e-6 tolerance. **The geometry was never
+  wrong**; recorded because a gate that stops the build and is then investigated is the gate
+  working, and this is the failure mode that voided a 90-epoch A100 run on 2026-08-27a.
+- **Two build decisions worth stating.** Tufts boxes are **derived from `dataset_seg`'s polygon
+  labels** (exact min/max) rather than re-converted from source, so the only new geometry risk is
+  the DENTEX side, which is the side that gets re-scored. And rotated DENTEX is written as
+  **JPEG q95** — Tufts is *already* JPEG, so this is the consistent choice, and it cuts the
+  dataset from ~2.1 GB to **816 MB**, saving roughly 40 minutes of billed upload on a running
+  A100 (~₹56).
+- **Also recorded:** `quadrant_enumeration` ships 634 image entries but only **623 unique MD5s** —
+  11 duplicate images. Left in, since duplication at this rate is immaterial against 1,334 images,
+  but noted rather than discovered later.
+- **Source:** `outputs/detector_multicorpus/PRE_REGISTRATION.md`,
+  `scripts/yolo/build_multicorpus_detector_dataset.py`, `data/detector_multicorpus/meta.json`,
+  `src/orientation.py`, `tests/test_orientation_roundtrip.py`.
+- **Follow-ups:** (1) Re-measure the **same-day control** (current detector, this machine, the 164
+  images) before renting — CPU work, free, and required by the pre-registration. (2) Then rent one
+  **A100-40GB at ₹84.24/hr** (~₹253 estimated) and train. (3) Report the recall/of-detected
+  decomposition, not just end-to-end. (4) Nothing here changes the pipeline; all invariants hold.
+
+---
+
+## 2026-09-01f — The Lever-1 dataset was VOID; caught before renting, and rebuilt
+
+- **What was done:** a pre-training soundness check on the multi-corpus detector dataset found
+  that **its Tufts half was built from the WITHDRAWN pre-fix corpus** and was geometrically
+  void. Source corrected, dataset rebuilt, and the gate that missed it strengthened. **No GPU was
+  rented; balance is unchanged at ₹1,105.99.** This cost time, not money — which is the entire
+  purpose of the local gate.
+- **How it surfaced.** A GT box-convention comparison between corpora, run as an ordinary
+  sanity check before training:
+
+| corpus | GT median w/h | detector's predicted w/h | |
+|---|---|---|---|
+| Tufts | **0.364** | 2.665 | **7.3× disagreement** |
+| DENTEX | 2.877 | 2.561 | 1.12× — fine |
+
+  A tooth is ~3× taller than wide upright (w/h ≈ 0.35, `PAPER_MATERIAL.md` §6.1); a 90° rotation
+  inverts that to ≈ 2.9. **Tufts GT was reporting the UPRIGHT aspect while its images are in the
+  ROTATED frame.** Rendering GT against detector predictions confirmed it: the Tufts boxes were
+  90° out and **parked off the dentition in the top-right corner.**
+- **Root cause.** `data/tufts/dataset_seg/` on this machine is the **pre-fix corpus from the void
+  26 Aug R1 run** (`RESULTS_LOG` 2026-08-27a: *"every instance mask was spatially misaligned with
+  its image"*). The corrected `dataset_seg_v2` was never built here — `.gitignore` names it as
+  the *"Corrected R1 seg dataset (27 Aug 2026)"*. Transposing x/y does **not** repair it; the
+  centroids still cluster in a sub-region. The corpus is simply void.
+- **⚠️ THE GATE THAT LET IT THROUGH, AND WHY.** The build script's own docstring asserted
+  *"the only new geometry risk is the DENTEX side, which is re-scored below."* **That assumption
+  was the defect.** DENTEX was re-scored against its source and passed at median IoU 1.0000 —
+  correctly — while **Tufts was taken on trust because it was believed already verified.** A gate
+  that checks only the half you suspect is not a gate. This is the second time an unverified
+  "already correct" assumption has produced void training data in this project.
+- **Had it trained:** ~₹253 spent, 150 epochs of smoothly-falling loss on half-garbage labels,
+  nothing erroring, and a confident null reading *"more data did not help"* — an exact rerun of
+  the 26 Aug failure.
+- **The fix, and how it is now proven.** Tufts boxes now come from
+  **`Segmentation/teeth_bbox.json` + `Radiographs_rotated/`** — the annotation the canonical
+  0.7824 detector was trained on, already in the portrait frame and never touched by the
+  `teeth_polygon.json` `[y,x]` transpose. Keyed by the frozen `split_v1.csv`, with the same
+  degenerate-box guard (66 source objects carry corrupt 1×1/1×2 boxes,
+  `T0.6_detector_reconciliation.md` §3.5).
+
+  **A hard verification target replaced the heuristic one.** `model_metrics.md` records the frozen
+  detector's own instance counts, and the rebuild reproduces them **exactly**:
+
+| split | canonical | rebuilt | |
+|---|---|---|---|
+| val | 3,794 | **3,794** | MATCH |
+| test | 3,924 | **3,924** | MATCH |
+
+  The build now **aborts** if either count differs. Exact agreement on two independent integers is
+  far stronger evidence than any aspect-ratio heuristic, and it proves this conversion reproduces
+  the canonical one.
+- **Gate strengthened:** GT is now checked against the frozen detector **for every corpus**, not
+  just the new one. Post-rebuild: Tufts 1.06× agreement, DENTEX 1.12× (was 7.3× for Tufts).
+  Visual overlay confirms GT and detector boxes now coincide on every tooth.
+- **Final dataset:** train **1,334** images / **36,316** boxes (700 Tufts + 634 DENTEX, **1.91×**
+  the current 700); val 150 / 3,794; test 150 / 3,924 — both Tufts-only and canonical. 816 MB.
+  The void build had 28,832 boxes, i.e. it was also **losing ~40 % of the Tufts boxes**.
+- **Same-day control, measured earlier today** (`outputs/detector_multicorpus/control_sameday/`):
+  recall **0.7083**, of-detected **0.8250**, **end-to-end 0.5844** — reproducing the 27 Aug
+  published run to within +2 detected and +1 exact tooth of 936, well inside the documented
+  9-tooth noise floor. All Lever-1 deltas will be measured against **0.5844**.
+- **Key insight worth carrying:** the previous entry's lesson was *"an audit that cannot fail is
+  not an audit."* This one is its twin: **a gate that only checks the half you already suspect is
+  not a gate.** Both failures came from trusting a component labelled verified without re-deriving
+  the verification in the current context.
+- **Source:** `scripts/yolo/build_multicorpus_detector_dataset.py`,
+  `data/detector_multicorpus/meta.json`, `outputs/detector_multicorpus/PRE_REGISTRATION.md`.
+- **Follow-ups:** (1) Train — the pre-registration's local gate now genuinely passes. (2) Consider
+  rebuilding `dataset_seg_v2` on this machine, since `dataset_seg` is void and anything else
+  reading it inherits the defect. (3) `validate_fdi_assignment.py`'s `--head-weights` still
+  defaults to head **v1.0** while the pipeline default is v2.0 — a live trap for the next re-run.
+
+## 2026-09-01g — GPU rented for Lever 1, then aborted mid-upload; nothing trained
+
+- **What was done:** Provisioned a JarvisLabs GPU to run the Lever-1 two-arm detector retrain
+  (entry 2026-09-01e/f). `jl create --gpu A100` returned *"A100 not available at this moment"*
+  for both the 40 GB and 80 GB cards, so an **A30 24 GB (₹38.88/hr)** was taken instead — it
+  holds R1's `batch 32 @ 1024` config unchanged (R1 peaked at 17.9 GB). Upload of
+  `data/detector_multicorpus/` (816 MB, 3,268 files) was started with `jl upload`, which runs
+  as an rsync of many small files and moved at only ~19 MB/min. It also nested the tree one
+  level deep (`/home/detector_multicorpus/detector_multicorpus/`), which the plan was to absorb
+  with a `--data-root` flag rather than a code change. **The user terminated the instance before
+  the upload finished.** No training started.
+- **Dataset / config:** n/a — no run executed.
+- **Metrics:** none. **Spend ₹21.45** (instance time during the upload attempt). Balance
+  **₹1,105.99 → ₹1,084.54**. No instances running or paused afterwards (`jl list` empty).
+- **Key decision or insight:** `jl upload` of a directory of thousands of small image files is
+  the bottleneck, not the GPU. **Next attempt: `tar` the dataset locally, upload one ~800 MB
+  file, extract on the box.** Also re-run the geometry gate *on the rented box* after extraction
+  (the R1 lesson from 2026-08-27a), before launching either arm.
+- **Source:** JarvisLabs account activity; `transfer.md` §3 Track B (B1), §6, §8;
+  `docs/research/GPU_SETUP.md` §0 (macOS `jl` runbook).
+- **Follow-ups:** (1) Re-tar and re-upload; train Control B (`--arm tuftsonly`) then Arm
+  (`--arm multicorpus`), ~150 epochs each, ~₹210 total on an A30. (2) Score both against the
+  same-day control (end-to-end 0.5844) per `outputs/detector_multicorpus/PRE_REGISTRATION.md`.
+  (3) The `jl` CLI and this machine's `macos-m4pro` SSH key are now registered, so the next
+  attempt starts from provisioning, not setup.

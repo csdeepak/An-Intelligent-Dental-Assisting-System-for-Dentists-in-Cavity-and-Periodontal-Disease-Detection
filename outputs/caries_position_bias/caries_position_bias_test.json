@@ -1,0 +1,96 @@
+{
+  "split": "test",
+  "n": 863,
+  "n_positive": 127,
+  "n_source_images": 34,
+  "threshold": 0.5,
+  "weights": "/Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/models/09_caries_gate_v3/caries_gate_v3.pth",
+  "class_to_idx": {
+    "caries": 0,
+    "no_caries": 1
+  },
+  "overall": {
+    "precision": 0.3983,
+    "recall": 0.7402,
+    "f1": 0.5179,
+    "tp": 94,
+    "fp": 142,
+    "fn": 33,
+    "tn": 594
+  },
+  "per_tooth_type": {
+    "1 incisor": {
+      "n": 266,
+      "n_positive": 8,
+      "precision": 0.0909,
+      "recall": 0.125,
+      "f1": 0.1053,
+      "tp": 1,
+      "fp": 10,
+      "fn": 7,
+      "fp_rate_on_negatives": 0.0388,
+      "mean_p_caries_on_healthy": 0.0747,
+      "train_base_rate": 0.0173,
+      "within_type_auc": 0.6807
+    },
+    "2 canine": {
+      "n": 129,
+      "n_positive": 5,
+      "precision": 0.3333,
+      "recall": 0.2,
+      "f1": 0.25,
+      "tp": 1,
+      "fp": 2,
+      "fn": 4,
+      "fp_rate_on_negatives": 0.0161,
+      "mean_p_caries_on_healthy": 0.0868,
+      "train_base_rate": 0.0233,
+      "within_type_auc": 0.7484
+    },
+    "3 premolar": {
+      "n": 221,
+      "n_positive": 31,
+      "precision": 0.2917,
+      "recall": 0.6774,
+      "f1": 0.4078,
+      "tp": 21,
+      "fp": 51,
+      "fn": 10,
+      "fp_rate_on_negatives": 0.2684,
+      "mean_p_caries_on_healthy": 0.2735,
+      "train_base_rate": 0.157,
+      "within_type_auc": 0.7815
+    },
+    "4 molar": {
+      "n": 247,
+      "n_positive": 83,
+      "precision": 0.4733,
+      "recall": 0.8554,
+      "f1": 0.6094,
+      "tp": 71,
+      "fp": 79,
+      "fn": 12,
+      "fp_rate_on_negatives": 0.4817,
+      "mean_p_caries_on_healthy": 0.4778,
+      "train_base_rate": 0.3429,
+      "within_type_auc": 0.7812
+    }
+  },
+  "within_type_auc": 0.7454,
+  "within_type_auc_ci95": [
+    0.6604,
+    0.842
+  ],
+  "pooled_auc": 0.8548,
+  "pooled_auc_ci95": [
+    0.8012,
+    0.8995
+  ],
+  "average_precision": {
+    "model": 0.5503,
+    "position_only_baseline": 0.2962,
+    "chance": 0.1472
+  },
+  "ci_method": "cluster bootstrap over source images (n=34), 5000 resamples, seed 42",
+  "reading": "mean_p_caries_on_healthy tracking train_base_rate is the position prior. within_type_auc above 0.5 is lesion signal that survives removing it."
+}

@@ -62,9 +62,36 @@ be measured inside DENTEX, and it must be reported with any result from this dat
 Splits are INHERITED from `data/dentex/splits_v2.json` via the same MD5 map, so this tree's
 test set is a subset of `phase1_legacy`'s test set and the two remain comparable.
 
+--include-disease-only: THE 62% OF CARIES SUPERVISION THIS BUILD LEAVES ON THE FLOOR
+------------------------------------------------------------------------------------
+The MD5 join is what makes healthy teeth derivable, and only 260 of the disease subset's 705
+images have an enumeration twin. The other **445 images are dropped entirely** -- including
+their caries annotations, which need no enumeration twin to be usable as POSITIVES. Measured:
+2,767 Caries + Deep Caries annotations exist in the disease subset; the default build uses
+1,049. **62% of the available caries supervision is unused** (RESULTS_LOG 2026-08-31).
+
+`--include-disease-only` adds those 445 images, contributing:
+    Caries | Deep Caries      -> `caries`      (positives)
+    Impacted | Periapical     -> `no_caries`   (genuinely not-caries, as in phase1_legacy)
+and **no healthy teeth**, because without the enumeration twin there is no list of which teeth
+are present. That asymmetry is deliberate: the alternative is to run the detector over these
+images and call every unannotated box healthy, which would inject detector false positives into
+the negative class. The negative class stays exactly as the default build produced it.
+
+The consequence to report: this shifts the class ratio, it does not add healthy negatives, and
+the `basis` column records which images each crop came from so the two can be analysed apart.
+
+LEAKAGE. Any image whose MD5 matches one in `--eval-pool` (the 250-image `DENTEX/disease/`
+evaluation pool) is refused, in BOTH modes. Exactly one collides -- `train_332.png` in the
+training pool is byte-identical to `test_181.png` in the eval pool, already recorded in
+`data/dentex/disease_leaked_images.json` as `leaked_into_detector_training`. The default
+260-image build never contained it; this guard is what keeps the expansion clean too.
+
 Usage:
     python scripts/dentex/build_caries_phase1_v3.py --dry-run
     python scripts/dentex/build_caries_phase1_v3.py
+    python scripts/dentex/build_caries_phase1_v3.py --include-disease-only \
+        --out data/dentex/crops_v4_phase1 --dry-run
 """
 
 import argparse
@@ -85,6 +112,7 @@ DEF_ENUM = Path.home() / "Downloads/Capstone/DENTEX/training_data/quadrant_enume
 DEF_DISEASE = Path.home() / "Downloads/Capstone/DENTEX/training_data/quadrant-enumeration-disease"
 DEF_SPLITS = REPO_ROOT / "data/dentex/splits_v2.json"
 DEF_OUT = REPO_ROOT / "data/dentex/crops_v3_phase1"
+DEF_EVAL_POOL = Path.home() / "Downloads/Capstone/DENTEX/disease/input"
 
 CROP = 224
 IOU_MATCH = 0.50        # >= this: the disease annotation describes this tooth
@@ -108,15 +136,35 @@ def iou_xywh(a, b):
     return inter / union if union > 0 else 0.0
 
 
-def tight_crop(img, bbox):
-    """The caries crop contract: floor the near corner, ceil the far edge, clip, resize 224."""
+def tight_crop(img, bbox, expand=1.0):
+    """The caries crop contract: floor the near corner, ceil the far edge, clip, resize 224.
+
+    `expand` > 1.0 grows the box about its centre BEFORE that rule is applied. 1.0 is the
+    shipped contract and leaves this function bit-for-bit as it was.
+    """
     H, W = img.shape[:2]
     x, y, w, h = bbox
+    if expand != 1.0:
+        cx, cy = x + w / 2.0, y + h / 2.0
+        w, h = w * expand, h * expand
+        x, y = cx - w / 2.0, cy - h / 2.0
     x1, y1 = max(0, math.floor(x)), max(0, math.floor(y))
     x2, y2 = min(W, math.ceil(x + w)), min(H, math.ceil(y + h))
     if x2 - x1 < 4 or y2 - y1 < 4:
         return None
     return cv2.resize(img[y1:y2, x1:x2], (CROP, CROP))
+
+
+def apply_clahe(img, clip=2.0, tiles=8):
+    """Contrast-limited adaptive histogram equalisation on the source radiograph.
+
+    Caries is a low-contrast radiolucency, so local equalisation is the standard dental-imaging
+    preprocessing for it. DENTEX crops are true greyscale (B==G==R, verified), so the
+    grey -> CLAHE -> 3-channel round trip loses nothing and keeps the ResNet input shape.
+    """
+    g = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    g = cv2.createCLAHE(clipLimit=clip, tileGridSize=(tiles, tiles)).apply(g)
+    return cv2.cvtColor(g, cv2.COLOR_GRAY2BGR)
 
 
 def main():
@@ -125,6 +173,16 @@ def main():
     ap.add_argument("--disease-root", type=Path, default=DEF_DISEASE)
     ap.add_argument("--splits", type=Path, default=DEF_SPLITS)
     ap.add_argument("--out", type=Path, default=DEF_OUT)
+    ap.add_argument("--include-disease-only", action="store_true",
+                    help="also emit positives (and impacted/periapical negatives) from the 445 "
+                         "disease images with no enumeration twin; adds NO healthy teeth")
+    ap.add_argument("--eval-pool", type=Path, default=DEF_EVAL_POOL,
+                    help="images here are never trained on; matched by MD5, both modes")
+    ap.add_argument("--clahe", action="store_true",
+                    help="CLAHE the source radiograph before cropping (signal arm A)")
+    ap.add_argument("--crop-expand", type=float, default=1.0,
+                    help="grow each box about its centre before cropping; 1.0 = shipped "
+                         "contract (signal arm B)")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
@@ -140,6 +198,17 @@ def main():
     print(f"  enumeration {len(en_by_hash)}   disease {len(di_by_hash)}   SHARED {len(shared)}")
     if not shared:
         raise SystemExit("no shared images — the join produced nothing; do not proceed")
+
+    # Never train on anything byte-identical to an evaluation image. Applied in both modes.
+    eval_hashes = set()
+    if args.eval_pool.is_dir():
+        eval_hashes = {md5(p) for p in sorted(args.eval_pool.iterdir())
+                       if p.suffix.lower() in (".png", ".jpg", ".jpeg")}
+    refused = set(di_by_hash) & eval_hashes
+    print(f"  eval pool {args.eval_pool.name}: {len(eval_hashes)} images   "
+          f"REFUSED from training: {len(refused)}"
+          + (f" ({', '.join(sorted(di_by_hash[h]['file_name'] for h in refused))})" if refused else ""))
+    shared = [h for h in shared if h not in refused]
 
     en_anns, di_anns = defaultdict(list), defaultdict(list)
     for a in en["annotations"]:
@@ -185,6 +254,8 @@ def main():
         if not args.dry_run and img is None:
             stats["image_unreadable"] += 1
             continue
+        if img is not None and args.clahe:
+            img = apply_clahe(img)
         for e in en_anns[ei["id"]]:
             best_iou, best_d = 0.0, None
             for d in D:
@@ -203,13 +274,13 @@ def main():
             stats[f"subtype/{subtype}"] += 1
             name = f"{Path(ei['file_name']).stem}_e{e['id']}.png"
             rows.append({"crop": name, "split": split, "label": label, "subtype": subtype,
-                         "source_image_md5": h,
+                         "source_image_md5": h, "basis": "enum_join",
                          "enum_file": ei["file_name"], "disease_file": dii["file_name"],
                          "ann_id": e["id"], "iou_to_disease": round(best_iou, 4),
                          "fdi": (e["category_id_1"] + 1) * 10 + (e["category_id_2"] + 1)})
             if args.dry_run:
                 continue
-            crop = tight_crop(img, e["bbox"])
+            crop = tight_crop(img, e["bbox"], args.crop_expand)
             if crop is None:
                 stats["degenerate"] += 1
                 rows.pop()
@@ -221,6 +292,62 @@ def main():
                 rows.pop()
         if n % 50 == 0:
             print(f"  {n}/{len(shared)} images …", flush=True)
+
+    # ---- the 445 disease images with no enumeration twin: POSITIVES ONLY ----
+    # No enumeration twin means no list of which teeth are present, so no healthy tooth can be
+    # derived here. Only the annotated (diseased) teeth are emitted. See the module docstring.
+    disease_only = sorted(set(di_by_hash) - set(en_by_hash) - refused) \
+        if args.include_disease_only else []
+    if disease_only:
+        print(f"\ndisease-only images (no enumeration twin): {len(disease_only)}")
+        for n, h in enumerate(disease_only, 1):
+            dii = di_by_hash[h]
+            split = split_of_name.get(dii["file_name"])
+            if split is None:
+                stats["image_unsplit"] += 1
+                continue
+            img = None if args.dry_run else cv2.imread(
+                str(args.disease_root / "xrays" / dii["file_name"]))
+            if not args.dry_run and img is None:
+                stats["image_unreadable"] += 1
+                continue
+            if img is not None and args.clahe:
+                img = apply_clahe(img)
+            for d in di_anns[dii["id"]]:
+                subtype = DISEASE[d["category_id_3"]]
+                label = "caries" if subtype in CARIOUS else "no_caries"
+                stats[f"{split}/{label}"] += 1
+                stats[f"subtype/{subtype}"] += 1
+                stats["disease_only_crops"] += 1
+                name = f"{Path(dii['file_name']).stem}_d{d['id']}.png"
+                rows.append({"crop": name, "split": split, "label": label, "subtype": subtype,
+                             "source_image_md5": h, "basis": "disease_only",
+                             "enum_file": "", "disease_file": dii["file_name"],
+                             "ann_id": d["id"], "iou_to_disease": 1.0,
+                             "fdi": (d["category_id_1"] + 1) * 10 + (d["category_id_2"] + 1)})
+                if args.dry_run:
+                    continue
+                crop = tight_crop(img, d["bbox"], args.crop_expand)
+                if crop is None:
+                    stats["degenerate"] += 1
+                    rows.pop()
+                    continue
+                d_out = args.out / split / label
+                d_out.mkdir(parents=True, exist_ok=True)
+                if not cv2.imwrite(str(d_out / name), crop):
+                    stats["write_failed"] += 1
+                    rows.pop()
+            if n % 100 == 0:
+                print(f"  {n}/{len(disease_only)} disease-only images …", flush=True)
+
+    # An image must never contribute crops to two different splits.
+    by_img = defaultdict(set)
+    for r in rows:
+        by_img[r["source_image_md5"]].add(r["split"])
+    spanning = {h for h, s in by_img.items() if len(s) > 1}
+    if spanning:
+        raise SystemExit(f"{len(spanning)} images span multiple splits — refusing to write")
+    print(f"\nsplit hygiene: {len(by_img)} source images, 0 span multiple splits")
 
     print("\ncomposition:")
     for split in ("train", "val", "test"):
@@ -249,6 +376,13 @@ def main():
                 "quadrant-enumeration-disease; filenames are NOT comparable",
         "join_verified_fdi_agreement": round(rate, 4),
         "shared_images": len(shared),
+        "include_disease_only": args.include_disease_only,
+        "disease_only_images": len(disease_only),
+        "clahe": args.clahe,
+        "crop_expand": args.crop_expand,
+        "eval_pool": str(args.eval_pool),
+        "eval_pool_images": len(eval_hashes),
+        "refused_as_eval_leakage": sorted(di_by_hash[h]["file_name"] for h in refused),
         "iou_match": IOU_MATCH, "iou_ambiguous_floor": IOU_AMBIGUOUS,
         "crop": "1.0x tight, floor near / ceil far, 224x224 (the caries contract)",
         "splits_inherited_from": str(args.splits),

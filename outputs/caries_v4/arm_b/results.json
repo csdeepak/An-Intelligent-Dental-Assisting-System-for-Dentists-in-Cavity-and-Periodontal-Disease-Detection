@@ -1,0 +1,152 @@
+{
+  "run": "arm_b",
+  "created": "2026-08-31T17:38:08",
+  "arm": "b",
+  "augmentation": true,
+  "seed": 42,
+  "device": "mps",
+  "smoke": false,
+  "config": {
+    "crops": "data/dentex",
+    "variant": "crops_v4_phase1",
+    "phase2_crops": null,
+    "phase2_variant": "phase2",
+    "phase1_only": true,
+    "arm": "b",
+    "out": "outputs/caries_v4",
+    "seed": 42,
+    "batch_size": 32,
+    "p1_epochs": 15,
+    "p1_lr": 0.001,
+    "p2_head_epochs": 5,
+    "p2_head_lr": 0.001,
+    "p2_full_epochs": 12,
+    "p2_full_lr": 3e-05,
+    "smoke": false
+  },
+  "fixes": {
+    "T0.1": "both arms run",
+    "T0.2": "test reported separately, evaluated once",
+    "T0.3": "checkpoint selection on macro-F1",
+    "T0.4": "cosine LR schedule; full config recorded"
+  },
+  "known_limitation": "Phase-1 no_caries = Impacted + Periapical Lesion; contains NO healthy teeth. See RESULTS_LOG 2026-08-21j / 21m.",
+  "phase1": {
+    "class_to_idx": {
+      "caries": 0,
+      "no_caries": 1
+    },
+    "train_counts": [
+      1928,
+      4404
+    ],
+    "class_weights": [
+      1.6421161890029907,
+      0.7188919186592102
+    ],
+    "best_epoch": 12,
+    "best_val_macro_f1": 0.80903320127302,
+    "val": {
+      "macro_f1": 0.80903320127302,
+      "accuracy": 0.8330745341614907,
+      "confusion_matrix": [
+        [
+          308,
+          94
+        ],
+        [
+          121,
+          765
+        ]
+      ],
+      "report": {
+        "caries": {
+          "precision": 0.717948717948718,
+          "recall": 0.7661691542288557,
+          "f1-score": 0.7412755716004813,
+          "support": 402.0
+        },
+        "no_caries": {
+          "precision": 0.8905704307334109,
+          "recall": 0.863431151241535,
+          "f1-score": 0.8767908309455588,
+          "support": 886.0
+        },
+        "accuracy": 0.8330745341614907,
+        "macro avg": {
+          "precision": 0.8042595743410644,
+          "recall": 0.8148001527351953,
+          "f1-score": 0.80903320127302,
+          "support": 1288.0
+        },
+        "weighted avg": {
+          "precision": 0.8366931570226604,
+          "recall": 0.8330745341614907,
+          "f1-score": 0.834494919255558,
+          "support": 1288.0
+        }
+      },
+      "report_text": "              precision    recall  f1-score   support\n\n      caries       0.72      0.77      0.74       402\n   no_caries       0.89      0.86      0.88       886\n\n    accuracy                           0.83      1288\n   macro avg       0.80      0.81      0.81      1288\nweighted avg       0.84      0.83      0.83      1288\n",
+      "n": 1288,
+      "predicted_class_counts": [
+        429,
+        859
+      ],
+      "true_class_counts": [
+        402,
+        886
+      ]
+    },
+    "test": {
+      "macro_f1": 0.8108136363772138,
+      "accuracy": 0.8292282430213465,
+      "confusion_matrix": [
+        [
+          315,
+          80
+        ],
+        [
+          128,
+          695
+        ]
+      ],
+      "report": {
+        "caries": {
+          "precision": 0.7110609480812641,
+          "recall": 0.7974683544303798,
+          "f1-score": 0.7517899761336515,
+          "support": 395.0
+        },
+        "no_caries": {
+          "precision": 0.896774193548387,
+          "recall": 0.8444714459295262,
+          "f1-score": 0.869837296620776,
+          "support": 823.0
+        },
+        "accuracy": 0.8292282430213465,
+        "macro avg": {
+          "precision": 0.8039175708148256,
+          "recall": 0.820969900179953,
+          "f1-score": 0.8108136363772138,
+          "support": 1218.0
+        },
+        "weighted avg": {
+          "precision": 0.8365469916111838,
+          "recall": 0.8292282430213465,
+          "f1-score": 0.8315542985974474,
+          "support": 1218.0
+        }
+      },
+      "report_text": "              precision    recall  f1-score   support\n\n      caries       0.71      0.80      0.75       395\n   no_caries       0.90      0.84      0.87       823\n\n    accuracy                           0.83      1218\n   macro avg       0.80      0.82      0.81      1218\nweighted avg       0.84      0.83      0.83      1218\n",
+      "n": 1218,
+      "predicted_class_counts": [
+        443,
+        775
+      ],
+      "true_class_counts": [
+        395,
+        823
+      ]
+    }
+  }
+}

@@ -1800,6 +1800,158 @@ images, not the 2,000** the plan assumed, and its numbering was **verified as st
 independent arbiter** (80.3% direct vs 1.7% mirrored) rather than taken on trust — Tufts presented
 as plain Universal and was left-right mirrored.
 
+### 8.24 Why the caries score is what it is — the gate has partially become the constant
+
+§8.22 reports that an image-blind molar constant beats this pipeline on tooth-level caries
+(F1 0.320 vs 0.294), and frames it as a property of the metric. **This section supplies the
+mechanism, and it is a stronger version of the same argument:** the caries gate itself scores
+teeth partly by *which tooth it is*, not by whether a lesion is present.
+
+**The measurement** (`scripts/eval/caries_position_bias.py`, held-out test, 863 crops from 34
+source images; the script reproduces the published confusion matrix TP 94 / FP 142 / FN 33 /
+TN 594 before reporting anything, so the analysis path is anchored to a known reference):
+
+| tooth type | n | pos | precision | recall | FP rate | mean P(caries) on *healthy* teeth | train base rate | within-type AUC |
+|---|---|---|---|---|---|---|---|---|
+| incisor | 266 | 8 | 0.091 | **0.125** | 0.039 | 0.075 | 0.017 | 0.681 |
+| canine | 129 | 5 | 0.333 | **0.200** | 0.016 | 0.087 | 0.023 | 0.748 |
+| premolar | 221 | 31 | 0.292 | 0.677 | 0.268 | 0.273 | 0.157 | 0.781 |
+| molar | 247 | 83 | 0.473 | 0.855 | **0.482** | **0.478** | **0.343** | 0.781 |
+
+Two readings, and both belong in the paper:
+
+1. **The prior is doing visible work.** The gate's mean score on teeth that are *genuinely
+   healthy* tracks the training base rate for that position almost monotonically — 0.075 on
+   healthy incisors against a 0.017 base rate, 0.478 on healthy molars against 0.343. The
+   operational cost: **48.2% of healthy molars are flagged carious**, and 79 of the 142 false
+   positives are healthy molars. That is where precision 0.398 comes from. Symmetrically, the
+   gate finds **1 of 8 incisor lesions**.
+2. **There is nonetheless real lesion signal.** Ranking *within* one tooth type removes the
+   shortcut, and **within-type AUC is 0.7454, 95% CI [0.6604, 0.8420]** — excluding 0.5. Pooled
+   AUC (0.8548) is inflated because ranking a molar above an incisor is free. A position-only
+   predictor that never sees an image reaches **AP 0.2962**, against the model's 0.5503 and a
+   chance line of 0.1472.
+
+So the honest statement is neither "the model works" nor "the model is a lookup table". It is
+**a model with modest genuine lesion discrimination, whose reported score is substantially
+inflated by an anatomical prior that a constant baseline captures for free.** That is exactly why
+§8.22's constant is competitive, and it converts that finding from an observation about a metric
+into a measured statement about the system.
+
+**Two fixes were tried and neither worked. Both are reported.**
+
+- **Per-tooth-type decision thresholds** (fitted on val, applied once to test): F1 **+0.006,
+  95% CI [−0.034, +0.041]** — not significant, and no better than re-fitting one global
+  threshold. The shipped 0.50 is already F1-optimal across a 19-point sweep. The decision rule
+  cannot be tuned into a better one.
+- **2.67× more caries training data** (gate v4, `outputs/caries_v4/`): DENTEX carries 2,767
+  caries-family annotations and the training corpus used 1,049, so **62% of the available
+  supervision was unused**. Adding it lifted train positives 723 → 1,928. On the *same* 863-crop
+  test set, **average precision went 0.5503 → 0.5496**, paired delta **−0.0015, 95% CI
+  [−0.0886, +0.0821]**; every other paired delta also spans zero. **v4 was not adopted.**
+
+**What that negative result licenses the paper to say:** the caries branch's ceiling on this data
+is not set by how many labelled lesions it has seen. Combined with the reading above, the
+constraint is the discriminability of the task as posed — a tight per-tooth crop, a binary label,
+and a negative class built on the presumption that an unannotated tooth is healthy.
+
+⚠ **A trap to document rather than fall into.** v4's report shows caries P 0.71 / R 0.80 on v4's
+*own* test split, against v3's published 0.398 / 0.740. That is not an improvement: v4's split has
+**2.2× the caries prevalence** (0.324 vs 0.147), and precision is a function of prevalence.
+Specificity, which is model-intrinsic, is essentially unchanged (0.853 vs 0.843). This is worth a
+sentence in the paper's evaluation-protocol section, because it is the same class of error the
+constant baseline exists to catch: **a number that rises because the denominator changed.**
+
+**Also ruled out by measurement:** raising input resolution. The median tooth box is 170×287 px
+against the 224×224 the model already receives — a 1.04× linear resize, with 58% of boxes already
+upsampled. There is no detail left to recover at this crop geometry.
+
+**Three further arms were then pre-registered and run, and none met the bar.** CLAHE contrast
+equalisation, a 1.25× crop expansion (interproximal caries sits at the contact point a tight box
+cuts through), and position-balanced sampling, each against a same-day control whose val macro-F1
+reproduced v3's published 0.7350 exactly. Acceptance was fixed in advance — paired ΔAP with a 95%
+CI excluding zero — in `outputs/caries_arms/PRE_REGISTRATION.md`:
+
+| arm | AP | ΔAP vs control | verdict |
+|---|---|---|---|
+| control | 0.5503 | — | — |
+| **CLAHE** | 0.5977 | **+0.0488 [−0.0031, +0.0993]** | **misses by 0.0031** |
+| crop 1.25× | 0.5684 | +0.0198 [−0.0367, +0.0810] | not significant |
+| position-balanced | 0.5943 | +0.0432 [−0.0328, +0.1157] | not significant |
+
+**The bar was not moved.** One real secondary effect survives: **CLAHE buys precision (+5.6 pp,
+CI [+0.011, +0.101]) with no significant recall cost**, cutting the false-positive rate in every
+stratum. The 1.25× arm's precision gain is cancelled by a *real* recall loss — a slide along the
+curve, which the flat AP confirms. A pre-registered prediction that position-balancing would
+*lower* AP (because the population genuinely carries 3.4× more caries in molars) was **falsified**.
+
+**Five independent attempts have now failed to lift this curve** — threshold tuning, per-stratum
+thresholds, 2.67× the training positives, CLAHE, crop expansion and position balancing. **That the
+caries branch has reached its headroom on DENTEX is now the supported reading**, and the paper can
+state it as such. The binding limitation on settling the remaining candidate is statistical, not
+methodological: the test split has 863 crops but only **34 source images**, and intervals are
+clustered over images because teeth within a radiograph are not independent. A +0.049 AP effect
+cannot be separated from zero at n=34.
+
+Source: `RESULTS_LOG.md` 2026-08-31 and 2026-08-31b, `outputs/caries_position_bias/`,
+`outputs/caries_v4/run_summary.txt`, `outputs/caries_arms/run_summary.txt`.
+
+### 8.25 A sixth cohort, and the strongest form of the paper's central claim
+
+§8.22 showed an image-blind constant beating this pipeline on DENTEX by 4.6 pp; §8.12/2026-08-28e
+showed the two **indistinguishable** across four Ningxia hospitals. A third, independent
+6,000-image caries corpus was then evaluated with the **frozen** pipeline — nothing trained, no
+checkpoint changed, same centroid-containment matcher imported from the Ningxia script.
+
+| cohort | n | pipeline | constant | constant − pipeline | verdict |
+|---|---|---|---|---|---|
+| DENTEX | 164 img / 479 lesions | 0.443 | 0.488 | +0.046 [+0.006, +0.089] | constant wins |
+| Ningxia, 4 hospitals | 337 img / 1,013 lesions | 0.408 | 0.399 | −0.009 [−0.049, +0.030] | indistinguishable |
+| **CariesXrays** | **1,500 img / 3,421 lesions** | **0.309** | **0.561** | **+0.252 [+0.232, +0.273]** | **constant wins decisively** |
+
+**This is the largest lesion count of any cohort in the paper — more than DENTEX and Ningxia
+combined — and the largest margin.** Paired cluster bootstrap over images, 10,000 resamples,
+seed 42. A prefix draw (first 600 by file id) gave +0.240 [+0.211, +0.269]; the randomised draw
+reproduces it, so the sample carries no ordering bias.
+
+**The mechanism is measured, not inferred.** Mapping each lesion to the detected tooth containing
+it: **72.0% of lesions are on molars** (premolar 20.5%, canine 3.7%, incisor 3.7%), and **60.2%
+fall on exactly the eight teeth the constant emits**. The constant's 0.561 sits near its
+structural ceiling of ~0.60 on this cohort. It is not out-diagnosing the pipeline; it is
+exploiting an extremely molar-concentrated disease distribution — which is precisely the claim
+§8.24 makes about the gate itself, now demonstrated at cohort scale.
+
+**And the brute-force defence fails here.** On DENTEX the constant flagged only 14% more teeth at
+the same match rate, so volume did not explain its win. On this cohort it flags **64% more teeth
+(6.45 vs 3.94 per image) *and* has the higher match rate (0.207 vs 0.190)** — it wins on both
+axes. That defence should not be reused without checking it per cohort.
+
+**A ceiling worth stating:** **22.1% of lesions fall inside no detected tooth at all**, which
+bounds every tooth-level arm on this cohort, ours included.
+
+**The cohort is a published, peer-reviewed benchmark.** Chen et al., *CariesXrays: Enhancing Caries Detection in Hospital-Scale Panoramic Dental X-rays via Feature Pyramid Contrastive Learning*, **AAAI 2024**, 38(20) 21940–21948, DOI 10.1609/aaai.v38i20.30196; code and data at
+`github.com/Binz-Chen/AAAI2024_CariesXrays`. It is described by its authors as hospital-scale,
+"meticulously annotated by dental professionals", and it ships its own FPCL baselines. Identity
+was verified against AAAI's OJS, ACM DL, DBLP and AAAI's Underline session page rather than the
+repository README alone. Their stated 6,000 images matches exactly; their stated 13,783 caries
+instances against 13,784 non-degenerate boxes measured here is a **+1 (0.007%)** counting-convention
+difference, recorded rather than rounded away. **Licence is not stated** — there is no LICENSE
+file and the GitHub API reports none — so the Data Availability statement should say "released
+publicly by the authors alongside the AAAI paper; no explicit licence stated; cited as requested."
+
+**The caveat that does remain:** the corpus's annotation *exhaustiveness* is not documented, so
+`match_rate` is reported as a diagnostic and a flagged tooth carrying no annotated lesion is **not**
+a confirmed false positive — the same restraint §8.11 applies to DENTEX.
+
+**A methodological point worth one sentence in the paper.** 27.3% of this corpus's annotation
+files carry a wrong image width, and a converter normalising by the stated size rather than the
+decoded image would corrupt a quarter of it silently — the same class of defect that voided a
+90-epoch training run here (§8.8). The coordinates were verified to be in the true frame two ways
+before anything was measured.
+
+Source: `RESULTS_LOG.md` 2026-09-01, `scripts/eval/cariesxrays_external.py`,
+`outputs/cariesxrays_external_rand/`.
+
 ---
 
 ## 9. What's not yet written — checklist
