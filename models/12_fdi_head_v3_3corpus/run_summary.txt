@@ -97,8 +97,11 @@
 -----------------------------------------------------------------
  ARTIFACTS
 -----------------------------------------------------------------
-  enumeration_head_best.pth   44,831,507 bytes
+  enumeration_head_best.pth   44,831,507 bytes   — NOT tracked in git (2 Sep 2026)
     sha256 62b4f1b97e091a0f7b24c673758b6c436c601096a0055b02f53a3909580f6974
+    Was committed in 21ea05b; `git rm --cached`'d on 2 Sep so this ablation head
+    follows the same convention as 12a, 13 and 14 (weights local-only, hash here).
+    results.json and the figures ARE tracked.
   results.json, training_curves.png, confusion_{quadrant,position,fdi}.png,
   per_position_accuracy.png
 

@@ -63,5 +63,7 @@
     sha256 23fe6ef682d940a4137a45e552035f2fed06969144c0cd5fa02fcd1f2c292367
     Kept on local disk only: this is a control arm, and its value is the
     metrics above, not the weights. results.json and the figures ARE tracked.
+    (Now `.gitignore`d explicitly, 2 Sep 2026 — alongside 12's `.pth`, which was
+    committed early and `git rm --cached`'d the same day for consistency.)
 
   RESULTS_LOG.md 2026-08-28c · PAPER_MATERIAL.md §8.23

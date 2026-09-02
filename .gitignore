@@ -249,6 +249,14 @@ yolo11l-seg.pt
 
 # v3 caries gate weights (43 MB) — summary and reports are tracked
 models/09_caries_gate_v3/*.pth
+
+# Stage-2 head v3 ablation + its control (43 MB each). ABLATIONS, not pipeline
+# components — so they follow the 13/14 convention (weights local-only, SHA-256 in
+# run_summary.txt), NOT the 08/10 legacy-default convention. 12's .pth was committed
+# in 21ea05b before that policy settled and was `git rm --cached`'d on 2 Sep 2026;
+# 12a's was never tracked. results.json / summaries / figures stay tracked.
+models/12_fdi_head_v3_3corpus/*.pth
+models/12a_fdi_head_v2_control_rebuilt/*.pth
 data/dentex/crops_v3_phase1/
 # v4 caries crops — same contract, plus the 445 disease-only images (RESULTS_LOG 2026-08-31).
 # Regenerable: build_caries_phase1_v3.py --include-disease-only --out data/dentex/crops_v4_phase1

@@ -144,6 +144,11 @@ both claim to describe the pipeline — pick one as authoritative.
 > history is untouched** — that still needs a deliberate, team-coordinated history rewrite
 > (everyone re-clones after), or a decision to accept it. Not done, just no longer growing
 > silently.
+> **2 Sep:** `models/12_fdi_head_v3_3corpus/enumeration_head_best.pth` (43 MB, an ablation head
+> committed early in `21ea05b`) was `git rm --cached`'d and both it and `12a`'s twin are now
+> `.gitignore`d — bringing the two v3 ablation heads in line with 13/14 (weights local-only,
+> SHA-256 in `run_summary.txt`). The blob stays in history until the rewrite; nothing new is
+> tracked. The 08/10 legacy default heads (also 43 MB, in git) are deliberately left as-is.
 
 **Previously: 30 August 2026** — the **SDH clinic track was unblocked**: the clinic gave consent
 (written agreement expected 1 Sep), the data turns out to be on *this* machine, the pipeline runs
