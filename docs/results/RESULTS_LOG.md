@@ -5008,6 +5008,89 @@ and gate, so no drift is folded into the comparison. Caries only; periodontitis 
 
 ---
 
+## 2026-08-30 — SDH clinic dataset: consent obtained, first measurements, and six corrupt images
+
+- **What was done:** Oral consent from the SDH clinic was obtained (written agreement expected
+  1 Sep 2026), unblocking `PUBLICATION_TODO.md` T1.2. The dataset was then measured for the
+  first time rather than described: every one of the 3,219 enhanced PNGs was opened, per-image
+  quality metrics were computed for all of them, and the frozen six-stage pipeline was run
+  unmodified over a deterministic 24-image sample with a matched 24-image DENTEX reference run.
+  An execution plan was written from those measurements
+  (`docs/research/SDH_EXECUTION_PLAN.md`).
+- **Dataset / config:** `D:\SDH dataset\dataset\images\` (3,219 files, 8-bit grayscale PNG,
+  height fixed 1,316, width 2,043–3,001, 405 distinct sizes). Pipeline: `scripts/run_inference.py`
+  at defaults — R1 seg detector `models/11_yolo_seg_tufts_r1/best.pt`, Stage-2 head v2.0,
+  caries gate v3, `imgsz=1024`, `conf=0.25`, one-to-one FDI assignment, CPU
+  (torch 2.8.0+cpu, Python 3.13.7). SDH sample = every 134th image; DENTEX sample = every 10th
+  of `DENTEX/disease/input`.
+- **Metrics — pilot inference, n=24 per corpus, NO ground truth, so these are behaviour
+  distributions and not accuracy:**
+
+  | | SDH (n=24) | DENTEX (n=24, reference) |
+  |---|---|---|
+  | teeth/image min / median / max | 5 / **27** / 30 | 5 / 21 / 31 |
+  | images with 0 teeth | 0 | 0 |
+  | mean detection confidence | 0.407 | 0.373 |
+  | caries-positive per image | 1.67 (6.2% of detected) | 5.04 (24.0%) |
+  | bone-loss-positive per image | 0.54 (**2.0%**) | 0.04 (0.2%) |
+  | throughput, models loaded once | 2.2 s/image | 2.2 s/image |
+
+  DENTEX is training-domain for the caries gate, so it is a reference distribution, not a
+  control. Duplicate-FDI count was 0 on all 48 images **by construction** — one-to-one Hungarian
+  assignment cannot emit a duplicate; that diagnostic requires `--no-one-to-one`.
+- **Metrics — per-image quality, all readable images (n=3,213), p95/p5 spread:** `lapvar` 2.48,
+  `frac_black` 2.96, `band_std` 1.99, `band_sharp_grad` 1.98, `sharp_grad` 1.90 — against
+  `entropy` 1.09, `mean` 1.07, `dynamic_range` 1.32, `std` 1.45.
+  `band_edge_density` came out degenerate (median 0.000, p99 0.002; Canny 60/160 is too high for
+  a post-CLAHE panoramic) and is excluded from the feature set rather than left in.
+  Full table: `data/sdh/quality_metrics_enhanced.csv`.
+- **Bug found — six images are truncated and no artefact records it.** `001970.png` …
+  `001975.png` fail to decode (`cv2.imread` → `None`; PIL `OSError: image file is truncated`;
+  libpng read error). All six file sizes are exact multiples of 4,096 bytes (245/210/138/114/44/17
+  blocks), and `logs/preprocessing_run.log` opens with `Resume checkpoint: 1975` — the June 2026
+  run was interrupted with those six in flight and resumed *after* the checkpoint, never
+  revisiting them. **`checkpoint.json`'s `completed_output_images: 3219` is therefore wrong by
+  six; the usable set is 3,213.** Nothing had caught it because nothing had ever opened every
+  file. The six source `.pano` files are intact in `D:\raw data\`, so this is repairable — but
+  only after the hardcoded `D:\dataset_audit\dataset` output path is fixed
+  (`clinical_dataset_provenance.md` §7), or a repair writes to a non-existent path and forks the
+  dataset.
+- **Key decisions or insights:**
+  1. **Stage 1 does not collapse on SDH** — more teeth per image and higher mean confidence than
+     on DENTEX. Not evidence of accuracy (recall is unmeasurable without labels), but the
+     opposite of what `clinical_dataset_plan.md` §2's domain-shift register predicted for the
+     highest-risk axis.
+  2. **Bone loss fires on 2.0% of detected teeth**, alongside Ningxia's 2.4% and against DENTEX's
+     0.7%. This independently **confirms** the decided limitation in `PAPER_MATERIAL.md` §8.13
+     on a fourth corpus; it does not reopen it.
+  3. **2.2 s/image on CPU means Tier A needs no GPU.** Full-set inference is a ~2-hour unattended
+     CPU job. The ₹313 JarvisLabs balance is reserved for the one task that genuinely needs a
+     GPU (pseudo-label detector adaptation), and ₹313 buys one attempt with no redo.
+  4. **The June enhancement already normalises brightness, contrast, dynamic range and entropy**,
+     which is why those metrics carry no filtering signal. The per-image filter must be built on
+     sharpness and local band contrast, which is what percentile windowing cannot repair.
+  5. **1,013 patients have repeat scans and 145 have same-day retakes** — a test–retest
+     repeatability substrate that needs zero labels and that no other corpus in this project has,
+     plus a weak free label for "non-diagnostic image". For all 144 same-day groups present in
+     the kept set, the retained image is the lowest-numbered scan of its group, i.e. plausibly
+     the one the clinic rejected.
+  6. **Two tracked documents claimed the clinic data was "Not on this machine"** (`transfer.md`
+     §8, `data/README.md`). Both were wrong; corrected this session.
+- **Source:** `docs/research/SDH_EXECUTION_PLAN.md` (the plan and every number above),
+  `data/sdh/quality_metrics_enhanced.csv` (n=3,213), `data/sdh/pilot_inference_n24.csv`,
+  `D:\SDH dataset\dataset\logs\preprocessing_run.log`,
+  `D:\dataset_audit\outputs\pano_format_summary.csv`.
+- **Follow-ups:** (1) Repair or exclude the six truncated images and correct `checkpoint.json`
+  before the DEV/TEST split is drawn — the split basis is 3,213 or 3,219 depending on that
+  decision. (2) Freeze `data/sdh/splits_v1.json` (40/60 patient-level, stratified, seeded) before
+  any filter threshold is chosen; the 24 pilot images are burned and must land in DEV.
+  (3) Decide whether the GPU balance is topped up — Tier C1 cannot absorb a redo on ₹313.
+  (4) Separate `metadata/index.csv` from `images/` on Google Drive before the written agreement
+  is signed (`clinical_dataset_provenance.md` §4a). (5) `band_edge_density` needs re-tuned Canny
+  thresholds or removal from the CSV.
+
+---
+
 ## 2026-08-31 — The caries gate reads POSITION as much as lesion; and 2.7x more data does not fix it
 
 - **What was done:** two experiments on the caries branch, prompted by "precision and recall are
