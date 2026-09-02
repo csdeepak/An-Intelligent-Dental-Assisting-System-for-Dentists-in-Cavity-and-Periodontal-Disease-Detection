@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "opg-app",
-      "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "streamlit", "run", "app.py", "--server.headless", "true"],
+      "runtimeExecutable": "py",
+      "runtimeArgs": ["-3.13", "-m", "streamlit", "run", "app.py", "--server.headless", "true"],
       "port": 8501
     }
   ]
