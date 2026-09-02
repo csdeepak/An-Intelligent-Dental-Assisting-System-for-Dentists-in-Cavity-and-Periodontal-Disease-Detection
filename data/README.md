@@ -43,6 +43,11 @@ data/
 │   ├── crops_clahe_phase1/             31 Aug — CLAHE arm (gitignored)
 │   ├── crops_exp125_phase1/            31 Aug — 1.25× crop arm (gitignored)
 │   └── enumeration_v1/        1.7 GB   Stage-2 enumeration-head crops (33,461) + manifest
+├── kaggle_dual/              ~1.7 GB  Stage-2 THIRD FDI corpus — Kaggle "dual-labeled". ALL gitignored.
+│   ├── labels/                219 MB  2,066 raw LabelMe polygon JSONs (FDI 11–48 + label 91).
+│   │                                  Only 500 have a matching image; 1,566 are label-only, unusable.
+│   ├── images1/               533 MB  500 panoramics, variable size (2940×1435 / 2440×1280 / 943×473)
+│   └── enumeration_v1/       1012 MB  regenerable crops — scripts/kaggle_dual/build_enumeration_crops.py
 ├── detector_multicorpus/     816 MB   [Lever 1 / B1] Tufts + DENTEX YOLO-detect set — 1,334/150/150,
 │                                      val+test Tufts-only + canonical. Built + geometry-gated 1 Sep.
 │                                      Gitignored; rebuild with scripts/yolo/build_multicorpus_detector_dataset.py
@@ -74,6 +79,7 @@ path reproduces `crops_v3_phase1` exactly; the other three are opt-in experiment
 | **Tufts** frozen split | `_repo_archive/datasets_workspace/outputs/eda_tufts/split_v1.csv` | The split behind every reported detector number. Gitignored, which is why a previous search declared it lost. |
 | **DENTEX** full release | `~/Downloads/Capstone/DENTEX/` | Outside the repo. See below. |
 | **Ningxia** images | `~/Downloads/Capstone/ningxia_local/` (test splits only, 2.4 GB) | **Connected and evaluated 25 Aug.** Train split (11.2 GB) deliberately left on the pen drive — Ningxia is locked external test data, never trained on. Zero leakage verified against all 5 other corpora, each checked separately. `docs/EXTERNAL_DRIVE.md` has the drive links; `RESULTS_LOG.md` 2026-08-25d has the numbers. |
+| **Kaggle "dual-labeled"** (3rd FDI corpus) | `data/kaggle_dual/` (~1.7 GB) — **entirely gitignored**, local working dir | The **third** Stage-2 FDI training source, added in `33f8b6e` for **head v3** (`models/12`, ablation only — `RESULTS_LOG.md` 2026-08-28c, `PAPER_MATERIAL.md` §8.23). Kaggle "Dual-labeled Panoramic Radiographs": 2,066 LabelMe polygon JSONs but only **500 images with a matching label** (1,566 are label-only, unusable) → **499 usable images / 13,166 teeth**, 33 classes (FDI 11–48 + label 91; 24 label-91 teeth dropped). **Numbering verified standard FDI, read as written** — the v2 head as arbiter scored 80.3% direct vs 1.7% mirrored (`scripts/kaggle_dual/verify_fdi_convention.py`). Cited in the paper's Data Availability. Not tracked: `labels/` + `images1/` are a re-downloadable raw annotation dump; `enumeration_v1/` crops rebuild with `scripts/kaggle_dual/build_enumeration_crops.py` (1.5× symmetric, 224², same contract as the other two corpora). `scripts/kaggle_dual/` **is** tracked. |
 | **CariesXrays** (AAAI 2024, Chen et al.) | `~/Downloads/Capstone/CariesXrays_Dataset/` — **full download, ~4 GB** on the Windows machine (`Annotations/` 6,000 XML + `JPEGImages/` 6,000 JPG; the zips were deleted after extraction, re-downloadable from the Drive folder `1qWL2f0A-…`). Also on the macOS machine. | 6,000 panoramic images + Pascal-VOC per-lesion boxes, single class. No LICENSE file — flagged in `main.tex` §8.25. **(1)** Used **frozen-pipeline** as the 6th external cohort — constant beats pipeline by **+0.252 [+0.232, +0.273]** (`scripts/eval/cariesxrays_external.py`, §8.25). **(2) Lever 2, 2 Sep:** a *standalone* YOLOv11l lesion detector was trained on it (this project's own seed-42 4,800/1,200 split → `data/cariesxrays_det/`, `models/14_cariesxrays_lever2/`) — **benchmark row only, not wired into the pipeline; the pipeline still never trains on it.** 27.3% of the XMLs carry a wrong `<size>` width — always read dims from the decoded image. |
 | **Clinic (SDH)** | On the **Windows** machine, `D:\` (struck 30 Aug — not the macOS machine): `D:\SDH dataset\dataset\images\` (3,219 enhanced 8-bit PNGs, of which **3,213 decode**; six truncated), `D:\dataset_audit\` (Stage-1 + audit CSVs), `D:\raw data\` (4,433 `.pano`) | Consent obtained 30 Aug; no longer governance-blocked. Plan: `docs/research/SDH_EXECUTION_PLAN.md`; Drive `index.csv` exposure: `docs/research/clinical_dataset_provenance.md` §4a. Metrics-only artefacts tracked at `data/sdh/`; no pixel leaves `D:`. |
 
@@ -103,7 +109,12 @@ Rationale: a split manifest is what makes a result reproducible and is a few ten
 pixels are re-derivable from the source release. `crops_v2/` regenerates with
 `scripts/dentex/build_dentex_crops.py`, `dataset_seg/` with
 `scripts/yolo/convert_tufts_to_yolo_seg.py`, `tufts/enumeration_v1/` with
-`scripts/tufts/build_enumeration_crops.py`.
+`scripts/tufts/build_enumeration_crops.py`, `kaggle_dual/enumeration_v1/` with
+`scripts/kaggle_dual/build_enumeration_crops.py`, `detector_multicorpus/` with
+`scripts/yolo/build_multicorpus_detector_dataset.py`, and `cariesxrays_det/` with
+`scripts/yolo/build_cariesxrays_detector_dataset.py`. The `kaggle_dual/labels/` polygon JSONs
+are a **raw annotation dump** (re-downloadable from Kaggle), not a manifest — hence ignored,
+same as `dentex/raw/`.
 
 ---
 

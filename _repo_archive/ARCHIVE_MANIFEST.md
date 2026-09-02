@@ -194,6 +194,9 @@ place to look next, not this one.
 - **Git status before copy:** tracked and committed (`e92181a` and earlier), so git history
   already preserves it. This is a **copy, not a move** — the working tree keeps `paper/main.tex`,
   which was rewritten in place in the same session.
+- **`.gitignore` (added 2 Sep 2026):** `_repo_archive/paper_draft_v1_44percent_title/` — the
+  copy had been sitting untracked in `git status`; since the original is in history at `e92181a`
+  there is nothing to gain by tracking the copy, so it is now explicitly ignored.
 - **What it was:** the first complete manuscript draft, titled *"What Does 44 % Mean? Constant
   Baselines for Tooth-Level Caries Evaluation on Panoramic Radiographs"*.
 - **Why archived:** a full rebuild replaced it (see `docs/paper/REBUILD_AUDIT.md`). Five

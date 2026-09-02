@@ -237,6 +237,10 @@ _repo_archive/datasets_workspace/dataset/
 _repo_archive/datasets_workspace/opg_env/
 _repo_archive/datasets_workspace/outputs/
 _repo_archive/implementation_stale_clone/
+# v1 manuscript ("What Does 44% Mean?"), archived 28 Aug — a COPY, not a move:
+# the rewritten paper/main.tex stays in the tree and git history preserves the
+# original at e92181a. ARCHIVE_MANIFEST.md Item 7 has the full record + recovery.
+_repo_archive/paper_draft_v1_44percent_title/
 
 
 # --- pytest cache (auto-generated) ---
@@ -270,6 +274,14 @@ data/dentex/crops_v4_phase1/
 data/tufts/bone_loss_crops_rebuilt/
 data/dentex/crops_clahe_phase1/
 data/dentex/crops_exp125_phase1/
+# Kaggle "dual-labeled" corpus — the THIRD FDI training source (Stage-2 head v3,
+# models/12, ablation only). ~1.7 GB: labels/ raw LabelMe polygon JSON + images1/
+# (both a re-downloadable raw annotation dump) and enumeration_v1/ crops
+# (regenerable with scripts/kaggle_dual/build_enumeration_crops.py). Nothing here
+# belongs in git per the "no raw dumps, no crops" rule. Provenance + rebuild:
+# data/README.md; scripts/kaggle_dual/ (the build + FDI-convention scripts) IS tracked.
+data/kaggle_dual/
+
 # Multi-corpus detector dataset (Lever 1) — regenerable with
 # scripts/yolo/build_multicorpus_detector_dataset.py; never commit the images.
 data/detector_multicorpus/
