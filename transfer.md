@@ -144,11 +144,13 @@ both claim to describe the pipeline — pick one as authoritative.
 > history is untouched** — that still needs a deliberate, team-coordinated history rewrite
 > (everyone re-clones after), or a decision to accept it. Not done, just no longer growing
 > silently.
-> **2 Sep:** `models/12_fdi_head_v3_3corpus/enumeration_head_best.pth` (43 MB, an ablation head
-> committed early in `21ea05b`) was `git rm --cached`'d and both it and `12a`'s twin are now
-> `.gitignore`d — bringing the two v3 ablation heads in line with 13/14 (weights local-only,
-> SHA-256 in `run_summary.txt`). The blob stays in history until the rewrite; nothing new is
-> tracked. The 08/10 legacy default heads (also 43 MB, in git) are deliberately left as-is.
+> **2 Sep:** the `models/12`/`12a` v3-head checkpoint tracking was made consistent — **both are
+> now tracked in git** (43 MB each, like the `08`/`10` heads). `12`'s was already committed
+> (`21ea05b`); `12a`'s was added. A brief `git rm --cached` of `12`'s that day (`44b7252`, to
+> "match 13/14") was **reverted the same session** — untracking it would silently delete the file
+> from the macOS collaborator's tree on `git pull`, and it is not on Drive. Net effect on `12`
+> across the day: zero (identical blob). The `13`/`14` detector weights stay gitignored — those
+> are `.pt` (YOLO), never were in git, and `13`/`14` are pure ablations/benchmarks.
 
 **Previously: 30 August 2026** — the **SDH clinic track was unblocked**: the clinic gave consent
 (written agreement expected 1 Sep), the data turns out to be on *this* machine, the pipeline runs
