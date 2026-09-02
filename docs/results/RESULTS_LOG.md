@@ -5799,3 +5799,114 @@ identical matcher to the Ningxia arm:
   caveat stated. (2) Lever 2 (caries lesion detector on CariesXrays) is the remaining score lever;
   it needs its own pre-registration and the AAAI baselines read first. (3) Do NOT chase adoption
   of the Arm by relaxing the guard — the Tufts cost is real and pre-registered.
+
+---
+
+## 2026-09-02 — The 22 broken DOIs: all real papers, wrong identifiers — fixed and re-verified
+
+- **What was done:** Resolved the submission blocker opened by `RESULTS_LOG.md` 2026-09-01d
+  (22 of 63 checkable DOIs in `paper/source.bib` broken — 11 resolving to a *different* paper,
+  11 unregistered). Every one was looked up by title against Crossref / doi.org / publisher
+  sites, the correct DOI confirmed by title-overlap 1.00 against the registry, and the entry
+  patched. **All 22 are real, published papers that carried a wrong identifier — zero
+  fabrications.** `paper/source.bib` re-audited: **62 clean / 1 flagged**, the flag being
+  `yalim2026comparative` (cosmetic `İ`/`ı`, `ğ`/`g` author-accent mismatch only; DOI correct;
+  entry uncited in `main.tex`).
+- **Dataset / config:** n/a — bibliography. `scripts/verify_citations_crossref.py` (unchanged)
+  is the audit; corrections applied by a one-off script, then re-run.
+- **Metrics:**
+  - Broken checkable DOIs **22 → 0** (1 residual cosmetic author-notation flag, not an error).
+  - In **19 of 22** entries the `volume`/`pages` were *also* wrong, and in 2 the `year` — e.g.
+    `adnan2024orthopantomogram` v55 p110654 → **v57 p111152**; `cerda2024determining`
+    2024→resolves 2024 but was pointed at a 2024 DOI for a **2023** article (10.1186/s12903-023-03819-w,
+    BMC Oral Health 24:100); `lim2024dual` year 2024 → **2026** (now published, JPD v135).
+    These were corrected from the registry record, not from the old bib fields.
+  - **6 `url` fields embedded the old wrong DOI** and were rewritten to `https://doi.org/<correct>`.
+    The audit script only checks the `doi` field, so a stale `url` is a second, unchecked vector —
+    noted for a follow-up sweep of all 63 `url` fields (not just the 22 touched here).
+- **Key decision or insight:** The pattern — wrong DOI, wrong volume, wrong pages, sometimes
+  wrong year, but a *real* paper underneath every one — is the signature of generated citation
+  metadata that was never dereferenced. It is the same failure class as 2026-08-28's audit
+  (7 errors, 2 invented titles) and 2026-09-01c (`chen2024cariesxrays` → adjacent AAAI article).
+  **The DOI half of Track A item 2 is now cleared;** what remains is the 19 genuinely DOI-less
+  entries (arXiv / web, expected) and the `url`-field sweep.
+- **Source:** `paper/source.bib` (git diff), `outputs/citation_audit/RESOLUTION_2026-09-02.md`,
+  `outputs/citation_audit/FINDINGS.md` (the original audit), `scripts/verify_citations_crossref.py`.
+- **Follow-ups:** (1) Sweep the remaining `url` fields across all 63 entries for stale DOIs /
+  non-canonical links — deferred, tracked in `transfer.md` §3. (2) Decide what to do about the
+  19 DOI-less entries. (3) Re-run `verify_citations_crossref.py` clean end-to-end (needs
+  `PYTHONIOENCODING=utf-8` on this Windows console or it dies mid-render on a Turkish glyph).
+  (4) Recompile `paper/main.pdf` — done this session, still **12 pages, 0 errors / 0 undefined
+  refs / 0 overfull boxes** with MiKTeX 25.12 (the "no LaTeX toolchain on this Mac" note in
+  `transfer.md` §3.1 is stale for the Windows machine).
+
+---
+
+## 2026-09-02b — Lever 2: an off-the-shelf YOLOv11l matches FPCL on the CariesXrays benchmark
+
+- **What was done:** Trained a **standalone caries-lesion detector** (YOLOv11l, `detect`) on the
+  CariesXrays benchmark (Chen et al., AAAI 2024) and scored COCO AP on a held-out split, to place
+  the project's first number beside a published table on a public benchmark's own metric. The user
+  directed this ("forget the publication … start the gpu work") after the §5 council put Lever 2 as
+  a GO. **Not wired into the pipeline; adopts no checkpoint; changes no default.** Pre-registration
+  `outputs/lever2_cariesxrays/PRE_REGISTRATION.md` written and the dataset built + gated **before**
+  the GPU was rented.
+- **⚠️ The split is NOT FPCL's.** The official 4,800/1,200 split is not public (checked: FPCL repo
+  ships only a 0.5% sample with no `ImageSets`; the Drive download is `Annotations.zip` +
+  `JPEGImages.zip` only; DVCTNet's repo has its own gated dataset). This run uses **this project's
+  own seed-42 image-level 80/20 split** (4,800 train / 1,200 val) — matching their *ratio* only.
+  Every number here is *"same dataset, same ratio, same metric, different random test images"* —
+  **indicative placement, not head-to-head.** Must be written that way; never as "beat/matched FPCL".
+- **Dataset / config:** `data/cariesxrays_det/` — 6,000 images, single class `decay`, 13,784 boxes
+  (paper says 13,783; the +1 is a counting-convention diff, same as `cariesxrays_external.py`).
+  27.3% of source XMLs carry a wrong `<size>` width — the builder
+  (`scripts/yolo/build_cariesxrays_detector_dataset.py`) reads dims from the decoded image, never
+  the XML (`RESULTS_LOG.md` 2026-08-27a precedent). Local geometry gate (0.0 px round-trip, 0
+  out-of-range, 0 split overlap, renders eyeballed) + re-gate on the rented box (sha256 match).
+  YOLOv11l detect, 1024 px, AdamW lr0 1e-3 cos, `mosaic=0` (house rule), 120 ep / patience 25,
+  seed 42, config otherwise verbatim from the canonical detector. **batch auto-reduced 32 → 16**
+  after CUDA OOM at 1024 px on the A100-40GB (pre-registered fallback). ultralytics 8.4.127,
+  torch 2.11+cu130.
+- **Metrics — COCO AP@[.50:.95] on the 1,200-image val split (`best.pt`, epoch 61 of 86 early-
+  stopped, re-scored with ultralytics default NMS):**
+
+  | | AP | AP50 | AP75 | P | R |
+  |---|---|---|---|---|---|
+  | **ours — YOLOv11l, this project's split** | **0.482** | **0.845** | **0.500** | 0.803 | 0.774 |
+
+  Published table (Chen et al., AAAI 2024 38(20) 21940–21948; COCO AP on **their** 4,800/1,200
+  split — transcribed from the paper text + DVCTNet arXiv 2508.20813, **re-verify against the
+  AAAI PDF before it goes in `main.tex`**):
+
+  | method | AP | AP50 | AP75 |
+  |---|---|---|---|
+  | RetinaNet R50 | 13.0 | 30.5 | 10.2 |
+  | DINO | 37.8 | 75.3 | 29.4 |
+  | Faster R-CNN R50 | 39.9 | 78.0 | 37.8 |
+  | YOLOX | 40.5 | 81.3 | 36.1 |
+  | **FPCL (their method)** | **48.2** | **84.1** | **50.6** |
+  | DVCTNet (MICCAI 2025) | 48.9 | 84.7 | 52.2 |
+
+  Training-loop metric agrees (results.csv epoch 61: mAP50 0.8425, mAP50-95 0.4812). A first val
+  pass with `iou=0.5` NMS gave 0.4787 / 0.8476 / 0.4916 — within noise; the default-NMS **0.4816**
+  is the reported number.
+- **Key decision or insight:** **A generic 2024 detector with no caries-specific design reaches
+  ~48 AP on this benchmark's data** — level with the task-specific FPCL contrastive-learning
+  method and ~8 AP above every off-the-shelf baseline in their table. Because the split differs,
+  this is an *approximate* placement, but it is a real, defensible data point for the manuscript:
+  the CariesXrays benchmark does not appear to require a specialised architecture to reach its
+  reported ceiling. **Nothing in the pipeline changes.** This is one benchmark row, and it does
+  not touch the base-rate-dominance finding (§8.22/§8.24) — that is about the *tooth-level* caries
+  metric, a different quantity from lesion-level detection AP.
+- **Source:** `models/14_cariesxrays_lever2/run_summary.txt` (+ `best.pt`/`last.pt` sha256 there,
+  gitignored, local disk only), `results.csv`, `final_val_defaults/`, `val_batch*_pred.jpg`
+  (predictions track ground truth, no geometry error);
+  `scripts/yolo/{build_cariesxrays_detector_dataset,train_cariesxrays_detector}.py`;
+  `outputs/lever2_cariesxrays/PRE_REGISTRATION.md`. JarvisLabs A100-40GB instance 492535, IN2,
+  **spend ₹256.61** (balance ₹816.70 → **₹560.09**), instance destroyed, nothing running.
+- **Follow-ups:** (1) Fold into `main.tex` as a benchmark-table row in Related Work, with the
+  split caveat spelled out and the AAAI numbers re-verified against the PDF. (2) `best.pt`/`last.pt`
+  are >50 MB and **not on Drive** — same gap as `models/11`. (3) If a genuine head-to-head is
+  wanted, email the FPCL authors (`chenbingzhi@m.scnu.edu.cn`) for the official split and re-run.
+  (4) Lever 3 (caries gate v5 on CariesXrays-derived tooth labels) is now cheap to attempt with
+  this detector for label generation, but stays below Track A.

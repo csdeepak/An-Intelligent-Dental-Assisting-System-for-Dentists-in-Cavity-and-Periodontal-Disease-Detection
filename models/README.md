@@ -26,10 +26,12 @@ One numbered directory per trained stage, each with a `*summary*.txt` beside the
 | `10_fdi_head_dentex_tufts_v2/` | Stage 2 — FDI head **v2.0** (DENTEX + Tufts). **Current pipeline default (`DEF_FDI_HEAD`).** Adopted for cross-domain robustness, not in-domain accuracy — see below. | `enumeration_head_best.pth` (43 MB) | **Yes** |
 | `12_fdi_head_v3_3corpus/` + `12a_fdi_head_v2_control_rebuilt/` | Stage 2 — FDI head **v3** (DENTEX + Tufts + Kaggle) and its same-day control. **ABLATION, not the default** — `RESULTS_LOG.md` 2026-08-28c. | `.pth` (43 MB) | Weights gitignored; summaries tracked |
 | `13_detector_multicorpus_lever1/` | Stage 1 — **Lever 1** multi-corpus detector retrain (Tufts + DENTEX). Two arms + a same-day control. **ABLATION, not the default** — primary passes (FDI end-to-end 0.584 → 0.934 on DENTEX) but the pre-registered Tufts guard fails (box mAP 0.810 → 0.647). `run_summary.txt`, `RESULTS_LOG.md` 2026-09-01h. | `controlB_tuftsonly_best.pt`, `arm_multicorpus_best.pt` (49 MB each) | **No** — gitignored; SHA-256 in `run_summary.txt`, local disk only |
+| `14_cariesxrays_lever2/` | **Lever 2** — standalone caries-**lesion** detector (YOLOv11l) on the CariesXrays benchmark (Chen et al., AAAI 2024). **BENCHMARK ROW, not a pipeline component** — COCO AP 0.482 / AP50 0.845 on this project's own seed-42 split (the official FPCL split is not public), level with FPCL. `run_summary.txt`, `RESULTS_LOG.md` 2026-09-02b. | `best.pt`, `last.pt` (51 MB each) | **No** — gitignored; SHA-256 in `run_summary.txt`, local disk only. `run_summary.txt` / `results.csv` / `args.yaml` **are** tracked; the `.png` curves and `val_batch*` renders are `*.png`/`*.jpg`-ignored like every other `models/` dir. |
 
 > **Adopted vs ablation:** dirs `06`–`11` are pipeline components (current or hash-pinned
 > superseded); `05`, `12`, `12a`, `13` are ablations / negative results kept per `CLAUDE.md`
-> rule 3, none in the runtime pipeline.
+> rule 3, none in the runtime pipeline; `14` is a standalone benchmark model, also not in the
+> pipeline.
 
 > The previous version of this file claimed "**Model files (.pth, .pt) are git-ignored** due
 > to file size" and showed a flat `models/*.pth` layout. Both were wrong: the ResNet18 `.pth`
@@ -47,6 +49,7 @@ One numbered directory per trained stage, each with a `*summary*.txt` beside the
 | `fdi-enumeration-head-resnet18-v2.0` | Stage 2 numbering (DENTEX + Tufts, **pipeline default**) | 26 Aug 2026 — `10_fdi_head_dentex_tufts_v2/run_summary.txt` |
 | `bone-loss-binary-resnet18-v1.0` | Stage 4a bone loss present/absent (**pipeline default**) | 27 Aug 2026 — `03_bone_loss_model_training_notebook_models/run_summary.txt` |
 | `bone-loss-severity-resnet18-v1.0` | Stage 4b severity Mild/Moderate/Severe (**pipeline default**) | 27 Aug 2026 — `04_bone_loss_severity_notebook_models/run_summary.txt` |
+| `caries-lesion-detector-yolo11l-cariesxrays-v1.0` | Lever 2 — CariesXrays lesion detector (**benchmark only, not in the pipeline**) | 2 Sep 2026 — `14_cariesxrays_lever2/run_summary.txt` |
 
 **No gaps remain — every trained model in this project is now tagged and hash-pinned**
 (closed 27 Aug 2026). Stages 4a/4b were the last, and had been serving as pipeline defaults

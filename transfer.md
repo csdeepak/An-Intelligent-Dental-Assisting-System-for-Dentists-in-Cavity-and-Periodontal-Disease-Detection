@@ -6,11 +6,30 @@ It is **rewritten, not appended to** — unlike `docs/results/RESULTS_LOG.md` (a
 history) and `docs/session-memory/` (one file per session, never edited). Those two are the
 record; this is the snapshot.
 
-**Last updated: 1 September 2026 (late evening). Work pauses here; resumes tomorrow (2 Sep).**
-Where the next session picks up: **§5 has a fresh publication council** — Framing A (evaluation/
-protocol paper) is the working spine, Lever 2 is a 1-day-timeboxed bonus, and the critical path is
-now **entirely Track A** (§3): venue decision, the 4-page cut, the four compliance blockers, the
-22 broken DOIs. Nothing is running; the GPU balance is ₹816.70.
+**Last updated: 2 September 2026. Nothing is running; GPU balance ₹560.09.**
+
+**Lever 2 is DONE (2 Sep).** Trained a standalone caries-**lesion** detector (YOLOv11l) on the
+CariesXrays benchmark → **COCO AP 48.2 / AP50 84.5 / AP75 50.0** on this project's own
+seed-42 4,800/1,200 split — **level with FPCL's task-specific method (48.2 / 84.1 / 50.6) and
+~8 AP above every off-the-shelf baseline in their table.** ⚠️ **The official FPCL split is NOT
+public** (checked the repo, the Drive download, the DVCTNet release), so the comparison is
+*indicative, not head-to-head* — different random test images. Not wired into the pipeline,
+adopts nothing. `RESULTS_LOG.md` 2026-09-02b, `models/14_cariesxrays_lever2/run_summary.txt`,
+`outputs/lever2_cariesxrays/PRE_REGISTRATION.md`. Instance 492535 destroyed; spend ₹256.61
+(₹816.70 → ₹560.09).
+
+Where the next session picks up: **Track A** (paused this session by user request) — venue
+decision, the 4-page cut, the four compliance blockers, fold the Lever-2 row into `main.tex`
+Related Work (re-verify the AAAI numbers against the PDF first). **The DOI blocker is cleared** —
+all 22 broken DOIs were real papers with wrong identifiers, fixed and re-verified
+(`RESULTS_LOG.md` 2026-09-02, `outputs/citation_audit/RESOLUTION_2026-09-02.md`); a `url`-field
+sweep and the 19 DOI-less entries remain, both minor.
+
+**2 Sep session also established:** MiKTeX 25.12 **is** on the Windows machine — `paper/main.tex`
+recompiles to **12 pages, 0 errors / 0 undefined refs / 0 overfull boxes** (the §3.1 "no LaTeX
+toolchain" note was macOS-only). And the **`D:` drive is not currently mounted** on the Windows
+machine, so the SDH clinic data (§8) is unreachable this session — SDH work is paused, not
+cancelled; find out where `D:` went before relying on §8's Windows table.
 
 **The plan gained a second track on 1 Sep: improve the numbers, not just the methodology** — and
 **Lever 1 ran to a verdict (ABLATION).** Seven failed caries experiments across three cohorts had
@@ -58,16 +77,16 @@ teeth**. Across cohorts: +0.046 (DENTEX), −0.009 (Ningxia, tie), **+0.252** (C
 into `main.tex` as a new Table + §8.25; provenance verified against AAAI OJS / ACM DL / DBLP
 (licence not stated by the authors). `verify_paper_numbers.py` now asserts **90** claims (was 82).
 
-**⚠️ NEW SUBMISSION BLOCKER — 22 of 63 checkable DOIs in `source.bib` are broken.** Every DOI was
-dereferenced against the registry: **11 resolve to a *different paper*** (e.g.
-`karamuftuo2025panoramic` → *Foundations of Pediatric Lifestyle Medicine*), **11 are not
-registered with any agency**, and 19 further entries carry no DOI and were not checkable. This
-does **not** prove the papers are fabricated — a real paper can carry a mistyped identifier — but
-**each of the 22 needs a manual title lookup before submission**. It survived the 28 Aug audit
-because `audit_citations.py` makes no network call and had a hardcoded Windows path (fixed).
-`outputs/citation_audit/FINDINGS.md`, `RESULTS_LOG.md` 2026-09-01c/d,
-`scripts/verify_citations_crossref.py`. One 8th citation error was *fixed*: `chen2024cariesxrays`
-pointed at the adjacent AAAI article (30197, an unrelated fairness paper); corrected to 30196.
+**✅ DOI BLOCKER CLEARED — 2 Sep.** The 22 broken DOIs (11 resolving to a *different* paper,
+11 unregistered) were each looked up by title: **all 22 are real, published papers that carried
+a wrong identifier — none fabricated.** Fixed and re-verified against the registry (title-overlap
+1.00), and in 19 of 22 the `volume`/`pages` were wrong too and were corrected from the registry
+record. Re-audit: **62 clean / 1 cosmetic flag** (`yalim2026comparative`, `İ`/`ı` accent only,
+uncited). `RESULTS_LOG.md` 2026-09-02, `outputs/citation_audit/RESOLUTION_2026-09-02.md`.
+**Two small follow-ups remain, neither blocking:** (i) a sweep of the `url` fields across all 63
+entries — the audit only checks the `doi` field, and 6 `url`s embedded the old wrong DOI (fixed);
+the rest are unchecked; (ii) the 19 genuinely DOI-less entries (arXiv/web, expected). The earlier
+`chen2024cariesxrays` fix (30197 → 30196, RESULTS_LOG 2026-09-01c) still stands.
 
 **Previously: 31 August 2026.** Two things landed today. **(a) The caries branch was diagnosed
 and three fixes were tried; all three failed and are recorded** — `RESULTS_LOG.md` 2026-08-31,
@@ -164,9 +183,22 @@ pipeline runs end to end, is deployed in a verified Docker image, and has been e
 hospitals *and* a second public benchmark (CariesXrays, AAAI 2024) it never trained on — **six
 independent cohorts**. The results block is complete — C1, C2, C3-style error attribution,
 confidence intervals, calibration and a failure taxonomy all exist as numbers with saved artefacts
-behind them — and as of 28 August those numbers are assembled into a **complete manuscript that
-compiles clean** (0 errors, 0 overfull boxes, 0 undefined references, 12 pages; §8.25 + the
-3-cohort table added 1 Sep, so re-compile and re-measure length).
+behind them — and those numbers are assembled into a **complete manuscript that compiles clean**:
+re-verified 2 Sep on the Windows machine with MiKTeX 25.12, **12 pages, 0 errors / 0 undefined
+citations / 0 undefined refs / 0 overfull boxes** with the corrected bibliography.
+
+**2 September 2026 — two things landed.** **(a) The DOI submission blocker is CLEARED:** all 22
+broken DOIs in `source.bib` were looked up by title — **every one is a real, published paper that
+carried a wrong identifier, none fabricated** — fixed and re-verified against the registry
+(`RESULTS_LOG.md` 2026-09-02, `outputs/citation_audit/RESOLUTION_2026-09-02.md`). Two minor
+leftovers, neither blocking: a `url`-field sweep and the 19 genuinely DOI-less entries.
+**(b) Lever 2 executed** (§3 Track B / §5): a standalone caries-**lesion** detector (YOLOv11l)
+trained on the CariesXrays benchmark scores **COCO AP 0.482 / AP50 0.845 / AP75 0.500** — level
+with the task-specific FPCL method (0.482 / 0.841 / 0.506) and ~8 AP above every off-the-shelf
+baseline in their table. **⚠️ On this project's own seed-42 split** (the official FPCL split is
+not public) — so *indicative*, not head-to-head. Not wired into the pipeline, adopts nothing;
+one benchmark row for Related Work. `models/14_cariesxrays_lever2/`, `RESULTS_LOG.md` 2026-09-02b.
+GPU balance **₹560.09**, nothing running.
 
 **The manuscript's title changed on 28 Aug, and the reason matters.** It was *"What Does 44 %
 Mean?"* — but 44.3 % is 212/479, the *pipeline's own* lesion-localisation agreement: one row of one
@@ -188,7 +220,7 @@ Stage 2 numbers 82.6% correctly**. Report both. 77.4% of the numbering errors th
 benign off-by-one; only 2.4% of detected teeth suffer a category error (§8.16 in
 `PAPER_MATERIAL.md`).
 
-**C1 is DONE and hardened, and the honest version is more complicated than it looked on 27 Aug.** A general-purpose VLM zero-shot scores **F1 0.149 at 7B** (reproducing 27 Aug's 0.143 on new hardware and a new transformers major version) and **0.246 at 32B** — scale helps a lot. **Few-shot makes it monotonically worse** (0.066 at 2-shot, 0.034 at 4-shot) because in-context examples teach it to answer *nothing*: 123 of 164 answers are empty at 4-shot. Both models still hand a confident dental answer to a **random-noise image**. **But the result that constrains the write-up: a fixed list of the eight first/second molars — fitted on held-out images, never on the scored set — scores 0.320, above our pipeline's 0.294.** Tooth-level FDI-set F1 is base-rate dominated; that constant must appear beside every C1 arm, and C1 must not be headlined as "small specialist beats large generalist" without it. The efficiency claim survives: 33.45 B params and 70.1 GB of H100 VRAM still lose to **61.2 M** params on a CPU (caries path; 83.6 M all six models — counted 28 Aug, correcting the "~25 M" that was the detector alone). Cost Rs 285.20 (+ Rs 14.26 wasted on a stray instance); **~Rs 313 remains**, nothing running.
+**C1 is DONE and hardened, and the honest version is more complicated than it looked on 27 Aug.** A general-purpose VLM zero-shot scores **F1 0.149 at 7B** (reproducing 27 Aug's 0.143 on new hardware and a new transformers major version) and **0.246 at 32B** — scale helps a lot. **Few-shot makes it monotonically worse** (0.066 at 2-shot, 0.034 at 4-shot) because in-context examples teach it to answer *nothing*: 123 of 164 answers are empty at 4-shot. Both models still hand a confident dental answer to a **random-noise image**. **But the result that constrains the write-up: a fixed list of the eight first/second molars — fitted on held-out images, never on the scored set — scores 0.320, above our pipeline's 0.294.** Tooth-level FDI-set F1 is base-rate dominated; that constant must appear beside every C1 arm, and C1 must not be headlined as "small specialist beats large generalist" without it. The efficiency claim survives: 33.45 B params and 70.1 GB of H100 VRAM still lose to **61.2 M** params on a CPU (caries path; 83.6 M all six models — counted 28 Aug, correcting the "~25 M" that was the detector alone). C1 cost Rs 285.20 (+ Rs 14.26 wasted on a stray instance). *(Balance has since moved: R1 + Lever 1 + Lever 2 spent it down to **₹560.09** as of 2 Sep — §8.)*
 
 **C2 external validation, re-measured on the seg detector with same-machine controls:** caries
 lesion agreement **28.8–51.3% across four Ningxia hospitals (40.8% pooled)** against **44.3%
@@ -348,7 +380,10 @@ vs bbox's 3,924 (+0.15%), so near-, not exactly, like-for-like.
 | **The frozen Tufts split is now derived from code**, not a file carried between laptops — reproduces byte-for-byte (SHA-256 verified) | `scripts/tufts/regenerate_split_v1.py`; `RESULTS_LOG.md` 2026-08-26c |
 | **R2 mask-aware cropping** implemented + unit-tested (**unwired** — needs R1's masks) | `src/crop_generator.py`, `tests/test_crop_generator.py` |
 | **Environment fixed and pinned** — numpy<2, or `scipy.optimize` (the Hungarian assignment) silently breaks | `requirements.txt`, `RESULTS_LOG.md` 2026-08-24b |
-| **All READMEs + this file** swept for staleness (four passes across three sessions; last 1 Sep — 159 tests, 90 paper numbers, CariesXrays cohort, DOI blocker, Lever 1 scripts) | `RESULTS_LOG.md` 2026-08-25e/f, 2026-08-26b, this rewrite |
+| **Lever 1 — multi-corpus detector retrain** (1 Sep) — ABLATION. FDI end-to-end on DENTEX 0.584 → 0.934 (all from the added data), but the Tufts guard fails (box mAP 0.810 → 0.647). Pipeline default detector unchanged. | `models/13_detector_multicorpus_lever1/run_summary.txt`, `RESULTS_LOG.md` 2026-09-01h |
+| **Lever 2 — CariesXrays caries-lesion detector** (2 Sep) — BENCHMARK ROW, not a pipeline component. YOLOv11l, **COCO AP 0.482 / AP50 0.845** on this project's own seed-42 split (the FPCL split is not public) → level with FPCL, ~8 AP over the generic baselines. Indicative, not head-to-head. | `models/14_cariesxrays_lever2/run_summary.txt`, `RESULTS_LOG.md` 2026-09-02b, `outputs/lever2_cariesxrays/PRE_REGISTRATION.md` |
+| **The 22 broken DOIs FIXED** (2 Sep) — all real papers with wrong identifiers; corrected + re-verified against the registry. `source.bib` re-audits 62 clean / 1 cosmetic. `url`-sweep + 19 DOI-less entries remain (minor). | `RESULTS_LOG.md` 2026-09-02, `outputs/citation_audit/RESOLUTION_2026-09-02.md` |
+| **All READMEs + this file** swept for staleness (five passes across four sessions; last 2 Sep — DOI blocker cleared, Lever 2, MiKTeX-on-Windows, `D:` unmounted) | `RESULTS_LOG.md` 2026-08-25e/f, 2026-08-26b, this rewrite |
 | Test suite | **159/159 pass** (122 + 37 orientation round-trip tests, `tests/test_orientation_roundtrip.py`, 1 Sep); `verify_invariants.py` all-hold, with **3 checks that used to SKIP now live** (leakage exclusion, caries-v3 MD5 join at 98.28%, caries-v3 dataset hygiene) since DENTEX is local |
 | **C1 — VLM baseline** (27 Aug) | Qwen2.5-VL-7B zero-shot F1 **0.143** vs our **0.294**, and **below a constant guess (0.204)**; blank/noise images give the same answer. `RESULTS_LOG.md` 2026-08-27aa, `PAPER_MATERIAL.md` §8.20 |
 | **Confidence intervals** (27 Aug) | Cluster-bootstrap over images for Stage-2, lesion agreement and Ningxia caries, plus paired CIs on the detector-swap deltas. **Two of that day's own claims failed their intervals and were withdrawn.** §8.14 |
@@ -379,24 +414,31 @@ not, and would have been quietly wrong if the second measurement had not been as
 
 ## 3. What is NEXT — the critical path is now entirely Track A
 
-**Track B (score improvement) largely resolved on 1 Sep:** Lever 1 ran → ABLATION (below);
-the §5 council put Framing A as the paper's spine and capped Lever 2 at a 1-day go/no-go. So the
-**critical path is Track A** — venue decision, the 4-page cut, the four compliance blockers, the
-22 broken DOIs. Track B's only live item is the Lever-2 timebox, and it must not block Track A.
+**Track B (score improvement) is DONE.** Lever 1 → ABLATION (1 Sep); Lever 2 → benchmark row
+(2 Sep, YOLOv11l on CariesXrays, COCO AP 0.482, level with FPCL). Neither changed a pipeline
+default. Lever 3 remains possible but is below Track A. **So the critical path is entirely
+Track A** — venue decision, the 4-page cut, the four compliance blockers.
 
-**Next session (2 Sep) starts here:** (1) venue decision — ISBI vs journal (user call); (2) hand
-the compliance list (Track A items 4–5, 9) to the account owner; (3) read the AAAI CariesXrays
-FPCL baselines → Lever 2 go/no-go; (4) begin the 22 DOI fixes.
+**As of 2 Sep, still open and all on the USER / account owner:** (1) venue decision — ISBI vs
+journal (gates the cut); (2) the four compliance blockers (items 4, 9) → account owner;
+(3) authors/affiliations in `main.tex` are still `Unknown`; (4) upload `models/11` **and now
+`models/14`** `best.pt` to Drive (item 5); (5) where is `D:`? — SDH track is paused until it is
+back (item 10). **Engineering follow-ups (small):** fold the Lever-2 row into `main.tex` Related
+Work with the split caveat + AAAI numbers re-verified against the PDF; the `source.bib` `url`
+sweep + 19 DOI-less entries.
 
 ### Track A — get the manuscript submittable
 
-1. **CUT THE MANUSCRIPT TO VENUE LENGTH.** `paper/main.tex` compiles clean (last verified 28 Aug;
-   **re-compile — no LaTeX toolchain on this Mac**, and §8.25 + the 3-cohort table were added
-   1 Sep, so it is now longer than 12 pages). ISBI allows 4. Pick the venue first — a journal
-   needs no cut. `docs/paper/REBUILD_AUDIT.md` Deliverable 4 maps section purpose.
-2. **⚠️ FIX THE 22 BROKEN DOIs** (`outputs/citation_audit/FINDINGS.md`). Per entry: look the work
-   up by title, then correct the DOI or drop the reference. Cannot be automated. Also decide what
-   to do about the 19 DOI-less entries. Re-run `scripts/verify_citations_crossref.py` after.
+1. **CUT THE MANUSCRIPT TO VENUE LENGTH.** `paper/main.tex` compiles clean — **re-verified 2 Sep
+   on the Windows machine with MiKTeX 25.12: 12 pages exactly, 0 errors / 0 undefined refs /
+   0 overfull boxes** (the "no LaTeX toolchain" note was macOS-only; ×`latexmk -pdf` works here).
+   ISBI allows 4. Pick the venue first — a journal needs no cut. `docs/paper/REBUILD_AUDIT.md`
+   Deliverable 4 maps section purpose.
+2. **✅ DOI FIXES DONE — 2 Sep.** All 22 corrected and re-verified (`RESULTS_LOG.md` 2026-09-02,
+   `outputs/citation_audit/RESOLUTION_2026-09-02.md`); `paper/source.bib` re-audits 62 clean / 1
+   cosmetic. **Two minor leftovers:** (i) sweep the `url` fields across all 63 DOI entries — the
+   audit checks only the `doi` field, 6 `url`s carried the old DOI and were fixed, the rest are
+   unchecked; (ii) the 19 DOI-less entries still need a per-entry decision. Neither blocks.
 3. **Authors and affiliations are still `Unknown`** in `main.tex`. Blocking, not engineering.
 4. **The four compliance blockers** (§1, `PAPER_MATERIAL.md` §8.19). Zero compute, all
    account-owner actions, and (1) and (3) are live protocol breaches rather than paperwork.
@@ -412,9 +454,12 @@ FPCL baselines → Lever 2 go/no-go; (4) begin the 22 DOI fixes.
 8. **`docker build` is verified and the demo runs** — but the image predates the confidence-only
    isotonic wiring, so rebuild it before any Review-1 demo.
 9. **IRB paperwork** — longest lead time of anything open, still not begun.
-10. **SDH clinic track — unblocked 30 Aug, and it is NOT on the critical path.** Consent from the
-    clinic was obtained (written agreement expected 1 Sep), closing `PUBLICATION_TODO.md` T1.2's
-    governance block. The data is on the **Windows** machine's `D:` (§8), the pipeline runs on it
+10. **SDH clinic track — unblocked 30 Aug, NOT on the critical path, and PAUSED as of 2 Sep:**
+    the `D:` drive is **not mounted** on the Windows machine right now (checked 2 Sep — only `C:`
+    is present), so the clinic data in §8's Windows table is unreachable this session. Before any
+    SDH work resumes, find out whether `D:` is a detached external drive, was re-lettered, or
+    something else. Consent from the clinic was obtained 30 Aug (written agreement expected 1 Sep),
+    closing `PUBLICATION_TODO.md` T1.2's governance block. When reachable, the pipeline runs on it
     unmodified at **2.2 s/image on CPU**, so a full-set pass is a ~2-hour unattended job needing
     **no GPU**.
     Plan, tiers, filter design, pre-registered criteria: **`docs/research/SDH_EXECUTION_PLAN.md`**;
@@ -442,10 +487,18 @@ garbage* and errored nowhere.
   DENTEX head on held-out DENTEX; leakage ruled out three ways) — it is the strongest evidence
   yet that the 58.3% headline is **detector-domain-limited, not numbering-limited**, but it is
   not the cross-domain scenario 58.3% measures and must not be quoted as if it were.
-- **B2 — Lever 2 caries lesion detector on CariesXrays. Timeboxed by the §5 council: 1 day to
-  read the AAAI FPCL baselines → go/no-go.** Go only if their test split is reproducible AND the
-  numbers look beatable; then pre-register, ~1 GPU-day (~₹300), and it is a *bonus section that
-  does not block Track A*. Otherwise drop it. **Quote nothing from the AAAI baselines until read.**
+- **B2 — Lever 2 caries lesion detector on CariesXrays. DONE 2 Sep.** Council (§5) said GO; the
+  user then directed it directly ("forget the publication … start the gpu work"). **The official
+  FPCL 4,800/1,200 split is NOT public** — checked the FPCL repo (0.5% sample, no `ImageSets`),
+  the Drive download (`Annotations.zip` + `JPEGImages.zip` only), and DVCTNet (own gated dataset).
+  Proceeded on **this project's own seed-42 80/20 split** matching only their ratio. YOLOv11l
+  detect, 1024 px, `mosaic=0`, batch auto-16-after-OOM, 86 epochs (early-stop, best ep 61) on a
+  rented A100-40GB (**₹256.61**, instance destroyed). **Result: COCO AP 0.482 / AP50 0.845 /
+  AP75 0.500** vs FPCL 0.482 / 0.841 / 0.506 — on top of FPCL, ~8 AP above every generic baseline.
+  **Indicative, not head-to-head** (different test images). `RESULTS_LOG.md` 2026-09-02b,
+  `models/14_cariesxrays_lever2/`. **Next:** one row in `main.tex` Related Work with the split
+  caveat, AAAI table re-verified against the PDF. A true head-to-head needs the authors' split
+  (`chenbingzhi@m.scnu.edu.cn`).
 - **B3 — Lever 3 caries gate v5** on CariesXrays-derived tooth labels. Re-scoped 1 Sep: it can use
   `models/13/arm_multicorpus_best.pt` purely to assign lesion boxes to teeth for label generation
   (not adopting it into the pipeline). Cheap, but **below Track A** — likely not for this
@@ -545,6 +598,83 @@ reject → journal resubmit → S (slower). The real blocker is not paper qualit
 co-author controls the Tufts Drive / IRB / dataset accounts doing the compliance work in the next
 ~2 weeks.
 
+### 2 September 2026 — Lever 2 go/no-go council
+
+> **OUTCOME (recorded after the fact):** council said GO conditional on the FPCL split being
+> reproducible. **The split turned out NOT to be public**, and the user overrode the gate
+> ("forget the publication … start the gpu work"). Ran on this project's own seed-42 split →
+> **COCO AP 0.482**, level with FPCL. `RESULTS_LOG.md` 2026-09-02b. The council text below is the
+> pre-run reasoning, kept as the record.
+
+**The §5 council on 1 Sep timeboxed Lever 2 to a 1-day go/no-go, gated on reading the AAAI FPCL
+baselines. Baselines now read; this is that decision.**
+
+**What Lever 2 is:** train a standalone caries-**lesion** detector (YOLOv11l, `detect`) on the
+CariesXrays benchmark's own train split and report COCO AP / AP50 / AP75 on its own test split,
+**beside the published FPCL table**. It is *not* wired into the six-stage pipeline and adopts no
+checkpoint — it is one row in the Related-Work / benchmark comparison, the project's first number
+placed next to a published result on the same data and metric.
+
+**The AAAI FPCL numbers (Chen et al., AAAI 2024 38(20) 21940–21948; COCO AP on 4,800/1,200):**
+
+| method (their table) | AP | AP50 | AP75 |
+|---|---|---|---|
+| RetinaNet R50 | 13.0 | 30.5 | 10.2 |
+| DINO | 37.8 | 75.3 | 29.4 |
+| Faster R-CNN R50 | 39.9 | 78.0 | 37.8 |
+| YOLOX (CSPDarknet) | 40.5 | 81.3 | 36.1 |
+| **FPCL (their method, R50)** | **48.2** | **84.1** | **50.6** |
+| DVCTNet (later paper, DINOv2-ViT-B) | 48.9 | 84.7 | 52.2 |
+
+**Arguments FOR running it:**
+- The split is a **standard VOC `ImageSets/Main/{train,val}.txt}`** (read from FPCL's own
+  `my_dataset.py` / `train.py`); a follow-up paper (DVCTNet, arXiv 2508.20813) reused "the
+  original split … for fair comparison", so the split exists and is used by others.
+- The metric is unambiguous — COCO AP via `pycocotools`, exactly what `ultralytics` reports.
+- Single class ("Decay"), 4,800 train images — a **~3–4 h, ~₹300** job. Balance ₹816.70 covers
+  it plus one redo.
+- YOLOv11l is architecturally newer/stronger than their YOLOX baseline; landing **~40–46 AP /
+  ~80–85 AP50** is a realistic expectation, i.e. at/above the generic baselines and within a few
+  points of FPCL — a legitimate "a 2024 off-the-shelf detector reaches X without a caries-specific
+  method" data point for Framing A.
+- The VOC-parsing hazard (27.3% of `<size>` fields wrong) is **already solved** in
+  `scripts/eval/cariesxrays_external.py:lesions_from_voc` — reuse, don't reinvent.
+
+**Arguments AGAINST / risks:**
+- **The gate is real:** if the Drive download does **not** contain the `ImageSets` split and the
+  authors don't answer email, an own-split number **cannot** sit in their table and the whole
+  exercise loses its point. Drop it that day — do not train on a self-made split and imply
+  comparability.
+- We will very likely **not beat FPCL's 48.2 AP** (their contrastive method); the honest framing
+  is "competitive with generic baselines", not "new SOTA". If the team wants a headline win,
+  this isn't it.
+- Data is **not on the Windows machine** — a ~2 GB re-download + local geometry-gate build is
+  the first ~half-day before anything is rented.
+- Track A (venue, 4-page cut, compliance, authors) is the real path and **nothing here may
+  delay it**. Lever 2 runs only in parallel and only by whoever is not doing Track A.
+
+**DECISION: GO — conditional on the split gate.** Sequence:
+1. **Gate (user, 10 min):** download CariesXrays from the Drive folder
+   (`1qWL2f0A-vf91StHxs24eoiFDyuoHEh4N`); check for `ImageSets/Main/train.txt` + `val.txt` (or
+   `test.txt`). Split present → proceed. Absent → email `chenbingzhi@m.scnu.edu.cn` /
+   `darrenzz219@gmail.com`; no reply in a few days → **DROP Lever 2**, Framing A stands alone
+   (it always did).
+2. **Pre-register** to `outputs/lever2_cariesxrays/PRE_REGISTRATION.md` — metric (COCO AP primary,
+   AP50/AP75 reported), the fixed FPCL split, comparator (the published table, verbatim), and a
+   "reported as-is, bar not moved" rule. Commit before any training.
+3. **Build + geometry-gate** the VOC→YOLO dataset locally on Windows (CPU): reuse
+   `lesions_from_voc`'s image-frame `<size>` handling; assert every box round-trips; render a
+   sample by eye; `tar` to one file; sha256 both ends.
+4. **Train** YOLOv11l `detect`, 1024 px, on a rented **A100-40GB @ ₹84.24/hr** (or A100-80GB spot,
+   same price), ~100 epochs early-stopped, ultralytics pinned to the frozen-model version
+   (8.4.127). Re-run the geometry gate **on the rented box** before launch.
+5. **Evaluate** on the 1,200 test images with `pycocotools` (`ultralytics val` reports COCO AP);
+   write the row into `RESULTS_LOG.md` and a new benchmark table in `main.tex` §Related Work.
+   Destroy the instance the moment weights are down.
+
+**Not in scope:** Lever 3 (caries gate v5) stays below Track A. No pipeline checkpoint changes.
+No tuning against Ningxia, ever.
+
 ### Is this project publishable there, honestly assessed
 
 **Not on the strength of any single model swap** (adopting head v2.0 over v1.0, or v1.0 over
@@ -590,10 +720,10 @@ reach either way. The odds are set by whether the compliance blockers close, not
 
 ## 6. The R1 GPU session — run order, JarvisLabs
 
-> ✅ **R1 IS DONE (27 Aug 2026) and Lever 1 is DONE (1 Sep 2026). No instance is running.** This
-> section is retained as the validated runbook for the *next* rented job. R1 cost **₹249.19**
-> across two runs; Lever 1 cost **₹267.84** on an RTX PRO 6000 (one aborted A30 attempt first,
-> ₹21.45). **Balance now ₹816.70 (§8).**
+> ✅ **R1 (27 Aug), Lever 1 (1 Sep) and Lever 2 (2 Sep) are all DONE. No instance is running.**
+> This section is the validated runbook for the next rented job. R1 cost **₹249.19**; Lever 1
+> **₹267.84** on an RTX PRO 6000; Lever 2 **₹256.61** on an A100-40GB (492535, destroyed).
+> **Balance now ₹560.09 (§8).**
 >
 > **The runbook that worked for Lever 1, added to the R1 rules below:** `tar` the dataset to ONE
 > file (per-file upload is the bottleneck), sha256 both ends, extract, **`find … -name '._*'
@@ -692,7 +822,7 @@ fresh clone after `git push`), read this section in full before assuming anythin
 | **CariesXrays dataset** (~2 GB) | `~/Downloads/Capstone/CariesXrays_Dataset/` | AAAI 2024 (Chen et al.), 6,000 panoramic images + Pascal-VOC lesion boxes. Used **frozen-pipeline only** as the 6th external cohort (`scripts/eval/cariesxrays_external.py`); a random seed-42 draw of 1,500 was scored. No LICENSE file ships with it — recorded in `main.tex` §8.25. Not needed for inference. |
 | **Multi-corpus detector dataset** (Lever 1 / B1) | `data/detector_multicorpus/` (~816 MB, gitignored) | Built + geometry-gated 1 Sep by `scripts/yolo/build_multicorpus_detector_dataset.py` (Tufts 700 + DENTEX `quadrant_enumeration` 634 → YOLO `detect`, detector-rotated frame). 1,334 train / 150 val / 150 test; val+test are Tufts-only and reproduce the canonical **3,794 / 3,924** box counts exactly. Regenerable; never commit the images. A `detector_multicorpus.tar` for upload = 817 MB one file. |
 | **Lever 1 detector weights** (ABLATION) | `models/13_detector_multicorpus_lever1/*.pt` (2 × 49 MB, gitignored) | `controlB_tuftsonly_best.pt` (sha256 `104564f3…`) and `arm_multicorpus_best.pt` (sha256 `5bc24b71…`). NOT the pipeline default — see `run_summary.txt`. Kept on local disk only. |
-| JarvisLabs instances | Account-level | **None running, none paused — verified 1 Sep.** History: R1 instances destroyed 27 Aug; balance topped up to **₹1,105.99**; an A30 attempt for Lever 1 aborted mid-upload (₹21.45, nothing trained); **Lever 1 then ran to completion 1 Sep on an RTX PRO 6000 Blackwell** (instance 491623, IN1, `jl create --gpu` returned A100/H100 unavailable as containers), **₹267.84**, both arms trained + guard-valued, weights downloaded, **instance destroyed**. Balance now **₹816.70**. |
+| JarvisLabs instances | Account-level | **None running, none paused — verified 2 Sep after Lever 2.** History: R1 destroyed 27 Aug; balance topped up to ₹1,105.99; A30 aborted for Lever 1 (₹21.45); Lever 1 on an RTX PRO 6000 (491623, ₹267.84), destroyed; **Lever 2 on an A100-40GB (492535, IN2, ₹256.61), destroyed 2 Sep after weights downloaded + sha256-verified.** Balance now **₹560.09**. **Windows `jl` gotchas:** the `jl` on PATH is broken (`Python311` interpreter was removed); use `%LOCALAPPDATA%\Programs\Python\Python313\Scripts\jl.exe`. Every `jl upload`/`exec` with a remote `/path` argument needs **`MSYS_NO_PATHCONV=1`** or Git-Bash rewrites `/home/x` to `C:/Git/home/x`. A `jl exec` with `nohup … &` detaches fine, but the local `jl exec` client hits the 2-min Bash-tool timeout — that does not kill the remote job. |
 | SSH keys | `~/.ssh/id_ed25519_jarvis` (+ a copy at `~/.ssh/id_ed25519`, since `jl` passes no `-i` and relies on OpenSSH's default lookup); this Mac's own key at `~/.ssh/id_ed25519` | Two keys registered with JarvisLabs: `r1-seg-windows` (the Windows box) and **`macos-m4pro`** (this machine, added 1 Sep). The `jl` CLI (0.2.17) is installed and authenticated here — the user ran `jl setup` themselves; the token is not in this repo or any session. The **E2E** `.pem` pasted into a chat on 20 Aug is still to be treated as compromised — different provider, unrelated key. |
 
 ### The Windows machine — a different inventory, verified 26 Aug 2026

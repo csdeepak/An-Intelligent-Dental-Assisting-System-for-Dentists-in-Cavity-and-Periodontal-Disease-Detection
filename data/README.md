@@ -1,9 +1,11 @@
 # `data/` — datasets
 
-**Last verified: 1 September 2026** against the working tree (added the Lever 1 multi-corpus
-detector dataset and the CariesXrays external cohort; earlier: 26 Aug, Tufts enumeration corpus).
-Everything of size here is git-ignored; what *is* tracked is the small, high-value metadata
-that makes a run reproducible — split manifests and index CSVs.
+**Last verified: 2 September 2026** against the working tree (added `cariesxrays_det/` — the
+Lever-2 YOLO training set — and downloaded the full CariesXrays benchmark to the Windows
+machine; earlier: 1 Sep, the Lever 1 multi-corpus detector dataset + the CariesXrays external
+cohort; 26 Aug, Tufts enumeration corpus). Everything of size here is git-ignored; what *is*
+tracked is the small, high-value metadata that makes a run reproducible — split manifests and
+index CSVs.
 
 **⚠️ Tufts licence note.** The Tufts Dental Database's release agreement forbids reproducing
 or posting it "into any webpage or any other storage means." `docs/EXTERNAL_DRIVE.md` has the
@@ -44,8 +46,20 @@ data/
 ├── detector_multicorpus/     816 MB   [Lever 1 / B1] Tufts + DENTEX YOLO-detect set — 1,334/150/150,
 │                                      val+test Tufts-only + canonical. Built + geometry-gated 1 Sep.
 │                                      Gitignored; rebuild with scripts/yolo/build_multicorpus_detector_dataset.py
-└── ningxia/                   1.7 MB   primary EXTERNAL validation
-    └── manifest.csv           1.7 MB   ** TRACKED ** — 13,160 rows; the images are NOT here
+├── cariesxrays_det/          ~4 GB    [Lever 2] CariesXrays VOC→YOLO detect set — 4,800/1,200,
+│                                      THIS PROJECT'S seed-42 split (the FPCL split is not public).
+│                                      Single class "decay". Gitignored; rebuild with
+│                                      scripts/yolo/build_cariesxrays_detector_dataset.py from the
+│                                      benchmark at ~/Downloads/Capstone/CariesXrays_Dataset/.
+├── ningxia/                   1.7 MB   primary EXTERNAL validation
+│   └── manifest.csv           1.7 MB   ** TRACKED ** — 13,160 rows; the images are NOT here
+└── sdh/                       ~700 KB  clinic set — METRICS ONLY, never pixels
+    ├── quality_metrics_enhanced.csv    ** TRACKED ** — 3,213 rows, per-image quality metrics
+    │                                   keyed by opaque image ID. The generating script never
+    │                                   opens metadata/index.csv (the re-identification map).
+    └── pilot_inference_n24.csv         ** TRACKED ** — the 24-image label-free pilot,
+                                        RESULTS_LOG.md 2026-08-30. These 24 images are BURNED
+                                        for evaluation and must land in SDH-DEV.
 ```
 
 **Caries crop variants (`crops_v3` … `crops_exp125`):** the default `build_caries_phase1_v3.py`
@@ -60,8 +74,8 @@ path reproduces `crops_v3_phase1` exactly; the other three are opt-in experiment
 | **Tufts** frozen split | `_repo_archive/datasets_workspace/outputs/eda_tufts/split_v1.csv` | The split behind every reported detector number. Gitignored, which is why a previous search declared it lost. |
 | **DENTEX** full release | `~/Downloads/Capstone/DENTEX/` | Outside the repo. See below. |
 | **Ningxia** images | `~/Downloads/Capstone/ningxia_local/` (test splits only, 2.4 GB) | **Connected and evaluated 25 Aug.** Train split (11.2 GB) deliberately left on the pen drive — Ningxia is locked external test data, never trained on. Zero leakage verified against all 5 other corpora, each checked separately. `docs/EXTERNAL_DRIVE.md` has the drive links; `RESULTS_LOG.md` 2026-08-25d has the numbers. |
-| **CariesXrays** (AAAI 2024, Chen et al.) | `~/Downloads/Capstone/CariesXrays_Dataset/` (~2 GB) | 6,000 panoramic images + Pascal-VOC per-lesion boxes. Used **frozen-pipeline only** as the 6th external cohort (a seed-42 random 1,500-image draw scored; `scripts/eval/cariesxrays_external.py`). No LICENSE file ships with it — flagged in `main.tex` §8.25. Never trained on. Constant beats pipeline by **+0.252 [+0.232, +0.273]** — the strongest form of the paper's central claim. |
-| **Clinic (SDH)** | On the **Windows** machine, `D:\` (struck 30 Aug — not the macOS machine) | Consent obtained 30 Aug; `docs/research/SDH_EXECUTION_PLAN.md`. Metrics-only artefacts tracked at `data/sdh/`; no pixel leaves `D:`. |
+| **CariesXrays** (AAAI 2024, Chen et al.) | `~/Downloads/Capstone/CariesXrays_Dataset/` — **full download, ~4 GB** on the Windows machine (`Annotations/` 6,000 XML + `JPEGImages/` 6,000 JPG; the zips were deleted after extraction, re-downloadable from the Drive folder `1qWL2f0A-…`). Also on the macOS machine. | 6,000 panoramic images + Pascal-VOC per-lesion boxes, single class. No LICENSE file — flagged in `main.tex` §8.25. **(1)** Used **frozen-pipeline** as the 6th external cohort — constant beats pipeline by **+0.252 [+0.232, +0.273]** (`scripts/eval/cariesxrays_external.py`, §8.25). **(2) Lever 2, 2 Sep:** a *standalone* YOLOv11l lesion detector was trained on it (this project's own seed-42 4,800/1,200 split → `data/cariesxrays_det/`, `models/14_cariesxrays_lever2/`) — **benchmark row only, not wired into the pipeline; the pipeline still never trains on it.** 27.3% of the XMLs carry a wrong `<size>` width — always read dims from the decoded image. |
+| **Clinic (SDH)** | On the **Windows** machine, `D:\` (struck 30 Aug — not the macOS machine): `D:\SDH dataset\dataset\images\` (3,219 enhanced 8-bit PNGs, of which **3,213 decode**; six truncated), `D:\dataset_audit\` (Stage-1 + audit CSVs), `D:\raw data\` (4,433 `.pano`) | Consent obtained 30 Aug; no longer governance-blocked. Plan: `docs/research/SDH_EXECUTION_PLAN.md`; Drive `index.csv` exposure: `docs/research/clinical_dataset_provenance.md` §4a. Metrics-only artefacts tracked at `data/sdh/`; no pixel leaves `D:`. |
 
 ## The DENTEX release, mapped
 

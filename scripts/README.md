@@ -4,10 +4,11 @@ Four families. The library they call is `src/`; see `src/README.md`.
 
 | Path | Stage | See |
 |---|---|---|
-| `yolo/` | 1 — tooth detection (bbox baseline, the adopted seg detector, the Lever 1 multi-corpus retrain) | `yolo/README.md` |
+| `yolo/` | 1 — tooth detection (bbox baseline, the adopted seg detector, the Lever 1 multi-corpus retrain) + Lever 2, a standalone CariesXrays lesion detector (benchmark row, not a pipeline component) | `yolo/README.md` |
 | `dentex/` | 2 and 3 — the enumeration head, plus caries data + training (incl. the 31 Aug signal arms) | `dentex/README.md` |
 | `tufts/` | 2 — Tufts as a **second** FDI-numbering corpus (its labels are mirrored) | `tufts/README.md` |
 | `eval/` | evaluation and error propagation (C3), plus the external-cohort evals (Ningxia, CariesXrays) | `eval/README.md` |
+| `sdh/` | the SDH clinic set — measurement only, no pixel enters the repo | `sdh/README.md` |
 | *(top level)* | Stage 4 bone-loss dataset/training, the full-pipeline entry point, and the paper-number / citation verifiers | below |
 
 ## Top-level scripts

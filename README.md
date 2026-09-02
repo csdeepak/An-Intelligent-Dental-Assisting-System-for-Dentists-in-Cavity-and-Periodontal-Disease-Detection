@@ -311,7 +311,13 @@ significant; the +15.45 pp Kaggle cell is *not* a generalisation result because 
 corpus) and [`models/12a_fdi_head_v2_control_rebuilt/`](models/12a_fdi_head_v2_control_rebuilt/)
 (its same-day control); [`models/13_detector_multicorpus_lever1/`](models/13_detector_multicorpus_lever1/)
 (Lever 1 — the multi-corpus detector, an **ablation**: +34.9 pp end-to-end FDI on DENTEX but fails
-the Tufts guard, `RESULTS_LOG` 2026-09-01h); plus [`models/05_cej_estimation_v2_models/`](models/05_cej_estimation_v2_models/)
+the Tufts guard, `RESULTS_LOG` 2026-09-01h);
+[`models/14_cariesxrays_lever2/`](models/14_cariesxrays_lever2/) (Lever 2 — a standalone
+caries-**lesion** detector on the CariesXrays benchmark, **benchmark row only, not in the
+pipeline**: YOLOv11l reaches COCO **AP 0.482 / AP50 0.845** on this project's own seed-42 split —
+level with the task-specific FPCL method, ~8 AP over the generic baselines; the official FPCL
+split is not public so the comparison is *indicative*, `RESULTS_LOG` 2026-09-02b);
+plus [`models/05_cej_estimation_v2_models/`](models/05_cej_estimation_v2_models/)
 (the exploratory CEJ negative result).
 
 ### Architecture specifications
@@ -435,10 +441,10 @@ Each of those four rows is a bug that was found the hard way. See
 ├── scripts/
 │   ├── run_inference.py         ← ★ CLI: all six stages, OPG in → JSON + overlay out
 │   ├── verify_paper_numbers.py  ← asserts 90 manuscript numbers against artefacts
-│   ├── verify_citations_crossref.py  ← dereferences every DOI against the registry (22 broken, 1 Sep)
+│   ├── verify_citations_crossref.py  ← dereferences every DOI against the registry (22 fixed, 2 Sep)
 │   ├── audit_citations.py · check_text_reuse.py · build_handbook.py
 │   ├── eval/                    ← 21 evaluation + invariant scripts (+ README)
-│   ├── yolo/                    ← Stage-1 detection toolchain (+ README)
+│   ├── yolo/                    ← Stage-1 detection + Lever-1/2 detector toolchains (+ README)
 │   ├── dentex/ · tufts/ · kaggle_dual/   ← per-corpus data toolchains (+ READMEs)
 │   └── figures/                 ← paper figure generators
 │
@@ -447,8 +453,8 @@ Each of those four rows is a bug that was found the hard way. See
 │   ├── caries/                  ← Stage 3 — DENTEX cascade + approach.txt
 │   └── bone_loss/               ← Stage 4 — 6 notebooks, exploration → CEJ
 │
-├── models/                      ← one numbered dir per trained stage (see models/README.md)
-├── data/                        ← tufts · dentex · ningxia · kaggle_dual · detector_multicorpus (large files gitignored)
+├── models/                      ← one numbered dir per trained stage, 06–14 (see models/README.md)
+├── data/                        ← tufts · dentex · ningxia · kaggle_dual · detector_multicorpus · cariesxrays_det (large files gitignored)
 ├── outputs/                     ← saved run directories — every number traces here
 ├── paper/                       ← main.tex · main.pdf · source.bib · figures
 ├── tests/                       ← 159 tests
@@ -458,7 +464,7 @@ Each of those four rows is a bug that was found the hard way. See
     ├── architecture/            ← pipeline diagrams (+ drawio source)
     ├── results/
     │   ├── PAPER_MATERIAL.md    ← ★ master paper-writing document
-    │   ├── RESULTS_LOG.md       ← append-only journal, 109 entries
+    │   ├── RESULTS_LOG.md       ← append-only journal, 113 entries
     │   ├── model_metrics.md     ← one-page scoreboard
     │   ├── METHODOLOGY_CHANGELOG.md
     │   └── figures/paper/       ← 17 paper/review figures
@@ -602,7 +608,8 @@ python scripts/train_model.py   --config configs/dataset_config.yaml   # Stage 4
 | Confidence intervals (all of the above) | `scripts/eval/bootstrap_ci.py` | `outputs/bootstrap_ci/` |
 | Bone-loss evaluation | `scripts/eval/bone_loss_eval.py` | `outputs/bone_loss_eval/` |
 | Frozen hashes, class orders, crop contracts, leakage | `scripts/eval/verify_invariants.py` | — |
-| **C2b** — CariesXrays sixth cohort | `scripts/eval/cariesxrays_external.py` | `outputs/cariesxrays_external*/` |
+| **C2b** — CariesXrays sixth cohort (frozen pipeline) | `scripts/eval/cariesxrays_external.py` | `outputs/cariesxrays_external*/` |
+| **Lever 2** — CariesXrays lesion detector (trained; benchmark row) | `scripts/yolo/build_cariesxrays_detector_dataset.py`, `scripts/yolo/train_cariesxrays_detector.py` | `models/14_cariesxrays_lever2/`, `outputs/lever2_cariesxrays/` |
 | DOI integrity of every citation | `scripts/verify_citations_crossref.py` | `outputs/citation_audit/` |
 | The 90 manuscript numbers | `scripts/verify_paper_numbers.py` | `paper/main.tex` |
 
@@ -665,7 +672,10 @@ orientation contract (both directions — including the `rot_box` inverse added 
 detector retrain). A wrong parameter count once propagated into nine places across six files
 before it was caught — these checks exist so that class of drift fails loudly next time.
 **Citations are dereferenced too:** a 1 Sep audit against the DOI registry found 22 of 63
-checkable DOIs broken (`verify_citations_crossref.py`) — a submission blocker, not yet fixed.
+checkable DOIs broken (`verify_citations_crossref.py`). **All 22 were fixed 2 Sep** — every one
+turned out to be a real, published paper carrying a wrong identifier (none fabricated); the
+corrected DOIs re-verify against the registry, and 19 of them also had a wrong volume/pages that
+were corrected from the registry record (`outputs/citation_audit/RESOLUTION_2026-09-02.md`).
 
 ---
 
@@ -729,7 +739,7 @@ exist. The full 25-item treatment is [`PAPER_MATERIAL.md`](docs/results/PAPER_MA
 | 10 | **CEJ estimation is a negative result** (15.1% agreement). | Not integrated; reported as a negative result. |
 | 11 | **Mask-aware cropping is unwired** because the mask bar was missed. | Deliberate consequence of the pre-registered bar. |
 | 12 | **No clinical validation, no IRB, and four non-engineering compliance items are open.** | ⛔ **Blocking for publication.** See below. |
-| 13 | **22 of 63 checkable DOIs in `source.bib` are broken** (11 wrong paper, 11 unregistered; found 1 Sep). | ⛔ **Blocking.** Manual per-citation title lookup required — `outputs/citation_audit/FINDINGS.md`. |
+| 13 | ~~22 of 63 checkable DOIs in `source.bib` are broken~~ **RESOLVED 2 Sep.** All 22 were real papers with wrong identifiers; fixed + re-verified against the registry, `source.bib` re-audits 62 clean / 1 cosmetic. | ✅ Cleared. `outputs/citation_audit/RESOLUTION_2026-09-02.md`. Minor leftovers: a `url`-field sweep and 19 genuinely DOI-less entries. |
 
 ### Compliance status — read before redistributing anything
 

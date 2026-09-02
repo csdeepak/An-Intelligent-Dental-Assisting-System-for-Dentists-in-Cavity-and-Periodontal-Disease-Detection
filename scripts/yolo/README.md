@@ -1,16 +1,19 @@
-# `scripts/yolo/` — Stage 1 tooth-detection scripts
+# `scripts/yolo/` — YOLO detector scripts (tooth detection + the Lever experiments)
 
-**Last verified: 1 September 2026.**
+**Last verified: 2 September 2026.**
 
 Three of these were recovered from the ad-hoc `DataSets/` exploration workspace that used to
 sit at the repo root (relocated to `_repo_archive/datasets_workspace/`, a sibling of this repo
 — nothing was deleted). Two more were added in August 2026 for the **R1 bbox → instance-mask
-upgrade** (`docs/research/MASTER_PLAN_2026H2.md` §3 R1), and two more on 1 Sep for
-**Lever 1 / B1** — the multi-corpus detector retrain (`transfer.md` §3 Track B).
+upgrade** (`docs/research/MASTER_PLAN_2026H2.md` §3 R1); two more on 1 Sep for **Lever 1 / B1**,
+the multi-corpus detector retrain; and two more on 2 Sep for **Lever 2**, a standalone
+caries-**lesion** detector on the CariesXrays benchmark (`transfer.md` §3 Track B).
 
-They are the **Stage 1 (YOLOv11 tooth detection)** toolchain and are kept separate from the
-scripts in `scripts/` one level up, which belong to the **Stage 2–5 crop/classifier**
-toolchain. Both sets are live; they simply serve different halves of the pipeline.
+The tooth-detection scripts are the **Stage 1 (YOLOv11 tooth detection)** toolchain, kept
+separate from the scripts in `scripts/` one level up, which belong to the **Stage 2–5
+crop/classifier** toolchain. Both sets are live; they simply serve different halves of the
+pipeline. **Lever 2 is not a pipeline component at all** — it produces one benchmark row
+(`models/14_cariesxrays_lever2/`, `RESULTS_LOG.md` 2026-09-02b) and adopts no checkpoint.
 
 ## The toolchains here
 
@@ -41,6 +44,8 @@ and tooth detection is largely indifferent to a 180° flip.
 | `evaluate_yolo.py` | Runs the trained `best.pt` against the held-out **test** split, writes an eval run directory with metric plots, prediction visualisations on 20 test images, and an `eval_summary.txt`. |
 | `build_multicorpus_detector_dataset.py` | **Lever 1 (1 Sep).** Builds `data/detector_multicorpus/` — Tufts (700 train, keyed by `outputs/eda_tufts/split_v1.csv`) + DENTEX `quadrant_enumeration` (634 imgs, all → train), converted into the detector's 90°-CCW frame via `src.orientation.rot_box`. **Three gates, all must pass or it aborts:** canonical box-count reproduction (Tufts val 3,794 / test 3,924, matching the frozen detector's GT), a geometry re-score of all 18,095 DENTEX boxes against source COCO (median IoU ≥ 0.99 — measured 1.0000), and an MD5 leakage guard vs the 164 leak-free eval images. Val/test are **Tufts-only** so box mAP stays comparable to the frozen detector. Tufts half is sourced from `_repo_archive/datasets_workspace/Segmentation/teeth_bbox.json` + `Radiographs_rotated/` — **not** `data/tufts/dataset_seg`, which is the withdrawn void corpus (`RESULTS_LOG.md` 2026-09-01e/f). |
 | `train_multicorpus_detector.py` | **Lever 1 (1 Sep).** `--arm {tuftsonly, multicorpus}`. Config copied verbatim from `train_yolo_seg.py` (epochs 150, patience 30, batch 32, imgsz 1024, seed 42, deterministic, AdamW, cos_lr) — the **only** deliberate differences are `yolo11l.pt` (detect, not seg) and the train split. `tuftsonly` derives a 700-image Tufts-only train split from the same uploaded tree and is Control B (isolates the seg→detect head change); `multicorpus` is the Arm (isolates the data). Writes `data_<arm>.yaml` at runtime; refuses CPU. |
+| `build_cariesxrays_detector_dataset.py` | **Lever 2 (2 Sep).** Builds `data/cariesxrays_det/` from the CariesXrays benchmark (`~/Downloads/Capstone/CariesXrays_Dataset/`) — 6,000 VOC images, single class `decay`, **this project's own seed-42 4,800/1,200 image-level split** (the official FPCL split is not public). **Reads box dims from the decoded image, never the XML `<size>`** — 27.3% of the XMLs carry a wrong width, the same class of defect that voided a 90-epoch run (`RESULTS_LOG.md` 2026-08-27a). Gate: 0 px round-trip error, 0 normalised coords outside [0,1], 0 train/val overlap, renders eyeballed. `--dry-run` supported. |
+| `train_cariesxrays_detector.py` | **Lever 2 (2 Sep).** YOLOv11l `detect`, config verbatim from `train_multicorpus_detector.py` except `nc=1` (`decay`), this project's CariesXrays split, and epochs/patience 150/30 → 120/25 (cost cap). Runs a final COCO-AP val on `best.pt` and prints AP / AP50 / AP75. Writes `data_lever2.yaml` at runtime; refuses CPU. **Result: AP 0.482 / AP50 0.845 / AP75 0.500** — level with FPCL, indicative not head-to-head (`models/14_cariesxrays_lever2/run_summary.txt`). |
 
 ## Relationship to the rest of the repo
 

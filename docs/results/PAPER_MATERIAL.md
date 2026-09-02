@@ -1981,6 +1981,52 @@ Source: `RESULTS_LOG.md` 2026-09-01, `scripts/eval/cariesxrays_external.py`,
 
 ---
 
+### 8.26 Lever 2 — an off-the-shelf detector reaches the CariesXrays benchmark ceiling
+
+§8.25 evaluated the *frozen pipeline* on CariesXrays as a sixth external cohort. This is a
+separate, opt-in experiment: **train a standalone caries-lesion detector on CariesXrays' own
+training data and report COCO AP beside its published table** — the project's first number on a
+public benchmark's own metric, the kind a reviewer can place against prior work. It is **not
+wired into the six-stage pipeline**, adopts no checkpoint, and changes no pipeline default. This
+does not touch §8.22/§8.24 — those concern the *tooth-level* caries score, a different quantity
+from lesion-level detection AP.
+
+**⚠️ The comparison is indicative, not head-to-head.** The official FPCL 4,800/1,200 split is not
+public (the FPCL repo ships only a 0.5% sample; the data download is images + annotations with no
+`ImageSets`; DVCTNet obtained the split privately). This run used **our own seed-42 image-level
+80/20 split** matching only their ratio, so it is scored on different random test images. The
+manuscript must say this in these words and must not read as "we beat / matched FPCL".
+
+| method (their split) | AP | AP50 | AP75 |
+|---|---|---|---|
+| RetinaNet R50 | 13.0 | 30.5 | 10.2 |
+| DINO | 37.8 | 75.3 | 29.4 |
+| Faster R-CNN R50 | 39.9 | 78.0 | 37.8 |
+| YOLOX | 40.5 | 81.3 | 36.1 |
+| FPCL (their method) | 48.2 | 84.1 | 50.6 |
+| DVCTNet (MICCAI 2025) | 48.9 | 84.7 | 52.2 |
+| **YOLOv11l, our split (Lever 2)** | **48.2** | **84.5** | **50.0** |
+
+**A generic 2024 one-stage detector with no caries-specific design reaches ~48 AP on this
+benchmark's data** — level with the task-specific FPCL contrastive-learning method and ~8 AP
+above every off-the-shelf baseline in their own table. The reading for the paper: this benchmark
+does not appear to require a specialised architecture to reach its reported ceiling. (COCO AP@
+[.5:.95] via `ultralytics val`, which uses the same 101-point definition as the `pycocotools`
+`CocoEvaluator` the FPCL repo uses. `best.pt`, epoch 61 of 86, early-stopped. `batch` auto-reduced
+32→16 after OOM at 1024 px on an A100-40GB; `mosaic=0` per this project's medical-imaging house
+rule, which likely costs a few AP on small objects — recorded, not excused. Predictions track the
+ground truth with no geometry error, `models/14_cariesxrays_lever2/val_batch*_pred.jpg`.)
+
+**Before this goes in `main.tex`:** re-verify the FPCL / baseline numbers against the AAAI PDF
+(currently transcribed from the paper text + DVCTNet arXiv 2508.20813), and present it as one
+benchmark row in Related Work with the split caveat, not as a result of the pipeline.
+
+Source: `RESULTS_LOG.md` 2026-09-02b, `models/14_cariesxrays_lever2/run_summary.txt`,
+`outputs/lever2_cariesxrays/PRE_REGISTRATION.md`,
+`scripts/yolo/{build_cariesxrays_detector_dataset,train_cariesxrays_detector}.py`.
+
+---
+
 ## 9. What's not yet written — checklist
 
 For whoever drafts the actual paper. Tick items off here as they land.

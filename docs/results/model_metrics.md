@@ -82,6 +82,38 @@ all 66, so its instance counts will legitimately differ. Analysis:
 
 ---
 
+## Lever 2 — caries-LESION detector on CariesXrays · YOLOv11l · benchmark only
+
+**2 Sep 2026. `caries-lesion-detector-yolo11l-cariesxrays-v1.0`. NOT part of the six-stage
+pipeline** — a standalone detector trained on the CariesXrays benchmark (Chen et al., AAAI 2024)
+to place one number against a published table. Adopts no checkpoint, changes no default.
+`RESULTS_LOG.md` 2026-09-02b, `models/14_cariesxrays_lever2/run_summary.txt`.
+
+**⚠️ Scored on THIS PROJECT'S own seed-42 80/20 split (4,800 / 1,200), not FPCL's — the official
+split is not public. Numbers are indicative vs the table, not head-to-head.**
+
+| | AP@[.5:.95] | AP50 | AP75 | P | R |
+|---|---|---|---|---|---|
+| **ours — YOLOv11l detect, 1024 px** (best.pt, ep 61/86) | **0.482** | **0.845** | **0.500** | 0.803 | 0.774 |
+
+Published CariesXrays table (COCO AP on **their** 4,800/1,200 split; transcribed from the paper +
+DVCTNet arXiv 2508.20813 — **re-verify against the AAAI PDF before quoting**):
+
+| method | AP | AP50 | AP75 |
+|---|---|---|---|
+| RetinaNet R50 | 13.0 | 30.5 | 10.2 |
+| DINO | 37.8 | 75.3 | 29.4 |
+| Faster R-CNN R50 | 39.9 | 78.0 | 37.8 |
+| YOLOX | 40.5 | 81.3 | 36.1 |
+| FPCL (their method) | 48.2 | 84.1 | 50.6 |
+| DVCTNet (MICCAI 2025) | 48.9 | 84.7 | 52.2 |
+
+A generic 2024 detector with no caries-specific design lands ~on FPCL and ~8 AP above every
+off-the-shelf baseline. `batch` auto-reduced 32→16 (OOM at 1024 px on the A100-40GB, pre-registered
+fallback); `mosaic=0` per house rule. JarvisLabs A100-40GB, ₹256.61.
+
+---
+
 ## Stage 2 — FDI numbering · learned enumeration head · ResNet18 + positional features
 
 ### Current — with the seg detector (re-measured 27 Aug 2026)
