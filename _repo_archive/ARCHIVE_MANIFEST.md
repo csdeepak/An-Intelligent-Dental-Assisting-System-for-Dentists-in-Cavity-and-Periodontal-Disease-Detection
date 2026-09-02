@@ -184,3 +184,22 @@ place to look next, not this one.
   parallel in-progress draft, so archiving rather than deleting was the safe call per
   `CLAUDE.md` rule 3.
 - **Recovery:** `mv "_repo_archive/survey_paper_stale_47ref_draft" "<repo>/survey_paper"`
+
+---
+
+## Item 7 — 28 August 2026: `paper/main.tex` (v1) → `paper_draft_v1_44percent_title/`
+
+- **Original path:** `<repo>/paper/main.tex` and `<repo>/paper/paper.txt`
+- **Size:** ~53 KB combined (722-line LaTeX source + 437-line plain-text render)
+- **Git status before copy:** tracked and committed (`e92181a` and earlier), so git history
+  already preserves it. This is a **copy, not a move** — the working tree keeps `paper/main.tex`,
+  which was rewritten in place in the same session.
+- **What it was:** the first complete manuscript draft, titled *"What Does 44 % Mean? Constant
+  Baselines for Tooth-Level Caries Evaluation on Panoramic Radiographs"*.
+- **Why archived:** a full rebuild replaced it (see `docs/paper/REBUILD_AUDIT.md`). Five
+  numeric/factual defects were corrected in the rewrite — the whole-system parameter count
+  (25 M → 83.6 M), two non-existent VLM model names, an overstated blank-image control, an
+  incorrect claim that isotonic calibration left every verdict unchanged, and an uncounted
+  survey claim about baseline reporting. Keeping the superseded draft makes the diff auditable
+  against the audit document.
+- **Recovery:** `cp _repo_archive/paper_draft_v1_44percent_title/main.tex <repo>/paper/main.tex`
