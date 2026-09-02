@@ -25,9 +25,9 @@
 \BIBentryALTinterwordspacing
 Y.-S. Lim, D.~Chun, J.~Kim, J.-y. Lee, M.~J. Ju, J.~H. Park, and H.-J. Jeon,
   ``Dual convolutional neural network framework for segmenting dental caries in
-  panoramic radiographs,'' \emph{Journal of Prosthetic Dentistry}, 2024,
-  article in Press. [Online]. Available:
-  \url{https://www.sciencedirect.com/science/article/pii/S0022391323007138}
+  panoramic radiographs,'' \emph{Journal of Prosthetic Dentistry}, vol. 135,
+  pp. 403.e1--403.e8, 2026. [Online]. Available:
+  \url{https://doi.org/10.1016/j.prosdent.2025.09.040}
 \BIBentrySTDinterwordspacing
 
 \bibitem{chen2024cariesxrays}
@@ -37,7 +37,7 @@ B.~Chen, S.~Fu, Y.~Liu, J.~Pan, G.~Lu, and Z.~Zhang, ``{CariesXrays}: Enhancing
   pyramid contrastive learning,'' in \emph{Proceedings of the AAAI Conference
   on Artificial Intelligence}, vol.~38, no.~20.\hskip 1em plus 0.5em minus
   0.4em\relax AAAI Press, 2024, pp. 21\,940--21\,948. [Online]. Available:
-  \url{https://ojs.aaai.org/index.php/AAAI/article/view/30197}
+  \url{https://ojs.aaai.org/index.php/AAAI/article/view/30196}
 \BIBentrySTDinterwordspacing
 
 \bibitem{bilal2024pdcnet}
@@ -45,7 +45,7 @@ B.~Chen, S.~Fu, Y.~Liu, J.~Pan, G.~Lu, and Z.~Zhang, ``{CariesXrays}: Enhancing
 A.~Bilal, A.~H. Khan, K.~Almohammadi, S.~A. Al~Ghamdi, H.~Long, and H.~Malik,
   ``{PDCNET}: Deep convolutional neural network for classification of
   periodontal disease using dental radiographs,'' \emph{IEEE Access}, vol.~12,
-  pp. 10\,261--10\,275, 2024. [Online]. Available:
+  pp. 150\,147--150\,168, 2024. [Online]. Available:
   \url{https://ieeexplore.ieee.org/document/10400831}
 \BIBentrySTDinterwordspacing
 
@@ -104,7 +104,7 @@ B.~G. Zancan, J.~A. Carneiro, C.~U. Martins, C.~Tirapelli, C.~P. Capel, E.~D.
   da~Costa, H.~Ga{\^e}ta-Araujo, J.~A. Baranauskas, and A.~A. Macedo,
   ``{AI}-powered precision in dental radiographic analysis using tailored
   {CNNs} for tooth numbering and cavity detection,'' \emph{PLOS Digital
-  Health}, vol.~4, no.~2, p. e0000744, 2025. [Online]. Available:
+  Health}, vol.~4, no.~2, p. e0001074, 2025. [Online]. Available:
   \url{https://pmc.ncbi.nlm.nih.gov/articles/PMC11868773/}
 \BIBentrySTDinterwordspacing
 
@@ -112,9 +112,9 @@ B.~G. Zancan, J.~A. Carneiro, C.~U. Martins, C.~Tirapelli, C.~P. Capel, E.~D.
 \BIBentryALTinterwordspacing
 Y.~Zhang, Y.~Yu, Q.~Li, H.~Chen, Y.~Liang, J.~Chen, and J.~Yin, ``A reliable
   multi-stage system for tooth instance segmentation and numbering in panoramic
-  radiographs,'' \emph{IEEE Journal of Biomedical and Health Informatics},
-  vol.~29, no.~3, pp. 2050--2060, 2025. [Online]. Available:
-  \url{https://ieeexplore.ieee.org/document/10839580}
+  radiographs,'' \emph{IEEE Journal of Biomedical and Health Informatics}, pp.
+  1--13, 2025, early access. [Online]. Available:
+  \url{https://doi.org/10.1109/JBHI.2025.3643805}
 \BIBentrySTDinterwordspacing
 
 \bibitem{meng2026dentvlm}
@@ -173,8 +173,8 @@ Z.~Cao, C.~Feng, Y.~Shen, G.~Ye, H.~Xu, J.~Wu, Z.~Wu, H.~Gao, and H.~Zhu,
 D.~Cerda~Mardini, P.~Cerda~Mardini, D.~Paz Vicu{\~n}a~Iturriaga, and D.~R.
   Ortu{\~n}o~Borroto, ``Determining the efficacy of a machine learning model
   for measuring periodontal bone loss,'' \emph{BMC Oral Health}, vol.~24,
-  no.~1, p. 1023, 2024. [Online]. Available:
-  \url{https://bmcoralhealth.biomedcentral.com/articles/10.1186/s12903-024-04795-5}
+  no.~1, p. 100, 2024. [Online]. Available:
+  \url{https://bmcoralhealth.biomedcentral.com/articles/10.1186/s12903-023-03819-w}
 \BIBentrySTDinterwordspacing
 
 \bibitem{jocher2024yolo11}
