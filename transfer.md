@@ -809,6 +809,15 @@ Every directory containing code has a README; all were swept for staleness acros
 adoption, the licence finding, and the current checkpoint set, since a friend continuing this
 work on another machine must not be missing a file or a fact any of these claim is settled.
 
+**Editing / committing these files — two gotchas the friend's macOS clone will feel:**
+line endings are **not uniform** — `transfer.md`, `.gitignore`, `models/README.md` and
+everything under `docs/results/` are **CRLF**; scripts, `docs/session-memory/*`,
+`models/*/run_summary.txt` and the other READMEs are **LF**. Edit files in place (don't run a
+blanket EOL-normalizer — it makes 300–600-line no-op diffs, which happened twice on 2 Sep).
+And before pushing, `git diff --diff-filter=D --name-only origin/main..HEAD` — a `git rm --cached`
+of any tracked artefact silently deletes it from the friend's tree on pull (the 43 MB
+`models/12`/`12a` heads are tracked and not on Drive).
+
 ---
 
 ## 8. Local state that git does NOT carry, and what a new machine needs
