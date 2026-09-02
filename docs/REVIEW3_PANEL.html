@@ -277,7 +277,7 @@ li{margin-bottom:.4em}
       <div class="idcard"><div class="k">Project ID</div><div class="v">PW26_MHR_06</div></div>
       <div class="idcard"><div class="k">Project Guide</div><div class="v">Dr. Mamatha H R</div></div>
       <div class="idcard"><div class="k">Semester</div><div class="v">VII</div></div>
-      <div class="idcard"><div class="k">Review date</div><div class="v">31 August 2026</div></div>
+      <div class="idcard"><div class="k">Review date</div><div class="v">2 September 2026</div></div>
       <div class="idcard"><div class="k">Team</div><div class="v">Archana · Srujan · Gunadeep · Deepak</div></div>
       <div class="idcard"><div class="k">USN</div><div class="v mono" style="font-size:.8rem">PES1UG23CS098 · CS123 · CS160 · CS907</div></div>
     </div>
@@ -434,7 +434,7 @@ li{margin-bottom:.4em}
     <div class="kpi"><div class="v" data-count="2.39" data-suffix=" s">2.39 s</div>
       <div class="k">Per image, on a plain CPU</div></div>
     <div class="kpi"><div class="v">0</div><div class="k">Graphics cards needed to run it</div></div>
-    <div class="kpi good"><div class="v" data-count="122">122</div>
+    <div class="kpi good"><div class="v" data-count="159">159</div>
       <div class="k">Automated tests, all passing</div></div>
   </div>
 </div></section>
@@ -538,9 +538,9 @@ li{margin-bottom:.4em}
 
   <h3>6.2 Testing of completed modules</h3>
   <div class="grid g3">
-    <div class="kpi good"><div class="v" data-count="122">122</div>
+    <div class="kpi good"><div class="v" data-count="159">159</div>
       <div class="k">Automated tests passing</div></div>
-    <div class="kpi good"><div class="v">7 / 7</div><div class="k">Data-integrity invariants holding</div></div>
+    <div class="kpi good"><div class="v">6 / 6</div><div class="k">Data-integrity invariants holding</div></div>
     <div class="kpi"><div class="v">86</div><div class="k">Images excluded to prevent leakage</div></div>
   </div>
   <p>These are not merely "does the code run" tests. They check what breaks silently: that no
@@ -569,7 +569,7 @@ li{margin-bottom:.4em}
   <h3>7.2 Validation and verification</h3>
   <div class="grid g2">
     <div class="card"><h4>Verification — did we build it right?</h4>
-      <p>122 automated tests plus 7 data-integrity invariants. These check model-file fingerprints,
+      <p>159 automated tests plus 6 data-integrity invariants. These check model-file fingerprints,
       class ordering, crop geometry, and that the leakage exclusion list matches what is on
       disk.</p></div>
     <div class="card"><h4>Validation — did we build the right thing?</h4>
@@ -721,6 +721,68 @@ li{margin-bottom:.4em}
     <figcaption><b>Figure 4 — before and after.</b> The dashed diagonal is perfect honesty. The raw
     model sits below it: overconfident. After correction it follows the line closely.</figcaption>
   </figure>
+
+<div class="wrap">
+  <h3>8.6 External validation — four hospitals the system never learned from</h3>
+
+  <div class="simple">
+    <div class="lbl">How this cohort was used, and why the protocol matters more than the score</div>
+    <p>Ningxia is a multi-hospital dataset from China. We use <strong>only its four test splits —
+    337 images carrying 1,013 expert-marked lesions</strong>. Its <strong>11.2 GB training split
+    was deliberately never copied onto this machine</strong>, so training on it is not something
+    we could have done even by accident.</p>
+    <p>Before any number was produced, every Ningxia test image was fingerprinted and checked
+    against all five other datasets, each separately: <strong>zero overlap across 2,912 unique
+    images</strong>. It was then <strong>evaluated once</strong> — no threshold tuned, no model
+    chosen, nothing adjusted after seeing a result.</p>
+  </div>
+
+  <p><strong>Caries — reported per hospital, never pooled first.</strong></p>
+  <div class="tw"><table>
+    <thead><tr><th>Split</th><th>Centre</th><th class="num">Images</th><th class="num">Lesions</th>
+      <th class="num">Lesion agreement</th><th class="num">95% CI</th></tr></thead>
+    <tbody>
+      <tr><td>test 1</td><td>cross-centre</td><td class="num">134</td><td class="num">316</td>
+        <td class="num">28.8%</td><td class="num">[23.3, 34.6]</td></tr>
+      <tr><td>test 2</td><td>same-centre as Ningxia's <em>own</em> training split</td>
+        <td class="num">110</td><td class="num">349</td>
+        <td class="num"><strong>51.3%</strong></td><td class="num">[44.0, 58.5]</td></tr>
+      <tr><td>test 3</td><td>cross-centre</td><td class="num">40</td><td class="num">162</td>
+        <td class="num">40.1%</td><td class="num">[31.9, 48.3]</td></tr>
+      <tr><td>test 4</td><td>cross-centre</td><td class="num">53</td><td class="num">186</td>
+        <td class="num">41.9%</td><td class="num">[33.1, 50.8]</td></tr>
+      <tr class="us"><td><strong>All four pooled</strong> <em>(scale only)</em></td><td>—</td>
+        <td class="num"><strong>337</strong></td><td class="num"><strong>1,013</strong></td>
+        <td class="num"><strong>40.8%</strong></td><td class="num">[37.0, 44.8]</td></tr>
+    </tbody>
+    <caption>"Same-centre" describes <em>Ningxia's own</em> split design, not closeness to our
+    training data — all four hospitals are equally external to us.</caption>
+  </table></div>
+
+  <div class="grid g3">
+    <div class="kpi"><div class="v">44.3%</div><div class="k">Internal (DENTEX)</div></div>
+    <div class="kpi"><div class="v">40.8%</div><div class="k">External (Ningxia, pooled)</div></div>
+    <div class="kpi good"><div class="v">3.5 pp</div><div class="k">The gap — it was 8.9 pp before the detector swap</div></div>
+  </div>
+
+  <p>Swapping in the segmentation-trained detector lifted external caries agreement by
+  <strong>+7.7 pp [+3.3, +12.0]</strong> and end-to-end numbering by <strong>+12.1 pp
+  [+6.8, +17.2]</strong> — both intervals exclude zero, so both are real.
+  <strong>No caries model changed; only the detector did.</strong> Much of what looked like the
+  caries branch failing on new hospitals was a detection problem in disguise.</p>
+
+  <div class="simple">
+    <div class="lbl">What we are <em>not</em> claiming</div>
+    <p>40.8% is still weak in absolute terms, and <strong>three of the four hospitals score below
+    our internal figure</strong>. Closing the gap from 8.9 to 3.5 points is a real result; "caries
+    generalises well" is not something this table supports, and we do not say it.</p>
+  </div>
+
+  <p><strong>Bone loss on the same cohort: 2.4% affected-tooth sensitivity</strong> pooled
+  (2.4 / 1.4 / 5.6 / 4.6% across the four hospitals). The detector swap moved it by nothing. This
+  is the external half of the negative result in 8.3 — the branch works at home and stops working
+  everywhere else.</p>
+</div>
 </section>
 
 <!-- ===================== SECTION 09 ===================== -->
@@ -821,7 +883,7 @@ li{margin-bottom:.4em}
     <div class="kpi"><div class="v">33.45 B</div><div class="k">Parameters in the large model</div></div>
     <div class="kpi"><div class="v">70.1 GB</div><div class="k">GPU memory it required</div></div>
     <div class="kpi good"><div class="v">83.6 M</div><div class="k">Our pipeline — on a CPU</div></div>
-    <div class="kpi"><div class="v">≈550×</div><div class="k">Size difference</div></div>
+    <div class="kpi"><div class="v">≈400×</div><div class="k">Size difference</div></div>
   </div>
   <ul>
     <li><strong>Bigger did help.</strong> 7B scored 0.149; 32B scored 0.246.</li>
@@ -841,9 +903,13 @@ li{margin-bottom:.4em}
     Without that test, 0.246 looks respectable. With it, you know what the number is made of.</p>
   </div>
 
-  <h3>9.4 Adding a third training dataset</h3>
-  <p>We trained the numbering module on a third public dataset and compared it against a control
-  trained the same day on the same machine — so the only thing that changed was the extra data.</p>
+  <h3>9.4 Further experiments since Review 1</h3>
+  <p>Three focused experiments run since the last review, each against a same-day control or a
+  published baseline.</p>
+
+  <p><strong>(a) A third training dataset for numbering.</strong> We added a third public corpus
+  and compared it against a control trained the same day on the same machine — so the only thing
+  that changed was the extra data.</p>
   <div class="tw"><table>
     <thead><tr><th>Tested on</th><th class="num">Before</th><th class="num">After</th>
       <th class="num">Change</th><th>Verdict</th></tr></thead>
@@ -856,6 +922,75 @@ li{margin-bottom:.4em}
     <caption>Nothing got worse. The Tufts range crosses zero, so we report it as "no change" rather
     than as a gain.</caption>
   </table></div>
+
+  <p><strong>(b) Can the detection ceiling be lifted?</strong> Section 08 showed detection is the
+  bottleneck on everything downstream. We rented a GPU and retrained the detector, pooling in
+  <strong>634 extra images from DENTEX</strong> — the same source as our caries test set — then
+  measured three variants against each other on the same 164 images.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Detector</th><th class="num">Teeth found</th>
+      <th class="num">Numbered right,<br>of those found</th><th class="num">End-to-end</th>
+      <th class="num">Tufts benchmark<br>box mAP@0.5</th></tr></thead>
+    <tbody>
+      <tr><td>Current, deployed</td><td class="num">70.8%</td><td class="num">82.5%</td>
+        <td class="num">58.4%</td><td class="num">0.810</td></tr>
+      <tr><td>Retrained, Tufts only <em>(control)</em></td><td class="num">83.1%</td>
+        <td class="num">72.4%</td><td class="num">60.2%</td><td class="num">0.724</td></tr>
+      <tr class="hl"><td>Retrained, Tufts + DENTEX</td>
+        <td class="num"><strong>99.5%</strong></td><td class="num"><strong>93.9%</strong></td>
+        <td class="num"><strong>93.4%</strong></td><td class="num"><strong>0.647</strong></td></tr>
+    </tbody>
+    <caption>Paired bootstrap over the same 164 images, 10,000 resamples. The jump is
+    <strong>+34.9 pp [+30.8, +39.0]</strong>, of which <strong>+33.2 pp [+29.5, +37.0]</strong>
+    comes from the added data alone. Changing only the training method — row 2 against row 1 —
+    gives +1.7 pp [−3.4, +6.8], indistinguishable from zero.</caption>
+  </table></div>
+  <div class="simple">
+    <div class="lbl">Why we did not keep the 93.4%</div>
+    <p>Before running this we wrote down a quality bar: the retrained detector must still score
+    <strong>0.75 or better on our Tufts benchmark</strong>. It scored <strong>0.647</strong>.
+    Feeding it images from one hospital source made it much better there and measurably
+    <em>worse</em> everywhere else — precisely the trade we had committed in advance not to
+    accept. <strong>We did not move the bar. The pipeline still ships the original
+    detector.</strong></p>
+    <p>The experiment is worth more than the score it produced. It shows the 58.3% ceiling is a
+    limit of <em>which hospitals the detector learned from</em> — not of how good the numbering
+    model is. Hand that model the teeth and it numbers <strong>93.9%</strong> of them
+    correctly.</p>
+  </div>
+
+  <p><strong>(c) Measured against published work, on someone else's benchmark.</strong>
+  Everything above scores our pipeline using metrics we chose. This experiment does the opposite:
+  we trained a standalone caries-<em>lesion</em> detector on <strong>CariesXrays</strong>
+  (Chen et al., AAAI 2024 — 6,000 panoramic X-rays, 13,784 expert-marked lesions) and scored it
+  with that benchmark's own metric, so the result can sit directly beside published numbers.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Method</th><th class="num">AP</th><th class="num">AP<sub>50</sub></th>
+      <th class="num">AP<sub>75</sub></th></tr></thead>
+    <tbody>
+      <tr><td>RetinaNet</td><td class="num">13.0</td><td class="num">30.5</td><td class="num">10.2</td></tr>
+      <tr><td>DINO</td><td class="num">37.8</td><td class="num">75.3</td><td class="num">29.4</td></tr>
+      <tr><td>Faster R-CNN</td><td class="num">39.9</td><td class="num">78.0</td><td class="num">37.8</td></tr>
+      <tr><td>YOLOX</td><td class="num">40.5</td><td class="num">81.3</td><td class="num">36.1</td></tr>
+      <tr><td><strong>FPCL</strong> — the benchmark paper's own purpose-built method</td>
+        <td class="num"><strong>48.2</strong></td><td class="num">84.1</td>
+        <td class="num"><strong>50.6</strong></td></tr>
+      <tr class="us"><td><strong>Ours</strong> — a standard YOLOv11l, no caries-specific design</td>
+        <td class="num"><strong>48.2</strong></td><td class="num"><strong>84.5</strong></td>
+        <td class="num">50.0</td></tr>
+    </tbody>
+    <caption>Their numbers are as published; ours is one training run, best of 86 epochs.
+    <strong>Their official train/test split is not public</strong>, so we drew our own at the same
+    80/20 ratio — this places a standard detector on the board, it is not a head-to-head win.</caption>
+  </table></div>
+  <p>An off-the-shelf detector with no task-specific engineering reaches <strong>the same score as
+  the method the benchmark was built to showcase</strong>, and about <strong>8 points above every
+  other detector in their table</strong>. It also gives the project its first result measured on
+  someone else's data with someone else's metric — the kind a reviewer can check.</p>
+
+  <p class="lede" style="margin-top:22px">Both experiments (b) and (c) ran on rented cloud GPUs —
+  ₹268 and ₹257 — and both instances were destroyed once the weights had been downloaded and
+  checksum-verified.</p>
 </div></section>
 
 <!-- ===================== SECTION 10 ===================== -->
@@ -889,12 +1024,16 @@ li{margin-bottom:.4em}
   <p>We checked the paper against the repository rather than trusting it. It found real mistakes,
   now fixed:</p>
   <ul>
-    <li><strong>7 citation errors</strong> — including two invented paper titles and a claim about
-      gum disease credited to two papers about entirely different conditions.</li>
-    <li><strong>4 wrong DOIs</strong> out of ten added references.</li>
-    <li><strong>A figure built from the wrong model version</strong> — the old detector, not the one
-      the paper describes.</li>
-    <li><strong>A claim we never actually counted</strong>, now flagged for correction.</li>
+    <li><strong>7 citation errors</strong> in an early check — including two invented paper titles
+      and a claim about gum disease credited to two papers on entirely different conditions.</li>
+    <li><strong>Then every reference with a DOI was dereferenced against the registry</strong> —
+      22 of 63 pointed at the wrong paper or a non-existent identifier.</li>
+    <li><strong>All 22 are now fixed.</strong> Each turned out to be a real, published paper
+      carrying a mistyped identifier; none were fabricated. 62 of 63 now verify clean.</li>
+    <li><strong>A figure built from the wrong model version</strong> — the old detector, not the
+      one the paper describes. Fixed.</li>
+    <li><strong>A claim we never actually counted</strong> — that no comparable paper reports a
+      do-nothing baseline. Flagged; still to be softened.</li>
   </ul>
   <p>A similarity check against our own earlier survey paper found <strong>zero overlap</strong>; the
   longest shared passage anywhere was 15 words, and it was a table row of numbers.</p>
@@ -987,8 +1126,9 @@ li{margin-bottom:.4em}
       <p><strong>Author names, affiliations, funding, conflict-of-interest, acknowledgements,
       contributions</strong> <span class="st o">OPEN</span> — none present yet; author fields are
       deliberately blank.</p>
-      <p><strong>Citation audit</strong> <span class="st d">DONE</span> — all 19 checked, 7 errors
-      fixed, no orphan or missing references.</p>
+      <p><strong>Citation audit</strong> <span class="st d">DONE</span> — 63 DOIs checked against
+      the registry, 22 broken, all fixed; no orphan or missing references. 19 DOI-less entries
+      still to verify.</p>
       <p><strong>Similarity check</strong> <span class="st p">PARTIAL</span> — internal check clean;
       the university's official check still has to be run.</p>
       <p><strong>Two formatted copies</strong> <span class="st o">OPEN</span> — one to university
@@ -1030,7 +1170,7 @@ li{margin-bottom:.4em}
 <footer class="pes">
   <div class="wrap">
     <div><strong>PES University</strong> · UE23CS441A · Capstone Project Phase 3<br>
-      <span class="mono">PW26_MHR_06 · Progress Review 1 · Semester VII · 31 August 2026</span></div>
+      <span class="mono">PW26_MHR_06 · Progress Review 1 · Semester VII · 2 September 2026</span></div>
     <div style="text-align:right">Guide: <strong>Dr. Mamatha H R</strong><br>
       <span class="mono">Archana · Srujan · Gunadeep · Deepak</span><br>
       <span class="mono">PES1UG23CS098 · CS123 · CS160 · CS907</span></div>

@@ -152,7 +152,7 @@
 
 <header class="mast">
   <div class="wrap">
-    <div class="eyebrow">Capstone · Team handbook · updated 31 August 2026 for Phase 3 Review 1</div>
+    <div class="eyebrow">Capstone · Team handbook · updated 2 September 2026 for Phase 3 Review 1</div>
     <h1>Reading the Radiograph</h1>
     <p class="standfirst">Everything this project has built, measured and learned — including the
     result that changed what the paper is about. Written so someone joining today can be useful
@@ -161,7 +161,7 @@
       <span class="tag">6-stage pipeline</span>
       <span class="tag">5 hospitals</span>
       <span class="tag">33 B VLM baseline</span>
-      <span class="tag">122 tests passing</span>
+      <span class="tag">159 tests passing</span>
       <span class="tag">Paper drafted</span>
     </div>
   </div>
@@ -171,7 +171,7 @@
 <section><div class="wrap"><div class="col">
   <div class="snum">00 — Review 1</div>
   <h2>Presenting this to the panel</h2>
-  <p class="sublede">UE23CS441A · Capstone Project Phase 3 · Progress Review 1 · 31 August 2026.
+  <p class="sublede">UE23CS441A · Capstone Project Phase 3 · Progress Review 1 · 2 September 2026.
   The slide deck is <code>REVIEW3_PANEL.html</code> (open it in a browser, use the left contents
   rail). This section is the script behind it.</p>
 
@@ -183,7 +183,7 @@
         <td>Full pipeline runs end to end on real images; output shape-checked (one row per tooth,
         no duplicate FDI codes, every finding on a real tooth).</td></tr>
       <tr><td>Validation &amp; verification</td><td>Panel §07.2</td>
-        <td><strong>Verification:</strong> 122 automated tests + 7 data-integrity invariants, all
+        <td><strong>Verification:</strong> 159 automated tests + 6 data-integrity invariants, all
         passing. <strong>Validation:</strong> four hospitals in Ningxia the system never trained on.</td></tr>
       <tr><td>Deployment</td><td>Panel §07.3 + live demo in §06</td>
         <td>Docker container, made CPU-only (11.2 GB → 4.4 GB), built and verified: starts, app
@@ -214,7 +214,7 @@
         <td>Six stages, each trained on the dataset that carries its label; joined at the FDI key.
         Ningxia is locked external data.</td></tr>
       <tr><td>Testing, V&amp;V, deployment</td><td>§06–07</td><td>Gunadeep</td>
-        <td>122 tests + 7 invariants + 4 external hospitals + a verified CPU-only container. Then run
+        <td>159 tests + 6 invariants + 4 external hospitals + a verified CPU-only container. Then run
         the live demo.</td></tr>
       <tr><td>Results &amp; performance analysis</td><td>§08–09</td><td>Deepak</td>
         <td>Report both numbers for numbering (58.3% end-to-end / 82.6% of detected). Then the
@@ -240,6 +240,8 @@
     <div class="stat t"><div class="v">0.294</div><div class="k">Our pipeline, same caries test</div></div>
     <div class="stat"><div class="v">83.6 M</div><div class="k">Parameters, 6 models — vs 33.45 B for the VLM</div></div>
     <div class="stat"><div class="v">2.39 s</div><div class="k">Per image, on a CPU, 0 GPUs</div></div>
+    <div class="stat t"><div class="v">93.4%</div><div class="k">Numbering when the detector is in-domain — the ceiling test, NOT adopted</div></div>
+    <div class="stat t"><div class="v">48.2</div><div class="k">COCO AP on the CariesXrays benchmark — ties its own purpose-built method</div></div>
   </div>
   <p><strong>The three pairs that must always be said together:</strong>
   numbering is <strong>58.3% end-to-end / 82.6% of detected</strong> (quoting one alone misleads);
@@ -256,6 +258,17 @@
     numbering is right <strong>82.6%</strong> of the time. The binding constraint is detector recall,
     and swapping to the segmentation-trained detector already lifted end-to-end by +12 points. We
     report both numbers precisely so the loss is attributed to the right stage.</p></div>
+  </details>
+
+  <details class="todo">
+    <summary><span class="sev o"></span>"Have you tried to improve the detector? It caps everything."</summary>
+    <div class="body"><p>Yes, and we have the number. We rented a GPU and retrained the detector
+    with <strong>634 extra DENTEX images</strong>. Detection recall went <strong>70.8% →
+    99.5%</strong> and end-to-end numbering <strong>58.4% → 93.4%</strong>. But it dropped our
+    Tufts benchmark from <strong>0.810 to 0.647</strong>, under a <strong>0.75 bar we had written
+    down before running it</strong> — so we did not adopt it and did not move the bar. The pipeline
+    still ships the original detector. What it proves is the important part: the ceiling is
+    <em>which hospitals the detector learned from</em>, not the numbering model. Deck §9.4(b).</p></div>
   </details>
 
   <details class="todo">
@@ -310,6 +323,17 @@
     (2 of 49 comparable papers do this), the constant-baseline floor for tooth-level scores,
     cross-corpus generalisation with paired significance tests, and calibrated abstention with a
     shuffled-confidence control.</p></div>
+  </details>
+
+  <details class="todo">
+    <summary><span class="sev y"></span>"Have you compared against anyone else's published numbers?"</summary>
+    <div class="body"><p>Yes. We trained a standalone caries-<em>lesion</em> detector on
+    <strong>CariesXrays</strong> (Chen et al., AAAI 2024) and scored it with that benchmark's own
+    metric: <strong>COCO AP 48.2</strong> — the same as the purpose-built method the paper exists to
+    showcase (48.2), and about <strong>8 points above every other detector in their table</strong>.
+    State the caveat before they ask: their official train/test split is not public, so we drew our
+    own at the same ratio. It places a standard detector on the board; it is not a head-to-head win.
+    Deck §9.4(c).</p></div>
   </details>
 
   <h3>The live demo</h3>
@@ -542,7 +566,7 @@
     <div class="stat"><div class="v">33.45 B</div><div class="k">Parameters in the large model</div></div>
     <div class="stat"><div class="v">70.1 GB</div><div class="k">GPU memory it needed</div></div>
     <div class="stat t"><div class="v">83.6 M</div><div class="k">Our whole pipeline, on a CPU</div></div>
-    <div class="stat"><div class="v">≈550×</div><div class="k">Size difference — and it still loses</div></div>
+    <div class="stat"><div class="v">≈400×</div><div class="k">Size difference — and it still loses</div></div>
   </div>
 
   <h3>Three things we learned</h3>
@@ -732,11 +756,13 @@
   <p>The manuscript went through a verification pass that found real errors — worth knowing about,
   because the same failure modes will recur:</p>
   <ul>
-    <li><strong>7 citation errors.</strong> Two <em>invented titles</em>, one wrong publication
-    year, and a claim about gum disease attributed to two papers about entirely different
-    conditions. All compiled silently.</li>
-    <li><strong>4 wrong DOIs</strong> out of ten added entries, corrected against publisher
-    records. Four more were left deliberately blank rather than guessed.</li>
+    <li><strong>7 citation errors</strong> in the first pass. Two <em>invented titles</em>, one
+    wrong publication year, and a claim about gum disease attributed to two papers about entirely
+    different conditions. All compiled silently.</li>
+    <li><strong>Then every DOI was dereferenced against the registry</strong> — <strong>22 of the
+    63</strong> resolved to the wrong paper or to nothing at all. <strong>All 22 are now
+    fixed:</strong> each turned out to be a real, published paper carrying a mistyped identifier,
+    none fabricated. 62 of 63 verify clean; the 19 entries with no DOI are still to be checked.</li>
     <li><strong>A figure built from the wrong detector</strong> — the superseded one, not the
     pipeline default.</li>
     <li><strong>A claim we never actually counted</strong> ("no paper reports a baseline"), now
@@ -855,8 +881,9 @@
       1 × <code>unknown@unknown</code>, <code>Others</code> in three bibliography entries.</p>
       <p><strong>Terminology</strong> <span class="st open">OPEN</span> — "external validation" →
       "external testing"; "reference standard" used consistently.</p>
-      <p><strong>Citation audit</strong> <span class="st done">DONE</span> — all 19 checked, 7
-      errors fixed, no orphan or missing references.</p>
+      <p><strong>Citation audit</strong> <span class="st done">DONE</span> — 63 DOIs checked
+      against the registry, 22 broken, all fixed; no orphan or missing references. The 19
+      entries carrying no DOI are still to be verified.</p>
       <p><strong>Similarity check</strong> <span class="st part">PARTIAL</span> — internal reuse
       check done: longest shared span 15 words (a table row), <em>zero</em> overlap with the team's
       prior survey paper. Institutional Turnitin still required.</p>
