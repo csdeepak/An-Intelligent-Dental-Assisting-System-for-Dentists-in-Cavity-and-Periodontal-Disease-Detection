@@ -1,0 +1,106 @@
+================================================================================
+14_cariesxrays_lever2 — Lever 2: standalone caries-LESION detector on CariesXrays
+================================================================================
+Status:   BENCHMARK RESULT. NOT wired into the six-stage pipeline, adopts no
+          checkpoint, changes no pipeline default. One row in the manuscript's
+          related-work / benchmark table.
+Tag:      caries-lesion-detector-yolo11l-cariesxrays-v1.0  (2 September 2026)
+Date:     2 September 2026
+Pre-reg:  outputs/lever2_cariesxrays/PRE_REGISTRATION.md
+Hardware: JarvisLabs A100-PCIE-40GB, on-demand, IN2, instance 492535
+          (destroyed after download). Spend ₹256.61 (balance ₹816.70 -> ₹560.09).
+Trainer:  scripts/yolo/train_cariesxrays_detector.py  (config copied verbatim
+          from train_multicorpus_detector.py / the canonical bbox run; only
+          deliberate changes: nc=1 class "decay", this project's CariesXrays
+          split, and epochs/patience 150/30 -> 120/25 as a cost cap).
+Data:     data/cariesxrays_det/  — built + geometry-gated locally AND re-gated on
+          the rented box (sha256 match, 0 px round-trip, boxes-on-lesions eyeball).
+          scripts/yolo/build_cariesxrays_detector_dataset.py
+ultralytics 8.4.127 (pinned to match the frozen models + the local env),
+torch 2.11.0+cu130, Python 3.10.
+
+--------------------------------------------------------------------------------
+⚠️  THE SPLIT IS THIS PROJECT'S OWN, NOT FPCL's
+--------------------------------------------------------------------------------
+The official FPCL 4,800/1,200 split is NOT public — checked the FPCL GitHub repo
+(0.5% sample, no ImageSets), the Google-Drive download (Annotations.zip +
+JPEGImages.zip only), and the DVCTNet release. DVCTNet's paper used the split
+"for fair comparison", so it exists but was shared privately by the authors.
+
+This run uses a **seed-42 image-level 80/20 split (4,800 train / 1,200 val)** that
+matches only their *ratio*. Every number below is "same dataset, same ratio, same
+COCO-AP metric, DIFFERENT random test images" — **indicative of where an
+off-the-shelf detector lands vs the published table, NOT head-to-head**. Do not
+write it as "we beat / matched / lost to FPCL"; write it as "a generic 2024
+detector reaches ~48 AP on this benchmark's data with no caries-specific method".
+
+--------------------------------------------------------------------------------
+WEIGHTS  (51 MB each, gitignored per CLAUDE.md rule 4 — local disk only, not yet
+          on Drive)
+--------------------------------------------------------------------------------
+weights/best.pt   sha256 278d1e00ed87472fa44700b7dbfb07721f694e45f81256b88e1f1700f4606548
+  YOLOv11l detect, 1 class. Best epoch 61 of 86 (early-stopped, patience 25).
+  25.28 M params fused. This is the scored checkpoint.
+weights/last.pt   sha256 236dd4ffa972ac56c2654007c0667a42779c872772c7dafe9846d440bf225c34
+  Epoch 86. Retained; not scored.
+
+--------------------------------------------------------------------------------
+RESULTS  (primary = COCO AP@[.50:.95] on this project's 1,200-image val split,
+          best.pt re-scored with ultralytics defaults after training)
+--------------------------------------------------------------------------------
+                        AP@[.5:.95]   AP50     AP75    precision  recall
+ours (YOLOv11l)             0.4816   0.8447   0.5002    0.803     0.774
+
+Published table (Chen et al., CariesXrays, AAAI 2024 38(20) 21940-21948;
+COCO AP on THEIR 4,800/1,200 split — re-verify against the AAAI PDF before
+quoting in the paper; transcribed from the paper text + DVCTNet arXiv 2508.20813):
+                        AP       AP50    AP75
+  RetinaNet R50         13.0     30.5    10.2
+  DINO                  37.8     75.3    29.4
+  Faster R-CNN R50      39.9     78.0    37.8
+  YOLOX CSPDarknet      40.5     81.3    36.1
+  FPCL (their method)   48.2     84.1    50.6
+  DVCTNet (MICCAI'25)   48.9     84.7    52.2
+
+Reading: our 48.2 / 84.5 / 50.0 sits on top of FPCL's 48.2 / 84.1 / 50.6 and
+~8 AP above every generic baseline — BUT on a different random test split, so it
+is an approximate placement, not a win or a tie.
+
+Training-loop metric agrees: best epoch 61 recorded mAP50 0.8425, mAP50-95 0.4812
+in results.csv. A second val with iou=0.5 NMS (the script's first pass) gave
+0.4787 / 0.8476 / 0.4916 — within noise; the default-NMS 0.4816 is the number.
+
+--------------------------------------------------------------------------------
+TRAJECTORY  (results.csv, AP@[.5:.95] per epoch)
+--------------------------------------------------------------------------------
+ep 1  0.252 (warmup)   ep 21  0.442   ep 41  0.471   ep 61  0.481 (best)
+ep 2  0.158 (warmup)   ep 31  0.456   ep 51  0.456   ep 86  0.461 (last)
+Rose to ~0.48 by epoch 61, then 25 epochs with no improvement -> early stop.
+Epoch noise ~±0.02 AP throughout (small single-class objects, mosaic off).
+
+--------------------------------------------------------------------------------
+CONFIG NOTES / DEVIATIONS
+--------------------------------------------------------------------------------
+- batch: requested 32, ultralytics auto-reduced to **16** after CUDA OOM at
+  1024 px on the 40 GB card (the pre-registered fallback; args.yaml still shows 32).
+- mosaic=0.0 by this project's house rule ("corrupts spatial context in medical
+  imaging"). Mosaic usually helps small-object AP, so this is a conservative
+  choice that may cost a few AP points — recorded, not an excuse.
+- epochs 120 / patience 25 (canonical is 150/30) — cost cap, pre-registered.
+- All other hyperparameters verbatim from the canonical detector config.
+- 34 of 6,000 images carry no lesion box (24 train / 10 val) — kept as negatives.
+- 27.3% of source XMLs carry a wrong <size> width; the builder reads dimensions
+  from the decoded image, never the XML (RESULTS_LOG 2026-08-27a precedent).
+
+--------------------------------------------------------------------------------
+FILES
+--------------------------------------------------------------------------------
+weights/{best,last}.pt      the checkpoints (gitignored)
+results.csv                 per-epoch losses + metrics
+results.png                 training curves
+BoxPR_curve.png etc.        PR/P/R/F1 curves for best.pt
+confusion_matrix*.png       (single class, so 2x2)
+final_val_defaults/         best.pt val, ultralytics default NMS  <- the reported number
+final_val_iou0.5/           best.pt val, iou=0.5 NMS (the script's first pass)
+val_batch{0,1,2}_{labels,pred}.jpg   qualitative — predictions track GT, no geometry error
+args.yaml                   full ultralytics config as run

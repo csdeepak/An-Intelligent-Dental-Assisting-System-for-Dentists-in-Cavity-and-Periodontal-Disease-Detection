@@ -110,6 +110,8 @@ outputs/caries_arms/**/*.pth
 !outputs/cariesxrays_external/**
 !outputs/cariesxrays_external_rand/
 !outputs/cariesxrays_external_rand/**
+!outputs/lever2_cariesxrays/
+!outputs/lever2_cariesxrays/**
 # DOI verification against the registry (1 Sep 2026). Small text; the finding is a
 # submission blocker and must travel with the repo.
 !outputs/citation_audit/
@@ -263,3 +265,23 @@ data/dentex/crops_exp125_phase1/
 # Multi-corpus detector dataset (Lever 1) — regenerable with
 # scripts/yolo/build_multicorpus_detector_dataset.py; never commit the images.
 data/detector_multicorpus/
+# CariesXrays YOLO detection dataset (Lever 2) — ~4 GB, regenerable with
+# scripts/yolo/build_cariesxrays_detector_dataset.py from ~/Downloads/Capstone/CariesXrays_Dataset.
+# Source benchmark: Chen et al., AAAI 2024, github.com/Binz-Chen/AAAI2024_CariesXrays. Never commit.
+data/cariesxrays_det/
+data/cariesxrays_det.tar
+data/cariesxrays_det.tar.sha256
+
+# Lever-2 CariesXrays detector weights (51 MB each) + the results bundle — SHA-256
+# in models/14_cariesxrays_lever2/run_summary.txt; the plots/curves/csv ARE tracked.
+models/14_cariesxrays_lever2/weights/
+models/14_cariesxrays_lever2/*.tar.gz
+
+# LaTeX build artefacts — main.tex is tracked, main.pdf/main.bbl are committed deliberately,
+# everything else latexmk/pdflatex generates is transient.
+paper/main.aux
+paper/main.blg
+paper/main.fdb_latexmk
+paper/main.fls
+paper/main.log
+paper/main.out
