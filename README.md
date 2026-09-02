@@ -814,8 +814,12 @@ each other, and are regression-tested.
 
 ## Publication target
 
-**Named target: IEEE ISBI 2027** — the 24th International Symposium on Biomedical Imaging.
-Submission deadline **26 Oct 2026**; implementation freeze **14 Oct 2026**.
+**Target (as of the 2 Sep council): a journal primary — IEEE JBHI or Computers in Biology and
+Medicine, both S-grade with no page limit — and an IEEE ISBI 2027 short paper *if* the
+compliance blockers clear.** ISBI is the 24th International Symposium on Biomedical Imaging
+(S-grade by edition count); submission **26 Oct 2026**, implementation freeze **14 Oct 2026**,
+**4 pages hard**. The journal route carries the full multi-cohort + lever-fix paper that the
+4-page cap cannot. See [`transfer.md`](transfer.md) §5.
 
 A **complete manuscript exists and compiles clean** — 0 errors, 0 overfull boxes, 0 undefined
 references — rebuilt on 28 Aug 2026 from the artefacts after a full evidence audit
@@ -829,22 +833,27 @@ The title changed on 28 Aug, and the reason matters: the previous title led on a
 (44.3% lesion-localisation agreement) that **does not replicate externally**. The current title
 names the *contribution* rather than a number.
 
-**The critical path is no longer writing — it is the venue-length cut** (12 pages against ISBI's 4)
-plus the four compliance blockers above, and now a fifth: **a 1 Sep DOI audit found 22 of 63
-checkable citations broken** (11 resolve to a different paper, 11 unregistered) — each needs a
-manual title lookup before submission (`outputs/citation_audit/FINDINGS.md`).
+**The critical path for the manuscript is the venue-length cut and the four compliance blockers
+above.** The 1 Sep DOI audit (22 of 63 checkable citations broken) was **resolved 2 Sep** — every
+one turned out to be a real paper carrying a wrong identifier; all fixed and re-verified against
+the registry (`outputs/citation_audit/RESOLUTION_2026-09-02.md`).
 
-**A second track opened on 1 Sep: lift the numbers, not just the methodology.** Seven caries
-experiments across three cohorts had left the paper resting on a negative headline, so a
-three-lever plan runs in parallel with the write-up. **Lever 1 (multi-corpus detector retrain)
-ran 1 Sep and is an ABLATION** — FDI end-to-end on DENTEX **0.584 → 0.934** (Δ +34.9 pp
-[+30.8, +39.0], all from the added data), but the pre-registered Tufts guard fails
-(box mAP 0.810 → 0.647, domain dilution) so the pipeline default is unchanged. The 93.4% is an
-*in-domain* number and is the strongest evidence that the 58.3% headline is
-detector-**domain**-limited, not numbering-limited (`models/13_detector_multicorpus_lever1/`,
-[`RESULTS_LOG`](docs/results/RESULTS_LOG.md) 2026-09-01h). Lever 2 (caries lesion detector on
-CariesXrays vs its published baselines) is the remaining lever; Lever 3 (gate retrain) follows it.
-If the tracks conflict for time, the write-up wins. [`transfer.md`](transfer.md) §3.
+**A second track — lift the numbers, not just the methodology — was re-scoped by a 2 Sep
+council** ([`transfer.md`](transfer.md) §5). Framing stays **A+**: the evaluation protocol is the
+contribution, and the levers are positive systems results layered on it, not a pivot to a
+systems paper. Venue is now **journal-primary** (IEEE JBHI / Computers in Biology and Medicine —
+both S-grade, no page limit), with an ISBI 2027 short paper only if the compliance blockers clear
+in time. **Lever 1 (multi-corpus detector retrain, 1 Sep) is an ABLATION** — FDI end-to-end on
+DENTEX **0.584 → 0.934** (Δ +34.9 pp [+30.8, +39.0], all from the added data), but the
+pre-registered Tufts guard fails (box mAP 0.810 → 0.647, domain dilution). The 93.4% is an
+*in-domain* number and is the strongest evidence the 58.3% headline is detector-**domain**-limited,
+not numbering-limited (`models/13_detector_multicorpus_lever1/`,
+[`RESULTS_LOG`](docs/results/RESULTS_LOG.md) 2026-09-01h). The active levers are now **A**
+(multi-corpus detector *done right* — 4 corpora, balanced sampling; dataset built 2 Sep,
+`outputs/lever_A_multicorpus_detector_v2/`) and **B** (a lesion-detection caries path that is not
+base-rate dominated); **D** (a bone-loss second corpus, now possible via the openly-released BRAR
+dataset) is opt-in. If the tracks conflict for time, the write-up wins.
+[`transfer.md`](transfer.md) §3.
 
 **Where this stands, honestly.** Not on the strength of any single model swap, but on: cross-corpus
 generalisation measured with paired significance tests, external validation on **four hospitals and

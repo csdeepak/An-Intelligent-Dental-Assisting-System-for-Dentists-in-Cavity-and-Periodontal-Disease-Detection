@@ -6,7 +6,7 @@ It is **rewritten, not appended to** — unlike `docs/results/RESULTS_LOG.md` (a
 history) and `docs/session-memory/` (one file per session, never edited). Those two are the
 record; this is the snapshot.
 
-**Last updated: 2 September 2026. Nothing is running; GPU balance ₹560.09.**
+**Last updated: 2 September 2026 (session 3c — score-lever council + Lever A data prep). Nothing is running; GPU balance ₹560.09; the user is topping up ~₹3,500 to fund an approved Track-B v2 (Levers A + B — §5, §3). Lever A's multi-corpus dataset is BUILT and geometry-gated (§3, `outputs/lever_A_multicorpus_detector_v2/STATUS.md`) — next session rents a GPU once the balance is up and the acceptance bars are signed off.**
 
 **Lever 2 is DONE (2 Sep).** Trained a standalone caries-**lesion** detector (YOLOv11l) on the
 CariesXrays benchmark → **COCO AP 48.2 / AP50 84.5 / AP75 50.0** on this project's own
@@ -18,12 +18,9 @@ adopts nothing. `RESULTS_LOG.md` 2026-09-02b, `models/14_cariesxrays_lever2/run_
 `outputs/lever2_cariesxrays/PRE_REGISTRATION.md`. Instance 492535 destroyed; spend ₹256.61
 (₹816.70 → ₹560.09).
 
-Where the next session picks up: **Track A** (paused this session by user request) — venue
-decision, the 4-page cut, the four compliance blockers, fold the Lever-2 row into `main.tex`
-Related Work (re-verify the AAAI numbers against the PDF first). **The DOI blocker is cleared** —
-all 22 broken DOIs were real papers with wrong identifiers, fixed and re-verified
-(`RESULTS_LOG.md` 2026-09-02, `outputs/citation_audit/RESOLUTION_2026-09-02.md`); a `url`-field
-sweep and the 19 DOI-less entries remain, both minor.
+**2 Sep session 3c — score-improvement council held, three decisions taken** (`docs/session-memory/2026-09-02c-score-lever-council-and-plan.md`, §5 below): **(a) Framing A+** — keep the evaluation-protocol spine, add the lever fixes as positive systems results (not a pivot to a systems paper — the 1 Sep council rejected that). **(b) Venue: journal primary** (IEEE JBHI / Computers in Biology and Medicine — both S, no page limit), ISBI 2027 only as an optional cut short paper *if* the compliance blockers close by mid-Oct — ISBI's 4-page hard cap (verified 2 Sep) fights the extra results. **(c) Levers A + B now, D if time; skip C and E; budget ~₹4,000.** Two pre-registration drafts written (`outputs/lever_A_multicorpus_detector_v2/`, `outputs/lever_B_lesion_caries_path/`) — bars open to one review round, frozen once builds start. Track B is defined in §3.
+
+Where the next session picks up: **(1)** GPU — top up JarvisLabs ~₹3,500, then run Lever A (write `train_multicorpus_detector_v2.py` from Lever 1's, `tar`+sha256 `data/detector_multicorpus_v2/`, rent an A100, run Control B + Arm 3C + Arm 4C, score, apply the pre-registered verdict). **(2)** the user/mentor signs off the Lever A + B acceptance bars (`outputs/lever_A_*/PRE_REGISTRATION.md` §5, `outputs/lever_B_*/PRE_REGISTRATION.md` §6) — one review round, then frozen. **(3)** Lever B data prep (local): write the DENTEX `quadrant-enumeration-disease` → YOLO caries converter, build the seed-43 CariesXrays eval draw. **Track A stays the critical path and wins any time conflict** — venue commit (mentor), the four compliance blockers (account owner), authors/affiliations still `Unknown` in `main.tex`, upload `models/11`+`models/14` `best.pt` to Drive, fold the Lever-2 row into Related Work. The DOI blocker is cleared (`RESULTS_LOG.md` 2026-09-02); a `url`-field sweep and the 19 DOI-less entries remain, both minor.
 
 **2 Sep session also established:** MiKTeX 25.12 **is** on the Windows machine — `paper/main.tex`
 recompiles to **12 pages, 0 errors / 0 undefined refs / 0 overfull boxes** (the §3.1 "no LaTeX
@@ -419,12 +416,9 @@ not, and would have been quietly wrong if the second measurement had not been as
 
 ---
 
-## 3. What is NEXT — the critical path is now entirely Track A
+## 3. What is NEXT — Track A (manuscript + compliance) is the critical path; Track B v2 (Levers A + B) runs in parallel
 
-**Track B (score improvement) is DONE.** Lever 1 → ABLATION (1 Sep); Lever 2 → benchmark row
-(2 Sep, YOLOv11l on CariesXrays, COCO AP 0.482, level with FPCL). Neither changed a pipeline
-default. Lever 3 remains possible but is below Track A. **So the critical path is entirely
-Track A** — venue decision, the 4-page cut, the four compliance blockers.
+**Track B was reopened on 2 Sep (session 3c council, §5).** Lever 1 (ABLATION) and Lever 2 (benchmark row) proved the mechanism — detector *domain* is the 58.3% ceiling, and Lever 1's guard failure is a fixable build flaw (2 corpora, Tufts 52% of the mix, no corpus balancing). The user funded a second attempt. **Track B v2 = Lever A (multi-corpus detector, done right) + Lever B (lesion-detection caries path), with Lever D (bone-loss second corpus, now possible via BRAR) opt-in if A and B land with schedule to spare.** Pre-registrations drafted; see the Track B block below. **Track A is still the critical path** — it wins any time conflict, and the compliance blockers gate ISBI regardless of any number.
 
 **As of 2 Sep, still open and all on the USER / account owner:** (1) venue decision — ISBI vs
 journal (gates the cut); (2) the four compliance blockers (items 4, 9) → account owner;
@@ -475,48 +469,23 @@ sweep + 19 DOI-less entries.
     six truncated images (`001970`–`001975`, found 30 Aug — the usable set is **3,213**, not
     3,219), and freeze `data/sdh/splits_v1.json` before a single filter threshold is chosen.
 
-### Track B — lift the numbers (funded from the GPU balance)
+### Track B v2 — lift the numbers (Levers A + B approved 2 Sep, session 3c; §5)
 
-**Pre-condition, learned twice on 1 Sep:** every dataset built for a rented run is verified
-locally first — round-trip geometry, canonical-count reproduction, and a render inspected by eye —
-because the two failure modes that have cost this project real time (R1's misaligned masks, and
-the void `dataset_seg` used for Lever 1's first build) both produced *smoothly-falling loss on
-garbage* and errored nowhere.
+**Framing (§5):** these are *fixes surfaced by the evaluation protocol*, not a chase for SOTA. Lever A supports the "end-to-end numbers hide stage-wise failure" thesis; Lever B addresses the base-rate-dominance thesis head-on. Every lever is pre-registered before its build, bar not moved — same discipline as Levers 1 and 2, which is itself a selling point of the paper.
 
-- **B1 — Lever 1 detector retrain (Tufts + DENTEX). DONE 1 Sep — ABLATION, not adopted.**
-  Ran on a rented RTX PRO 6000 (₹267.84, `RESULTS_LOG.md` 2026-09-01h,
-  `models/13_detector_multicorpus_lever1/`). **Primary succeeds overwhelmingly:** FDI exact
-  end-to-end on the 164 leak-free DENTEX images **0.5844 → 0.9338**, paired Δ **+34.9 pp
-  [+30.8, +39.0]** — the entire gain is the added DENTEX data (the seg→detect head change on its
-  own is n.s.). **Guard fails:** Tufts frozen test box mAP@0.5 **0.810 → 0.647** (the
-  pre-registered "domain dilution" risk, confirmed). Pre-registered rule needs BOTH → **ablation,
-  pipeline default detector unchanged.** The 93.4% is an *in-domain* number (DENTEX detector +
-  DENTEX head on held-out DENTEX; leakage ruled out three ways) — it is the strongest evidence
-  yet that the 58.3% headline is **detector-domain-limited, not numbering-limited**, but it is
-  not the cross-domain scenario 58.3% measures and must not be quoted as if it were.
-- **B2 — Lever 2 caries lesion detector on CariesXrays. DONE 2 Sep.** Council (§5) said GO; the
-  user then directed it directly ("forget the publication … start the gpu work"). **The official
-  FPCL 4,800/1,200 split is NOT public** — checked the FPCL repo (0.5% sample, no `ImageSets`),
-  the Drive download (`Annotations.zip` + `JPEGImages.zip` only), and DVCTNet (own gated dataset).
-  Proceeded on **this project's own seed-42 80/20 split** matching only their ratio. YOLOv11l
-  detect, 1024 px, `mosaic=0`, batch auto-16-after-OOM, 86 epochs (early-stop, best ep 61) on a
-  rented A100-40GB (**₹256.61**, instance destroyed). **Result: COCO AP 0.482 / AP50 0.845 /
-  AP75 0.500** vs FPCL 0.482 / 0.841 / 0.506 — on top of FPCL, ~8 AP above every generic baseline.
-  **Indicative, not head-to-head** (different test images). `RESULTS_LOG.md` 2026-09-02b,
-  `models/14_cariesxrays_lever2/`. **Next:** one row in `main.tex` Related Work with the split
-  caveat, AAAI table re-verified against the PDF. A true head-to-head needs the authors' split
-  (`chenbingzhi@m.scnu.edu.cn`).
-- **B3 — Lever 3 caries gate v5** on CariesXrays-derived tooth labels. Re-scoped 1 Sep: it can use
-  `models/13/arm_multicorpus_best.pt` purely to assign lesion boxes to teeth for label generation
-  (not adopting it into the pipeline). Cheap, but **below Track A** — likely not for this
-  submission.
-- **NOT a lever, and decided against:** a 4th caries-gate arm chasing CLAHE's +0.049 AP
-  near-miss. Its CI includes zero and the blocker is 34 source images, not method
-  (`RESULTS_LOG.md` 2026-08-31b).
+**Pre-condition, learned twice on 1 Sep:** every dataset built for a rented run is verified locally first — round-trip geometry, canonical-count reproduction, a render inspected by eye — because R1's misaligned masks and the void `dataset_seg` both produced *smoothly-falling loss on garbage* and errored nowhere.
 
-**Do NOT do:** train on Ningxia, or iterate against it. It is locked external test data and it is
-the single strongest thing this paper has (`MASTER_PLAN_2026H2.md` §4.1). A tune-against-it loop
-was proposed and declined on 27 Aug for exactly this reason.
+- **DONE — B1 / Lever 1** (multi-corpus detector, Tufts + DENTEX). 1 Sep, ABLATION. FDI e2e **0.584 → 0.934** in-domain (Δ +34.9 pp [+30.8, +39.0], all from the data), guard fails (Tufts test box mAP 0.810 → 0.647). `models/13_detector_multicorpus_lever1/`, `RESULTS_LOG.md` 2026-09-01h. **Kept as the mechanism proof; superseded as an adoption attempt by Lever A.**
+- **DONE — B2 / Lever 2** (standalone CariesXrays lesion detector). 2 Sep, benchmark row. YOLOv11l COCO **AP 0.482 / AP50 0.845** on this project's seed-42 split (FPCL's is not public) — level with FPCL, ~8 AP over the generic baselines; indicative, not head-to-head. `models/14_cariesxrays_lever2/`, `RESULTS_LOG.md` 2026-09-02b. **Its `best.pt` is Lever B's B-single arm.** Still to do: one row in `main.tex` Related Work with the split caveat, AAAI table re-verified against the PDF.
+
+- **Lever A: multi-corpus detector, done right — DATA PREP DONE 2 Sep, blocked on GPU + bar sign-off.** `outputs/lever_A_multicorpus_detector_v2/{PRE_REGISTRATION,STATUS}.md`. Built `data/detector_multicorpus_v2/` (1.1 GB, gitignored) via `scripts/yolo/build_multicorpus_detector_v2_dataset.py` — **4 corpora / 4 institutions**: Tufts 700 (frozen split, canonical 3,794/3,924 box counts reproduced exactly) + DENTEX `quadrant_enumeration` 561 (11 byte-identical dupes dropped — Lever 1 trained on those) + Kaggle-dual 449 + UFBA-425 382. **Geometry gate: 42,500 rotated boxes, median IoU vs source 1.0000, PASS**; 0 leakage refusals; all 4 corpora eyeballed in the detector frame. Per-corpus **balanced** `train.txt` (4×700; the fix for Lever 1's Tufts-at-52% guard failure). DNS/OdontoAI dropped (request-gated). **⚠️ UFBA-425 is a 640×640 square Roboflow export — teeth are aspect-distorted (median box w/h 0.234 vs DENTEX 0.347 / Tufts 0.371), a preprocessing artifact.** So the primary arm is **3-corpus** (`train_3corpus.txt`, Tufts+DENTEX+Kaggle) and UFBA is an **additive Arm 4C** — reported, adopted over 3C only if it *also* passes §5 and beats 3C (pre-reg §4, refined before any training). Arms: Control A (deployed seg, re-measured) / Control B (Tufts-only detect) / Arm 3C (primary) / Arm 4C. Primary = FDI e2e on the 164 leak-free DENTEX images ≥ +5 pp CI-excludes-0; **Guard 1** = pooled external caries agreement (Ningxia + CariesXrays, frozen gate) does not regress; **Guard 2** = Tufts test box mAP ≥ (Control B − 4 pp). Adopt only if primary + both guards; else ABLATION reported in full. Adopted → full downstream re-run. ~₹550–700, ~₹1,300 ceiling. Kaggle API token now in `.env` (gitignored, §8); `kaggle` CLI 2.2.4 installed.
+- **NEXT — Lever B: lesion-detection caries path.** `outputs/lever_B_lesion_caries_path/PRE_REGISTRATION.md`. The pipeline's caries *gate* is base-rate dominated (§8.24 — "the gate has partially become the constant"). A caries-**lesion detector** has no per-tooth prior to lean on. Two arms: **B-single** = Lever 2's `best.pt` re-used (zero GPU); **B-pooled** = CariesXrays + DENTEX `quadrant-enumeration-disease` caries boxes (~₹300). Score frozen, mapped lesion→tooth, on **the exact lesion-agreement metric the constant wins on**, across DENTEX-164 + Ningxia-×4 + a fresh seed-43 CariesXrays draw (disjoint from training). Comparators: the image-blind molar constant *and* gate v3.0. Adopt as Stage 3 iff it beats the constant on ≥ 2 of 3 cohorts at ≤ 1.5× its prediction rate *and* beats the gate. Every outcome (wins / floods / fails-to-transfer / nulls) is a publishable finding — see the pre-reg.
+- **OPT-IN — Lever D: bone-loss second corpus.** Only if A and B land with schedule to spare. §8.13's "there is no second periodontal corpus" is **now outdated**: **BRAR** (Nature Sci Data 2025, Figshare `10.6084/m9.figshare.30155974`, tooth-level bone-resorption grading, openly downloadable) and **BoneLoss-PAN769** (Zenodo `21114193`, access-gated) both exist. Retrain Stage 4a/4b on Tufts + BRAR pooled (the +21.5 pp move that fixed Stage 2 cross-domain), re-validate on Ningxia + DENTEX. Risks: BRAR convention mapping; the Tufts bone-loss crop rebuild blocker (§9, `RESULTS_LOG.md` 2026-08-27u) may force BRAR-primary training. No pre-registration yet.
+
+- **SKIP — Lever C (caries gate v5)** on CariesXrays-derived tooth labels. The per-tooth-gate approach is base-rate limited by construction and 5 attempts already nulled (§8.24). Not worth a slot. **SKIP — Lever E (bigger/newer detector arch)** — marginal, resolution already maxed.
+- **NOT a lever, decided against:** a 4th caries-gate arm chasing CLAHE's +0.049 AP near-miss (CI includes zero; blocker is 34 source images, not method — `RESULTS_LOG.md` 2026-08-31b).
+
+**Do NOT do:** train on Ningxia, or iterate against it. It is locked external test data and the single strongest thing this paper has (`MASTER_PLAN_2026H2.md` §4.1). A tune-against-it loop was proposed and declined on 27 Aug for exactly this reason.
 
 
 ## 4. Decisions PENDING — do not default into these silently
@@ -723,6 +692,24 @@ validation, the Lever-1 decomposition and the reproducible deployed system are c
 independent of any single score. Nobody can promise acceptance; a journal fallback keeps S in
 reach either way. The odds are set by whether the compliance blockers close, not by the numbers.
 
+### 2 September 2026 (session 3c) — score-improvement council
+
+**The ask:** lift the pipeline's metrics enough to make an S/A-grade publication realistic; GPU funding offered.
+
+**Frame first — grade is set by venue, not metrics.** A reputable journal is **S** regardless of edition; ISBI 2027 (24th) is **S** if accepted. Metrics work cannot raise the ceiling above S — it raises P(accept) and lets an S venue be a realistic target rather than a hopeful one. **What actually threatens the grade and no GPU touches:** the four compliance blockers (Tufts Drive licence breach, IRB not started, DENTEX/Ningxia licences unread, SDH de-id) — account-owner actions that gate ISBI entirely and half-gate a journal ethics statement; and the ISBI 4-page hard cap, which *more results make worse*.
+
+**Three decisions (all put to the user as a structured choice; all three recommendations accepted):**
+
+1. **Framing: A+.** Keep the evaluation-protocol contribution as the spine (only 2 of 49 task-relevant papers validate externally); add the levers as positive systems results — "we used the protocol to diagnose three failure modes and fixed them." **Not** a pivot to a positive-number systems paper (Framing B), which the 1 Sep council rejected because the constant beats the *tooth-level* metric structurally. Lever A supports thesis (b) "end-to-end hides stage-wise failure"; Lever B attacks thesis (a) "tooth-level is base-rate dominated" directly. Neither undermines the paper.
+2. **Venue: journal primary, ISBI optional.** Full A+B(+D) paper to a journal (IEEE JBHI or Computers in Biology and Medicine — both S, both demonstrably in scope, no page limit; verify Scopus on the official list before committing, and get the mentor's call on which). A cut ISBI 2027 short paper (protocol + Lever-A headline only) in parallel **only if** the compliance blockers close by mid-October. ISBI deadline 26 Oct 2026; 4 pp hard (all technical content, figures and tables, in the first 4 pages; verified 2 Sep against the official CfP).
+3. **Levers A + B now, D if time; skip C and E; budget ~₹4,000.** Lever A = the single highest-leverage move (Lever 1 proved 58→93% in-domain; its guard failure is a fixable build flaw). Lever B flips the caries narrative if a lesion detector beats the constant on its own metric. Lever D (bone-loss second corpus via BRAR — now downloadable, which §8.13 predates) removes the ugliest limitation but has the most data-wrangling risk, so it is opt-in after A and B. C (gate v5) is base-rate limited by construction; E (bigger arch) is marginal.
+
+**Pre-registrations drafted** (`outputs/lever_A_multicorpus_detector_v2/PRE_REGISTRATION.md`, `outputs/lever_B_lesion_caries_path/PRE_REGISTRATION.md`) — bars open to one review round by the user/mentor, frozen once builds start.
+
+**Ordering rule if the tracks conflict for time:** the compliance track and the journal manuscript win. A lever not finished cleanly is dropped, not rushed.
+
+**Honest grade expectation, unchanged from the 1 Sep council:** journal accept → S (realistic on the 6-cohort + lever-fix story). The binding risk is the compliance blockers closing, not the numbers.
+
 ---
 
 ## 6. The R1 GPU session — run order, JarvisLabs
@@ -836,11 +823,15 @@ fresh clone after `git push`), read this section in full before assuming anythin
 | **Model checkpoints — what `git clone` alone gets you, and what it does not.** | `docs/EXTERNAL_DRIVE.md` | **Only two files, unchanged from before, need a manual fetch**: `models/06_yolo_detection_a100_run/best.pt` (detector, Tufts drive) and `models/09_caries_gate_v3/caries_gate_v3.pth` (caries gate, DENTEX drive) — both >50 MB, gitignored per `CLAUDE.md` rule 4. **Everything else `run_inference.py` needs, including the new Stage-2 head v2.0 (`models/10_fdi_head_dentex_tufts_v2/enumeration_head_best.pth`, 43 MB), is committed to git and needs no Drive fetch.** `docs/EXTERNAL_DRIVE.md` has exact restore steps and a runnable smoke-test command. |
 | Docker daemon | Not verified this session either | `docker build` has never actually executed — see §3 item 7. |
 | **CariesXrays dataset** (~2 GB) | `~/Downloads/Capstone/CariesXrays_Dataset/` | AAAI 2024 (Chen et al.), 6,000 panoramic images + Pascal-VOC lesion boxes. Used **frozen-pipeline only** as the 6th external cohort (`scripts/eval/cariesxrays_external.py`); a random seed-42 draw of 1,500 was scored. No LICENSE file ships with it — recorded in `main.tex` §8.25. Not needed for inference. |
-| **Kaggle "dual-labeled" corpus** (3rd FDI training source) | `data/kaggle_dual/` (~1.7 GB, **entirely gitignored** as of 2 Sep) | The third Stage-2 FDI corpus, added `33f8b6e` for head v3 (`models/12`, ablation only). Kaggle "Dual-labeled Panoramic Radiographs": 2,066 LabelMe polygon JSONs, **500 images with a matching label** → 499 usable / 13,166 teeth. `labels/` + `images1/` are a re-downloadable raw annotation dump; `enumeration_v1/` crops rebuild with `scripts/kaggle_dual/build_enumeration_crops.py`. `scripts/kaggle_dual/` IS tracked. Full record: `data/README.md`. |
+| **Kaggle "dual-labeled" corpus** (3rd FDI corpus + Lever A) | `data/kaggle_dual/` (`images1/` + `labels/`, 749 MB; entirely gitignored) — **downloaded to this Mac 2 Sep** | Kaggle slug **`zwbzwb12341234/a-dual-labeled-dataset`** (553 MB zip; licence *unstated*). Added `33f8b6e` for head v3 (`models/12`, ablation). 2,066 LabelMe polygon JSONs, 500 images with a match → **499 usable** (1 byte-identical dupe) / 13,166 teeth. `enumeration_v1/` crops (not present here) rebuild with `scripts/kaggle_dual/build_enumeration_crops.py`. `scripts/kaggle_dual/` IS tracked. Full record: `data/README.md`. |
 | **CariesXrays YOLO detect set** (Lever 2) | `data/cariesxrays_det/` (~4 GB, gitignored) | Built 2 Sep by `scripts/yolo/build_cariesxrays_detector_dataset.py` — 6,000 VOC images → YOLO, single class `decay`, this project's own seed-42 4,800/1,200 split. Regenerable from the CariesXrays benchmark; never commit. `models/14_cariesxrays_lever2/`. |
 | **Multi-corpus detector dataset** (Lever 1 / B1) | `data/detector_multicorpus/` (~816 MB, gitignored) | Built + geometry-gated 1 Sep by `scripts/yolo/build_multicorpus_detector_dataset.py` (Tufts 700 + DENTEX `quadrant_enumeration` 634 → YOLO `detect`, detector-rotated frame). 1,334 train / 150 val / 150 test; val+test are Tufts-only and reproduce the canonical **3,794 / 3,924** box counts exactly. Regenerable; never commit the images. A `detector_multicorpus.tar` for upload = 817 MB one file. |
+| **Multi-corpus detector dataset v2** (Lever A) | `data/detector_multicorpus_v2/` (1.1 GB, gitignored) | Built + geometry-gated **2 Sep** by `scripts/yolo/build_multicorpus_detector_v2_dataset.py` — Tufts 700 + DENTEX 561 + Kaggle-dual 449 + UFBA-425 382 → YOLO `detect`, detector-rotated (CCW) frame. val/test = Tufts frozen only (canonical 3,794/3,924 reproduced). `train.txt` (4 corpora × 700, Arm 4C) and `train_3corpus.txt` (3 × 700, Arm 3C = primary). Geometry gate median IoU 1.0000. Regenerable; never commit. `outputs/lever_A_multicorpus_detector_v2/STATUS.md`. |
+| **UFBA-425** (Lever A corpus #4) | `data/ufba425/` (51 MB, gitignored) | Downloaded 2 Sep from figshare `10.6084/m9.figshare.29827475`. **Licence CC BY 4.0** (figshare API). 425 panoramic images (`numbering_xrays/`) + YOLO-txt tooth boxes (`boundinng_boxes/`) + `metadata.csv` (per-tooth FDI). ⚠️ 640×640 square Roboflow export — aspect-distorted (see §3 Lever A). |
 | **Lever 1 detector weights** (ABLATION) | `models/13_detector_multicorpus_lever1/*.pt` (2 × 49 MB, gitignored) | `controlB_tuftsonly_best.pt` (sha256 `104564f3…`) and `arm_multicorpus_best.pt` (sha256 `5bc24b71…`). NOT the pipeline default — see `run_summary.txt`. Kept on local disk only. |
 | JarvisLabs instances | Account-level | **None running, none paused — verified 2 Sep after Lever 2.** History: R1 destroyed 27 Aug; balance topped up to ₹1,105.99; A30 aborted for Lever 1 (₹21.45); Lever 1 on an RTX PRO 6000 (491623, ₹267.84), destroyed; **Lever 2 on an A100-40GB (492535, IN2, ₹256.61), destroyed 2 Sep after weights downloaded + sha256-verified.** Balance now **₹560.09**. **Windows `jl` gotchas:** the `jl` on PATH is broken (`Python311` interpreter was removed); use `%LOCALAPPDATA%\Programs\Python\Python313\Scripts\jl.exe`. Every `jl upload`/`exec` with a remote `/path` argument needs **`MSYS_NO_PATHCONV=1`** or Git-Bash rewrites `/home/x` to `C:/Git/home/x`. A `jl exec` with `nohup … &` detaches fine, but the local `jl exec` client hits the 2-min Bash-tool timeout — that does not kill the remote job. |
+| **Kaggle API token** (added 2 Sep) | `.env` at the repo root — **gitignored** (new `# Secrets / local env` block in `.gitignore`: `.env`, `.env.local`, `kaggle.json`, `.kaggle/`). Load with `set -a; source .env; set +a`. | `KAGGLE_API_TOKEN=KGAT_…` (the user pasted it in the 3c session — treat as low-sensitivity, rotate at kaggle.com/settings if wanted). `kaggle` CLI 2.2.4 installed into `/opt/anaconda3` (numpy pin unaffected — verified 1.26.4 after). |
+| **macOS Python — which one** | project env is **`/opt/anaconda3/bin/python3` (3.12.12)** — has torch 2.2.0, ultralytics 8.4.127, cv2 5.0.0, numpy 1.26.4. | ⚠️ `which python3` on PATH is the **homebrew 3.14** (`/opt/homebrew/bin/python3`), which has NONE of the deps and is PEP-668 locked. Always call `/opt/anaconda3/bin/python3` explicitly. Housekeeping: a corrupted `~orch-2.5.1` partial install in `/opt/anaconda3/lib/python3.12/site-packages/` throws pip warnings — pre-existing, harmless. |
 | SSH keys | `~/.ssh/id_ed25519_jarvis` (+ a copy at `~/.ssh/id_ed25519`, since `jl` passes no `-i` and relies on OpenSSH's default lookup); this Mac's own key at `~/.ssh/id_ed25519` | Two keys registered with JarvisLabs: `r1-seg-windows` (the Windows box) and **`macos-m4pro`** (this machine, added 1 Sep). The `jl` CLI (0.2.17) is installed and authenticated here — the user ran `jl setup` themselves; the token is not in this repo or any session. The **E2E** `.pem` pasted into a chat on 20 Aug is still to be treated as compromised — different provider, unrelated key. |
 
 ### The Windows machine — a different inventory, verified 26 Aug 2026

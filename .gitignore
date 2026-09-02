@@ -18,6 +18,13 @@ venv/
 env/
 .env/
 
+# --- Secrets / local env (never commit) ---
+.env
+.env.local
+*.local.env
+kaggle.json
+.kaggle/
+
 # --- Jupyter ---
 .ipynb_checkpoints/
 *.ipynb_checkpoints
@@ -122,6 +129,14 @@ outputs/caries_arms/**/*.pth
 !outputs/detector_multicorpus/
 !outputs/detector_multicorpus/**
 outputs/detector_multicorpus/**/*.pt
+# Lever A (multi-corpus detector v2) + Lever B (lesion-detection caries path) --
+# score-improvement council 2026-09-02c. Pre-registrations + JSON results tracked; weights not.
+!outputs/lever_A_multicorpus_detector_v2/
+!outputs/lever_A_multicorpus_detector_v2/**
+outputs/lever_A_multicorpus_detector_v2/**/*.pt
+!outputs/lever_B_lesion_caries_path/
+!outputs/lever_B_lesion_caries_path/**
+outputs/lever_B_lesion_caries_path/**/*.pt
 !outputs/lesion_loc_pipeline/
 !outputs/lesion_loc_pipeline/**
 !outputs/lesion_localization_segdet/
@@ -274,6 +289,9 @@ data/dentex/crops_exp125_phase1/
 # belongs in git per the "no raw dumps, no crops" rule. Provenance + rebuild:
 # data/README.md; scripts/kaggle_dual/ (the build + FDI-convention scripts) IS tracked.
 data/kaggle_dual/
+data/ufba425/
+data/dentex_caries_det/
+data/detector_multicorpus_v2/
 
 # Multi-corpus detector dataset (Lever 1) — regenerable with
 # scripts/yolo/build_multicorpus_detector_dataset.py; never commit the images.
