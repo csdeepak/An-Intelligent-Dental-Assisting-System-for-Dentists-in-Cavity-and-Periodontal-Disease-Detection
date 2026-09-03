@@ -76,7 +76,7 @@ has not changed with the v2.0 adoption, since v2.0 is 43 MB and already tracked 
 |---|---|---|
 | `models/06_yolo_detection_a100_run/best.pt` | 49 MB | superseded as `DEF_DETECTOR`; only for reproducing pre-27-Aug numbers |
 | `models/13_detector_multicorpus_lever1/*.pt`, `models/15_.../*.pt` | ~51 MB each | Lever 1 / A ablation weights; SHA-256 in each `run_summary.txt` |
-| ⚠️ `models/14_cariesxrays_lever2/weights/best.pt` | 51 MB | Lever 2 / **Lever B's B-single arm** — **currently MISSING from every machine** (sha256 `278d1e00…`); `outputs/lever_B_lesion_caries_path/WINDOWS_SETUP.md` §4 |
+| `models/14_cariesxrays_lever2/weights/best.pt` | 51 MB | Lever 2 / **Lever B's B-single arm** — **on the friend's Windows laptop**; a 3 Sep `.gitignore` exception makes it committable once sha256 `278d1e00…` is verified (`outputs/lever_B_lesion_caries_path/WINDOWS_SETUP.md` §4). `last.pt` stays out. |
 
 > **⚠️ Changed 27 Aug 2026 — a fresh clone now needs THREE files, not two.** The Stage-1
 > detector was swapped to the YOLOv11l-seg model (`RESULTS_LOG.md` 2026-08-27d). Both detectors

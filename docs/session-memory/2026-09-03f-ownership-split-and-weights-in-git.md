@@ -64,8 +64,11 @@ Continues `2026-09-03d` / `2026-09-03e`.
 
 ## Open questions
 
-1. **Where is `models/14/best.pt`?** Blocks B-single. User to check external drives / Trash /
-   the Windows machine's own JarvisLabs download dir.
+1. ~~**Where is `models/14/best.pt`?**~~ **RESOLVED same day** — the user confirmed it is on the
+   **Windows laptop** (downloaded there during the 2 Sep Lever 2 run, which is why a Mac-side
+   `find` couldn't see it). A `.gitignore` exception (`!models/14_.../weights/best.pt`, `last.pt`
+   still out) was added so the friend `git add`s it after a sha256 check. `WINDOWS_SETUP.md` §4,
+   `transfer.md` §1/§3 updated.
 2. Does the friend's Windows laptop already have the 27-Aug DENTEX subsets, or is it a different
    machine? `WINDOWS_SETUP.md` covers both, but the user should confirm.
 3. Ningxia for the friend — restrictive licence. If the user can't provide it, Lever B is 2/3

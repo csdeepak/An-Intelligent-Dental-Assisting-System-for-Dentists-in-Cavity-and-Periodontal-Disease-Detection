@@ -309,9 +309,13 @@ data/cariesxrays_det/
 data/cariesxrays_det.tar
 data/cariesxrays_det.tar.sha256
 
-# Lever-2 CariesXrays detector weights (51 MB each) + the results bundle — SHA-256
-# in models/14_cariesxrays_lever2/run_summary.txt; the plots/curves/csv ARE tracked.
-models/14_cariesxrays_lever2/weights/
+# Lever-2 CariesXrays detector weights + the results bundle. SHA-256 in
+# models/14_cariesxrays_lever2/run_summary.txt; the plots/curves/csv ARE tracked.
+# EXCEPTION (3 Sep 2026): best.pt is committable — it is Lever B's B-single arm and
+# lives (only) on the Windows laptop; committing it after a sha256 check backs it up.
+# last.pt stays out.
+models/14_cariesxrays_lever2/weights/*
+!models/14_cariesxrays_lever2/weights/best.pt
 models/14_cariesxrays_lever2/*.tar.gz
 
 # LaTeX build artefacts — main.tex is tracked, main.pdf/main.bbl are committed deliberately,

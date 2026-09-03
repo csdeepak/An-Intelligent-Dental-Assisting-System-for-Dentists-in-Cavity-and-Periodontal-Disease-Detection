@@ -41,7 +41,7 @@ the repo's hand-managed CRLF/LF. Just `git pull`; if you have a stale local clon
 
 | need | size | where | notes |
 |---|---|---|---|
-| **`models/14_cariesxrays_lever2/weights/best.pt`** (the **B-single** arm) | ~51 MB | ⚠️ **currently missing everywhere** — see §4. sha256 `278d1e00ed87472fa44700b7dbfb07721f694e45f81256b88e1f1700f4606548` | ask the user; if not found, either retrain (~₹250) or run Lever B with **B-pooled only** |
+| **`models/14_cariesxrays_lever2/weights/best.pt`** (the **B-single** arm) | ~51 MB | ✅ **on this Windows laptop already** (per the user) — see §4 to verify + commit it | sha256 must be `278d1e00ed87472fa44700b7dbfb07721f694e45f81256b88e1f1700f4606548` |
 | **CariesXrays** raw dataset | `JPEGImages.zip` 4.2 GB + `Annotations.zip` | AAAI 2024 release / the user's Drive → `~/Downloads/Capstone/CariesXrays_Dataset/` | needed for B-pooled training **and** the seed-43 eval draw. `data/cariesxrays_det/` (the built split) is regenerated from this — it is gitignored and on no machine |
 | **DENTEX** `training_data/` + `disease/` | 6 GB + 1 GB | already on the 27-Aug Windows machine; else `scripts/dentex/fetch_dentex_subsets.py` or the DENTEX Drive (`docs/EXTERNAL_DRIVE.md`) → `~/Downloads/Capstone/DENTEX/` | `quadrant-enumeration-disease/train_quadrant_enumeration_disease.json` = B-pooled DENTEX boxes; `disease/` = the 164-image DENTEX eval cohort |
 | **Ningxia** dataset | 2.4 GB | **user only** — restrictive licence, `data/ningxia/` on the Windows machine holds `manifest.csv` only | one of the 3 eval cohorts. If the user cannot get it to you, Lever B runs on **DENTEX + CariesXrays** (2 of 3) and the pre-reg's "≥ 2 of 3 cohorts" rule still applies — note Ningxia as pending |
@@ -68,19 +68,27 @@ every remote `/path` needs `MSYS_NO_PATHCONV=1`).
 
 ---
 
-## 4 · ⚠️ `models/14/best.pt` is missing — user action needed
+## 4 · `models/14/best.pt` — it's on this laptop; verify it, then commit it
 
-`models/14_cariesxrays_lever2/run_summary.txt` records it as downloaded + sha256-verified on
-2 Sep and "local disk only, not yet on Drive". As of 3 Sep it is **not** in
-`models/14_cariesxrays_lever2/weights/` on the Mac, not in `_repo_archive/`, and not on Drive.
+The user confirmed the B-single weights are **on this Windows laptop** (they were downloaded here
+during the 2 Sep Lever 2 run, not to the Mac — which is why a Mac-side search couldn't find them).
 
-**User: before the friend starts Step 3**, either
-1. locate it (external drive? Trash? the Windows machine's own download dir?), verify sha256
-   `278d1e00…`, and upload to Drive; **or**
-2. accept that B-single is re-trained from `data/cariesxrays_det/` (~₹250, same recipe as Lever 2
-   — `scripts/yolo/train_cariesxrays_detector.py`); **or**
-3. run Lever B as **B-pooled only** and drop B-single (the pre-reg's acceptance rule is on "the
-   better of B-single / B-pooled" — with one arm it is just that arm).
+```powershell
+# 1. put it where the code expects it (if it isn't already):
+#    models\14_cariesxrays_lever2\weights\best.pt
+# 2. verify the pin — this is not optional (a size check is not an integrity check):
+python -c "import hashlib; print(hashlib.sha256(open(r'models/14_cariesxrays_lever2/weights/best.pt','rb').read()).hexdigest())"
+#    must print: 278d1e00ed87472fa44700b7dbfb07721f694e45f81256b88e1f1700f4606548
+# 3. back it up — a .gitignore exception was added 3 Sep so best.pt (not last.pt) is committable:
+git add models/14_cariesxrays_lever2/weights/best.pt
+git commit -m "chore: models/14 B-single weights (from the Windows laptop, sha256 verified)"
+#    then tell the user to push
+```
+
+If the hash does **not** match, do not use it — retrain from `data/cariesxrays_det/` (~₹250,
+`scripts/yolo/train_cariesxrays_detector.py`, same recipe as Lever 2) or run Lever B as
+**B-pooled only** (the pre-reg's rule is on "the better of B-single / B-pooled" — with one arm
+it is just that arm).
 
 ---
 
@@ -92,5 +100,6 @@ python scripts/eval/verify_invariants.py
 dir models\09_caries_gate_v3\caries_gate_v3.pth ; dir models\10_fdi_head_dentex_tufts_v2\enumeration_head_best.pth ; dir models\11_yolo_seg_tufts_r1\best.pt
 dir "$env:USERPROFILE\Downloads\Capstone\DENTEX\training_data\quadrant-enumeration-disease\train_quadrant_enumeration_disease.json"
 dir "$env:USERPROFILE\Downloads\Capstone\CariesXrays_Dataset"
+dir models\14_cariesxrays_lever2\weights\best.pt     ; # on this laptop — verify sha256 per §4
 ```
-All present (except possibly Ningxia and `models/14`) ⇒ go to `START_HERE.md` Step 2.
+All present (Ningxia optional — see §2) ⇒ go to `START_HERE.md` Step 2.
