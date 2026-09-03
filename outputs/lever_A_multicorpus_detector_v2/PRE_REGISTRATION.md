@@ -241,6 +241,20 @@ Reuses Lever 1's gate, extended per corpus:
 
 Only after all six pass does training start.
 
+**GATE OUTCOME — 2 Sep (see STATUS.md for the full record).** 1–5 all passed locally
+(geometry 42,500 boxes median IoU 1.0000; Tufts canonical 3,794/3,924 exact; renders eyeballed).
+Two ML-logic checks added and passed:
+
+- **Balanced-sampling mechanism verified empirically** — a throwaway `YOLODataset` on a
+  `train.txt` with known duplicate lines gives `len(dataset) == n_lines` (not n_unique) on
+  ultralytics 8.4.127. So per-corpus path repetition *is* real oversampling, one sample per line
+  per epoch. The balancing is not a no-op.
+- **Guard-1 leakage check** — the two NEW corpora (Kaggle-dual, UFBA-425) MD5- and aHash-checked
+  against the Guard-1 eval cohorts (Ningxia caries `dental_caries/test*`, all 6,000 CariesXrays):
+  **0 exact MD5 collisions; min aHash Hamming 39/256 (Kaggle) and 57/256 (UFBA)** — well outside
+  the "byte-identical = 0, near-dup < ~8" band. Guard 1 is valid. (DENTEX q_enum, Tufts and
+  CariesXrays were already cross-checked in §8.12 / §8.25.)
+
 ---
 
 ## 9. Cost, fixed in advance

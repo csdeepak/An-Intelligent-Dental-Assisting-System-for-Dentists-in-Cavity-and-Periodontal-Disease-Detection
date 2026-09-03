@@ -182,7 +182,8 @@ def main():
     stats = Counter()
     rows = []
     checks = []                       # (rotated_box, upright_box, W, H) for the IoU gate
-    train_paths = defaultdict(list)   # corpus -> [abs image paths], for balanced train.txt
+    train_paths = defaultdict(list)   # corpus -> [abs train image paths], for balanced train.txt
+    split_paths = defaultdict(list)   # (corpus, split) -> [abs image paths], for the per-arm lists
 
     for d in ("images/train", "images/val", "images/test",
               "labels/train", "labels/val", "labels/test", "_check"):
@@ -210,8 +211,10 @@ def main():
         shutil.copy2(src, args.out / "images" / split / fname)
         (args.out / "labels" / split / (stem + ".txt")).write_text(
             "".join(yolo_line(*b, W, H) for b in boxes))
+        p = f"./images/{split}/{fname}"          # ./-relative so the lists survive the move to the GPU box
+        split_paths[("tufts", split)].append(p)
         if split == "train":
-            train_paths["tufts"].append(str((args.out / "images/train" / fname).resolve()))
+            train_paths["tufts"].append(p)
     for split, expect in (("val", 3794), ("test", 3924)):
         got = stats[f"{split}/tufts_box"]
         print(f"  canonical {split}: expected {expect}, got {got}  "
@@ -285,8 +288,10 @@ def main():
             out_img = args.out / "images" / split / (stem + ".jpg")
             cv2.imwrite(str(out_img), rot, [cv2.IMWRITE_JPEG_QUALITY, JPEG_Q])
             (args.out / "labels" / split / (stem + ".txt")).write_text("".join(lines))
+            rel = f"./images/{split}/{stem}.jpg"
+            split_paths[(corpus, split)].append(rel)
             if split == "train":
-                train_paths[corpus].append(str(out_img.resolve()))
+                train_paths[corpus].append(rel)
 
     # ------------------------------------------------------------------ geometry gate
     from src.orientation import unrot_box as _u
@@ -323,20 +328,35 @@ def main():
         print("\n--dry-run: nothing written")
         return
 
-    bal_lines = []
-    for c in present:
-        paths = train_paths[c]
-        reps = math.ceil(biggest / len(paths))
-        bal_lines += (paths * reps)[:biggest]
-    random.Random(SEED).shuffle(bal_lines)
+    def balanced(corps):
+        big = max(len(train_paths[c]) for c in corps)
+        out = []
+        for c in corps:
+            p = train_paths[c]
+            out += (p * math.ceil(big / len(p)))[:big]
+        random.Random(SEED).shuffle(out)
+        return out
 
+    # --- per-arm train lists ---
+    bal_lines = balanced(present)                                                       # Arm 4C
     (args.out / "train.txt").write_text("\n".join(bal_lines) + "\n")
+    (args.out / "train_3corpus.txt").write_text(
+        "\n".join(balanced([c for c in present if c != "ufba"])) + "\n")                 # Arm 3C (primary)
+    (args.out / "train_tufts.txt").write_text("\n".join(train_paths["tufts"]) + "\n")    # Control B
+    # --- per-corpus test lists (Guard 2 = test_tufts; the rest = per-corpus mAP secondary) ---
+    for c in corpora:
+        tp = split_paths[(c, "test")]
+        if tp:
+            (args.out / f"test_{c}.txt").write_text("\n".join(sorted(tp)) + "\n")
+
     (args.out / "data.yaml").write_text(
         f"# Lever A multi-corpus detector -- Tufts + DENTEX + Kaggle + UFBA-425, detector frame ({ROT})\n"
         f"# Built by scripts/yolo/build_multicorpus_detector_v2_dataset.py\n"
-        f"# train.txt is per-corpus BALANCED (repeated paths). val/test are TUFTS ONLY and\n"
-        f"# byte-identical to the frozen split -- test box mAP@0.5 is the pre-registered guard.\n"
-        f"path: {args.out}\ntrain: train.txt\nval: images/val\ntest: images/test\n\n"
+        f"# train lists: train_tufts.txt (Control B) / train_3corpus.txt (Arm 3C, primary) /\n"
+        f"#              train.txt (Arm 4C, +UFBA). All per-corpus BALANCED by path repetition.\n"
+        f"# val = images/val (Tufts frozen). test = test_tufts.txt (Guard 2); test_{{dentex,kaggle,ufba}}.txt\n"
+        f"# are the per-corpus detection-mAP secondary. The trainer rewrites train:/test: per arm.\n"
+        f"path: {args.out}\ntrain: train_3corpus.txt\nval: images/val\ntest: test_tufts.txt\n\n"
         f"nc: 1\nnames: ['tooth']\n")
     with open(args.out / "manifest.csv", "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
