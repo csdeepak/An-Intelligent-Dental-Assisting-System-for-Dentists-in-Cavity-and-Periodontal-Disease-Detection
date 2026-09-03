@@ -85,18 +85,33 @@ GUARD 2 -- Tufts frozen TEST box mAP@0.5, measured on the GPU box right after ea
   held-out box mAP scales with its TRAINING SHARE, not with balance. The hypothesis that
   more corpora + balancing would REDUCE dilution was backwards.
 
-GUARD 1 -- pooled external caries lesion agreement (Ningxia x4 + CariesXrays random-1500),
-           FROZEN caries gate v3.0, each arm's detector swapped in.  [RUNNING 3 Sep -- see
-           RESULTS_LOG. Does NOT change the verdict: adoption needs primary AND BOTH guards,
-           and Guard 2 already failed.]
+GUARD 1 -- pooled external caries lesion agreement (Ningxia x4 [1,013 lesions] + CariesXrays
+           random-1500 [3,421 lesions]), FROZEN caries gate v3.0, each arm's detector swapped in,
+           everything else identical. Paired cluster bootstrap over 1,837 images, 10k, seed 42.
+           DONE 3 Sep (RESULTS_LOG 2026-09-03b).
+
+                     Control A   Arm 3C           Arm 4C
+  Ningxia pooled      0.407       0.600 (+19.3)    0.548 (+14.1)   (Arm 3C up on ALL 4 splits)
+  CariesXrays-1500    0.309       0.370 (+6.1)     0.367 (+5.8)
+  POOLED             0.331       0.422            0.408
+  POOLED Δ (paired)   --      +9.11 pp [+7.49, +10.81]   +7.69 pp [+6.08, +9.31]
+  => GUARD 1 PASSES for both arms (bar: lower bound >= -2 pp). A clear IMPROVEMENT, not just
+     non-regression. Control A reproduces the published 0.309 (§8.25) and 0.407 (§8.12a).
 
 --------------------------------------------------------------------------------
-VERDICT (pre-registered rule, bar NOT moved)
+VERDICT (pre-registered rule, bar NOT moved)  --  score_leverA_arm.py
 --------------------------------------------------------------------------------
-PRIMARY: passes for both arms (+34.4 pp, CI excludes 0, lower bound >> +5 pp).
-GUARD 2: FAILS for both arms.
-=> ABLATION. Pipeline default detector unchanged. Exactly as Lever 1, Stage-2 head v3
-   (models/12) and caries gate v4 were handled.
+PRIMARY: passes for both arms  (+34.4 pp, lower bound +30 pp >> +5 pp).
+GUARD 1: PASSES for both arms  (+9.1 / +7.7 pp pooled external caries, lower bound >> -2 pp).
+GUARD 2: FAILS for both arms   (Tufts test box mAP 0.585 / 0.552 vs the 0.6843 floor).
+=> 2 of 3 pass; adoption needs ALL THREE.  ABLATION.  Pipeline default detector unchanged.
+   Same disposition as Lever 1 / Stage-2 head v3 (models/12) / caries gate v4.
+
+Unlike Lever 1's flat "domain dilution", the tradeoff here is BIDIRECTIONAL and quantified: the
+multi-corpus detector is WORSE on Tufts test by ~14-17 pp and BETTER on DENTEX (+34) and every
+external cohort (+6 to +19) -- better on 5 of the 6 paper cohorts, worse only on the one it is
+benchmarked against. Guard 2 protects Tufts-benchmark continuity, not the deployment goal; that
+is a limitation of our own adoption criterion (stated, not used to move the bar).
 
 --------------------------------------------------------------------------------
 WHAT THE 92.8 % IS, AND IS NOT   (same caveat as Lever 1's 93.4 %)

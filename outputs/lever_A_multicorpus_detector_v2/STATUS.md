@@ -1,16 +1,20 @@
 # Lever A — status: DONE 3 Sep 2026 — **ABLATION**
 
-**Verdict (pre-registered rule): PRIMARY passes overwhelmingly, GUARD 2 fails → ABLATION.**
-Pipeline default detector unchanged. Instance 496005 destroyed. Full record:
-`models/15_detector_multicorpus_leverA/run_summary.txt`, `RESULTS_LOG.md` 2026-09-03.
+**Verdict (`score_leverA_arm.py`): PRIMARY passes, GUARD 1 passes, GUARD 2 fails → ABLATION**
+(adoption needs all three). Pipeline default detector unchanged. Instance 496005 destroyed.
+Full record: `models/15_detector_multicorpus_leverA/run_summary.txt`, `RESULTS_LOG.md`
+2026-09-03 + 03b, `{arm3c,arm4c}/leverA_verdict.json`.
 
-| metric | Control A | Control B | Arm 3C (primary) | Arm 4C |
-|---|---|---|---|---|
-| FDI e2e (164 DENTEX) | **0.5844** | — | **0.9284** | **0.9284** |
-| Δ e2e vs Control A | — | — | **+34.40 pp [+30.29, +38.54]** ✅ | +34.40 pp [+30.12, +38.71] ✅ |
-| Tufts frozen **test** box mAP@0.5 (Guard 2) | — | **0.7243** | **0.5852** ❌ | **0.5520** ❌ |
-| Guard 1 (ext caries agreement) | *running 3 Sep — informational, verdict already ABLATION* | | | |
+| criterion | Control A | Arm 3C (primary) | Arm 4C |
+|---|---|---|---|
+| FDI e2e (164 DENTEX) | **0.5844** | **0.9284** | **0.9284** |
+| **PRIMARY** — Δ e2e vs Control A (≥ +5 pp) | — | **+34.40 pp [+30.29, +38.54]** ✅ | +34.40 [+30.12, +38.71] ✅ |
+| **GUARD 1** — pooled ext caries agreement Δ (≥ −2 pp; Ningxia + CariesXrays, 4,434 lesions) | 0.331 | +9.11 pp [+7.49, +10.81] ✅ | +7.69 pp [+6.08, +9.31] ✅ |
+| **GUARD 2** — Tufts frozen test box mAP@0.5 (≥ Control B 0.7243 − 4 pp) | *(Control B 0.7243)* | **0.5852** ❌ | **0.5520** ❌ |
+| **verdict** | | **ABLATION** | **ABLATION** |
 
+- **GUARD 1 is a strong PASS** (improvement, not just non-regression): Ningxia caries agreement
+  0.407 → **0.600** (Arm 3C, up on all 4 splits), CariesXrays 0.309 → 0.370.
 - **Primary replicates Lever 1** (+34.9 pp). Numbering is not the bottleneck; detector domain is.
 - **Guard 2 fails monotonically in corpus count** (0.724 → 0.585 → 0.552), *worse* than Lever 1's
   0.647 — balanced sampling put Tufts at 33 % of the mix (vs 52 %). The "more corpora + balance =

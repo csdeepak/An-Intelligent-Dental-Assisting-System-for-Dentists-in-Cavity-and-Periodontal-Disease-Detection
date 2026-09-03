@@ -188,8 +188,23 @@ Paired cluster bootstrap over the 164 images (10k, seed 42): **Arm 3C − Contro
 [+30.29, +38.54]**; Arm 4C − Control A +34.40 pp [+30.12, +38.71]. **Replicates Lever 1's
 +34.9 pp.** UFBA-425 adds nothing to the primary (3C = 4C = 0.9284).
 
-**Verdict (pre-registered, bar not moved): PRIMARY passes (lower bound +30 pp ≫ +5 pp), GUARD 2
-FAILS (0.585 / 0.552 vs the 0.6843 floor) → ABLATION.** Pipeline default detector unchanged.
+**Pre-registered verdict, all 3 criteria** (`{arm3c,arm4c}/leverA_verdict.json`; `RESULTS_LOG`
+2026-09-03 + 2026-09-03b):
+
+| criterion | rule | Arm 3C | Arm 4C |
+|---|---|---|---|
+| PRIMARY — FDI e2e Δ vs Control A | lower bound ≥ +5 pp | +34.40 [+30.29, +38.54] ✅ | +34.40 [+30.12, +38.71] ✅ |
+| GUARD 1 — pooled ext caries agreement Δ (Ningxia + CariesXrays, frozen gate, 4,434 lesions) | lower bound ≥ −2 pp | +9.11 pp [+7.49, +10.81] ✅ | +7.69 pp [+6.08, +9.31] ✅ |
+| GUARD 2 — Tufts frozen test box mAP@0.5 | ≥ Control B − 4 pp = 0.6843 | 0.5852 ❌ | 0.5520 ❌ |
+| **verdict** | primary AND both guards | **ABLATION** | **ABLATION** |
+
+**GUARD 1 is a strong PASS — an improvement, not just non-regression.** Ningxia caries agreement
+0.407 → **0.600** (Arm 3C, +19.3 pp, up on all 4 splits); CariesXrays 0.309 → **0.370** (+6.1 pp).
+So the tradeoff is **bidirectional**: the multi-corpus detector is worse on Tufts test by
+~14–17 pp and better on DENTEX (+34) and every external cohort (+6 to +19). Guard 2 fails and the
+verdict is ABLATION (bar not moved), but the criterion protects Tufts-benchmark continuity, not
+the deployment goal — a discussion point.
+
 The Guard-2 failure is **monotonic in corpus count** — Tufts-only 0.724 → +DENTEX+Kaggle 0.585 →
 +UFBA 0.552 — and *worse* than Lever 1's 0.647: balanced sampling drops Tufts to 33 % of the
 mix, and a corpus's own held-out box mAP scales with its training share. The 92.8 % is an

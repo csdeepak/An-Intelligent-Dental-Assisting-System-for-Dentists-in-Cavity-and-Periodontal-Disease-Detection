@@ -5994,3 +5994,57 @@ identical matcher to the Ningxia arm:
   (2) Fold the replication + the in/out-domain tradeoff curve into `PAPER_MATERIAL.md` §8.10 and
   the manuscript's Stage-2 section. (3) `models/15/*.pt` not on Drive (same gap as `models/11`,
   `models/13`, `models/14`). (4) **Lever B** next.
+
+---
+
+## 2026-09-03b — Lever A Guard 1 (external caries agreement) — PASSES; verdict stays ABLATION but the tradeoff is now bidirectional and quantified
+
+Completes the Lever A milestone (`RESULTS_LOG` 2026-09-03). Guard 1 = pooled caries lesion
+agreement, **Ningxia x4 hospitals (1,013 lesions) + CariesXrays random-1500 (3,421 lesions)**,
+**frozen** caries gate v3.0, each arm's detector swapped in, everything else identical. Paired
+cluster bootstrap over the 1,837 images (10k, seed 42). Control A here reproduces the published
+§8.25 CariesXrays 0.309 and §8.12a Ningxia-pooled 0.407 exactly.
+
+| cohort | Control A | Arm 3C | Arm 4C |
+|---|---|---|---|
+| Ningxia pooled (1,013 lesions) | 0.407 | **0.600** (+19.3 pp) | 0.548 (+14.1 pp) |
+| — test1 / test2 / test3 / test4 | .294 / .519 / .401 / .392 | **.519 / .702 / .512 / .624** | .475 / .636 / .457 / .586 |
+| CariesXrays-1500 (3,421 lesions) | 0.309 | **0.370** (+6.1 pp) | 0.367 (+5.8 pp) |
+| **POOLED (4,434 lesions)** | **0.331** | **0.422**  Δ **+9.11 pp [+7.49, +10.81]** | 0.408  Δ **+7.69 pp [+6.08, +9.31]** |
+
+**GUARD 1 PASSES** for both arms — pre-reg bar was "does not regress" (Δ lower bound >= -2 pp);
+both arms are a clear *improvement*, lower bound +7.5 / +6.1 pp. Arm 3C is up on **all four**
+Ningxia splits and on CariesXrays.
+
+**Full pre-registered verdict** (`scripts/eval/score_leverA_arm.py`,
+`outputs/lever_A_multicorpus_detector_v2/{arm3c,arm4c}/leverA_verdict.json`):
+
+| | PRIMARY (DENTEX e2e) | GUARD 1 (external caries) | GUARD 2 (Tufts test mAP) | verdict |
+|---|---|---|---|---|
+| **Arm 3C** | +34.40 pp [+30.29, +38.54] ✅ | +9.11 pp [+7.49, +10.81] ✅ | 0.585 vs 0.684 floor ❌ | **ABLATION** |
+| **Arm 4C** | +34.40 pp [+30.12, +38.71] ✅ | +7.69 pp [+6.08, +9.31] ✅ | 0.552 ❌ | **ABLATION** |
+
+**Key insight — this is a much stronger result for the paper than Lever 1's flat "domain
+dilution".** The multi-corpus detector is:
+- **worse on Tufts test** box mAP by ~14-17 pp (Guard 2, the corpus it is benchmarked against);
+- **better on DENTEX** end-to-end FDI by +34 pp (in-domain);
+- **better on Ningxia** caries agreement by +19 pp and **CariesXrays** by +6 pp (external — the
+  cohorts the paper's validation story actually rests on).
+
+So the in-domain/cross-domain tradeoff is **real, bidirectional and measured**: for a pipeline
+whose stated purpose is screening arbitrary panoramic X-rays and whose contribution is 6-cohort
+external validation, the multi-corpus detector is better on 5 of 6 cohorts and worse only on
+Tufts. The Guard-2 criterion (pre-registered) protects the reproducibility of past Tufts
+numbers, not the deployment goal — a limitation of our own adoption rule that belongs in the
+discussion, **not** grounds to move the bar. Pipeline default detector stays `models/11`; the
+paper reports the multi-corpus detector's 6-cohort table as "what a deployment-optimised choice
+looks like", clearly labelled.
+
+- **Source:** `outputs/lever_A_multicorpus_detector_v2/{arm3c,arm4c}/{leverA_verdict,primary_bootstrap}.json`,
+  `outputs/ningxia_leverA_{controlA,arm3c,arm4c}/`, `outputs/cariesxrays_external_leverA_{controlA,arm3c,arm4c}/`,
+  `scripts/eval/score_leverA_arm.py`. All local CPU/MPS eval, no GPU. (Note: `ningxia_external.py`
+  `--tag` does not namespace `--out`; the first Guard-1 pass overwrote 2 of 3 Ningxia dumps and
+  was re-run with explicit `--out`.)
+- **Follow-ups:** (1) `PAPER_MATERIAL.md` §8.10 + §8.12a updated with the tradeoff. (2) A possible
+  cheap third data point: a *Tufts-weighted* (not balanced) multi-corpus arm to trace the frontier
+  (Tufts share 33 % -> 52 % -> ~70 %); not pre-registered, below Lever B. (3) **Lever B next.**

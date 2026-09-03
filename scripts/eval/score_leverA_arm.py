@@ -86,10 +86,17 @@ def main():
 
     # ---------------------------------------------------------------- GUARD 1
     def load_caries(paths):
+        """Pool Ningxia + CariesXrays per-image caries rows into {covered, lesions, image}.
+        Ningxia uses n_covered/n_lesions and repeats image names across splits -> namespace them."""
         rows = []
         for p in paths:
             r, _ = load_per_image(p, None)
-            rows += r
+            cohort = "nin" if "ningxia" in str(p).lower() else "cxr"
+            for x in r:
+                cov = x.get("covered", x.get("n_covered"))
+                les = x.get("lesions", x.get("n_lesions"))
+                key = f"{cohort}/{x.get('split', '')}/{x['image']}"
+                rows.append({"covered": cov, "lesions": les, "image": key})
         return rows
     ac = load_caries(args.arm_caries)
     cc = load_caries(args.ctrlA_caries)

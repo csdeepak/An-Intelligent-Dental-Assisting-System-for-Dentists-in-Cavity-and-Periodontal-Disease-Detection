@@ -1497,13 +1497,26 @@ UFBA-425) and per-corpus balanced sampling — an attempt to *fix* the domain di
 the end-to-end gain almost exactly: **Δ +34.4 pp [+30.3, +38.5]** on the primary, 58.4% → 92.8%,
 with a 4th aspect-distorted corpus (UFBA-425) adding nothing (Arm 3C = Arm 4C = 92.8%). So the
 "the ceiling is detector domain, not numbering" decomposition is now a **replicated** result, not
-a single run. But the fix failed, and *how* it failed is itself a finding worth a sentence: the
-Tufts frozen-test box mAP fell **monotonically as domains were added** — Tufts-only 0.724 →
-+DENTEX+Kaggle 0.585 → +UFBA 0.552 — and *further* than Lever 1's 0.647, because balanced sampling
+a single run. The pre-registered fix failed its Tufts guard, but *how* it failed is the finding:
+the Tufts frozen-test box mAP fell **monotonically as domains were added** — Tufts-only 0.724 →
++DENTEX+Kaggle 0.585 → +UFBA 0.552 — *further* than Lever 1's 0.647, because balanced sampling
 dropped Tufts to 33% of the training mix (Lever 1: 52%). A single-class tooth detector's held-out
-box mAP on any one corpus scales with that corpus's *training share*, so more corpora and more
-balance trade in-domain specialisation for cross-domain coverage, measurably and in one direction.
-The pipeline default detector is unchanged. `models/15_detector_multicorpus_leverA/run_summary.txt`.
+box mAP on any one corpus scales with that corpus's *training share*.
+
+**And the tradeoff is bidirectional, which is what makes it a result rather than a failed
+attempt.** Guard 1 — pooled caries lesion agreement on Ningxia (4 hospitals) + CariesXrays-1500
+with the *frozen* gate, each arm's detector swapped in — **passed strongly**: Ningxia caries
+agreement 0.407 → **0.600** (Arm 3C, +19.3 pp, up on all four splits), CariesXrays 0.309 →
+**0.370** (+6.1 pp), pooled Δ **+9.11 pp [+7.49, +10.81]**. So the multi-corpus detector is
+**worse on Tufts test by ~14–17 pp and better on DENTEX by +34 and on every external cohort by
++6 to +19**. For a pipeline whose contribution is 6-cohort external validation, it is better on
+5 of 6 cohorts and worse only on the one it is benchmarked against. **The pre-registered Guard 2
+(Tufts-test ≥ Control B − 4 pp) protects the reproducibility of this project's earlier Tufts
+numbers, not the deployment goal — a limitation of our own adoption criterion, stated plainly
+rather than used to move the bar.** The pipeline default detector stays `models/11` for
+benchmark continuity; the paper reports the multi-corpus detector's full 6-cohort table as
+"what a deployment-optimised detector choice costs and buys", clearly labelled.
+`models/15_detector_multicorpus_leverA/run_summary.txt`, `RESULTS_LOG` 2026-09-03b.
 
 ---
 
