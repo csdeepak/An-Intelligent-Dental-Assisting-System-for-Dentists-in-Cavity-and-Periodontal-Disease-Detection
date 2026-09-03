@@ -6048,3 +6048,60 @@ looks like", clearly labelled.
 - **Follow-ups:** (1) `PAPER_MATERIAL.md` §8.10 + §8.12a updated with the tradeoff. (2) A possible
   cheap third data point: a *Tufts-weighted* (not balanced) multi-corpus arm to trace the frontier
   (Tufts share 33 % -> 52 % -> ~70 %); not pre-registered, below Lever B. (3) **Lever B next.**
+
+
+## 2026-09-03c — Lever A Guard-2 diagnosis: the Tufts drop is capacity dilution, not a box bug (no new model)
+
+Follow-up analysis after the user asked why Lever A's Tufts test box mAP falls (0.724 → 0.585)
+while every other cohort improves. Full write-up + a 5-voice council + a phased plan:
+`outputs/lever_A_multicorpus_detector_v2/TUFTS_GUARD2_DIAGNOSIS.md`. **Lever A stays ABLATION —
+this did not re-open the pre-registration or move any bar.**
+
+- **What was done:** Three local CPU diagnostics on the existing `models/15` weights +
+  `data/detector_multicorpus_v2/` (scripts in `models/15_detector_multicorpus_leverA/repro/diagnostics/`):
+  (1) GT box statistics per corpus; (2) predicted box size on the 150 Tufts frozen-test images,
+  GT vs Control B vs Arm 3C vs Arm 4C; (3) greedy GT-match on Tufts test — TP / FN / FP,
+  matched-pair IoU, pred/GT width+height ratio.
+- **Metrics (Tufts frozen TEST, 150 img / 3,924 box; conf 0.25, local greedy match):**
+
+  | | Control B (Tufts-only) | Arm 3C (Tufts+DENTEX+Kaggle) |
+  |---|---|---|
+  | matched teeth (TP) | 2,879 | 2,497 |
+  | missed teeth (FN) | 1,045 | **1,427  (+37 %)** |
+  | spurious boxes (FP) | 1,058 | **1,506  (+42 %)** |
+  | precision / recall | 0.731 / 0.734 | 0.624 / 0.636 |
+  | matched-pair IoU, median | 0.624 | **0.643 (unchanged/better)** |
+  | pred/GT height ratio, median | 1.36 | 1.17 |
+
+  Predicted median box area (% of image): Tufts GT 0.621, Control B **0.933**, Arm 3C **0.770**,
+  Arm 4C 0.667 — i.e. adding corpora moves Arm predictions *closer* to Tufts GT, not further.
+- **Key decision or insight:**
+  - **Hypothesis "blended box convention → boxes mis-fit Tufts" is REFUTED.** GT stats did show
+    DENTEX boxes ~1.5× Tufts area, but the trained models show Arm 3C boxes are better-shaped and
+    better-localised than Control B's. Localisation is not where Lever A loses.
+  - **Confirmed cause = capacity / domain dilution** (the pre-registered "risk #2"): with Tufts at
+    33 % of the mix the detector misses more Tufts teeth and fires with worse confidence —
+    FN +37 %, FP +42 %, monotonic in Tufts training share: 100 % → 0.724, 52 % (Lever 1) → 0.647,
+    33 % (Lever A) → 0.585.
+  - **New reference points:** the *deployed* Stage-1 model is segmentation and scores **0.810** on
+    this exact split (`model_metrics.md` §"Stage 1 · Tufts"); every detection model here — even
+    Tufts-only Control B — scores ≤ 0.724. seg→detect costs ~9 pp *before* any corpus is added;
+    DENTEX/Kaggle/UFBA have no masks so the levers are forced to `detect`. All models predict
+    Tufts boxes ~20–36 % taller than GT → the Tufts box labels are crown-biased and cap the
+    achievable box mAP for everyone.
+  - **Minor:** Tufts boxes bypass the builder's `MIN_PX=2` degenerate-box filter (applied to the
+    rotated corpora only) — 4 / 3,924 un-matchable boxes in the Guard-2 GT (~0.1 pp FN tax on all
+    models equally); 21 in Tufts train.
+  - **Recommendation (council): no more GPU on the detector.** The diagnosis is a clean quantified
+    ablation result → fold into `PAPER_MATERIAL.md` §8.10. A real "another way" exists (multi-corpus
+    *segmentation* with pseudo-masks, or multi-corpus pretrain → Tufts fine-tune) but both are
+    Lever-D-scale and sit behind Lever B and behind Track A. Any retry = a new pre-registration
+    (Lever A2), deployed detector stays `models/11` until it passes cleanly.
+- **Source:** `outputs/lever_A_multicorpus_detector_v2/TUFTS_GUARD2_DIAGNOSIS.md`;
+  `models/15_detector_multicorpus_leverA/repro/diagnostics/{box_conv,pred_box_size,iou_diag}.py`;
+  Guard-2 P/R/mAP from `models/15_detector_multicorpus_leverA/leverA_train.log`.
+- **Follow-ups:** (1) Phase 0 (no GPU): GT-box overlays, FN/FP at conf {0.10, 0.25, 0.40} incl.
+  Arm 4C, then write §8.10 + §8 Known Limitations. (2) **Lever B** is still the next lever.
+  (3) Lever A2 only if Lever B yields no adoptable headline AND ≥ 2 weeks schedule slack AND a
+  decision that an adoptable multi-corpus detector is worth a full downstream re-measure — probe
+  with pretrain→fine-tune (~₹400) before segmentation (~₹1,000).

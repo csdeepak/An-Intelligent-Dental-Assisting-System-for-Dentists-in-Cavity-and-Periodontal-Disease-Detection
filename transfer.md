@@ -6,7 +6,7 @@ It is **rewritten, not appended to** — unlike `docs/results/RESULTS_LOG.md` (a
 history) and `docs/session-memory/` (one file per session, never edited). Those two are the
 record; this is the snapshot.
 
-**Last updated: 3 September 2026. Nothing is running; GPU balance ₹1,732 (user topped up +₹2,000; Lever A cost ~₹735). Instance 496005 destroyed.** **Lever A is DONE — ABLATION** (`models/15_detector_multicorpus_leverA/`, `RESULTS_LOG` 2026-09-03 + 03b). Pre-registered verdict, all 3 criteria: **PRIMARY passes** (FDI e2e on the 164 DENTEX images 0.584 → 0.928, Δ +34.4 pp — replicates Lever 1), **GUARD 1 passes** (pooled external caries agreement +9.1 pp [+7.5, +10.8] — Ningxia 0.41 → 0.60, CariesXrays 0.31 → 0.37), **GUARD 2 FAILS** (Tufts frozen test box mAP 0.724 → 0.585/0.552). 2 of 3 → ABLATION, pipeline default detector unchanged. **The tradeoff is bidirectional and quantified** (worse on Tufts by ~15 pp, better on the other 5 of 6 cohorts by +6 to +34) — a real methodology result, not Lever 1's flat "dilution". **Next: Lever B** (lesion-detection caries path — the remaining shot at an adoptable positive headline).**
+**Last updated: 3 September 2026. Nothing is running; GPU balance ₹1,732 (user topped up +₹2,000; Lever A cost ~₹735). Instance 496005 destroyed.** **Lever A is DONE — ABLATION** (`models/15_detector_multicorpus_leverA/`, `RESULTS_LOG` 2026-09-03 + 03b). Pre-registered verdict, all 3 criteria: **PRIMARY passes** (FDI e2e on the 164 DENTEX images 0.584 → 0.928, Δ +34.4 pp — replicates Lever 1), **GUARD 1 passes** (pooled external caries agreement +9.1 pp [+7.5, +10.8] — Ningxia 0.41 → 0.60, CariesXrays 0.31 → 0.37), **GUARD 2 FAILS** (Tufts frozen test box mAP 0.724 → 0.585/0.552). 2 of 3 → ABLATION, pipeline default detector unchanged. **The tradeoff is bidirectional and quantified** (worse on Tufts by ~15 pp, better on the other 5 of 6 cohorts by +6 to +34) — a real methodology result, not Lever 1's flat "dilution". **Next: Lever B** (lesion-detection caries path — the remaining shot at an adoptable positive headline).** Post-mortem on Lever A's Tufts Guard-2 failure done 3 Sep (`outputs/lever_A_multicorpus_detector_v2/TUFTS_GUARD2_DIAGNOSIS.md`, `RESULTS_LOG` 2026-09-03c): confirmed **capacity dilution, not a bug**; council says no more detector GPU, fold into §8.10, Lever A2 deferred behind Lever B.
 
 **Lever 2 is DONE (2 Sep).** Trained a standalone caries-**lesion** detector (YOLOv11l) on the
 CariesXrays benchmark → **COCO AP 48.2 / AP50 84.5 / AP75 50.0** on this project's own
@@ -709,6 +709,16 @@ reach either way. The odds are set by whether the compliance blockers close, not
 **Ordering rule if the tracks conflict for time:** the compliance track and the journal manuscript win. A lever not finished cleanly is dropped, not rushed.
 
 **Honest grade expectation, unchanged from the 1 Sep council:** journal accept → S (realistic on the 6-cohort + lever-fix story). The binding risk is the compliance blockers closing, not the numbers.
+
+### 3 September 2026 — Lever A Guard-2 diagnosis council
+
+**The ask:** Tufts test box mAP falls (0.724 → 0.585) while every other cohort improves — fixable mistake? another way (the Tufts masks)? check + verify, plan, council.
+
+**Checked + verified** (local CPU, no GPU; `outputs/lever_A_multicorpus_detector_v2/TUFTS_GUARD2_DIAGNOSIS.md`, `RESULTS_LOG` 2026-09-03c): hypothesised a box-convention clash (DENTEX GT boxes ~1.5× Tufts area) — **tested against the trained models, refuted**: Arm 3C's Tufts-test boxes are *closer* to Tufts GT than Control B's, matched-pair IoU unchanged (0.62 → 0.64). Real mechanism = **capacity dilution**: at Tufts 33 % of the mix the detector misses 37 % more Tufts teeth and emits 42 % more spurious boxes — monotonic in Tufts training share (100 % 0.724, 52 % 0.647, 33 % 0.585). Metric is also **box-vs-mask-capped**: the deployed *segmentation* Stage-1 scores 0.810 on this split, every detection model ≤ 0.724 (DENTEX/Kaggle/UFBA have no masks, so the levers must use `detect`).
+
+**Council (5 voices), unanimous near term:** no more GPU on the detector. The diagnosis is a clean quantified ablation result → `PAPER_MATERIAL.md` §8.10. Lever A stays ABLATION; nothing re-opened, no bar moved. A real “another way” exists (multi-corpus **segmentation** with pseudo-masks, or multi-corpus pretrain → **Tufts fine-tune**) but both are Lever-D-scale and sit **behind Lever B and behind Track A**. Any retry = a new pre-registration (Lever A2); deployed detector stays `models/11` until it passes cleanly.
+
+**Plan:** Phase 0 now (no GPU) — GT-box overlays + FN/FP at conf {0.10, 0.25, 0.40} incl. Arm 4C, then write §8.10 + §8 Known Limitations. Phase 1 gate: Lever A2 only if Lever B yields no adoptable headline **and** ≥ 2 weeks schedule slack **and** an explicit decision it's worth a full downstream re-measure. Phase 2 (if gated in): probe pretrain→fine-tune (~₹400) before segmentation (~₹1,000), identical Lever A acceptance rule.
 
 ---
 
