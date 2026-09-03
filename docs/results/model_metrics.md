@@ -169,6 +169,33 @@ head, on held-out DENTEX; leakage ruled out three ways) — it confirms that the
 **detector-domain-limited, not numbering-limited**, but it is not the same generalisation
 scenario as the cross-domain 58.3% and must not be quoted as if it were.
 
+### Lever A — multi-corpus detector "done right" (3 Sep 2026) — **ABLATION, NOT adopted**
+
+Lever 1's fix attempt: **4 corpora** (Tufts + DENTEX `quadrant_enumeration` + Kaggle "dual" +
+UFBA-425) with **per-corpus balanced sampling**. `models/15_detector_multicorpus_leverA/`,
+`RESULTS_LOG` 2026-09-03. Primary = FDI e2e on the 164 leak-free DENTEX images; **Guard 2** =
+Tufts frozen **test** box mAP@0.5 ≥ (Control B − 4 pp); **Guard 1** (external caries agreement)
+running, does not affect the verdict.
+
+| arm | detector train set | recall | of-detected | **end-to-end** | Tufts test box mAP@0.5 |
+|---|---|---|---|---|---|
+| Control A (deployed seg) | Tufts seg (frozen) | 0.708 | 0.825 | **0.5844** | *(n/a)* |
+| Control B | Tufts detect (700) | *(n/a)* | *(n/a)* | *(n/a)* | **0.7243** |
+| **Arm 3C** | Tufts+DENTEX+Kaggle (2100 bal) | 0.996 | 0.932 | **0.9284** | **0.5852** |
+| **Arm 4C** | + UFBA-425 (2800 bal) | 0.990 | 0.937 | **0.9284** | **0.5520** |
+
+Paired cluster bootstrap over the 164 images (10k, seed 42): **Arm 3C − Control A Δ e2e +34.40 pp
+[+30.29, +38.54]**; Arm 4C − Control A +34.40 pp [+30.12, +38.71]. **Replicates Lever 1's
++34.9 pp.** UFBA-425 adds nothing to the primary (3C = 4C = 0.9284).
+
+**Verdict (pre-registered, bar not moved): PRIMARY passes (lower bound +30 pp ≫ +5 pp), GUARD 2
+FAILS (0.585 / 0.552 vs the 0.6843 floor) → ABLATION.** Pipeline default detector unchanged.
+The Guard-2 failure is **monotonic in corpus count** — Tufts-only 0.724 → +DENTEX+Kaggle 0.585 →
++UFBA 0.552 — and *worse* than Lever 1's 0.647: balanced sampling drops Tufts to 33 % of the
+mix, and a corpus's own held-out box mAP scales with its training share. The 92.8 % is an
+**in-domain** number (DENTEX-trained detector on held-out DENTEX), like Lever 1's 93.4 %; the
+same detector scores 0.585 on Tufts test.
+
 ---
 
 ### Historical — the three-head comparison, all on the SUPERSEDED bbox detector

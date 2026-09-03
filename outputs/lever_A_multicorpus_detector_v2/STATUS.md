@@ -1,10 +1,37 @@
-# Lever A — status
+# Lever A — status: DONE 3 Sep 2026 — **ABLATION**
 
-**Last updated: 3 September 2026 ~12:45 IST.** **TRAINING RUNNING** on instance **496005**
-(RTX PRO 6000 96 GB, IN1, ₹179/hr, IP 151.185.34.31). On-box gate passed (`GATE: GO` — sha256
-match, 68,439 boxes 0 malformed, ultralytics loads the lists). `leverA_train_all.sh` (nohup) is
-running Control B → Arm 3C → Arm 4C. Control B ~ep 20/150, box_loss 1.79, val mAP50 0.38.
-ETA all-3 ~3–3.5 h. Watcher polls every 7 min. **`jl destroy 496005` when weights are down.**
+**Verdict (pre-registered rule): PRIMARY passes overwhelmingly, GUARD 2 fails → ABLATION.**
+Pipeline default detector unchanged. Instance 496005 destroyed. Full record:
+`models/15_detector_multicorpus_leverA/run_summary.txt`, `RESULTS_LOG.md` 2026-09-03.
+
+| metric | Control A | Control B | Arm 3C (primary) | Arm 4C |
+|---|---|---|---|---|
+| FDI e2e (164 DENTEX) | **0.5844** | — | **0.9284** | **0.9284** |
+| Δ e2e vs Control A | — | — | **+34.40 pp [+30.29, +38.54]** ✅ | +34.40 pp [+30.12, +38.71] ✅ |
+| Tufts frozen **test** box mAP@0.5 (Guard 2) | — | **0.7243** | **0.5852** ❌ | **0.5520** ❌ |
+| Guard 1 (ext caries agreement) | *running 3 Sep — informational, verdict already ABLATION* | | | |
+
+- **Primary replicates Lever 1** (+34.9 pp). Numbering is not the bottleneck; detector domain is.
+- **Guard 2 fails monotonically in corpus count** (0.724 → 0.585 → 0.552), *worse* than Lever 1's
+  0.647 — balanced sampling put Tufts at 33 % of the mix (vs 52 %). The "more corpora + balance =
+  less dilution" hypothesis was backwards.
+- **UFBA-425 is inert for the primary** (Arm 3C = Arm 4C); its only effect is more Tufts dilution.
+- Bug caught: first primary pass used bash-4 `declare -A` under macOS bash 3.2 → all 3 arms ran
+  `arm4c_best.pt`. Re-run explicitly; Control A then reproduced 0.5844 exactly.
+
+## What it gives the paper (Framing A+)
+
+Not an adoptable pipeline improvement. It **strengthens the decomposition**: the "58 % ceiling is
+detector *domain*" result now replicates across corpus configurations, and there is a clean
+3-point curve for a single-class detector's in-domain / cross-domain tradeoff. The adoptable
+positive headline number, if there is one, is **Lever B**'s to find.
+
+---
+
+## Historical (pre-run notes kept for the record)
+
+Instance was 496005 (RTX PRO 6000 96 GB, IN1). On-box gate `GATE: GO`. `leverA_train_all.sh`
+ran Control B → Arm 3C → Arm 4C over ~4.3 h.
 
 ## Instance + code state
 

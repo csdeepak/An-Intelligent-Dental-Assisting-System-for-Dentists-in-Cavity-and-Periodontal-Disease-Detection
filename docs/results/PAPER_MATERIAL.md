@@ -1491,6 +1491,20 @@ pre-registered Tufts guard (test box mAP@0.5 0.810 → 0.647), which is the "dom
 the pre-registration named in advance. Adopting it would trade the Tufts benchmark every earlier
 number rests on. `models/13_detector_multicorpus_lever1/run_summary.txt`.
 
+**Lever A replicated this and sharpened it (3 Sep 2026, `RESULTS_LOG` 2026-09-03).** The same
+experiment run with **four** pooled public tooth-box corpora (Tufts + DENTEX + Kaggle "dual" +
+UFBA-425) and per-corpus balanced sampling — an attempt to *fix* the domain dilution — reproduced
+the end-to-end gain almost exactly: **Δ +34.4 pp [+30.3, +38.5]** on the primary, 58.4% → 92.8%,
+with a 4th aspect-distorted corpus (UFBA-425) adding nothing (Arm 3C = Arm 4C = 92.8%). So the
+"the ceiling is detector domain, not numbering" decomposition is now a **replicated** result, not
+a single run. But the fix failed, and *how* it failed is itself a finding worth a sentence: the
+Tufts frozen-test box mAP fell **monotonically as domains were added** — Tufts-only 0.724 →
++DENTEX+Kaggle 0.585 → +UFBA 0.552 — and *further* than Lever 1's 0.647, because balanced sampling
+dropped Tufts to 33% of the training mix (Lever 1: 52%). A single-class tooth detector's held-out
+box mAP on any one corpus scales with that corpus's *training share*, so more corpora and more
+balance trade in-domain specialisation for cross-domain coverage, measurably and in one direction.
+The pipeline default detector is unchanged. `models/15_detector_multicorpus_leverA/run_summary.txt`.
+
 ---
 
 ### 8.17 Caries failure panel — what the 0.40 precision is actually made of

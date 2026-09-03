@@ -5910,3 +5910,87 @@ identical matcher to the Ningxia arm:
   wanted, email the FPCL authors (`chenbingzhi@m.scnu.edu.cn`) for the official split and re-run.
   (4) Lever 3 (caries gate v5 on CariesXrays-derived tooth labels) is now cheap to attempt with
   this detector for label generation, but stays below Track A.
+
+---
+
+## 2026-09-03 — Lever A: multi-corpus detector "done right" — ABLATION (primary +34 pp, Guard 2 fails harder than Lever 1)
+
+- **What was done:** Retrained the Stage-1 detector on **4 pooled public tooth-box corpora** —
+  Tufts + DENTEX `quadrant_enumeration` + Kaggle "dual-labeled" + UFBA-425 (CC BY 4.0) — with
+  **per-corpus balanced sampling** (each corpus's train list repeated to 700 images), to fix the
+  domain-dilution that made Lever 1 (`RESULTS_LOG` 2026-09-01h) an ablation. Three arms + a
+  same-day Control A re-measure. Pre-registered:
+  `outputs/lever_A_multicorpus_detector_v2/PRE_REGISTRATION.md` (committed `ac927da` / `cc76ab5`
+  before any GPU spend; §4 refined UFBA to an *additive* arm before training because its only
+  public form is a 640x640 square Roboflow export with a distorted tooth aspect).
+- **Dataset / config:** `data/detector_multicorpus_v2/` (gitignored) — 2,092 train images / 4
+  institutions, geometry gate median IoU 1.0000, on-box re-gate `GATE: GO`. Rotated corpora
+  capped at 1600 px / JPEG q85 (upload-size mitigation, 1.1 GB -> 467 MB; training imgsz is 1024
+  and YOLO letterboxes to ~1024 regardless, gate re-passed). YOLOv11l `detect`, config **byte-
+  identical** to `train_multicorpus_detector.py` / the canonical run (batch 32, imgsz 1024,
+  150 ep / patience 30, AdamW lr0 1e-3 cos_lr, seed 42, `mosaic=0`, `flipud=0`) — the ONLY
+  thing that varies between arms is the `train:` list. Arms: **controlB** = Tufts only (700);
+  **arm3c** = Tufts+DENTEX+Kaggle (2,100 balanced, the *primary*); **arm4c** = + UFBA (2,800).
+  JarvisLabs RTX PRO 6000 96 GB (instance 496005, IN1 — same GPU class as Lever 1, env torch
+  2.11+cu130 / ultralytics 8.4.127 identical), ~4.3 h wall, **~₹735** total (₹2,467 -> ₹1,732;
+  ~₹150 pause/resume + failed-upload overhead). Instance destroyed after download + sha256.
+- **Metrics — PRIMARY: FDI exact end-to-end on the 164 leak-free DENTEX images** (method=head,
+  head=models/10, conf 0.25 / NMS IoU 0.50 / imgsz 1024 / CCW rotation), paired cluster bootstrap
+  over images (10k, seed 42):
+
+  | arm | recall | of-detected | **end-to-end** | det/img | Δ e2e vs Control A |
+  |---|---|---|---|---|---|
+  | Control A (deployed seg) | 0.708 | 0.825 | **0.5844** | 22.0 | — *(reproduces the documented 58.3 % headline exactly)* |
+  | **Arm 3C** (Tufts+DENTEX+Kaggle) | 0.996 | 0.932 | **0.9284** | 27.5 | **+34.40 pp [+30.29, +38.54]** — excludes 0 |
+  | **Arm 4C** (+ UFBA-425) | 0.990 | 0.937 | **0.9284** | 27.6 | **+34.40 pp [+30.12, +38.71]** — excludes 0 |
+
+  **PRIMARY PASSES** for both arms (pre-reg bar: CI excludes 0 AND lower bound >= +5 pp; actual
+  lower bound +30 pp). This **replicates Lever 1's +34.9 pp [+30.8, +39.0]** with 3-4 corpora and
+  balanced sampling instead of 2 corpora naively concatenated. **UFBA-425 adds nothing to the
+  primary** — Arm 3C and Arm 4C give the identical 0.9284.
+- **Metrics — GUARD 2: Tufts frozen TEST box mAP@0.5** (measured on the GPU box on `best.pt`,
+  test = 150 frozen Tufts images). Pre-reg rule: Arm >= (Control B) - 4 pp = 0.7243 - 0.04 = **0.6843**.
+
+  | arm | Tufts test box mAP@0.5 |
+  |---|---|
+  | Control B (Tufts-only detect) | **0.7243** — matches Lever 1's Control B (0.724) to 3 dp; hardware/env parity confirmed |
+  | Arm 3C | **0.5852** — 0.099 below the floor -> **GUARD 2 FAILS** |
+  | Arm 4C | **0.5520** -> **GUARD 2 FAILS** |
+
+  The decline is **monotonic in corpus count**: Tufts-only 0.724 -> +DENTEX+Kaggle 0.585 ->
+  +UFBA 0.552. This is worse than Lever 1's arm (0.647). **The pre-registered hypothesis was
+  backwards:** balanced sampling put Tufts at 33 % of the mix (vs Lever 1's 52 %), and a corpus's
+  own held-out box mAP scales with its *training share*, not with how balanced the mix is. More
+  domains + more balance = MORE dilution of any single domain.
+- **Metrics — GUARD 1** (pooled external caries lesion agreement, Ningxia x4 + CariesXrays-1500,
+  frozen gate v3.0, each arm's detector swapped in): **RUNNING 3 Sep** — numbers to be added to
+  `model_metrics.md`. Does **not** change the verdict: adoption needs primary AND BOTH guards,
+  and Guard 2 already failed.
+- **VERDICT (pre-registered rule, bar NOT moved): ABLATION.** Primary passes overwhelmingly,
+  Guard 2 fails. Pipeline default detector stays `models/11_yolo_seg_tufts_r1`
+  (`tooth-detector-seg-tufts-1024-v1.0`). Same disposition as Lever 1, Stage-2 head v3 and caries
+  gate v4.
+- **Key decision or insight:** Lever A did **not** lift the paper's headline in an adoptable way
+  — and the deployed 58.3 % is correctly unchanged. What it *did* give the paper is stronger:
+  **(1)** the "58 % ceiling is detector *domain*, not numbering" decomposition now **replicates**
+  across corpus configurations (Lever 1 + Lever A, both +34-35 pp in-domain) — a robust result,
+  not a one-off. **(2)** A clean 3-point curve for the **in-domain / cross-domain tradeoff of a
+  single-class tooth detector**: 0.724 -> 0.585 -> 0.552 on Tufts test as domains are added.
+  **(3)** UFBA-425 (aspect-distorted) is inert for the DENTEX-domain metric and only adds Tufts
+  dilution — the pre-registration correctly kept it additive-only. The remaining shot at an
+  adoptable positive headline number is **Lever B** (lesion-detection caries path).
+- **Bug caught and fixed (worth recording):** the first primary-eval pass used a bash-4
+  `declare -A` associative array in a script run under macOS bash 3.2 -> all 3 arms silently ran
+  with `arm4c_best.pt`, giving an identical (and real, but mislabelled) 0.9284 for all three. Re-
+  run with explicit per-arm invocations; Control A then reproduced 0.5844 exactly, confirming the
+  env and script are sound. The three `stage2_rows_head.json` now have distinct sha256.
+- **Source:** `models/15_detector_multicorpus_leverA/run_summary.txt` (+ `{controlB,arm3c,arm4c}
+  _best.pt` sha256 there; 51 MB each, gitignored, local disk only, Drive TBD), `*_results.csv`,
+  `leverA_train.log`; `outputs/lever_A_multicorpus_detector_v2/{controlA,arm3c,arm4c}/stage2_*.json`,
+  `{arm3c,arm4c}/primary_bootstrap.json`; `scripts/yolo/{build_multicorpus_detector_v2_dataset,
+  train_multicorpus_detector_v2}.py`; `scripts/eval/score_leverA_arm.py`;
+  `outputs/lever_A_multicorpus_detector_v2/PRE_REGISTRATION.md`.
+- **Follow-ups:** (1) finish Guard 1, add to `model_metrics.md` + `PAPER_MATERIAL.md` §8.10.
+  (2) Fold the replication + the in/out-domain tradeoff curve into `PAPER_MATERIAL.md` §8.10 and
+  the manuscript's Stage-2 section. (3) `models/15/*.pt` not on Drive (same gap as `models/11`,
+  `models/13`, `models/14`). (4) **Lever B** next.

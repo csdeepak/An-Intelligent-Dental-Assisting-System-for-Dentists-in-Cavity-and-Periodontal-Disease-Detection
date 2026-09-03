@@ -1,0 +1,48 @@
+{
+  "label": "arm4c",
+  "n_images": 164,
+  "n_gt_teeth": 936,
+  "n_boot": 10000,
+  "seed": 42,
+  "control": {
+    "e2e": 0.5844,
+    "recall": 0.7083,
+    "of_detected": 0.825
+  },
+  "arm": {
+    "e2e": 0.9284,
+    "recall": 0.9904,
+    "of_detected": 0.9374
+  },
+  "deltas": {
+    "e2e": {
+      "point_pp": 34.4,
+      "ci95_pp": [
+        30.12,
+        38.71
+      ],
+      "frac_resamples_le_0": 0.0,
+      "verdict": "excludes 0"
+    },
+    "recall": {
+      "point_pp": 28.21,
+      "ci95_pp": [
+        24.27,
+        32.35
+      ],
+      "frac_resamples_le_0": 0.0,
+      "verdict": "excludes 0"
+    },
+    "of_detected": {
+      "point_pp": 11.24,
+      "ci95_pp": [
+        8.11,
+        14.56
+      ],
+      "frac_resamples_le_0": 0.0,
+      "verdict": "excludes 0"
+    }
+  },
+  "guard_map50": 0.552,
+  "verdict": "ABLATION -- primary significant but guard FAILED (mAP@0.5 0.552 < 0.75)"
+}
