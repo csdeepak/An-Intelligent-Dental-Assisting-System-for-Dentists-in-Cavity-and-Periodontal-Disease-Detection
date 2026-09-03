@@ -299,11 +299,11 @@ checkpoints. Every one is version-tagged and SHA-256 pinned, and
 
 | Stage | Model | Directory | Params | Version tag | In git? |
 |---|---|---|---|---|---|
-| 1 | YOLOv11l-seg | [`models/11_yolo_seg_tufts_r1/`](models/11_yolo_seg_tufts_r1/) | 27,617,459 | `tooth-detector-seg-tufts-1024-v1.0` | ❌ Drive |
+| 1 | YOLOv11l-seg | [`models/11_yolo_seg_tufts_r1/`](models/11_yolo_seg_tufts_r1/) | 27,617,459 | `tooth-detector-seg-tufts-1024-v1.0` | ✅ *(committed 3 Sep, 53 MB)* |
 | 1 | YOLOv11l bbox *(superseded)* | [`models/06_yolo_detection_a100_run/`](models/06_yolo_detection_a100_run/) | 25.3 M | `tooth-detector-a100-1024-v1.0` | ❌ Drive |
 | 2 | ResNet18 + 4 positional feats | [`models/10_fdi_head_dentex_tufts_v2/`](models/10_fdi_head_dentex_tufts_v2/) | 11,197,536 | `fdi-enumeration-head-resnet18-v2.0` | ✅ |
 | 2 | FDI head v1.0 *(superseded)* | [`models/08_fdi_enumeration_head/`](models/08_fdi_enumeration_head/) | 11.2 M | `fdi-enumeration-head-resnet18-v1.0` | ✅ |
-| 3a | ResNet18 caries gate | [`models/09_caries_gate_v3/`](models/09_caries_gate_v3/) | 11,187,158 | `caries-gate-resnet18-v3.0` | ❌ Drive |
+| 3a | ResNet18 caries gate | [`models/09_caries_gate_v3/`](models/09_caries_gate_v3/) | 11,187,158 | `caries-gate-resnet18-v3.0` | ✅ *(committed 3 Sep, 43 MB)* |
 | 3b | ResNet18 caries severity | [`models/07_caries_cascade/`](models/07_caries_cascade/) | 11,187,158 | `caries-cascade-resnet18-v1.0` | ✅ |
 | 4a | ResNet18 bone-loss gate | [`models/03_bone_loss_model_training_notebook_models/`](models/03_bone_loss_model_training_notebook_models/) | 11,187,158 | `bone-loss-binary-resnet18-v1.0` | ✅ |
 | 4b | ResNet18 bone-loss severity | [`models/04_bone_loss_severity_notebook_models/`](models/04_bone_loss_severity_notebook_models/) | 11,187,671 | `bone-loss-severity-resnet18-v1.0` | ✅ |
@@ -520,21 +520,21 @@ pip install -r requirements.txt
 
 ### Fetching the checkpoints
 
-Everything needed to run the pipeline is committed **except three checkpoints over 50 MB**
-([`CLAUDE.md`](CLAUDE.md) rule 4). Get them from [`docs/EXTERNAL_DRIVE.md`](docs/EXTERNAL_DRIVE.md):
+**As of 3 Sep 2026 `git clone` is enough to run the pipeline** — the three `DEF_*` checkpoints
+(`models/11/best.pt` 53 MB, `models/09/caries_gate_v3.pth` 43 MB, `models/10/…head` 43 MB) are
+committed via `.gitignore` exceptions (private repo; `models/11` is 3 MB over the
+[`CLAUDE.md`](CLAUDE.md) rule-4 line — see [`transfer.md`](transfer.md) §4, reversible).
+
+Still on Drive only ([`docs/EXTERNAL_DRIVE.md`](docs/EXTERNAL_DRIVE.md)):
 
 ```
-models/11_yolo_seg_tufts_r1/best.pt            ← Stage-1 DEFAULT
-models/09_caries_gate_v3/caries_gate_v3.pth    ← Stage-3 DEFAULT
-models/06_yolo_detection_a100_run/best.pt      ← superseded detector, for the fallback below
+models/06_yolo_detection_a100_run/best.pt      ← superseded detector, only for pre-27-Aug reproduction
+models/13, 14, 15 lever weights               ← ablation artefacts; SHA-256 in each run_summary.txt
 ```
 
-> ⚠️ **As of 27 Aug 2026 the Stage-1 default checkpoint has not been uploaded to Drive yet**, so a
-> fresh clone cannot run the pipeline at full accuracy until it is. That is a manual, account-owner
-> action. Until then, either work on a machine that already holds
-> `models/11_yolo_seg_tufts_r1/best.pt`, or fall back with
-> `--detector models/06_yolo_detection_a100_run/best.pt` — which scores **46.3%** end-to-end at
-> Stage 2, not 58.3%.
+> ⚠️ **`models/14_cariesxrays_lever2/weights/best.pt` (Lever B's B-single arm) is currently
+> missing from every machine** — see
+> [`outputs/lever_B_lesion_caries_path/WINDOWS_SETUP.md`](outputs/lever_B_lesion_caries_path/WINDOWS_SETUP.md) §4.
 
 ### Verify the install
 

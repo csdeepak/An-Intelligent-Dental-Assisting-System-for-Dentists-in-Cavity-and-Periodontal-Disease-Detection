@@ -90,7 +90,11 @@ deliberately outside the working tree so it can never be picked up by `git add`.
   next to large untracked data directories.
 - **No large binaries in commits.** Model weights above ~50 MB stay on local disk and in
   the archive, and are `.gitignore`d — record where they live in the relevant
-  `models/<NN>_<name>/run_summary.txt` instead.
+  `models/<NN>_<name>/run_summary.txt` instead. *(Exception, 3 Sep 2026: the three `DEF_*`
+  checkpoints `models/{09,10,11}` — 43/43/53 MB — are committed via `.gitignore` exceptions so
+  the Windows collaborator's clone runs the pipeline without a Drive round-trip. Private repo;
+  `transfer.md` §4 records it and how to undo. This does not open the door to committing other
+  weights — the lever weights, `models/06`, and anything new stay out.)*
 - **No new file paths containing spaces.** `notebooks/Bone Loss/` was renamed to
   `notebooks/bone_loss/` for exactly this reason.
 - **Do not "fix" a stale status table by guessing.** Verify against notebook outputs and

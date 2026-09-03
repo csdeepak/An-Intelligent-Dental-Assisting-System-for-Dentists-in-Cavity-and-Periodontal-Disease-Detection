@@ -12,38 +12,47 @@ shot at an *adoptable* positive headline number. Every outcome (wins / floods / 
 
 ---
 
-## Where this sits in the order of work (`transfer.md` §3)
+## Ownership + order of work (`transfer.md` §1/§3)
 
-| # | task | owner | GPU | needs |
-|---|---|---|---|---|
-| **A** | **Phase 0** — finish the Tufts Guard-2 diagnosis write-up (`outputs/lever_A_multicorpus_detector_v2/TUFTS_GUARD2_DIAGNOSIS.md` §3) | **the user**, on their Mac — everything it needs is already there | no | `data/detector_multicorpus_v2/` (514 MB, gitignored) + `models/15/*.pt` (local-only) |
-| **B** | freeze the Lever B pre-reg bars (`PRE_REGISTRATION.md` §4–§6, one review round) | user / mentor — async, can overlap A | no | — |
-| **C** | put the weights + data on Drive (see §0) | user (account owner) | no | — |
-| **D** | **Lever B** — this document | **the friend** | only the B-pooled run | C done, B done |
+| # | task | owner + machine | GPU |
+|---|---|---|---|
+| **A** | **Phase 0** — finish the Tufts Guard-2 diagnosis write-up (`outputs/lever_A_multicorpus_detector_v2/TUFTS_GUARD2_DIAGNOSIS.md` §3) → `PAPER_MATERIAL.md` §8.10 | **the user, on the Mac** — has the 514 MB `data/detector_multicorpus_v2/` + `models/15/*.pt` locally | no |
+| **A2** | **Lever A2** — the conditional multi-corpus detector retry (`TUFTS_GUARD2_DIAGNOSIS.md` §3 Phase 1 gate + Phase 2) | **the user, on the Mac** — only if Lever B yields no adoptable headline | yes, later |
+| **B** | freeze the Lever B pre-reg bars (`PRE_REGISTRATION.md` §4–§6, one review round) | user / mentor — async | no |
+| **C** | get the datasets + `models/14` to the friend (see `WINDOWS_SETUP.md`) | user (account owner) | no |
+| **D** | **Lever B** — this document | **the friend, on Windows** — `WINDOWS_SETUP.md` first | only the B-pooled run |
 
-**Phase 0 is first, but it is the user's** — it is unblocked on their Mac and closes an open
-loop, whereas on a fresh laptop it needs the same 514 MB dataset + checkpoints as everything
-else. Do **not** wait for Phase 0 to start Lever B once C + B are done; they are parallel.
+**A/A2 (user, Mac) and D (friend, Windows) run in parallel — D is not gated on A.** The Lever B
+bars (B) do gate D's *training*; data prep can start once §0 files are in place.
+
+**Windows friend: read [`WINDOWS_SETUP.md`](WINDOWS_SETUP.md) first.** Three checkpoints
+(`models/09`, `10`, `11`) are now committed to git — a `git pull` brings them in. The datasets
+and `models/14` are still separate (they cannot go in git — 25 GB + the Tufts licence).
 
 ---
 
-## 0 · What a fresh laptop is missing (task C)
+## 0 · Files — what's in git now, and what still isn't
 
-This repo tracks **code, docs, results, and small (<50 MB) checkpoints only.** Obtain, outside git:
+**Committed to git as of 3 Sep 2026** (a `git pull` brings them — `WINDOWS_SETUP.md` §1):
+
+| file | size | for |
+|---|---|---|
+| `models/10_fdi_head_dentex_tufts_v2/enumeration_head_best.pth` | 43 MB | FDI head |
+| `models/11_yolo_seg_tufts_r1/best.pt` | 53 MB | `DEF_DETECTOR` — lesion → tooth mapping at eval |
+| `models/09_caries_gate_v3/caries_gate_v3.pth` | 43 MB | gate-v3.0 comparator |
+
+**Still outside git — cannot go in (25 GB of data + the Tufts licence forbids redistribution):**
 
 | need | where | for |
 |---|---|---|
-| **DENTEX** dataset | Drive (`docs/EXTERNAL_DRIVE.md`, "DENTEX" folder) → `~/Downloads/Capstone/DENTEX/` | `training_data/quadrant-enumeration-disease/train_quadrant_enumeration_disease.json` (B-pooled train) + `disease/` (164-image DENTEX eval) |
-| **CariesXrays** dataset | Drive / original AAAI 2024 release → `~/Downloads/Capstone/CariesXrays_Dataset/` | 6,000 images — the primary training corpus + the seed-43 eval draw |
-| **Ningxia** dataset | user only (restrictive licence, local-only, **never trained/tuned on**) → `~/Downloads/Capstone/ningxia_local/` | one of the 3 eval cohorts — needed at Step 5 only |
-| `models/14_cariesxrays_lever2/best.pt` | **local-only on the user's Mac — NOT on Drive.** Ask the user to upload it (`docs/EXTERNAL_DRIVE.md`). | **this is the B-single arm** — Step 3 cannot run without it |
-| `models/11_yolo_seg_tufts_r1/best.pt` | **NOT on Drive** (`docs/EXTERNAL_DRIVE.md` §"Model checkpoints") | the pipeline default detector — maps lesions → teeth at eval (Step 5) |
-| `models/09_caries_gate_v3/caries_gate_v3.pth` | DENTEX drive, `capstone_checkpoints/` (`docs/EXTERNAL_DRIVE.md`) | the gate-v3.0 comparator (Step 5) |
-| `models/10_fdi_head_dentex_tufts_v2/enumeration_head_best.pth` | **tracked in git (43 MB)** ✅ | already present |
+| **CariesXrays** raw | Drive / AAAI 2024 release → `~/Downloads/Capstone/CariesXrays_Dataset/` | B-pooled training corpus + the seed-43 eval draw. `data/cariesxrays_det/` (the built split) regenerates from this |
+| **DENTEX** `training_data/` + `disease/` | already on the 27-Aug Windows machine, else the DENTEX Drive / `scripts/dentex/fetch_dentex_subsets.py` → `~/Downloads/Capstone/DENTEX/` | `quadrant-enumeration-disease/…disease.json` (B-pooled boxes) + `disease/` (164-image eval) |
+| **Ningxia** | **user only** (restrictive licence) | 3rd eval cohort. If unavailable to the friend → run 2 of 3, note Ningxia pending (`WINDOWS_SETUP.md` §2) |
+| ⚠️ `models/14_cariesxrays_lever2/weights/best.pt` | **missing everywhere** — see `WINDOWS_SETUP.md` §4 | the **B-single** arm — locate, retrain, or drop |
 
-**Python:** an env with `torch` + `ultralytics==8.4.127` (the project pins this exact version).
-On the user's Mac: `/opt/anaconda3/bin/python3`. **GPU** only for the B-pooled training run
-(~₹300, A100-40GB) — all data prep and all eval is CPU.
+**Python:** `torch` + `ultralytics` (the Windows env's 8.4.130 is fine for prep + eval; `pip
+install ultralytics==8.4.127` before the B-pooled **training** run only). **GPU** only for
+B-pooled (~₹300, A100-40GB) — all data prep and all eval is CPU.
 
 ---
 
@@ -96,8 +105,9 @@ the §8.25 draw" shortcut is visibly against the pre-reg.
 - ≥ 12 rendered samples per source, boxes on lesions, eyeballed.
 
 ### Step 3 — B-single (zero GPU)
-Re-use `models/14_cariesxrays_lever2/best.pt` **as-is**, no training. Run it frozen through the
-eval (Step 5).
+Re-use `models/14_cariesxrays_lever2/weights/best.pt` **as-is**, no training. Run it frozen
+through the eval (Step 5). **⚠️ this file is currently missing** — resolve per `WINDOWS_SETUP.md`
+§4 (locate / retrain / drop B-single) before this step.
 
 ### Step 4 — B-pooled (~₹300, one GPU run)
 One YOLOv11l `detect` run, ~5,500 images, 1024 px, 120/25 epochs (Lever 2's proven budget) on an

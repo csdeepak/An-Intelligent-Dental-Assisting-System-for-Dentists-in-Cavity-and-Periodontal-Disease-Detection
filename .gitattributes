@@ -1,0 +1,27 @@
+# This repository manages line endings BY HAND. A handful of files are CRLF
+# (transfer.md, docs/results/*.md, models/README.md, scripts/eval/README.md,
+# .gitignore) and everything else is LF — see transfer.md §7 and CLAUDE.md.
+#
+# `* -text` disables ALL of git's automatic end-of-line conversion, so a clone on
+# Windows with core.autocrlf=true (the Git-for-Windows default) cannot silently
+# flip every LF file to CRLF on checkout and then commit the flip back. Attributes
+# win over config, so this protects the repo regardless of the friend's git setup.
+* -text
+
+# Binary blobs: no EOL handling, and no attempt to text-diff them.
+*.pt     binary
+*.pth    binary
+*.onnx   binary
+*.pkl    binary
+*.tflite binary
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.pdf    binary
+*.zip    binary
+*.gz     binary
+*.tar    binary
+*.parquet binary
+*.npy    binary
+*.npz    binary

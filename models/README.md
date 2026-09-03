@@ -3,11 +3,14 @@
 **Last verified: 26 August 2026 (Stage-2 head v2.0 added).** Every claim below was checked
 against the working tree, not carried over from a previous version of this file.
 
-**Cloned this repo and `run_inference.py` says a weight is missing?** Only two checkpoints
-(`11_yolo_seg_tufts_r1/best.pt`, `06_yolo_detection_a100_run/best.pt`, `09_caries_gate_v3/caries_gate_v3.pth`) are not in git
-and live on Google Drive instead — see `../docs/EXTERNAL_DRIVE.md` for the links and exact
-restore steps. **Everything else here, including the Stage-2 head the pipeline currently
-loads, is already tracked in git — `git clone` (or `git pull`) is enough for it.**
+**Cloned this repo and `run_inference.py` says a weight is missing?** As of **3 Sep 2026** the
+three checkpoints `run_inference.py` needs — `11_yolo_seg_tufts_r1/best.pt` (53 MB),
+`09_caries_gate_v3/caries_gate_v3.pth` (43 MB) and `10_.../enumeration_head_best.pth` — are all
+**committed to git** (`.gitignore` exceptions + `.gitattributes`), so `git clone` / `git pull`
+is enough to run the pipeline. Still Drive/local-only: `06_yolo_detection_a100_run/best.pt`
+(superseded, only for pre-27-Aug reproduction) and the lever weights (`13`, `14`, `15`). ⚠️
+**`14_cariesxrays_lever2/weights/best.pt` is currently missing from every machine** —
+`outputs/lever_B_lesion_caries_path/WINDOWS_SETUP.md` §4.
 
 ## What is actually here
 
@@ -16,9 +19,9 @@ One numbered directory per trained stage, each with a `*summary*.txt` beside the
 | Directory | Stage | Weights | Tracked in git? |
 |---|---|---|---|
 | `06_yolo_detection_a100_run/` | Stage 1 — tooth detection, YOLOv11l **bbox**. **Superseded as the pipeline default 27 Aug 2026**; retained and hash-pinned, since every number published before that date was measured on it. | `best.pt`, `last.pt` (49 MB each) | **No** — `.gitignore` `models/**/*.pt`. Location + SHA-256 in `run_summary.txt`. |
-| `11_yolo_seg_tufts_r1/` | Stage 1 — tooth detection, YOLOv11l-**seg**. **Current pipeline default (`DEF_DETECTOR`), adopted 27 Aug 2026.** Adopted for its box gain (+2.76 pts) **despite MISSING the pre-registered mask bar** — used for BOXES ONLY, R2 stays unwired. | `best.pt` (55.8 MB) | **No** — gitignored. SHA-256 in `run_summary.txt`; **not yet on Drive**. |
+| `11_yolo_seg_tufts_r1/` | Stage 1 — tooth detection, YOLOv11l-**seg**. **Current pipeline default (`DEF_DETECTOR`), adopted 27 Aug 2026.** Adopted for its box gain (+2.76 pts) **despite MISSING the pre-registered mask bar** — used for BOXES ONLY, R2 stays unwired. | `best.pt` (53 MB) | **Yes — committed 3 Sep 2026** (`.gitignore` exception; private repo; SHA-256 `271316c4…` in `run_summary.txt`). |
 | `07_caries_cascade/` | Stage 3 — caries cascade, ResNet18 ×2 | 5 `.pth` (43 MB each) | **Partly** — the two bundles are tracked; the three lineage checkpoints are not. See below. |
-| `09_caries_gate_v3/` | Stage 3 — **the gate the pipeline actually uses**, retrained with a real negative class (5,366 healthy teeth) | 1 `.pth` (43 MB) | Weights gitignored; summary + reports tracked |
+| `09_caries_gate_v3/` | Stage 3 — **the gate the pipeline actually uses**, retrained with a real negative class (5,366 healthy teeth) | 1 `.pth` (43 MB) | **Committed 3 Sep 2026** (same size as the tracked `10` head; SHA-256 `8f4a99ba…`). `isotonic_calibrator.json` + reports were always tracked. |
 | `03_bone_loss_model_training_notebook_models/` | Stage 4a — bone-loss binary | `bone_loss_resnet18_{best,final}.pth` | **Yes** |
 | `04_bone_loss_severity_notebook_models/` | Stage 4b — bone-loss severity | `bone_loss_severity_resnet18_best.pth` | **Yes** |
 | `05_cej_estimation_v2_models/` | Exploratory CEJ (negative result, not in the pipeline) | summary only | n/a |
@@ -26,7 +29,7 @@ One numbered directory per trained stage, each with a `*summary*.txt` beside the
 | `10_fdi_head_dentex_tufts_v2/` | Stage 2 — FDI head **v2.0** (DENTEX + Tufts). **Current pipeline default (`DEF_FDI_HEAD`).** Adopted for cross-domain robustness, not in-domain accuracy — see below. | `enumeration_head_best.pth` (43 MB) | **Yes** |
 | `12_fdi_head_v3_3corpus/` + `12a_fdi_head_v2_control_rebuilt/` | Stage 2 — FDI head **v3** (DENTEX + Tufts + Kaggle) and its same-day control. **ABLATION, not the default** — `RESULTS_LOG.md` 2026-08-28c. | `enumeration_head_best.pth` (43 MB each) | **Yes** — both tracked, same as the 08/10 heads. SHA-256 also in each `run_summary.txt`. *(12's was committed with the run in `21ea05b`; 12a's was added 2 Sep — a brief `git rm --cached` of 12's that day was reverted the same day so no collaborator loses the file on pull.)* |
 | `13_detector_multicorpus_lever1/` | Stage 1 — **Lever 1** multi-corpus detector retrain (Tufts + DENTEX). Two arms + a same-day control. **ABLATION, not the default** — primary passes (FDI end-to-end 0.584 → 0.934 on DENTEX) but the pre-registered Tufts guard fails (box mAP 0.810 → 0.647). `run_summary.txt`, `RESULTS_LOG.md` 2026-09-01h. | `controlB_tuftsonly_best.pt`, `arm_multicorpus_best.pt` (49 MB each) | **No** — gitignored; SHA-256 in `run_summary.txt`, local disk only |
-| `14_cariesxrays_lever2/` | **Lever 2** — standalone caries-**lesion** detector (YOLOv11l) on the CariesXrays benchmark (Chen et al., AAAI 2024). **BENCHMARK ROW, not a pipeline component** — COCO AP 0.482 / AP50 0.845 on this project's own seed-42 split (the official FPCL split is not public), level with FPCL. `run_summary.txt`, `RESULTS_LOG.md` 2026-09-02b. | `best.pt`, `last.pt` (51 MB each) | **No** — gitignored; SHA-256 in `run_summary.txt`, local disk only. `run_summary.txt` / `results.csv` / `args.yaml` **are** tracked; the `.png` curves and `val_batch*` renders are `*.png`/`*.jpg`-ignored like every other `models/` dir. |
+| `14_cariesxrays_lever2/` | **Lever 2** — standalone caries-**lesion** detector (YOLOv11l) on the CariesXrays benchmark (Chen et al., AAAI 2024). **BENCHMARK ROW, not a pipeline component** — COCO AP 0.482 / AP50 0.845 on this project's own seed-42 split (the official FPCL split is not public), level with FPCL. **It is also Lever B's B-single arm.** `run_summary.txt`, `RESULTS_LOG.md` 2026-09-02b. | `best.pt`, `last.pt` (51 MB each) | **No** — gitignored; ⚠️ **`weights/best.pt` (sha256 `278d1e00…`) is currently MISSING from every machine** (`outputs/lever_B_lesion_caries_path/WINDOWS_SETUP.md` §4). SHA-256 in `run_summary.txt`. `run_summary.txt` / `results.csv` / `args.yaml` **are** tracked; the `.png` curves and `val_batch*` renders are `*.png`/`*.jpg`-ignored like every other `models/` dir. |
 | `15_detector_multicorpus_leverA/` | Stage 1 — **Lever A** multi-corpus detector, "done right" (4 corpora: Tufts + DENTEX `quadrant_enumeration` + Kaggle "dual" + UFBA-425, per-corpus balanced). 3 arms (`controlB` / `arm3c` / `arm4c`). **ABLATION, not the default** (`RESULTS_LOG.md` 2026-09-03 + 03b). Pre-registered verdict: **PRIMARY passes** (FDI e2e on DENTEX 0.584 → 0.928, Δ +34.4 pp — replicates Lever 1), **GUARD 1 passes** (pooled external caries agreement +9.1 pp; Ningxia 0.41 → 0.60, CariesXrays 0.31 → 0.37), **GUARD 2 fails** (Tufts frozen test box mAP 0.724 → 0.585 / 0.552). 2 of 3 → ablation. The tradeoff is **bidirectional**: worse on Tufts, better on the other 5 of 6 cohorts. | `controlB_best.pt`, `arm3c_best.pt`, `arm4c_best.pt` (51 MB each) | **No** — gitignored; SHA-256 in `run_summary.txt`, local disk only. `run_summary.txt` / `*_results.csv` / `leverA_train.log` / `repro/` (as-run scripts + a verify-every-number cheat sheet) / `repro/diagnostics/` (the Tufts Guard-2 post-mortem, `RESULTS_LOG` 2026-09-03c) **are** tracked. |
 
 > **Adopted vs ablation:** dirs `06`–`11` are pipeline components (current or hash-pinned

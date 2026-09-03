@@ -57,7 +57,7 @@ every `DEF_*` default in that script (re-verified 26 Aug 2026, after the Stage-2
 swap) against `git ls-files`. **Only the two checkpoints below actually block inference — that
 has not changed with the v2.0 adoption, since v2.0 is 43 MB and already tracked in git.**
 
-**Already in git — nothing to do:**
+**Already in git — nothing to do** (updated 3 Sep 2026 — `models/09` + `models/11` added):
 
 | File | Loaded as |
 |---|---|
@@ -65,24 +65,27 @@ has not changed with the v2.0 adoption, since v2.0 is 43 MB and already tracked 
 | `models/07_caries_cascade/phase2_final_bundle.pth` | `DEF_CARIES_SEVERITY` |
 | `models/08_fdi_enumeration_head/enumeration_head_best.pth` | Stage-2 head **v1.0** — superseded 26 Aug but retained and hash-pinned |
 | `models/10_fdi_head_dentex_tufts_v2/enumeration_head_best.pth` | `DEF_FDI_HEAD` (**v2.0**, DENTEX+Tufts) |
+| **`models/11_yolo_seg_tufts_r1/best.pt`** (53 MB) | **`DEF_DETECTOR`** — committed 3 Sep via a `.gitignore` exception (private repo) for the Windows handoff |
+| **`models/09_caries_gate_v3/caries_gate_v3.pth`** (43 MB) | **`DEF_CARIES_GATE`** — committed 3 Sep, same size as the `10` head |
 | `models/03_bone_loss_model_training_notebook_models/bone_loss_resnet18_best.pth` | `DEF_BONE_LOSS` |
 | `models/04_bone_loss_severity_notebook_models/bone_loss_severity_resnet18_best.pth` | `DEF_BONE_SEVERITY` |
 
-**Missing after a fresh clone — these two, and only these two, actually block inference:**
+**`git clone` now runs `run_inference.py` with no download.** Still outside git:
 
-| File | Size | Trained on | Loaded as |
-|---|---|---|---|
-| **`models/11_yolo_seg_tufts_r1/best.pt`** | **55.8 MB** | **Tufts** | **`DEF_DETECTOR` (since 27 Aug 2026)** |
-| `models/06_yolo_detection_a100_run/best.pt` | 49 MB | Tufts | superseded as `DEF_DETECTOR`; still needed to reproduce every pre-27-Aug number |
-| `models/09_caries_gate_v3/caries_gate_v3.pth` | 43 MB | DENTEX | `DEF_CARIES_GATE` |
+| File | Size | Why not in git |
+|---|---|---|
+| `models/06_yolo_detection_a100_run/best.pt` | 49 MB | superseded as `DEF_DETECTOR`; only for reproducing pre-27-Aug numbers |
+| `models/13_detector_multicorpus_lever1/*.pt`, `models/15_.../*.pt` | ~51 MB each | Lever 1 / A ablation weights; SHA-256 in each `run_summary.txt` |
+| ⚠️ `models/14_cariesxrays_lever2/weights/best.pt` | 51 MB | Lever 2 / **Lever B's B-single arm** — **currently MISSING from every machine** (sha256 `278d1e00…`); `outputs/lever_B_lesion_caries_path/WINDOWS_SETUP.md` §4 |
 
 > **⚠️ Changed 27 Aug 2026 — a fresh clone now needs THREE files, not two.** The Stage-1
 > detector was swapped to the YOLOv11l-seg model (`RESULTS_LOG.md` 2026-08-27d). Both detectors
 > are listed because the new one is required to *run* the pipeline and the old one is required
 > to *reproduce* anything published before that date.
 >
-> **The seg checkpoint has NOT been uploaded to Drive yet.** Until someone does, a fresh clone
-> cannot run `run_inference.py` even after following the steps below.
+> **RESOLVED 3 Sep 2026 — `models/11` is now committed to git.** A fresh clone runs
+> `run_inference.py` with no download. The upload steps below are kept for a Drive *backup*
+> and for `models/06`.
 >
 > **This is a manual step and cannot be automated from a Claude Code session** — confirmed
 > twice now (25 Aug for the first two checkpoints, 27 Aug for this one). The reasons are

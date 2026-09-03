@@ -65,6 +65,10 @@ models/checkpoints/
 # YOLO detector weights are ~51 MB each (GitHub warns above 50 MB): kept on local
 # disk and in _repo_archive/, never committed. See models/06_*/run_summary.txt.
 models/**/*.pt
+# EXCEPTION (3 Sep 2026): the deployed Stage-1 detector is committed so a Windows
+# clone can run Lever B / the pipeline without a Drive round-trip. 53 MB, private
+# repo, sha256 pinned in models/11_.../run_summary.txt + docs/EXTERNAL_DRIVE.md.
+!models/11_yolo_seg_tufts_r1/best.pt
 
 # --- Training outputs ---
 # Ignored by default (these are regenerable evaluation artefacts), EXCEPT the specific runs
@@ -266,8 +270,10 @@ worklist.html
 # Ultralytics pretrained weights downloaded on demand (re-downloadable)
 yolo11l-seg.pt
 
-# v3 caries gate weights (43 MB) — summary and reports are tracked
-models/09_caries_gate_v3/*.pth
+# v3 caries gate weights (43 MB): COMMITTED as of 3 Sep 2026 — same size as the
+# already-tracked models/10 head, and a Lever B comparator. isotonic_calibrator.json
+# and the reports were always tracked; now the .pth is too.
+!models/09_caries_gate_v3/caries_gate_v3.pth
 
 data/dentex/crops_v3_phase1/
 # v4 caries crops — same contract, plus the 445 disease-only images (RESULTS_LOG 2026-08-31).
