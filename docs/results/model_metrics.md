@@ -173,9 +173,9 @@ scenario as the cross-domain 58.3% and must not be quoted as if it were.
 
 Lever 1's fix attempt: **4 corpora** (Tufts + DENTEX `quadrant_enumeration` + Kaggle "dual" +
 UFBA-425) with **per-corpus balanced sampling**. `models/15_detector_multicorpus_leverA/`,
-`RESULTS_LOG` 2026-09-03. Primary = FDI e2e on the 164 leak-free DENTEX images; **Guard 2** =
-Tufts frozen **test** box mAP@0.5 ≥ (Control B − 4 pp); **Guard 1** (external caries agreement)
-running, does not affect the verdict.
+`RESULTS_LOG` 2026-09-03 + 03b. Primary = FDI e2e on the 164 leak-free DENTEX images;
+**Guard 1** = pooled external caries agreement (Ningxia + CariesXrays, frozen gate) Δ ≥ −2 pp;
+**Guard 2** = Tufts frozen **test** box mAP@0.5 ≥ (Control B − 4 pp). Adopt iff all three.
 
 | arm | detector train set | recall | of-detected | **end-to-end** | Tufts test box mAP@0.5 |
 |---|---|---|---|---|---|
