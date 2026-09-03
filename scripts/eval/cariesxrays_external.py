@@ -116,6 +116,9 @@ def main():
                          "single acquisition batch rather than a representative draw.")
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--decision", choices=["pipeline", "constant-molars"], default="pipeline")
+    ap.add_argument("--detector", type=Path, default=None,
+                    help="override the Stage-1 detector (Lever A Guard 1: swap in an arm's best.pt, "
+                         "everything else frozen). Defaults to the pipeline default.")
     ap.add_argument("--tag", default=None, help="suffix for the output directory")
     args = ap.parse_args()
 
@@ -130,7 +133,9 @@ def main():
     from ultralytics import YOLO
 
     device = "cpu"
-    det = YOLO(str(DEF_DETECTOR))
+    det_path = args.detector or DEF_DETECTOR
+    print(f"detector: {det_path}")
+    det = YOLO(str(det_path))
     head = load_head(DEF_FDI_HEAD, device)
     gate, gate_cls = load_classifier(DEF_CARIES_GATE, 2, device)
     csev, csev_cls = load_classifier(DEF_CARIES_SEVERITY, 2, device)
