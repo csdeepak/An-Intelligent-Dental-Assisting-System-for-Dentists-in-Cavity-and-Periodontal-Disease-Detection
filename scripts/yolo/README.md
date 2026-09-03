@@ -7,10 +7,10 @@ sit at the repo root (relocated to `_repo_archive/datasets_workspace/`, a siblin
 — nothing was deleted). Two more were added in August 2026 for the **R1 bbox → instance-mask
 upgrade** (`docs/research/MASTER_PLAN_2026H2.md` §3 R1); two more on 1 Sep for **Lever 1 / B1**,
 the multi-corpus detector retrain; two more on 2 Sep for **Lever 2**, a standalone
-caries-**lesion** detector on the CariesXrays benchmark; and — same day, session 3c —
-`build_multicorpus_detector_v2_dataset.py` for **Lever A**, the multi-corpus detector *done
-right* (its trainer `train_multicorpus_detector_v2.py` is still to be written from Lever 1's).
-All under `transfer.md` §3 Track B.
+caries-**lesion** detector on the CariesXrays benchmark; and two more (2–3 Sep) for **Lever A**,
+the multi-corpus detector *done right* — `build_multicorpus_detector_v2_dataset.py` and
+`train_multicorpus_detector_v2.py`. **Lever A ran 3 Sep and is an ABLATION** (same verdict as
+Lever 1, stronger result — see below). All under `transfer.md` §3 Track B.
 
 The tooth-detection scripts are the **Stage 1 (YOLOv11 tooth detection)** toolchain, kept
 separate from the scripts in `scripts/` one level up, which belong to the **Stage 2–5
@@ -20,22 +20,33 @@ pipeline. **Lever 2 is not a pipeline component at all** — it produces one ben
 
 ## The toolchains here
 
-| | bbox (superseded baseline) | seg (**current pipeline default**) | multi-corpus (Lever 1 / B1) |
+| | bbox (superseded baseline) | seg (**current pipeline default**) | multi-corpus (Levers 1 + A) |
 |---|---|---|---|
-| convert | `convert_tufts_to_yolo.py` | `convert_tufts_to_yolo_seg.py` | `build_multicorpus_detector_dataset.py` |
-| train | `train_yolo.py` | `train_yolo_seg.py` | `train_multicorpus_detector.py` |
-| evaluate | `evaluate_yolo.py` | — (use Ultralytics val) | `scripts/eval/validate_fdi_assignment.py` + the pre-registration |
-| dataset | `_repo_archive/datasets_workspace/dataset/` | `data/tufts/dataset_seg_v2/` (corrected build) | `data/detector_multicorpus/` (built + gated, ~816 MB, gitignored) |
-| status | **frozen**, `tooth-detector-a100-1024-v1.0` (val 0.834 / test 0.782) | **frozen + adopted 27 Aug**, `models/11_yolo_seg_tufts_r1/best.pt` (`tooth-detector-seg-tufts-1024-v1.0`, box test 0.810). Boxes only — masks failed §2's bar, R2 stays unwired | **DONE 1 Sep — ABLATION, not adopted** (`models/13_detector_multicorpus_lever1/`, `RESULTS_LOG.md` 2026-09-01h). Ran on RTX PRO 6000, ₹268. FDI end-to-end on DENTEX **0.584 → 0.934** (Δ +34.9 pp, all from the added data), **but** the Tufts guard fails (box mAP 0.810 → 0.647 — domain dilution). 93.4% is an in-domain number. |
+| convert | `convert_tufts_to_yolo.py` | `convert_tufts_to_yolo_seg.py` | `build_multicorpus_detector_dataset.py` (L1) → `build_multicorpus_detector_v2_dataset.py` (LA) |
+| train | `train_yolo.py` | `train_yolo_seg.py` | `train_multicorpus_detector.py` (L1) → `train_multicorpus_detector_v2.py` (LA) |
+| evaluate | `evaluate_yolo.py` | — (use Ultralytics val) | `scripts/eval/validate_fdi_assignment.py` + `score_lever1_arm.py` / `score_leverA_arm.py` |
+| dataset | `_repo_archive/datasets_workspace/dataset/` | `data/tufts/dataset_seg_v2/` (corrected build) | `data/detector_multicorpus/` (L1) / `data/detector_multicorpus_v2/` (LA) — both gitignored |
+| status | **frozen**, `tooth-detector-a100-1024-v1.0` (val 0.834 / test 0.782) | **frozen + adopted 27 Aug**, `models/11_yolo_seg_tufts_r1/best.pt` (`tooth-detector-seg-tufts-1024-v1.0`, box test 0.810). Boxes only — masks failed §2's bar, R2 stays unwired | **Both ABLATIONS, neither adopted.** L1 (1 Sep, 2 corpora): FDI e2e 0.584 → 0.934, Tufts guard fails 0.810 → 0.647. **LA (3 Sep, 4 corpora + balanced sampling): primary + Guard 1 pass, Guard 2 fails** (Tufts test 0.585 / 0.552, monotonic). Bidirectional tradeoff — see "Lever A" below. `models/{13,15}_detector_multicorpus_*/`. |
 
-**Lever A in one line (2 Sep, session 3c — data prep done, GPU pending):** Lever 1 diluted Tufts
-because it pooled only 2 corpora with Tufts at 52% of the mix. Lever A pools **4 corpora / 4
-institutions** — Tufts 700 + DENTEX 561 + Kaggle-dual 449 + UFBA-425 382 — with **per-corpus
-balanced sampling** (`train.txt` = 4×700), and a guard scoped to *cross-domain* not Tufts-only.
-Built `data/detector_multicorpus_v2/`, geometry gate median IoU 1.0000.
-`outputs/lever_A_multicorpus_detector_v2/{PRE_REGISTRATION,STATUS}.md`. UFBA-425 is aspect-
-distorted (square Roboflow export) so it is an *additive* arm, not baseline — the primary arm is
-`train_3corpus.txt` (Tufts+DENTEX+Kaggle).
+**Lever A — DONE 3 Sep, ABLATION** (`models/15_detector_multicorpus_leverA/run_summary.txt`,
+`RESULTS_LOG.md` 2026-09-03 + 03b). Lever 1 pooled only 2 corpora with Tufts at 52% of the mix;
+Lever A pools **4 corpora / 4 institutions** — Tufts 700 + DENTEX 561 + Kaggle-dual 449 +
+UFBA-425 382 — with **per-corpus balanced sampling** and a guard scoped to *cross-domain*, not
+just Tufts. Ran on an RTX PRO 6000 (~₹735 total), geometry gate IoU 1.0000, arms `controlB` /
+`arm3c` (primary) / `arm4c` (+ the aspect-distorted UFBA-425, additive only).
+
+**Pre-registered verdict:** **PRIMARY passes** (FDI e2e on the 164 leak-free DENTEX images
+**0.584 → 0.928**, Δ +34.4 pp [+30.3, +38.5] — *replicates* Lever 1's +34.9 pp with 3-4 corpora;
+UFBA adds nothing, Arm 3C = Arm 4C). **GUARD 1 passes** (pooled external caries agreement Δ
++9.1 pp [+7.5, +10.8] — Ningxia 0.407 → 0.600, CariesXrays 0.309 → 0.370). **GUARD 2 FAILS**
+(Tufts frozen test box mAP: Control B 0.724 → Arm 3C **0.585** → Arm 4C **0.552** — monotonic in
+corpus count, *worse* than Lever 1's 0.647; balanced sampling put Tufts at 33% of the mix).
+2 of 3 pass, adoption needs all three → **ABLATION, pipeline default detector unchanged.**
+
+The tradeoff is **bidirectional** — the multi-corpus detector is worse on Tufts test by ~15 pp
+and better on DENTEX (+34) and every external cohort (+6 to +19), i.e. better on 5 of the 6
+paper cohorts. Guard 2 protects Tufts-benchmark continuity, not the deployment goal.
+`outputs/lever_A_multicorpus_detector_v2/{PRE_REGISTRATION,STATUS}.md`.
 
 **Lever 1 in one line:** pool the 700 Tufts detection images with DENTEX `quadrant_enumeration`
 (634 images / 18,095 boxes) to lift detector **recall** (70.6%), which is the measured binding
@@ -56,8 +67,8 @@ and tooth detection is largely indifferent to a 180° flip.
 | `evaluate_yolo.py` | Runs the trained `best.pt` against the held-out **test** split, writes an eval run directory with metric plots, prediction visualisations on 20 test images, and an `eval_summary.txt`. |
 | `build_multicorpus_detector_dataset.py` | **Lever 1 (1 Sep).** Builds `data/detector_multicorpus/` — Tufts (700 train, keyed by `outputs/eda_tufts/split_v1.csv`) + DENTEX `quadrant_enumeration` (634 imgs, all → train), converted into the detector's 90°-CCW frame via `src.orientation.rot_box`. **Three gates, all must pass or it aborts:** canonical box-count reproduction (Tufts val 3,794 / test 3,924, matching the frozen detector's GT), a geometry re-score of all 18,095 DENTEX boxes against source COCO (median IoU ≥ 0.99 — measured 1.0000), and an MD5 leakage guard vs the 164 leak-free eval images. Val/test are **Tufts-only** so box mAP stays comparable to the frozen detector. Tufts half is sourced from `_repo_archive/datasets_workspace/Segmentation/teeth_bbox.json` + `Radiographs_rotated/` — **not** `data/tufts/dataset_seg`, which is the withdrawn void corpus (`RESULTS_LOG.md` 2026-09-01e/f). |
 | `train_multicorpus_detector.py` | **Lever 1 (1 Sep).** `--arm {tuftsonly, multicorpus}`. Config copied verbatim from `train_yolo_seg.py` (epochs 150, patience 30, batch 32, imgsz 1024, seed 42, deterministic, AdamW, cos_lr) — the **only** deliberate differences are `yolo11l.pt` (detect, not seg) and the train split. `tuftsonly` derives a 700-image Tufts-only train split from the same uploaded tree and is Control B (isolates the seg→detect head change); `multicorpus` is the Arm (isolates the data). Writes `data_<arm>.yaml` at runtime; refuses CPU. |
-| `build_multicorpus_detector_v2_dataset.py` | **Lever A (2 Sep, session 3c).** Builds `data/detector_multicorpus_v2/` — Tufts 700 (frozen split) + DENTEX `quadrant_enumeration` 561 + Kaggle-dual 449 + UFBA-425 382, each upright corpus rotated 90°-CCW into the detector frame via `src.orientation.rot_box`. **Gates, all must pass or it aborts:** Tufts canonical box-count reproduction (val 3,794 / test 3,924), a combined geometry re-score of all 42,500 rotated boxes (median IoU ≥ 0.99 — measured 1.0000), MD5 leakage guard vs the 164 leak-free eval images, and within-/cross-corpus byte-identical dedup (11 DENTEX + 1 Kaggle dropped). Writes a **per-corpus balanced** `train.txt` (4×700) and `train_3corpus.txt` (3×700, no UFBA) + `_check/` renders. val/test = Tufts-only. `--dry-run` supported. |
-| `train_multicorpus_detector_v2.py` | **Lever A — NOT YET WRITTEN.** Adapt `train_multicorpus_detector.py`: same locked config, `--arm {controlB, arm3c, arm4c}` selecting the `train*.txt`. Refuses CPU. |
+| `build_multicorpus_detector_v2_dataset.py` | **Lever A (2 Sep, session 3c).** Builds `data/detector_multicorpus_v2/` — Tufts 700 (frozen split) + DENTEX `quadrant_enumeration` 561 + Kaggle-dual 449 + UFBA-425 382, each upright corpus rotated 90°-CCW into the detector frame via `src.orientation.rot_box`. **Gates, all must pass or it aborts:** Tufts canonical box-count reproduction (val 3,794 / test 3,924), a combined geometry re-score of all 42,500 rotated boxes (median IoU ≥ 0.99 — measured 1.0000), MD5 leakage guard vs the 164 leak-free eval images, and within-/cross-corpus byte-identical dedup (11 DENTEX + 1 Kaggle dropped). Writes a **per-corpus balanced** `train.txt` (4×700) and `train_3corpus.txt` (3×700, no UFBA), `train_tufts.txt` (Control B), per-corpus `test_*.txt`, + `_check/` renders. Paths are `./`-relative so the lists survive the move to a GPU box. **Rotated corpora capped at 1600 px / JPEG q85** (3 Sep — upload-size mitigation for a slow home connection, 1.1 GB → 467 MB; training imgsz is 1024, geometry gate re-passed). val/test = Tufts-only. `--dry-run` supported. |
+| `train_multicorpus_detector_v2.py` | **Lever A (3 Sep).** `--arm {controlB, arm3c, arm4c}` selects `train_tufts.txt` (700) / `train_3corpus.txt` (2,100) / `train.txt` (2,800). Config **byte-identical** to `train_multicorpus_detector.py` — the only thing that varies between arms is the `train:` list. Writes `data_<arm>.yaml` at runtime, refuses CPU, and runs the Guard-2 Tufts-frozen-test val on `best.pt` immediately after training. Result: `models/15_detector_multicorpus_leverA/`. |
 | `build_cariesxrays_detector_dataset.py` | **Lever 2 (2 Sep).** Builds `data/cariesxrays_det/` from the CariesXrays benchmark (`~/Downloads/Capstone/CariesXrays_Dataset/`) — 6,000 VOC images, single class `decay`, **this project's own seed-42 4,800/1,200 image-level split** (the official FPCL split is not public). **Reads box dims from the decoded image, never the XML `<size>`** — 27.3% of the XMLs carry a wrong width, the same class of defect that voided a 90-epoch run (`RESULTS_LOG.md` 2026-08-27a). Gate: 0 px round-trip error, 0 normalised coords outside [0,1], 0 train/val overlap, renders eyeballed. `--dry-run` supported. |
 | `train_cariesxrays_detector.py` | **Lever 2 (2 Sep).** YOLOv11l `detect`, config verbatim from `train_multicorpus_detector.py` except `nc=1` (`decay`), this project's CariesXrays split, and epochs/patience 150/30 → 120/25 (cost cap). Runs a final COCO-AP val on `best.pt` and prints AP / AP50 / AP75. Writes `data_lever2.yaml` at runtime; refuses CPU. **Result: AP 0.482 / AP50 0.845 / AP75 0.500** — level with FPCL, indicative not head-to-head (`models/14_cariesxrays_lever2/run_summary.txt`). |
 

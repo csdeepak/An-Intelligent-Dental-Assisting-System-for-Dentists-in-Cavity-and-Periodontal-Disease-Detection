@@ -1,12 +1,13 @@
 # `data/` — datasets
 
-**Last verified: 2 September 2026** against the working tree. **Session 3c (end of day) added:
-`ufba425/` (Lever A corpus #4, CC BY 4.0) and `detector_multicorpus_v2/` (the Lever A 4-corpus
-YOLO-detect set); `kaggle_dual/` was downloaded to this Mac for the first time.** Earlier the
-same day: `cariesxrays_det/` (Lever 2) + the full CariesXrays benchmark to Windows; 1 Sep, the
-Lever 1 multi-corpus detector dataset + the CariesXrays external cohort; 26 Aug, Tufts
-enumeration corpus. Everything of size here is git-ignored; what *is* tracked is the small,
-high-value metadata that makes a run reproducible — split manifests and index CSVs.
+**Last verified: 3 September 2026** against the working tree. **2–3 Sep added, for Lever A:**
+`ufba425/` (corpus #4, CC BY 4.0) and `detector_multicorpus_v2/` (the 4-corpus YOLO-detect set,
+**used 3 Sep — Lever A → ABLATION**, `RESULTS_LOG` 2026-09-03); `kaggle_dual/` downloaded to this
+Mac for the first time. Earlier: 2 Sep `cariesxrays_det/` (Lever 2) + the full CariesXrays
+benchmark to Windows; 1 Sep the Lever 1 multi-corpus detector dataset + the CariesXrays external
+cohort; 26 Aug the Tufts enumeration corpus. Everything of size here is git-ignored; what *is*
+tracked is the small, high-value metadata that makes a run reproducible — split manifests and
+index CSVs.
 
 **⚠️ Tufts licence note.** The Tufts Dental Database's release agreement forbids reproducing
 or posting it "into any webpage or any other storage means." `docs/EXTERNAL_DRIVE.md` has the
@@ -53,11 +54,12 @@ data/
 ├── detector_multicorpus/     816 MB   [Lever 1 / B1] Tufts + DENTEX YOLO-detect set — 1,334/150/150,
 │                                      val+test Tufts-only + canonical. Built + geometry-gated 1 Sep.
 │                                      Gitignored; rebuild with scripts/yolo/build_multicorpus_detector_dataset.py
-├── detector_multicorpus_v2/  1.1 GB   [Lever A] Tufts 700 + DENTEX 561 + Kaggle 449 + UFBA-425 382
+├── detector_multicorpus_v2/  521 MB   [Lever A — used 3 Sep, ABLATION] Tufts 700 + DENTEX 561 + Kaggle 449 + UFBA 382
 │                                      → YOLO detect, detector-rotated (CCW). val/test = Tufts frozen only
-│                                      (canonical 3,794/3,924 reproduced). train.txt (4×700, Arm 4C) +
-│                                      train_3corpus.txt (3×700, Arm 3C = primary). Geometry gate IoU 1.0000.
-│                                      Built + gated 2 Sep; rebuild scripts/yolo/build_multicorpus_detector_v2_dataset.py
+│                                      (canonical 3,794/3,924 reproduced). train_{tufts,3corpus}.txt +
+│                                      train.txt + test_*.txt; ./-relative paths. Geometry gate IoU 1.0000.
+│                                      Rotated corpora capped 1600px/q85 (3 Sep upload-size fix). Tar = 467 MB.
+│                                      rebuild scripts/yolo/build_multicorpus_detector_v2_dataset.py
 ├── ufba425/                    51 MB  [Lever A corpus #4] figshare 10.6084/m9.figshare.29827475, CC BY 4.0.
 │                                      425 imgs numbering_xrays/ + boundinng_boxes/ (YOLO txt) + metadata.csv
 │                                      (per-tooth FDI). 640×640 square Roboflow export — aspect-distorted.

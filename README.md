@@ -204,13 +204,18 @@ What survives:
 never detected and cannot be numbered at all. **Of the 661 teeth Stage 1 does find, Stage 2 numbers
 82.6% correctly.** Both figures belong in any honest report of this system.
 
-**And it is the detector's *domain* that binds, not its architecture (Lever 1, 1 Sep).** Re-training
-the detector on Tufts + DENTEX and running the *same frozen head* lifts end-to-end to **93.4%** on
-held-out DENTEX (recall 70.8% → 99.5%; Δ +34.9 pp [+30.8, +39.0]; leakage ruled out three ways).
-This is an **in-domain** number — the detector is now DENTEX-trained, where 58.3% was Tufts→DENTEX
-cross-domain — and the multi-corpus detector is a pre-registered **ablation** (it fails the Tufts
-box-mAP guard, 0.810 → 0.647). It is not adopted, but it pins the ceiling: numbering is not the
-problem.
+**And it is the detector's *domain* that binds, not its architecture — replicated across two runs
+(Lever 1, 1 Sep; Lever A, 3 Sep).** Re-training the detector on pooled multi-corpus data and running
+the *same frozen head* lifts end-to-end FDI to **~93%** on held-out DENTEX (Δ **+34.4 pp
+[+30.3, +38.5]** with Lever A's 3–4 corpora; +34.9 pp with Lever 1's two; leakage ruled out three
+ways). This is an **in-domain** number — the detector is now DENTEX-trained, where 58.3% was
+Tufts→DENTEX cross-domain — and the multi-corpus detector is a pre-registered **ablation**: it
+fails the Tufts box-mAP guard (Lever A: Control B 0.724 → 0.585, *monotonic* in corpus count).
+The tradeoff is **bidirectional**, though: the same detector Lever A can't adopt on Tufts
+*improves* external caries lesion agreement by +9 pp pooled (Ningxia 0.41 → 0.60, CariesXrays
+0.31 → 0.37). Numbering is not the bottleneck; detector domain coverage is — and you cannot serve
+Tufts and the external cohorts with one single-class detector. See
+[`PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) §8.10.
 
 The errors that remain are overwhelmingly benign: **89 of 115 wrong codes (77.4%) are off-by-one** —
 right quadrant, adjacent position, usually the same tooth type. Only **16 of 661 detected teeth
@@ -311,7 +316,12 @@ significant; the +15.45 pp Kaggle cell is *not* a generalisation result because 
 corpus) and [`models/12a_fdi_head_v2_control_rebuilt/`](models/12a_fdi_head_v2_control_rebuilt/)
 (its same-day control); [`models/13_detector_multicorpus_lever1/`](models/13_detector_multicorpus_lever1/)
 (Lever 1 — the multi-corpus detector, an **ablation**: +34.9 pp end-to-end FDI on DENTEX but fails
-the Tufts guard, `RESULTS_LOG` 2026-09-01h);
+the Tufts guard, `RESULTS_LOG` 2026-09-01h) and
+[`models/15_detector_multicorpus_leverA/`](models/15_detector_multicorpus_leverA/) (Lever A — the
+same experiment with 4 pooled corpora + balanced sampling, **also an ablation**: primary and the
+*external-caries* guard pass (+34.4 pp DENTEX e2e; +9.1 pp pooled Ningxia + CariesXrays agreement)
+but the Tufts-test guard fails, `RESULTS_LOG` 2026-09-03 + 03b — the in/out-of-domain tradeoff is
+bidirectional and quantified);
 [`models/14_cariesxrays_lever2/`](models/14_cariesxrays_lever2/) (Lever 2 — a standalone
 caries-**lesion** detector on the CariesXrays benchmark, **benchmark row only, not in the
 pipeline**: YOLOv11l reaches COCO **AP 0.482 / AP50 0.845** on this project's own seed-42 split —
@@ -454,7 +464,7 @@ Each of those four rows is a bug that was found the hard way. See
 │   └── bone_loss/               ← Stage 4 — 6 notebooks, exploration → CEJ
 │
 ├── models/                      ← one numbered dir per trained stage, 06–14 (see models/README.md)
-├── data/                        ← tufts · dentex · ningxia · kaggle_dual · detector_multicorpus · cariesxrays_det (large files gitignored)
+├── data/                        ← tufts · dentex · ningxia · kaggle_dual · ufba425 · detector_multicorpus{,_v2} · cariesxrays_det (large files gitignored)
 ├── outputs/                     ← saved run directories — every number traces here
 ├── paper/                       ← main.tex · main.pdf · source.bib · figures
 ├── tests/                       ← 159 tests
@@ -609,6 +619,7 @@ python scripts/train_model.py   --config configs/dataset_config.yaml   # Stage 4
 | Bone-loss evaluation | `scripts/eval/bone_loss_eval.py` | `outputs/bone_loss_eval/` |
 | Frozen hashes, class orders, crop contracts, leakage | `scripts/eval/verify_invariants.py` | — |
 | **C2b** — CariesXrays sixth cohort (frozen pipeline) | `scripts/eval/cariesxrays_external.py` | `outputs/cariesxrays_external*/` |
+| **Lever 1 / A** — multi-corpus detector (ablations) | `scripts/yolo/build_multicorpus_detector{,_v2}_dataset.py`, `train_multicorpus_detector{,_v2}.py`, `scripts/eval/score_lever{1,A}_arm.py` | `models/13_detector_multicorpus_lever1/`, `models/15_detector_multicorpus_leverA/`, `outputs/lever_A_multicorpus_detector_v2/` |
 | **Lever 2** — CariesXrays lesion detector (trained; benchmark row) | `scripts/yolo/build_cariesxrays_detector_dataset.py`, `scripts/yolo/train_cariesxrays_detector.py` | `models/14_cariesxrays_lever2/`, `outputs/lever2_cariesxrays/` |
 | DOI integrity of every citation | `scripts/verify_citations_crossref.py` | `outputs/citation_audit/` |
 | The 90 manuscript numbers | `scripts/verify_paper_numbers.py` | `paper/main.tex` |
@@ -843,16 +854,23 @@ council** ([`transfer.md`](transfer.md) §5). Framing stays **A+**: the evaluati
 contribution, and the levers are positive systems results layered on it, not a pivot to a
 systems paper. Venue is now **journal-primary** (IEEE JBHI / Computers in Biology and Medicine —
 both S-grade, no page limit), with an ISBI 2027 short paper only if the compliance blockers clear
-in time. **Lever 1 (multi-corpus detector retrain, 1 Sep) is an ABLATION** — FDI end-to-end on
-DENTEX **0.584 → 0.934** (Δ +34.9 pp [+30.8, +39.0], all from the added data), but the
-pre-registered Tufts guard fails (box mAP 0.810 → 0.647, domain dilution). The 93.4% is an
-*in-domain* number and is the strongest evidence the 58.3% headline is detector-**domain**-limited,
-not numbering-limited (`models/13_detector_multicorpus_lever1/`,
-[`RESULTS_LOG`](docs/results/RESULTS_LOG.md) 2026-09-01h). The active levers are now **A**
-(multi-corpus detector *done right* — 4 corpora, balanced sampling; dataset built 2 Sep,
-`outputs/lever_A_multicorpus_detector_v2/`) and **B** (a lesion-detection caries path that is not
-base-rate dominated); **D** (a bone-loss second corpus, now possible via the openly-released BRAR
-dataset) is opt-in. If the tracks conflict for time, the write-up wins.
+in time. **The multi-corpus detector was tried twice (Lever 1, 1 Sep; Lever A, 3 Sep) and both are
+ABLATIONS** — but Lever A's is a *result*, not just a failed attempt. Both lift FDI end-to-end on
+DENTEX from **0.584 to ~0.93** (Δ +34–35 pp, all from the added detection data) and both fail the
+pre-registered Tufts box-mAP guard. Lever A (4 pooled corpora + balanced sampling) then went
+further: its **external-caries guard passes strongly** (+9.1 pp pooled — Ningxia 0.407 → 0.600,
+CariesXrays 0.309 → 0.370), while the Tufts guard fails *monotonically in corpus count*
+(0.724 → 0.585 → 0.552). So the in-domain/out-of-domain tradeoff for a single-class tooth
+detector is **real, bidirectional and measured**: it is better on 5 of the 6 paper cohorts and
+worse only on Tufts. The pipeline default detector is unchanged (benchmark continuity); the paper
+reports the multi-corpus detector's full 6-cohort table as a deployment-vs-benchmark tradeoff.
+`models/{13,15}_detector_multicorpus_*/`, [`RESULTS_LOG`](docs/results/RESULTS_LOG.md) 2026-09-01h
++ 2026-09-03 + 03b, [`PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) §8.10.
+
+**The remaining lever is B** — a lesion-detection caries path that is not base-rate dominated
+(the shot at an *adoptable* positive headline number); **D** (a bone-loss second corpus, now
+possible via the openly-released BRAR dataset) is opt-in. If the tracks conflict for time, the
+write-up wins.
 [`transfer.md`](transfer.md) §3.
 
 **Where this stands, honestly.** Not on the strength of any single model swap, but on: cross-corpus
