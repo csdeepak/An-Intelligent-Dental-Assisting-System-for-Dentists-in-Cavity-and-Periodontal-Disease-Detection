@@ -5,6 +5,24 @@
 Bars below are open to one round of user / mentor review BEFORE any GPU is rented. They freeze
 once the build starts — same discipline as Levers 1 and 2.**
 
+**FROZEN 4 September 2026, before any GPU rented or code written against it.** Review round found
+four defects in the draft, all fixed here before freezing (none is a bar moved after seeing a
+number — no lesion detector had been run against these cohorts yet):
+
+1. §4's "fresh random-1500 draw, seed 43" is arithmetically impossible — the raw CariesXrays
+   release is exactly 6,000 images = the existing 4,800/1,200 split, with no images left over to
+   draw from. Fixed: the eval cohort is the existing disjoint 1,200-image val split.
+2. §7 risk 4 allowed tuning the lesion-confidence threshold "on the CariesXrays held-out val" —
+   circular now that that val set IS the eval cohort (fix 1). Fixed: threshold frozen flatly at
+   0.25, no tuning clause.
+3. §9's "~5,500 images" for B-pooled undercounts §3's own balancing instruction by ~2× (verified
+   against Lever A's actual balancing code, which replicates the smaller corpus up to the larger
+   one's count, not a simple concatenation). Fixed: cost re-estimated on the correct ~9,600
+   images/epoch.
+4. (Not a defect, a gap) §4/§6 never specified how a lesion DETECTOR's predictions become a
+   tooth-level verdict for the acceptance metric. Fixed: added to §4 — centroid containment,
+   reusing the primitive `ningxia_external.match_by_centroid` already applies to ground truth.
+
 ---
 
 ## 1. The hypothesis
@@ -82,13 +100,23 @@ code:
 |---|---|---|---|
 | **DENTEX** | 164 leak-free `disease/` images | 479 çürük | `lesion_localization.py` (IoU 0.30 + centroid fallback) |
 | **Ningxia** | 4 hospitals, all splits | 1,013 caries | `ningxia_external.match_by_centroid` |
-| **CariesXrays** | **fresh random-1500 draw, seed 43, disjoint from the 4,800 training images** | ~3,400 | `cariesxrays_external` centroid matcher |
+| **CariesXrays** | **the existing 1,200-image val split** (`data/cariesxrays_det/`, disjoint from the 4,800 training images by construction) | ~2,815 | `cariesxrays_external` centroid matcher |
 
-The CariesXrays eval draw **must exclude every training image** — a new seed (43, not the
-training/§8.25 seed 42) drawn from the 1,200 held-out val IDs plus unused train IDs, verified
-0-overlap with `data/cariesxrays_det/` train. Recorded now so a later "just reuse the §8.25
-draw" is visibly against this pre-registration (the §8.25 draw predates Lever B and its
-disjointness from B-pooled's training set is not guaranteed).
+**AMENDED 4 Sep — the original "fresh 1,500 draw, seed 43" is impossible: the raw release is
+exactly 6,000 images = 4,800 train + 1,200 val, with nothing left to draw. The max possible
+disjoint eval set is 1,200, which is exactly the existing val split** (`meta.json`:
+`train_val_overlap: 0`, already gate-verified — no new draw script needed). This is a stronger
+design than the original plan, not a weaker one: it uses the full held-out pool rather than a
+subsample of it, and needs no new randomness to reason about. `~2,815` lesions is the val split's
+actual box count (`data/cariesxrays_det/meta.json`); the original `~3,400` was extrapolated from
+the now-impossible 1,500-image figure.
+
+**Lesion-detector predictions → tooth-level verdict (added 4 Sep, was unspecified):** a detected
+tooth is marked caries-positive if **any** lesion-detector prediction's centroid falls inside its
+box — the same centroid-containment primitive `ningxia_external.match_by_centroid` already
+applies to ground-truth lesions, applied here to predicted ones. A tooth containing zero lesion
+predictions is negative. This yields `pos_idx` in exactly the shape `--decision pipeline` /
+`constant-molars` already produce, so no downstream code (matchers, bootstrap) changes.
 
 ---
 
@@ -155,9 +183,12 @@ what make the comparison honest, and the acceptance rule below is conditioned on
    Mitigation: predicted boxes are mapped to a single tooth (argmax containment), and the
    predicted-positive-rate cap (§6 cond. 2) bounds this.
 4. **Ningxia is locked.** Scored exactly once, frozen detector, frozen lesion model, no
-   threshold chosen on it. The confidence threshold for "is this a lesion" is fixed at the
-   ultralytics default (0.25) or tuned **only on the CariesXrays held-out val**, never on DENTEX
-   or Ningxia — recorded now.
+   threshold chosen on it. The confidence threshold for "is this a lesion" is **fixed flatly at
+   the ultralytics default, 0.25 — never tuned, on any cohort.** (**AMENDED 4 Sep**: the original
+   text allowed tuning on "the CariesXrays held-out val", but §4's fix makes that val set the
+   eval cohort itself — tuning on it would be circular. No cohort is available for tuning without
+   either contaminating an eval cohort or spending Ningxia's one touch, so the ultralytics
+   default is the only option that stays clean.)
 5. **It works and the paper gets more complex.** A positive caries result adds a section and
    makes the ISBI 4-page cut harder. This is a venue problem (journal primary — `transfer.md`
    §5), not a reason to not run it.
@@ -181,6 +212,12 @@ what make the comparison honest, and the acceptance rule below is conditioned on
 ## 9. Cost, fixed in advance
 
 B-single: **zero GPU** — Lever 2's `models/14_cariesxrays_lever2/best.pt` is re-used as-is.
-B-pooled: one YOLOv11l `detect` run, ~5,500 images, 1024 px, 120/25 epochs (Lever 2's proven
-budget) on an A100-40GB @ ~₹84/hr ≈ **~₹300**. Evaluation is all CPU (frozen inference + the
-existing matchers). One redo budgeted ⇒ **~₹600 ceiling**.
+
+B-pooled: one YOLOv11l `detect` run, 1024 px, 120/25 epochs (Lever 2's proven budget), on an
+A100-40GB @ ~₹84/hr. **AMENDED 4 Sep — image count corrected.** §3's per-corpus balancing (Lever
+A's recipe: replicate the smaller corpus up to the larger one's count, not concatenate) gives
+**4,800 (CariesXrays) + 4,800 (DENTEX-caries, 650 replicated ~7.4×) = 9,600 images/epoch**, not
+the original "~5,500" (a naive-concatenation figure that did not apply §3's own instruction).
+Roughly double the images at the same epoch count ⇒ roughly double the wall-clock and cost:
+**~₹600 point estimate, ~₹1,200 ceiling with one redo** (was ~₹300/~₹600). Balance ₹1,732 covers
+this with margin. Evaluation is all CPU (frozen inference + the existing matchers).
