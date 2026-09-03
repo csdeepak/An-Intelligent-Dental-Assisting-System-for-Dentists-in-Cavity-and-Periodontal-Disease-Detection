@@ -236,7 +236,7 @@ probe is promising.
 
 | # | step | verify |
 |---|---|---|
-| 0.1 | Move the three diagnostic scripts into `models/15_detector_multicorpus_leverA/repro/diagnostics/` and commit. | scripts run from a clean checkout |
+| 0.1 | ✅ **DONE** (commit `044ed3b`) — the three diagnostic scripts + a README are in `models/15_detector_multicorpus_leverA/repro/diagnostics/`. | scripts run from a clean checkout |
 | 0.2 | Overlay 15 Tufts + 15 DENTEX GT boxes on their images, save to `_check/`. | visual: confirm/deny DENTEX boxes include more root than Tufts (settles §1.3's GT-stat question qualitatively; does not change the model-level conclusion) |
 | 0.3 | Re-run the §1.4 greedy-match FN/FP/IoU diagnostic for Arm 4C too, and at conf ∈ {0.10, 0.25, 0.40}. | monotonic: Arm 4C FN/FP ≥ Arm 3C ≥ Control B at every threshold → dilution confirmed, not a threshold artefact |
 | 0.4 | Write the finding into `PAPER_MATERIAL.md` §8.10 (mechanism: FN +37 %, FP +42 %, localisation flat, monotonic in share; seg-vs-box ceiling 0.81 vs 0.72) and note the Tufts-label height bias + the unfiltered degenerate boxes in §8 Known Limitations. | §8.10 reads as a quantified ablation, not "dilution (vague)" |

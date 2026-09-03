@@ -12,6 +12,12 @@ the multi-corpus detector *done right* — `build_multicorpus_detector_v2_datase
 `train_multicorpus_detector_v2.py`. **Lever A ran 3 Sep and is an ABLATION** (same verdict as
 Lever 1, stronger result — see below). All under `transfer.md` §3 Track B.
 
+**Lever B (lesion-detection caries path) is NOT STARTED** — it reuses
+`build_cariesxrays_detector_dataset.py` and adds a DENTEX `quadrant-enumeration-disease` →
+YOLO caries-box converter (still to be written; `category_id_3 ∈ {1,3}`, reuse `CARIES_CLASSES`
+from `scripts/dentex/build_dentex_crops.py`). Cold-start steps:
+`outputs/lever_B_lesion_caries_path/START_HERE.md`.
+
 The tooth-detection scripts are the **Stage 1 (YOLOv11 tooth detection)** toolchain, kept
 separate from the scripts in `scripts/` one level up, which belong to the **Stage 2–5
 crop/classifier** toolchain. Both sets are live; they simply serve different halves of the
