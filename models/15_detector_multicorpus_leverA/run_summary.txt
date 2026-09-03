@@ -136,4 +136,48 @@ leverA_train.log                      full training + Guard-2-val log from the b
 outputs/lever_A_multicorpus_detector_v2/{controlA,arm3c,arm4c}/stage2_*_head.json
                                       the primary eval (per-tooth rows + summary)
 outputs/lever_A_multicorpus_detector_v2/{arm3c,arm4c}/primary_bootstrap.json
-                                      the paired-bootstrap verdict
+                                      the paired-bootstrap deltas for the primary.
+                                      NB its "verdict" STRING is stale (old Lever-1
+                                      "mAP < 0.75" rule); the numbers are correct and
+                                      {arm3c,arm4c}/leverA_verdict.json is authoritative.
+outputs/lever_A_multicorpus_detector_v2/{controlA,arm3c,arm4c}/ningxia_caries.json
+outputs/lever_A_multicorpus_detector_v2/{controlA,arm3c,arm4c}/cariesxrays_caries.json
+                                      GUARD 1 raw per-image agreement (copies of the
+                                      outputs/{ningxia,cariesxrays_external}_leverA_*
+                                      run dirs, placed here so the verdict command runs
+                                      against one directory)
+models/15_detector_multicorpus_leverA/repro/                the exact as-run scripts +
+                                      a "verify every number" cheat sheet (repro/README.md)
+
+NB: there is no controlA/ or controlB/ box-eval dir beyond stage2. Control B was trained
+ONLY to set the Guard-2 floor (its Tufts test box mAP 0.7243, in leverA_train.log and
+controlB_results.csv); it has no end-to-end / Guard-1 eval because the pre-registration's
+primary and Guard 1 compare each ARM to CONTROL A, not to Control B.
+
+--------------------------------------------------------------------------------
+REPRODUCE  (CPU/MPS, no GPU -- full recipe in repro/README.md)
+--------------------------------------------------------------------------------
+PRIMARY  bash models/15_detector_multicorpus_leverA/repro/leverA_primary2.sh
+GUARD 1  bash models/15_detector_multicorpus_leverA/repro/leverA_guard1.sh
+         bash models/15_detector_multicorpus_leverA/repro/leverA_ningxia.sh
+VERDICT  O=outputs/lever_A_multicorpus_detector_v2
+         python scripts/eval/score_leverA_arm.py --label arm3c \
+           --arm-stage2 $O/arm3c/stage2_rows_head.json --ctrlA-stage2 $O/controlA/stage2_rows_head.json \
+           --arm-caries $O/arm3c/ningxia_caries.json $O/arm3c/cariesxrays_caries.json \
+           --ctrlA-caries $O/controlA/ningxia_caries.json $O/controlA/cariesxrays_caries.json \
+           --guard2-arm 0.5852 --guard2-controlB 0.7243
+         (repeat --label arm4c --guard2-arm 0.5520)
+GUARD 2  not CPU-reproducible -- from the GPU box: leverA_train.log, {arm}_results.csv.
+RETRAIN  build the dataset (scripts/yolo/build_multicorpus_detector_v2_dataset.py), tar+sha256,
+         rent an RTX-PRO-6000 / A100-80GB, on-box leverA_box_gate.py -> GATE: GO, then
+         nohup bash repro/leverA_train_all.sh. ~4.3 h, ~Rs 600. DESTROY the instance after.
+
+--------------------------------------------------------------------------------
+HANDOFF -- open items (see outputs/lever_A_multicorpus_detector_v2/STATUS.md S5)
+--------------------------------------------------------------------------------
+1. NEXT LEVER: Lever B (lesion-detection caries path). outputs/lever_B_lesion_caries_path/
+   PRE_REGISTRATION.md. Data prep local + free; B-single zero GPU, B-pooled ~Rs 300.
+2. models/15/*.pt are the ONLY copy (local disk). Upload to Drive (same gap: models/11,13,14).
+3. Optional cheap follow-up: a Tufts-WEIGHTED (not balanced) arm for a 3rd frontier point
+   (Tufts share 33% -> 52% -> ~70%). Not pre-registered. Below Lever B in priority.
+4. ningxia_external.py --tag does not namespace --out (one-line fix).

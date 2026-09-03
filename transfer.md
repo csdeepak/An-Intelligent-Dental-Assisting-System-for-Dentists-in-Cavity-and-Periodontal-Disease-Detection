@@ -718,6 +718,7 @@ reach either way. The odds are set by whether the compliance blockers close, not
 > instance is running.** This section is the validated runbook for the next rented job. R1 cost
 > **₹249.19**; Lever 1 **₹267.84** and Lever A **~₹735** (3 arms + pause/resume overhead) both on
 > an RTX PRO 6000; Lever 2 **₹256.61** on an A100-40GB. **Balance now ₹1,732 (§8).**
+> **Lever A exact scripts + a 'verify every number' cheat sheet:** `models/15_detector_multicorpus_leverA/repro/` (README there). Cold-start hub: `outputs/lever_A_multicorpus_detector_v2/STATUS.md`.
 >
 > **Lever A added two lessons to the runbook (see §8):** (1) `jl resume` gives a fresh container
 > — re-install `ultralytics==8.4.127 --no-deps` + matplotlib/opencv-headless/thop/polars each
