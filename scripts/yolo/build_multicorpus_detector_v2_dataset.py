@@ -69,7 +69,11 @@ DEF = dict(
 )
 MIN_MEDIAN_IOU = 0.99
 MIN_PX = 2
-JPEG_Q = 95
+JPEG_Q = 85           # rotated corpora only; Tufts is copied from source untouched
+MAX_SIDE = 1600       # rotated corpora: cap the longest side. Training imgsz is 1024, so the
+                      # model letterboxes everything to ~1024 anyway -- 1600 keeps generous
+                      # headroom while cutting the upload ~2x (needed: slow home upstream, 3 Sep).
+                      # Boxes are normalised, so a proportional resize leaves the YOLO labels valid.
 SEED = 42
 KAGGLE_VALID = {str(q * 10 + p) for q in (1, 2, 3, 4) for p in range(1, 9)}  # FDI 11..48
 
@@ -285,6 +289,10 @@ def main():
                 continue
             rot = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
             assert rot.shape[:2] == (rh, rw)
+            if max(rot.shape[:2]) > MAX_SIDE:            # proportional -> normalised boxes stay valid
+                s = MAX_SIDE / max(rot.shape[:2])
+                rot = cv2.resize(rot, (round(rot.shape[1] * s), round(rot.shape[0] * s)),
+                                 interpolation=cv2.INTER_AREA)
             out_img = args.out / "images" / split / (stem + ".jpg")
             cv2.imwrite(str(out_img), rot, [cv2.IMWRITE_JPEG_QUALITY, JPEG_Q])
             (args.out / "labels" / split / (stem + ".txt")).write_text("".join(lines))
