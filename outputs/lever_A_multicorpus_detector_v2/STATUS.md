@@ -1,8 +1,10 @@
 # Lever A — status
 
-**Last updated: 3 September 2026.** GPU instance **495956** (RTX-PRO6000, IN1, ₹179/hr) is
-**RUNNING** — dataset tarball uploading (slow home upstream, rsync retry-loop, ~50 min); training
-starts once the on-box gate passes. `jl destroy 495956` if abandoning.
+**Last updated: 3 September 2026 ~12:45 IST.** **TRAINING RUNNING** on instance **496005**
+(RTX PRO 6000 96 GB, IN1, ₹179/hr, IP 151.185.34.31). On-box gate passed (`GATE: GO` — sha256
+match, 68,439 boxes 0 malformed, ultralytics loads the lists). `leverA_train_all.sh` (nohup) is
+running Control B → Arm 3C → Arm 4C. Control B ~ep 20/150, box_loss 1.79, val mAP50 0.38.
+ETA all-3 ~3–3.5 h. Watcher polls every 7 min. **`jl destroy 496005` when weights are down.**
 
 ## Instance + code state
 
