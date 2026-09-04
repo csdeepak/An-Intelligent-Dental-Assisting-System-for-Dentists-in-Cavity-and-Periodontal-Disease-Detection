@@ -6105,3 +6105,52 @@ this did not re-open the pre-registration or move any bar.**
   (3) Lever A2 only if Lever B yields no adoptable headline AND ≥ 2 weeks schedule slack AND a
   decision that an adoptable multi-corpus detector is worth a full downstream re-measure — probe
   with pretrain→fine-tune (~₹400) before segmentation (~₹1,000).
+
+
+## 2026-09-04 — Phase 0: the Lever A Guard-2 failure is a confidence-calibration collapse on the minority domain (no new model)
+
+Completes the Lever A Guard-2 post-mortem (`RESULTS_LOG` 2026-09-03c). No GPU, no training —
+diagnostics on the existing `models/15` weights + `data/detector_multicorpus_v2/`. Lever A stays
+ABLATION; nothing re-opened.
+
+- **What was done:** two local CPU diagnostics
+  (`models/15_detector_multicorpus_leverA/repro/diagnostics/`):
+  (1) `iou_diag_sweep.py` — greedy GT-match on the 150 Tufts frozen-test images, all 3 arms ×
+  confidence {0.10, 0.25, 0.40}; (2) `gt_overlay.py` — GT-box overlays, 12 Tufts + 12 DENTEX
+  test images.
+- **Metrics — Tufts frozen TEST (3,924 GT teeth), greedy IoU≥0.5 match:**
+
+  | arm (Tufts train share) | conf | FN | FP | recall | matched-pair IoU (median) |
+  |---|---|---|---|---|---|
+  | Control B (100 %) | 0.10 / 0.25 / 0.40 | 897 / 1045 / 1327 | 1531 / 1058 / 783 | 0.771 / 0.734 / 0.662 | 0.623 / 0.624 / 0.625 |
+  | Arm 3C (33 %) | 0.10 / 0.25 / 0.40 | 995 / 1427 / 2120 | 2694 / 1506 / 967 | 0.746 / 0.636 / 0.460 | 0.645 / 0.643 / 0.643 |
+  | Arm 4C (25 %) | 0.10 / 0.25 / 0.40 | 781 / 1457 / 2546 | 3377 / 1586 / 668 | 0.801 / 0.629 / 0.351 | 0.683 / 0.676 / 0.674 |
+
+- **Key insight — the mechanism, sharper than "domain dilution":**
+  - **Matched-pair IoU is flat across the entire sweep** (~0.62–0.68, multi-corpus arms if
+    anything better). Localisation is not the loss — confirmed across 3 thresholds, not the
+    one (0.25) the 03c diagnostic used.
+  - **At low confidence the multi-corpus arms detect Tufts teeth as well as the Tufts-only
+    control or better** (Arm 4C recall 0.80 vs 0.77) — but with a false-positive flood.
+  - **What breaks is confidence calibration on the minority domain:** the score no longer
+    separates real teeth from spurious boxes, so raising the threshold to clear the FP flood
+    also kills the true positives — recall drop from conf 0.10→0.40 is −0.11 (Control B),
+    **−0.29 (Arm 3C), −0.45 (Arm 4C)**. mAP@0.5 is a ranking metric ⇒ it degrades hardest:
+    **0.724 → 0.585 → 0.552, monotonic in Tufts training share** (Lever 1 at 52 % = 0.647).
+    The FN/FP split at a *fixed* threshold is threshold-dependent (FP-flood low, FN-collapse
+    high); the mAP number and the calibration collapse are what is monotonic.
+  - **A structural ceiling underneath:** every detection model here (incl. Tufts-only Control B)
+    scores ≤ 0.724, while the deployed *segmentation* Stage-1 scores **0.810** on the identical
+    split. seg→detect (forced — DENTEX/Kaggle/UFBA have no masks) costs ~9 pp of box mAP before
+    any extra corpus; "0.585 vs 0.724" is the honest penalty, not "0.585 vs 0.810".
+  - **GT-overlay (0.2):** visually confirms `box_conv.py` — DENTEX GT boxes are larger and
+    heavily overlapping, extending into alveolar bone (`dentex_train_0` 1.19 % img median box
+    area vs Tufts `1013` 0.64 %). Every model also draws Tufts boxes 17–36 % wider
+    mesial-distally than GT — the Tufts `teeth_bbox.json` boxes are drawn tight in the narrow
+    axis, which caps matched-pair IoU near 0.62 for anyone (→ `PAPER_MATERIAL.md` §8.9).
+- **Source:** `models/15_detector_multicorpus_leverA/repro/diagnostics/{iou_diag_sweep,gt_overlay}.py`;
+  two GT-overlay panels in `docs/results/figures/lever_a_guard2/`; full sweep output in the session-memory. Folded
+  into `PAPER_MATERIAL.md` §8.16 (mechanism + box-vs-mask ceiling) and §8.9 (Tufts box-label
+  findings). `outputs/lever_A_multicorpus_detector_v2/TUFTS_GUARD2_DIAGNOSIS.md` §1.4b, §1.5, §3.
+- **Follow-ups:** Phase 0 is complete. Lever A2 (a retry) stays gated behind Lever B
+  (`TUFTS_GUARD2_DIAGNOSIS.md` §3 Phase 1). **Lever B is the next lever** (the friend, on Windows).
