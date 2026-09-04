@@ -6105,3 +6105,144 @@ this did not re-open the pre-registration or move any bar.**
   (3) Lever A2 only if Lever B yields no adoptable headline AND ≥ 2 weeks schedule slack AND a
   decision that an adoptable multi-corpus detector is worth a full downstream re-measure — probe
   with pretrain→fine-tune (~₹400) before segmentation (~₹1,000).
+
+---
+
+## 2026-09-04 — Lever B, B-single arm: decisive in-domain win, decisive out-of-domain collapse
+
+- **What was done:** Pre-registration frozen (4 defects fixed pre-freeze: the CariesXrays "1,500
+  seed-43 draw" was arithmetically impossible — max disjoint pool is 1,200, the existing val
+  split; confidence-tuning clause removed as circular once that val set became the eval cohort;
+  B-pooled's image count corrected ~5,500 → 9,600/epoch against its own balancing rule; the
+  lesion-prediction→tooth mapping was specified, argmax-containment). Wired `--decision
+  lesion-detector` into `lesion_localization.py`, `ningxia_external.py`, `cariesxrays_external.py`
+  (shared mapping in `ningxia_external.lesion_preds_to_tooth_idx`; a plain, unrotated
+  `run_lesion_detector()` call — reusing `detect_upright()` would have silently rotated every
+  image 90°, since that function is hardcoded to the tooth detector's Tufts-trained convention,
+  not a generic rotation-optional helper). Built `data/dentex_caries_det/` (DENTEX
+  `quadrant-enumeration-disease` → YOLO caries boxes, `scripts/dentex/build_dentex_caries_boxes.py`,
+  new) and `data/lever_b_pooled/` (balanced pool, `scripts/yolo/build_lever_b_pooled_dataset.py`,
+  new). Ran **B-single** (Lever 2's frozen `models/14_cariesxrays_lever2/weights/best.pt`, zero
+  GPU, re-used as-is) through the frozen eval on DENTEX-164 and CariesXrays-val-1200; B-pooled
+  training (GPU) started separately, not yet complete (see Follow-ups).
+- **Dataset / config:** DENTEX `quadrant-enumeration-disease` — 705 images, 650 with ≥1
+  caries/deep_caries box, 2,767 boxes (`category_id_3 ∈ CARIES_CLASSES={1,3}`, reused from
+  `build_dentex_crops.py`), 0 leakage into the 164-image eval cohort (1 candidate MD5 duplicate
+  found and it was already excluded there for an unrelated reason — verified live, not assumed).
+  B-pooled dataset: CariesXrays-train 4,800 + DENTEX-caries replicated 650→4,800 (Lever A's
+  balancing recipe, `list * ceil(big/len) sliced to big`, verified 0 cross-corpus MD5 overlap) =
+  9,600 lines/epoch. Lesion-detector confidence frozen at 0.25 (ultralytics default, per the
+  amended pre-reg). Paired cluster bootstrap over images, 10,000 resamples, seed 42
+  (`scripts/eval/lever_b_bootstrap.py`, new — reuses `bootstrap_ci.py`'s primitives).
+- **Metrics — lesion-localisation agreement, frozen eval, B-single (`models/14`) vs. gate v3.0 vs.
+  the image-blind molar constant:**
+
+  | cohort (n images) | gate v3.0 | constant-molars | **lesion-detector (B-single)** | Δ vs constant | Δ vs gate |
+  |---|---|---|---|---|---|
+  | DENTEX (148 w/ lesions of 164) | 44.3% [39.2,49.3] | 48.9% [44.1,53.5] | **8.6% [5.5,11.9]** | −40.3pp [−46.1,−34.6] | −35.7pp [−41.6,−29.9] |
+  | CariesXrays-val (1,200) | 31.7% [29.6,33.7] | 56.2% [54.0,58.5] | **69.4% [67.4,71.3]** | +13.2pp [+11.1,+15.2] | +37.7pp [+35.4,+40.0] |
+
+  Both deltas have CIs excluding zero on both cohorts, in opposite directions. Predicted-positive
+  rate (mean teeth flagged/image): B-single 0.73 (DENTEX) / 1.90 (CariesXrays), well below every
+  comparator (gate 5.10/3.98, constant 5.80/6.44) — CariesXrays' win is not a volume effect
+  (rate ratio 0.30–0.48x, both under the pre-registered 1.5x cap).
+- **Key decision or insight:** B-single is the cleanest confirmation yet of this project's central
+  domain-shift thesis, in a NEW form: **a model trained on one caries corpus does not merely
+  degrade on another — it can invert which comparator wins.** On CariesXrays (its own training
+  domain) the lesion detector beats both the base-rate-dominated gate and the constant by a wide,
+  statistically unambiguous margin, while flagging far fewer teeth than either — exactly the
+  "not base-rate dominated" result the lever was pre-registered to test for. On DENTEX it
+  collapses to near-silence (0.73 flagged teeth/image vs. the gate's 5.1), the pre-registered
+  "wins in-domain, fails to transfer" outcome (§6 of the pre-reg), which strengthens rather than
+  undermines the domain-shift thesis. **Sec 6 verdict for B-single alone: 1 of 2 scored cohorts
+  passes (CariesXrays; DENTEX fails both comparator conditions). This is not the lever's final
+  verdict** — Sec 6 is scored on "the better of B-single/B-pooled," and B-pooled exists
+  specifically to close the DENTEX gap by adding DENTEX-domain training data.
+- **Source:** `outputs/lever_b_eval/{dentex_pipeline,dentex_constant,dentex_lesion_b_single}/
+  lesion_localization.json`; `outputs/cariesxrays_external_lever_b_b_single/
+  cariesxrays_external_{pipeline,constant-molars,lesion-detector}.json`; `outputs/lever_b_eval/
+  acceptance_rule.json`; `outputs/lever_B_lesion_caries_path/PRE_REGISTRATION.md` (frozen, commit
+  `ef3f453`); `data/dentex_caries_det/meta.json`, `data/lever_b_pooled/` gate output (both PASS).
+- **Follow-ups:** (1) **B-pooled training in progress** on a rented JarvisLabs RTX-PRO6000
+  (instance 496516, IN1, ₹179.01/hr — A100 was unavailable at rental time) — a background monitor
+  (`monitor_lever_b.sh`) downloads the checkpoint and destroys the instance on verified success,
+  or stops and flags for a human look on any crash/mismatch, never destroying on ambiguous state.
+  (2) Ningxia not yet run this lever (not on this machine) — the pre-reg's 2-of-available-cohorts
+  fallback applies for now; back-fill when available. (3) Once B-pooled lands: re-run
+  `lever_b_bootstrap.py --arm-tag B-pooled`, apply Sec 6 to the better arm, write the real
+  adoption verdict, update `model_metrics.md` + `PAPER_MATERIAL.md` if adopted, full downstream
+  re-run per Sec 6's outcome table. (4) One real bug caught and fixed before it could cost GPU
+  time: ultralytics' `train.txt` file-list resolution only rewrites a line starting with `./`
+  (verified against `ultralytics/data/base.py get_img_files` directly) — a bare relative line
+  resolves against the training process's cwd, not `data.yaml`'s `path:`. Fixed in
+  `train_lever_b_pooled_detector.py` by rewriting the list to absolute paths at train time.
+
+---
+
+## 2026-09-04b — Lever B, B-pooled arm: recovers DENTEX transfer, preserves the CariesXrays win
+
+- **What was done:** Trained **B-pooled** — YOLOv11l `detect`, the per-corpus-balanced pool
+  (CariesXrays 4,800 train + DENTEX-caries 650 replicated to 4,800 = 9,600 images/epoch, seed 42),
+  120 epochs / patience 25, batch 16 (matched to B-single's own realised batch after its OOM
+  fallback, not the nominal 32 — see 2026-09-02b). Rented a JarvisLabs **RTX-PRO6000** (IN1,
+  ₹179.01/hr) — **A100 (both 40GB and 80GB) was unavailable at rental time**, confirmed via `jl
+  gpus` live availability, not assumed. Ran the same frozen tooth-level eval used for B-single on
+  the resulting checkpoint, then the paired cluster bootstrap against both comparators.
+- **Dataset / config:** Same pooled dataset as the 2026-09-04 entry. Uploaded as 27×250MB chunks
+  with per-chunk retry over a genuinely unstable connection (several resets/timeouts absorbed
+  cleanly); reassembled and sha256-verified byte-identical to the local build before extracting.
+  One real bug found and fixed before any epoch ran: ultralytics' file-list loader only rewrites a
+  `./`-prefixed line; a bare relative `train.txt` line resolves against the training process's
+  cwd, not `data.yaml`'s `path:` (verified directly against `ultralytics/data/base.py
+  get_img_files`, not guessed) — first launch crashed with "No labels found" before wasting any
+  epoch time. Fixed by rewriting the list to absolute paths at train time in
+  `train_lever_b_pooled_detector.py`. Training **early-stopped at epoch 54** of 120 (patience 25).
+- **Metrics — lesion-localisation agreement, frozen eval, B-pooled vs. B-single vs. gate v3.0 vs.
+  the constant (paired cluster bootstrap, 10k resamples, seed 42):**
+
+  | cohort | gate v3.0 | constant-molars | B-single | **B-pooled** | B-pooled vs constant | B-pooled vs gate |
+  |---|---|---|---|---|---|---|
+  | DENTEX (148 w/ lesions) | 44.3% | 48.9% | 8.6% [5.5,11.9] | **45.5% [40.9,50.1]** | −3.3pp [−8.4,+1.3] INCLUDES 0 | +1.3pp [−3.2,+5.7] INCLUDES 0 |
+  | CariesXrays-val (1,200) | 31.7% | 56.2% | 69.4% [67.4,71.3] | **68.4% [66.4,70.4]** | +12.2pp [+10.1,+14.3] excludes 0 | +36.7pp [+34.4,+39.0] excludes 0 |
+
+  CariesXrays COCO AP (secondary, not the acceptance metric): B-pooled 0.379/AP50 0.822/AP75
+  0.291 — *below* B-single's own 0.482/0.845/0.500, the expected cost of pooling in coarser,
+  different-domain boxes. The metric that matters (tooth-level agreement) barely moved (68.4 vs
+  69.4%, well within each other's CI).
+- **Key decision or insight:** **B-pooled did exactly what it was built for — it moved DENTEX
+  from a decisive, statistically certain loss (B-single: −40.3pp / −35.7pp, both CI excluding
+  zero) to a statistical TIE with both comparators (both new deltas include zero), at a real but
+  small cost to the CariesXrays win (≈1pp, itself within noise).** This is not one of the four
+  outcomes the pre-registration enumerated in its Sec 6 table — those anticipated "wins in-domain,
+  fails to transfer" as a discrete failure mode; the actual result is continuous: out-of-domain
+  transfer went from clear failure to parity, not to a win. Recorded honestly rather than forced
+  into the nearest bin. **Sec 6's literal bar is still not met by either arm** — a tie is not
+  "beats" under cond. 1/3, so DENTEX still fails those conditions for both B-single and B-pooled,
+  leaving 1 of 2 scored cohorts passing either way. **Ningxia is now the deciding cohort** for a
+  real 2-of-3 (or 3-of-3) call, and it is not on this machine (`WINDOWS_SETUP.md` §2 fallback
+  applies: evaluated on 2 of 3 available cohorts, Ningxia pending). **B-pooled is the better arm
+  to carry forward regardless of the final Sec 6 call** — same CariesXrays strength, no longer a
+  liability on DENTEX.
+- **Source:** `models/16_lever_b_pooled/lever_b_pooled_yolo11l-2/` (weights, `results.csv`,
+  `args.yaml`, plots — full run archive, sha256-verified against the rented box before it was
+  destroyed: `029018db…` for `best.pt`); `outputs/lever_b_eval/dentex_lesion_b_pooled/
+  lesion_localization.json`; `outputs/cariesxrays_external_lever_b_b_pooled/
+  cariesxrays_external_lesion-detector.json`; `outputs/lever_b_eval/acceptance_rule_B-pooled.json`
+  (`scripts/eval/lever_b_bootstrap.py`, extended to take `--arm-tag {B-single,B-pooled}`).
+  JarvisLabs instance 496516 (RTX-PRO6000, IN1) — **spend ₹546.93** (₹1,731.77 → ₹1,184.84),
+  destroyed after a verified download, 0 running/paused.
+- **Follow-ups:** (1) **Get Ningxia onto this machine** — the one remaining input for a real Sec 6
+  verdict; everything else needed to score it (the eval script's `lesion-detector` decision mode,
+  the bootstrap script) already exists and is already wired for a third cohort. (2) One
+  operational lesson worth keeping: the training script's `project=` argument was silently
+  reinterpreted by ultralytics as relative to its own internal `runs_dir` setting (`runs/detect/`
+  prepended) rather than to the given path, and a stale directory from the crashed first attempt
+  added a `-2` suffix — the real weights landed at
+  `runs/detect/runs_lever_b/lever_b_pooled_yolo11l-2/weights/`, not the plain path the training
+  script's own project/name arguments suggested. A monitoring script written to auto-download and
+  destroy the instance on completion checked the wrong (assumed) path, correctly found nothing,
+  and correctly refused to destroy anything rather than guess — the actual weights were found and
+  verified by hand (`find … -name best.pt`) with the instance still safely running. No cost was
+  lost to this; recorded so the next script that shells out to `model.train(project=..., ...)`
+  checks the real output path rather than trusting the argument it passed. (3) Neither arm is
+  adopted; the pipeline's Stage-3 caries path stays gate v3.0 until Sec 6 is actually met.

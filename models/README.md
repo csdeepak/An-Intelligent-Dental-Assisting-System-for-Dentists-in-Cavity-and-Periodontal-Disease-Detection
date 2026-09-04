@@ -8,9 +8,9 @@ three checkpoints `run_inference.py` needs — `11_yolo_seg_tufts_r1/best.pt` (5
 `09_caries_gate_v3/caries_gate_v3.pth` (43 MB) and `10_.../enumeration_head_best.pth` — are all
 **committed to git** (`.gitignore` exceptions + `.gitattributes`), so `git clone` / `git pull`
 is enough to run the pipeline. Still Drive/local-only: `06_yolo_detection_a100_run/best.pt`
-(superseded, only for pre-27-Aug reproduction) and the lever weights (`13`, `14`, `15`). **`14_cariesxrays_lever2/weights/best.pt` (Lever B's B-single arm) is on the friend's Windows
-laptop** — a 3 Sep `.gitignore` exception makes it committable after a sha256 check
-(`outputs/lever_B_lesion_caries_path/WINDOWS_SETUP.md` §4).
+(superseded, only for pre-27-Aug reproduction) and the lever weights (`13`, `15`, `16`).
+**`14_cariesxrays_lever2/weights/best.pt` (Lever B's B-single arm) is committed to git**
+(4 Sep 2026, sha256-verified `278d1e00…`) — no Drive round-trip needed for it either.
 
 ## What is actually here
 
@@ -31,13 +31,16 @@ One numbered directory per trained stage, each with a `*summary*.txt` beside the
 | `13_detector_multicorpus_lever1/` | Stage 1 — **Lever 1** multi-corpus detector retrain (Tufts + DENTEX). Two arms + a same-day control. **ABLATION, not the default** — primary passes (FDI end-to-end 0.584 → 0.934 on DENTEX) but the pre-registered Tufts guard fails (box mAP 0.810 → 0.647). `run_summary.txt`, `RESULTS_LOG.md` 2026-09-01h. | `controlB_tuftsonly_best.pt`, `arm_multicorpus_best.pt` (49 MB each) | **No** — gitignored; SHA-256 in `run_summary.txt`, local disk only |
 | `14_cariesxrays_lever2/` | **Lever 2** — standalone caries-**lesion** detector (YOLOv11l) on the CariesXrays benchmark (Chen et al., AAAI 2024). **BENCHMARK ROW, not a pipeline component** — COCO AP 0.482 / AP50 0.845 on this project's own seed-42 split (the official FPCL split is not public), level with FPCL. **It is also Lever B's B-single arm.** `run_summary.txt`, `RESULTS_LOG.md` 2026-09-02b. | `best.pt`, `last.pt` (51 MB each) | `weights/best.pt` (sha256 `278d1e00…`) is **on the friend's Windows laptop** — committable via a 3 Sep `.gitignore` exception after verifying the hash (`outputs/lever_B_lesion_caries_path/WINDOWS_SETUP.md` §4); `last.pt` stays gitignored. SHA-256 in `run_summary.txt`. `run_summary.txt` / `results.csv` / `args.yaml` **are** tracked; the `.png` curves and `val_batch*` renders are `*.png`/`*.jpg`-ignored like every other `models/` dir. |
 | `15_detector_multicorpus_leverA/` | Stage 1 — **Lever A** multi-corpus detector, "done right" (4 corpora: Tufts + DENTEX `quadrant_enumeration` + Kaggle "dual" + UFBA-425, per-corpus balanced). 3 arms (`controlB` / `arm3c` / `arm4c`). **ABLATION, not the default** (`RESULTS_LOG.md` 2026-09-03 + 03b). Pre-registered verdict: **PRIMARY passes** (FDI e2e on DENTEX 0.584 → 0.928, Δ +34.4 pp — replicates Lever 1), **GUARD 1 passes** (pooled external caries agreement +9.1 pp; Ningxia 0.41 → 0.60, CariesXrays 0.31 → 0.37), **GUARD 2 fails** (Tufts frozen test box mAP 0.724 → 0.585 / 0.552). 2 of 3 → ablation. The tradeoff is **bidirectional**: worse on Tufts, better on the other 5 of 6 cohorts. | `controlB_best.pt`, `arm3c_best.pt`, `arm4c_best.pt` (51 MB each) | **No** — gitignored; SHA-256 in `run_summary.txt`, local disk only. `run_summary.txt` / `*_results.csv` / `leverA_train.log` / `repro/` (as-run scripts + a verify-every-number cheat sheet) / `repro/diagnostics/` (the Tufts Guard-2 post-mortem, `RESULTS_LOG` 2026-09-03c) **are** tracked. |
+| `16_lever_b_pooled/` | Stage 3 — **Lever B, B-pooled arm**: caries-**lesion** detector (YOLOv11l) trained on CariesXrays + DENTEX-caries, per-corpus balanced. **ABLATION, not adopted** — Sec 6 of the pre-reg needs Ningxia, not yet available (`RESULTS_LOG.md` 2026-09-04b). Tooth-level lesion agreement: DENTEX 45.5% [40.9,50.1] (a statistical **tie** with gate v3.0/constant — B-single alone lost decisively at 8.6%); CariesXrays 68.4% [66.4,70.4] (still a decisive win, ~unchanged from B-single). Rented an **RTX-PRO6000** (A100 unavailable at rental time), ₹546.93. | `lever_b_pooled_yolo11l-2/weights/{best,last}.pt` (51 MB each) | **No** — gitignored, same rule as `13`/`15` (an ablation arm, not a `DEF_*` default). SHA-256 in `run_summary.txt`. `run_summary.txt` / `results.csv` / `args.yaml` / `train.log` **are** tracked; the `.png`/`.jpg` plots are `*.png`/`*.jpg`-ignored like every other `models/` dir. |
 
 > **Adopted vs ablation:** dirs `06`–`11` are pipeline components (current or hash-pinned
-> superseded); `05`, `12`, `12a`, `13`, `15` are ablations / negative results kept per `CLAUDE.md`
-> rule 3, none in the runtime pipeline; `14` is a standalone benchmark model, also not in the
-> pipeline. **`13` and `15` are both the same experiment (multi-corpus detector) — `15` is `13`
-> re-done with more corpora and a differently-scoped guard; the verdict was the same (ablation),
-> the result is stronger** (bidirectional, replicated).
+> superseded); `05`, `12`, `12a`, `13`, `15`, `16` are ablations / negative results kept per
+> `CLAUDE.md` rule 3, none in the runtime pipeline; `14` is a standalone benchmark model, also not
+> in the pipeline (and also Lever B's B-single arm — `14` and `16` are the two Lever B arms,
+> scored against each other in `RESULTS_LOG.md` 2026-09-04 / 04b). **`13` and `15` are both the
+> same experiment (multi-corpus detector) — `15` is `13` re-done with more corpora and a
+> differently-scoped guard; the verdict was the same (ablation), the result is stronger**
+> (bidirectional, replicated).
 
 > The previous version of this file claimed "**Model files (.pth, .pt) are git-ignored** due
 > to file size" and showed a flat `models/*.pth` layout. Both were wrong: the ResNet18 `.pth`

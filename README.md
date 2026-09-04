@@ -331,7 +331,13 @@ bidirectional and quantified);
 caries-**lesion** detector on the CariesXrays benchmark, **benchmark row only, not in the
 pipeline**: YOLOv11l reaches COCO **AP 0.482 / AP50 0.845** on this project's own seed-42 split —
 level with the task-specific FPCL method, ~8 AP over the generic baselines; the official FPCL
-split is not public so the comparison is *indicative*, `RESULTS_LOG` 2026-09-02b);
+split is not public so the comparison is *indicative*, `RESULTS_LOG` 2026-09-02b; **also Lever
+B's B-single arm**) and
+[`models/16_lever_b_pooled/`](models/16_lever_b_pooled/) (**Lever B's B-pooled arm**, 4 Sep — adds
+DENTEX-domain caries-box training data to `14`'s recipe: recovers DENTEX from a decisive loss
+(8.6%) to a statistical tie (45.5%) on tooth-level lesion agreement, at ~1pp cost to the still-
+decisive CariesXrays win (68.4%); **ablation**, Sec 6 not yet met — needs Ningxia, `RESULTS_LOG`
+2026-09-04 / 04b);
 plus [`models/05_cej_estimation_v2_models/`](models/05_cej_estimation_v2_models/)
 (the exploratory CEJ negative result).
 
@@ -529,12 +535,11 @@ Still on Drive only ([`docs/EXTERNAL_DRIVE.md`](docs/EXTERNAL_DRIVE.md)):
 
 ```
 models/06_yolo_detection_a100_run/best.pt      ← superseded detector, only for pre-27-Aug reproduction
-models/13, 14, 15 lever weights               ← ablation artefacts; SHA-256 in each run_summary.txt
+models/13, 15, 16 lever weights                ← ablation artefacts; SHA-256 in each run_summary.txt
 ```
 
-> ⚠️ **`models/14_cariesxrays_lever2/weights/best.pt` (Lever B's B-single arm) is currently
-> missing from every machine** — see
-> [`outputs/lever_B_lesion_caries_path/WINDOWS_SETUP.md`](outputs/lever_B_lesion_caries_path/WINDOWS_SETUP.md) §4.
+`models/14_cariesxrays_lever2/weights/best.pt` (Lever B's B-single arm) is **committed to git**
+(4 Sep 2026, sha256-verified `278d1e00…`) — no Drive round-trip needed.
 
 ### Verify the install
 
@@ -626,7 +631,7 @@ python scripts/train_model.py   --config configs/dataset_config.yaml   # Stage 4
 | **C2b** — CariesXrays sixth cohort (frozen pipeline) | `scripts/eval/cariesxrays_external.py` | `outputs/cariesxrays_external*/` |
 | **Lever 1 / A** — multi-corpus detector (ablations) | `scripts/yolo/build_multicorpus_detector{,_v2}_dataset.py`, `train_multicorpus_detector{,_v2}.py`, `scripts/eval/score_lever{1,A}_arm.py` | `models/13_detector_multicorpus_lever1/`, `models/15_detector_multicorpus_leverA/` (+ `repro/` + `repro/diagnostics/`), `outputs/lever_A_multicorpus_detector_v2/` (+ `TUFTS_GUARD2_DIAGNOSIS.md`) |
 | **Lever 2** — CariesXrays lesion detector (trained; benchmark row) | `scripts/yolo/build_cariesxrays_detector_dataset.py`, `scripts/yolo/train_cariesxrays_detector.py` | `models/14_cariesxrays_lever2/`, `outputs/lever2_cariesxrays/` |
-| **Lever B** — lesion-detection caries path (NOT STARTED) | reuses `scripts/yolo/build_cariesxrays_detector_dataset.py`, `scripts/eval/{lesion_localization,ningxia_external,cariesxrays_external}.py` | `outputs/lever_B_lesion_caries_path/` — **`START_HERE.md`** + `PRE_REGISTRATION.md` |
+| **Lever B** — lesion-detection caries path (both arms trained/evaluated 4 Sep; Sec 6 pending Ningxia) | `scripts/dentex/build_dentex_caries_boxes.py`, `scripts/yolo/{build_lever_b_pooled_dataset,train_lever_b_pooled_detector}.py`, `scripts/eval/{lesion_localization,ningxia_external,cariesxrays_external}.py` (`--decision lesion-detector`), `scripts/eval/lever_b_bootstrap.py` | `models/{14,16}_*` (B-single / B-pooled), `outputs/lever_b_eval/`, `outputs/lever_B_lesion_caries_path/PRE_REGISTRATION.md` (frozen) |
 | DOI integrity of every citation | `scripts/verify_citations_crossref.py` | `outputs/citation_audit/` |
 | The 90 manuscript numbers | `scripts/verify_paper_numbers.py` | `paper/main.tex` |
 
@@ -879,10 +884,20 @@ behind Lever B.
 + 2026-09-03 + 03b + 03c, [`PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) §8.10,
 [`TUFTS_GUARD2_DIAGNOSIS.md`](outputs/lever_A_multicorpus_detector_v2/TUFTS_GUARD2_DIAGNOSIS.md).
 
-**The remaining lever is B** — a lesion-detection caries path that is not base-rate dominated
-(the shot at an *adoptable* positive headline number). **Start here to continue it:**
-[`outputs/lever_B_lesion_caries_path/START_HERE.md`](outputs/lever_B_lesion_caries_path/START_HERE.md)
-— cold-start steps, the pre-registration to freeze first, and what a fresh laptop is missing.
+**Lever B — a lesion-detection caries path that is not base-rate dominated — ran 4 Sep.** Both
+arms trained and evaluated on the frozen tooth-level lesion-agreement metric across DENTEX +
+CariesXrays: **B-single** (`models/14`, reused zero-GPU) wins CariesXrays decisively (69.4% vs.
+gate 31.7% / constant 56.2%) but loses DENTEX decisively (8.6%) — the pre-registered
+"wins in-domain, fails to transfer" outcome. **B-pooled** (`models/16`, new training, adds
+DENTEX-domain data) recovers DENTEX to a **statistical tie** (45.5%, CI includes zero against
+both comparators) at a ~1pp cost to the still-decisive CariesXrays win (68.4%) — not one of the
+pre-registration's discrete outcome bins, recorded as its own honest result. **The acceptance
+rule is not yet met by either arm** (needs ≥2 of 3 cohorts; only 1 of 2 scored passes) —
+**Ningxia is the deciding cohort and is not on this machine.** Full detail:
+[`RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) 2026-09-04 / 04b,
+[`docs/session-memory/2026-09-04a-lever-b-build-and-both-arms.md`](docs/session-memory/2026-09-04a-lever-b-build-and-both-arms.md).
+Next: get Ningxia, re-run the (already-wired) eval + `scripts/eval/lever_b_bootstrap.py` a third
+time for the real verdict — [`outputs/lever_B_lesion_caries_path/START_HERE.md`](outputs/lever_B_lesion_caries_path/START_HERE.md).
 **D** (a bone-loss second corpus, now possible via the openly-released BRAR dataset) is opt-in.
 If the tracks conflict for time, the write-up wins.
 [`transfer.md`](transfer.md) §3.
