@@ -1,0 +1,105 @@
+================================================================================
+16_detector_leverA2_finetune — Lever A2: Tufts head fine-tune of the Lever A 3-corpus detector
+================================================================================
+Status:   ABLATION. NOT adopt-worthy. Pipeline default detector stays
+          models/11_yolo_seg_tufts_r1 (tooth-detector-seg-tufts-1024-v1.0).
+          Pre-registered rule (primary AND both guards): PRIMARY passes,
+          GUARD 1 passes, GUARD 2 FAILS. Same disposition as Lever 1 and Lever A.
+Date:     4 September 2026
+Pre-reg:  outputs/lever_A2_detector_finetune/PRE_REGISTRATION.md  (FROZEN, commit a7e4902)
+Hardware: JarvisLabs RTX PRO 6000 Blackwell 96 GB, IN1, instance 496782 (destroyed
+          after download). Env torch 2.11.0+cu130 / ultralytics 8.4.127 / Python 3.10
+          -- identical to Lever A. Spend ~Rs 36 (balance Rs 1,184.84 -> Rs 1,148.78).
+Trainer:  scripts/yolo/train_a2_finetune.py
+Weights:  a2_best.pt  sha256 48e23e84797712edd63322bdd7407f3e57890a00f9e494cc862f1a3250bba300
+          (49 MB, gitignored per CLAUDE.md rule 4; not the pipeline default; not on Drive)
+
+--------------------------------------------------------------------------------
+WHAT A2 IS
+--------------------------------------------------------------------------------
+Phase 0 (RESULTS_LOG 2026-09-04) diagnosed Lever A's Guard-2 failure as a
+CONFIDENCE-CALIBRATION COLLAPSE on the minority domain -- the multi-corpus backbone
+finds the Tufts teeth (recall 0.80 at conf 0.10) but the score stops separating
+real teeth from spurious boxes. A2 tests the fix that diagnosis implies:
+
+  load models/15_detector_multicorpus_leverA/arm3c_best.pt (the frozen 3-corpus
+  Lever A checkpoint), FREEZE the backbone (freeze=11 -> layers 0-10, 50.7% of
+  params), and fine-tune the neck (11-22) + Detect head (23) on Tufts-only
+  (train_tufts.txt, 700 images) for 40 epochs / patience 12 / warmup 1, canonical
+  LR 1e-3. Hypothesis: re-specialise the Tufts head calibration while the frozen
+  backbone keeps the +34 pp DENTEX / +9 pp external gains.
+
+Dataset: a Tufts-only subset of data/detector_multicorpus_v2/ (280 MB tar,
+sha256 450212868b..., box counts val 3794 / test 3924 reproduced -- on-box GATE: GO).
+A2 touches Tufts only, so DENTEX/Kaggle/UFBA images were left out of the upload.
+
+Training: EarlyStopping at epoch 18, best.pt = epoch 6. Tufts-VAL mAP@0.5 rose
+0.542 (epoch 0 = arm3c) -> ~0.62 (epoch 5) then plateaued.
+
+--------------------------------------------------------------------------------
+RESULTS -- the pre-registered rule (score_leverA_arm.py --label a2)
+--------------------------------------------------------------------------------
+PRIMARY  FDI exact end-to-end on the 164 leak-free DENTEX images, method=head,
+         head=models/10, conf 0.25 / NMS 0.50 / imgsz 1024 / CCW. Paired cluster
+         bootstrap over the 164 images, 10k, seed 42.
+
+                          recall   of-detected   end-to-end   det/img
+  Control A (deployed seg)  0.708      0.825        0.5844       22.0
+  arm3c (Lever A)           0.996      0.932        0.9284       27.5
+  A2 (this)                 0.963      0.911        0.8771       27.5
+
+  A2 - Control A   Δ e2e  +29.27 pp  [+24.95, +33.59]   excludes 0  -> PRIMARY PASSES
+  (arm3c was +34.40; A2 lost ~5 pp of DENTEX to the Tufts fine-tune, still >> +5 pp bar.)
+
+GUARD 1  pooled external caries agreement (Ningxia x4 [1,013 lesions] + CariesXrays
+         random-1500 seed 42 [3,421]), FROZEN gate v3.0, A2 detector swapped in.
+         Paired bootstrap over 1,837 images, 10k, seed 42.
+
+                     Control A    arm3c        A2
+  Ningxia pooled      0.407        0.600       0.570   (577/1013; .519/.673/.475/.543 by split)
+  CariesXrays-1500    0.309        0.370       0.372
+  POOLED             0.3313       0.422       0.4168
+  A2 - Control A   Δ  +8.55 pp  [+6.88, +10.24]   -> GUARD 1 PASSES
+  (arm3c was +9.11; A2 held almost all of the external gain.)
+
+GUARD 2  Tufts frozen TEST box mAP@0.5, on the GPU box (yolo val on best.pt,
+         test = test_tufts.txt, 150 Tufts test images). Bar: >= Control B - 4pp = 0.6843.
+
+  Control B (Tufts-only from scratch)     0.7243
+  arm3c (Lever A, before this fine-tune)  0.5852
+  A2 (this)                               0.5929   P 0.593  R 0.638  mAP@.5:.95 0.213
+                                          -> 0.091 BELOW the floor  -> GUARD 2 FAILS
+
+  The Tufts head/neck fine-tune moved Tufts TEST box mAP by +0.8 pp (0.585 -> 0.593)
+  -- essentially nothing -- despite the VAL curve recovering (0.54 -> 0.62). The
+  operating-point P/R is unchanged from arm3c (0.593/0.638 vs 0.594/0.631).
+
+--------------------------------------------------------------------------------
+VERDICT (pre-registered rule, bar NOT moved)
+--------------------------------------------------------------------------------
+PRIMARY passes (+29 pp), GUARD 1 passes (+8.6 pp), GUARD 2 FAILS (0.593 vs 0.684).
+=> 2 of 3.  ABLATION / not adopt-worthy.  Pipeline default detector unchanged.
+
+This is pre-registration §5 row 3: "GUARD 2 fails (Tufts does not recover) -> head
+fine-tuning is insufficient; the box-mAP ceiling is the box-vs-mask supervision gap
+(PAPER_MATERIAL §8.9), not the training mix." The Phase-0 calibration hypothesis
+predicted a frozen-backbone head fine-tune would recover Tufts. It recovered Tufts
+VALIDATION mAP but NOT Tufts TEST mAP, and got nowhere near the from-scratch
+Tufts detector (0.593 vs 0.724). The ceiling is deeper than the detection head:
+the frozen 3-corpus backbone features cannot be recombined into a Control-B-quality
+Tufts detector by the neck + head alone.
+
+The only untried detector lever is multi-corpus SEGMENTATION (pre-reg Phase 2b) --
+scoped as post-submission work, NOT a next step under the ISBI timeline.
+
+--------------------------------------------------------------------------------
+FILES
+--------------------------------------------------------------------------------
+a2_best.pt                            the checkpoint (gitignored, 49 MB)
+a2_results.csv                        per-epoch losses + Tufts-val metrics
+a2_train.log                          full training + Guard-2-val log from the box
+results.png, BoxPR_curve.png          the training curves
+outputs/lever_A2_detector_finetune/a2/stage2_*_head.json     PRIMARY eval
+outputs/lever_A2_detector_finetune/a2/{ningxia,cariesxrays}_caries.json   GUARD 1 raw
+outputs/lever_A2_detector_finetune/a2/leverA2_verdict.json   the pre-registered verdict
+outputs/lever_A2_detector_finetune/{PRE_REGISTRATION,STATUS}.md

@@ -209,7 +209,34 @@ The Guard-2 failure is **monotonic in corpus count** — Tufts-only 0.724 → +D
 +UFBA 0.552 — and *worse* than Lever 1's 0.647: balanced sampling drops Tufts to 33 % of the
 mix, and a corpus's own held-out box mAP scales with its training share. The 92.8 % is an
 **in-domain** number (DENTEX-trained detector on held-out DENTEX), like Lever 1's 93.4 %; the
-same detector scores 0.585 on Tufts test.
+same detector scores 0.585 on Tufts test.
+
+---
+
+### Lever A2 — Tufts head fine-tune of the Lever A detector (4 Sep 2026) — **ABLATION, NOT adopted**
+
+Tests the Phase-0 fix (`RESULTS_LOG` 2026-09-04): if Lever A's Guard-2 failure is a *head*
+calibration collapse, freeze the 3-corpus backbone (`freeze=11`) and fine-tune the neck + Detect
+head on Tufts-only. `models/16_detector_leverA2_finetune/`, `RESULTS_LOG` 2026-09-04b. Same
+pre-registered rule as Lever A.
+
+| criterion | comparator | A2 | bar | result |
+|---|---|---|---|---|
+| PRIMARY — DENTEX FDI e2e (164) | Control A 0.5844 | **0.8771**, Δ **+29.27 pp [+24.95, +33.59]** | lower bound ≥ +5 pp | ✅ |
+| GUARD 1 — pooled ext caries agreement | Control A 0.3313 | **0.4168**, Δ **+8.55 pp [+6.88, +10.24]** | lower bound ≥ −2 pp | ✅ |
+| GUARD 2 — Tufts frozen test box mAP@0.5 | Control B 0.7243 | **0.5929** | ≥ 0.6843 | ❌ |
+| **verdict** | | | primary ∧ both guards | **ABLATION** |
+
+The Tufts head fine-tune moved Tufts **test** box mAP **+0.8 pp** (0.585 → 0.593) — Tufts *val*
+recovered (0.54 → 0.62) but did not transfer. It kept most of the multi-corpus gains (DENTEX
++29 vs +34 pp, external +8.6 vs +9.1 pp — the gains live in the frozen backbone). **The
+calibration hypothesis was necessary but not sufficient:** a Control-B-quality Tufts detector is
+not reachable from the frozen 3-corpus features by the head alone. Ningxia pooled: 0.407 (Ctrl A)
+→ 0.600 (arm3c) → 0.570 (A2); CariesXrays: 0.309 → 0.370 → 0.372.
+
+The Lever 1 → A → Phase 0 → A2 arc is closed: the multi-corpus/Tufts tradeoff is real, its
+mechanism is a calibration collapse, and it is not fixable by head fine-tuning. Segmentation is
+the only untried lever — scoped post-submission.
 
 ---
 

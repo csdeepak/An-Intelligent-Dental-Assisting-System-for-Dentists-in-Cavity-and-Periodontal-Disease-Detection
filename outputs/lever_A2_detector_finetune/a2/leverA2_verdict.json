@@ -1,0 +1,40 @@
+{
+  "label": "a2",
+  "n_boot": 10000,
+  "seed": 42,
+  "primary": {
+    "n_images": 164,
+    "gt_teeth": 936,
+    "control_e2e": 0.5844,
+    "arm_e2e": 0.8771,
+    "delta_pp": 29.27,
+    "ci95_pp": [
+      24.95,
+      33.59
+    ],
+    "frac_resamples_le_0": 0.0,
+    "rule": "lower bound >= +5.0 pp",
+    "pass": true
+  },
+  "guard1": {
+    "n_images": 1837,
+    "n_lesions": 4434,
+    "control_agreement": 0.3313,
+    "arm_agreement": 0.4168,
+    "delta_pp": 8.55,
+    "ci95_pp": [
+      6.88,
+      10.24
+    ],
+    "rule": "lower bound >= -2.0 pp",
+    "pass": true
+  },
+  "guard2": {
+    "arm_tufts_test_map50": 0.5929,
+    "controlB_tufts_test_map50": 0.7243,
+    "floor": 0.6843,
+    "rule": "arm >= controlB - 4.0 pp",
+    "pass": false
+  },
+  "verdict": "ABLATION -- primary passes but Guard 2 FAILED (bar not moved)"
+}

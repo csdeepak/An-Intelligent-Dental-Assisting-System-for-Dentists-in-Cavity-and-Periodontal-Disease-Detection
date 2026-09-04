@@ -6154,3 +6154,65 @@ ABLATION; nothing re-opened.
   findings). `outputs/lever_A_multicorpus_detector_v2/TUFTS_GUARD2_DIAGNOSIS.md` §1.4b, §1.5, §3.
 - **Follow-ups:** Phase 0 is complete. Lever A2 (a retry) stays gated behind Lever B
   (`TUFTS_GUARD2_DIAGNOSIS.md` §3 Phase 1). **Lever B is the next lever** (the friend, on Windows).
+
+
+## 2026-09-04b — Lever A2: a Tufts head fine-tune does NOT recover the benchmark — ABLATION
+
+Executes the Lever A2 pre-registration (`outputs/lever_A2_detector_finetune/PRE_REGISTRATION.md`,
+FROZEN `a7e4902`). Tests the fix implied by the Phase-0 diagnosis (`RESULTS_LOG` 2026-09-04):
+if Lever A's Guard-2 failure is a *head*-calibration collapse, then freezing the multi-corpus
+backbone and fine-tuning the head on Tufts should recover it. **It does not.** Lever A2 stays
+ABLATION; pipeline default detector unchanged.
+
+- **What was done:** loaded `models/15_detector_multicorpus_leverA/arm3c_best.pt` (the frozen
+  Lever A 3-corpus checkpoint), **froze the backbone** (`freeze=11` → YOLOv11l layers 0–10,
+  50.7 % of params; verified locally), fine-tuned the neck + Detect head on **Tufts-only**
+  (`train_tufts.txt`, 700 images) — 40 epochs / patience 12 / warmup 1 / canonical LR 1e-3,
+  every other knob byte-identical to `train_multicorpus_detector_v2.py`. JarvisLabs RTX PRO 6000
+  (instance 496782, IN1, env identical to Lever A), ~10 min training, **~₹36**. Instance
+  destroyed. EarlyStopping at epoch 18, best = epoch 6.
+- **Dataset:** a Tufts-only subset of `data/detector_multicorpus_v2/` (280 MB tar, box counts
+  val 3,794 / test 3,924 reproduced, on-box `GATE: GO`). A2 touches Tufts only.
+- **Metrics — the pre-registered rule** (`scripts/eval/score_leverA_arm.py --label a2`; reuses
+  Lever A's Control A / Control B numbers; paired cluster bootstrap 10k seed 42):
+
+  | criterion | comparator | A2 | bar | result |
+  |---|---|---|---|---|
+  | **PRIMARY** — DENTEX FDI e2e (164 leak-free) | Control A 0.5844 | **0.8771**, Δ **+29.27 pp [+24.95, +33.59]** | lower bound ≥ +5 pp | ✅ **PASS** |
+  | **GUARD 1** — pooled ext caries agreement (Ningxia ×4 + CariesXrays-1500, 4,434 lesions) | Control A 0.3313 | **0.4168**, Δ **+8.55 pp [+6.88, +10.24]** | lower bound ≥ −2 pp | ✅ **PASS** |
+  | **GUARD 2** — Tufts frozen test box mAP@0.5 | Control B 0.7243 | **0.5929** | ≥ 0.6843 | ❌ **FAIL** |
+
+  Per-cohort: Ningxia pooled 0.407 (Ctrl A) → 0.600 (arm3c) → **0.570** (A2); CariesXrays-1500
+  0.309 → 0.370 → **0.372**; DENTEX e2e 0.584 → 0.928 (arm3c) → **0.877** (A2).
+- **Key insight:** the Tufts head/neck fine-tune moved Tufts **test** box mAP by **+0.8 pp**
+  (0.585 → 0.593) — essentially nothing — even though Tufts **val** mAP recovered (0.54 → 0.62).
+  The operating-point P/R is unchanged from arm3c (0.593/0.638 vs 0.594/0.631). **The Phase-0
+  calibration hypothesis was necessary but not sufficient:** re-specialising the head on Tufts
+  does not fix Tufts box mAP, and the result gets nowhere near the from-scratch Tufts detector
+  (0.593 vs Control B 0.724). The frozen 3-corpus backbone features cannot be recombined into a
+  Control-B-quality Tufts detector by the neck + head alone — the ceiling is **deeper than the
+  detection head**. This is pre-reg §5 row 3: "head fine-tuning is insufficient; the box-mAP
+  ceiling is the box-vs-mask supervision gap (§8.9)."
+- **What A2 *did* show:** a frozen-backbone fine-tune keeps most of the multi-corpus gains
+  (DENTEX +29 vs +34 pp, external +8.6 vs +9.1 pp) — the +34/+9 pp gains live in the backbone,
+  as Phase 0 argued. So the tradeoff is not "forgetting" — it is that a from-scratch Tufts
+  detector's box quality is simply not reachable from these features.
+- **VERDICT (pre-registered, bar NOT moved): ABLATION / not adopt-worthy.** 2 of 3 pass.
+  Pipeline default detector stays `models/11_yolo_seg_tufts_r1`. Same disposition as Lever 1,
+  Lever A, Stage-2 head v3, caries gate v4.
+- **The Lever 1 → A → Phase 0 → A2 arc is now closed** as a methodological result: a single-class
+  multi-corpus tooth detector cannot serve both the Tufts benchmark and the external cohorts, the
+  failure mechanism is a calibration collapse (not localisation), and it is not fixable by head
+  fine-tuning. The only untried lever is multi-corpus **segmentation** — pre-reg-scoped as
+  **post-submission**, not a next step under the ISBI timeline.
+- **Source:** `models/16_detector_leverA2_finetune/run_summary.txt` (+ `a2_best.pt` sha256
+  `48e23e84797712edd63322bdd7407f3e57890a00f9e494cc862f1a3250bba300`, 49 MB, gitignored),
+  `a2_results.csv`, `a2_train.log`; `outputs/lever_A2_detector_finetune/a2/{stage2_*,ningxia_caries,cariesxrays_caries,leverA2_verdict}.json`;
+  `outputs/lever_A2_detector_finetune/{PRE_REGISTRATION,STATUS}.md`;
+  `scripts/yolo/train_a2_finetune.py`; `scripts/eval/score_leverA_arm.py`.
+- **Follow-ups:** (1) fold into `PAPER_MATERIAL.md` §8.16 (done). (2) `transfer.md` §4
+  pending-decision row "is an adoptable multi-corpus detector worth chasing?" — **resolved: no,
+  under this timeline**; segmentation is post-submission. (3) `models/16/a2_best.pt` local-only
+  (same Drive gap as models/11–15). (4) **Lever B** (the friend, Windows) is now the only
+  active score lever. (5) `transfer.md` GPU balance was ₹1,732, actually ₹1,184.84 before A2 —
+  a ~₹547 gap to explain (not this session's spend).

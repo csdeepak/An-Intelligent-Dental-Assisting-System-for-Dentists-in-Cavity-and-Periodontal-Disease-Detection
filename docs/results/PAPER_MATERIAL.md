@@ -1553,6 +1553,27 @@ added; Guard 2 compares each arm to the detect-head control, which is the right 
 *data* question but means "0.585 vs 0.810 deployed" overstates the multi-corpus penalty and
 "0.585 vs 0.724" is the honest figure. `outputs/lever_A_multicorpus_detector_v2/TUFTS_GUARD2_DIAGNOSIS.md`.
 
+**Lever A2 (4 Sep 2026, `RESULTS_LOG` 2026-09-04b) tested the fix the diagnosis implies, and
+closed the question.** If the failure is head calibration, then freezing the multi-corpus
+backbone and fine-tuning only the neck + detection head on Tufts should recover it. It does not.
+Starting from the Lever A 3-corpus checkpoint with the backbone frozen (`freeze=11`, layers 0–10,
+50.7 % of parameters), 40 epochs of Tufts-only fine-tuning moved the Tufts **test** box mAP@0.5
+by **+0.8 points** (0.585 → 0.593) — even though the Tufts **validation** mAP recovered
+(0.54 → 0.62). The validation gain did not transfer, and the result stays far below the
+from-scratch Tufts detector (0.593 vs 0.724). What the fine-tune *did* keep is the multi-corpus
+gains — DENTEX end-to-end +29 pp (vs +34 for Lever A) and pooled external caries +8.6 pp (vs
++9.1) — confirming those live in the frozen backbone. So the tradeoff is not catastrophic
+forgetting; it is that a Control-B-quality Tufts detector is simply **not reachable from the
+frozen 3-corpus features by the head alone**. The Lever 1 → A → A2 sequence therefore reads as
+one clean methodological result: a single-class multi-corpus tooth detector cannot be made to
+serve both the Tufts benchmark and the external cohorts — naively it fails the Tufts guard, with
+four balanced corpora it fails harder (monotonic in Tufts training share), the mechanism is a
+confidence-calibration collapse rather than a localisation failure, and it does not respond to
+head fine-tuning. The one lever left is multi-corpus **segmentation** (Tufts masks plus
+box-prompted pseudo-masks for the box-only corpora), which we scope as future work rather than a
+change to this submission. `models/16_detector_leverA2_finetune/run_summary.txt`,
+`outputs/lever_A2_detector_finetune/PRE_REGISTRATION.md`.
+
 ---
 
 ### 8.17 Caries failure panel — what the 0.40 precision is actually made of
