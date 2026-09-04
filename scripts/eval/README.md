@@ -7,6 +7,7 @@ Scripts that measure the pipeline rather than build or train it. This is where c
 | Script | Measures | Status |
 |---|---|---|
 | `validate_fdi_assignment.py` | Stage 1 → Stage 2: does the pipeline give each tooth the right FDI number? | ✅ run for both methods |
+| `validate_fdi_assignment_tufts.py` | Same, on **Tufts** — detector → `models/10` head → Hungarian, vs the *complete* mirror-corrected Tufts numbering (3,760 teeth). The Stage-2 end-to-end number the paper lacked. Reuses the DENTEX eval's matcher/viz + `src.utils.fdi_converter.tufts_title_to_fdi`. | ✅ 4 Sep — deployed 64.8 % e2e; the multi-corpus box-mAP guard failure = ~1 pt e2e cost. `RESULTS_LOG` 2026-09-04d |
 | `analyze_stage2_ceiling.py` | Why rank-order assignment has a ceiling, and by how much the head clears it | ✅ run on `outputs/stage2_clean` |
 | `ablate_head_inputs.py` | Which input carries which FDI digit — tests the architecture's stated rationale | ✅ run on the 2,729-crop val split |
 | `compare_caries_gates.py` | Before/after for the caries gate, through the pipeline, same boxes and crops | ✅ 84.9% → 19.1% |
