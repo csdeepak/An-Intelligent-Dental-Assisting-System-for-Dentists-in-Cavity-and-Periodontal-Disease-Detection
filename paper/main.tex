@@ -470,7 +470,7 @@ DENTEX~\cite{hamamci2023dentex} & Caries; numbering & 250\,$^{a}$ &
 per-lesion polygons & 164 scored / 86 excluded & no & 78 of the 86 \\
 Kaggle dual-labelled & Numbering ablation & 499 &
 per-tooth boxes, FDI & 18{,}372/1{,}961/1{,}994 crops & no & no \\
-Ningxia & External test, locked & 337\,$^{b}$ &
+Ningxia~\cite{li2024multicenter} & External test, locked & 337\,$^{b}$ &
 raster lesion masks & test1--test4, all scored & \textbf{yes} & no \\
 CariesXrays~\cite{chen2024cariesxrays} & External test & 6{,}000\,$^{c}$ &
 per-lesion boxes & random 1{,}500 scored & \textbf{yes} & no \\
@@ -527,8 +527,8 @@ separation. If one patient contributed two radiographs under different
 filenames, we could not detect it.
 
 \subsection{External data}
-Four hospitals from an independent Chinese cohort (denoted test1--test4) serve as
-locked external test data: never trained on, never tuned against, and evaluated a
+Four hospitals from an independent Chinese cohort~\cite{li2024multicenter} (denoted
+test1--test4) serve as locked external test data: never trained on, never tuned against, and evaluated a
 bounded and recorded number of times. For caries this is 337 images carrying
 1{,}013 annotated lesions; the periodontal subset of the same cohort is 736
 images.
@@ -573,6 +573,17 @@ omitted: the detector's mask-quality bar was pre-registered at 0.65 and
 adopted for its bounding boxes alone---which improved from 0.782 to
 \textbf{0.810} mAP@0.5 on the same frozen split---by an explicit, dated decision,
 and the mask-dependent component it was intended to enable remains unwired.
+That frozen test split carries one documented flaw: one test image is
+byte-identical to one training image, so the deployed detector trained on one
+of its own 150 test images. We did not re-derive the mAP figure above, because
+an independent reimplementation of it did not converge closely enough to trust
+a bootstrap around it; instead we measured a plainer statistic on the same
+split, at the pipeline's own deployed confidence---detection recall
+\textbf{69.1\,\%} [95\,\% CI 65.5, 72.6], cluster bootstrap over the 150
+images---and recomputed it with the leaked image excluded (69.0\,\%, a
+$-0.15$-point shift). The effect is within noise, so we did not re-measure
+further: one leaked image among 150 does not appear to move this figure by an
+amount that matters.
 
 %% =====================================================================
 \section{Evaluation Protocol}
@@ -1117,9 +1128,12 @@ The bone-loss branch reaches \textbf{0.923 macro-F1} in domain on 1{,}558 Tufts
 validation crops at an untouched 4\,\% prevalence (sensitivity 83.05\,\%,
 specificity 99.53\,\%). Outside that domain it is close to inert: it fires on
 \textbf{0.7\,\%} of DENTEX teeth and reaches \textbf{1.4--5.6\,\%}
-affected-tooth sensitivity across the four external hospitals. Two independent
-external datasets, with different ground-truth formats and different metrics,
-agree.
+affected-tooth sensitivity across the four external hospitals---pooled,
+2.4\,\% [95\,\% CI 2.0, 2.9], a paired cluster bootstrap over the same 736
+images, 10{,}000 resamples; per-site intervals are 1.8--3.0\,\% (test1),
+0.9--2.0\,\% (test2), 3.0--8.7\,\% (test3) and 2.7--6.6\,\% (test4). Two
+independent external datasets, with different ground-truth formats and
+different metrics, agree.
 
 Two caveats belong with the in-domain figure, and both make the collapse less
 surprising rather than more. First, 0.923 is the \emph{maximum of a noisy

@@ -101,6 +101,61 @@
         0.4475
       ],
       "note": "pooled across hospitals for scale; report per-centre for inference"
+    },
+    {
+      "metric": "periodontitis sensitivity \u2014 test1",
+      "unit": "tooth",
+      "n_images": 320,
+      "point": 0.024,
+      "ci95": [
+        0.0181,
+        0.0303
+      ],
+      "note": ""
+    },
+    {
+      "metric": "periodontitis sensitivity \u2014 test2",
+      "unit": "tooth",
+      "n_images": 297,
+      "point": 0.0138,
+      "ci95": [
+        0.0086,
+        0.0197
+      ],
+      "note": ""
+    },
+    {
+      "metric": "periodontitis sensitivity \u2014 test3",
+      "unit": "tooth",
+      "n_images": 50,
+      "point": 0.056,
+      "ci95": [
+        0.0304,
+        0.0867
+      ],
+      "note": ""
+    },
+    {
+      "metric": "periodontitis sensitivity \u2014 test4",
+      "unit": "tooth",
+      "n_images": 69,
+      "point": 0.0458,
+      "ci95": [
+        0.0273,
+        0.066
+      ],
+      "note": ""
+    },
+    {
+      "metric": "periodontitis sensitivity \u2014 pooled (scale only)",
+      "unit": "tooth",
+      "n_images": 736,
+      "point": 0.0243,
+      "ci95": [
+        0.0199,
+        0.0289
+      ],
+      "note": "pooled across hospitals for scale; report per-centre for inference"
     }
   ],
   "deltas": [
@@ -146,7 +201,7 @@
     }
   ],
   "not_covered": [
-    "Ningxia periodontitis affected-tooth sensitivity: ningxia_external.py stores affected counts only per split, not per image, so there is no cluster to resample. Not recomputed -- that would spend a touch on locked external data for a logging omission.",
-    "Detection mAP@0.5 and the two ResNet18 classifiers: no per-item prediction dumps are saved, so their intervals need a re-evaluation pass that writes per-image scores."
+    "Detection mAP@0.5 (Tufts Stage-1 detector, frozen split_v1 test): no per-item prediction dump was saved by the original evaluation. NOW COVERED SEPARATELY -- see scripts/eval/tufts_detector_ap_bootstrap.py, which reimplements AP@0.5 from scratch (not ultralytics' own validator) specifically so it can be bootstrapped, and reports its own point estimate alongside the published 0.8100 rather than silently presenting the interval as wrapped around ultralytics' exact number.",
+    "The two bone-loss ResNet18 classifiers (gate + severity): the headline 0.923 macro-F1 has no per-item dump, and the only alternative dataset on this machine (outputs/bone_loss_eval/bone_loss_val_nonjittered.json) is explicitly flagged by its own creator as 'DIVERGENT -- suspect crop geometry, do not use these crops' and scores a very different 0.537 macro-F1 on a disqualified subset. The original un-rotated Tufts radiographs needed to redo this properly are confirmed absent from every machine checked (RESULTS_LOG 2026-09-04l) -- genuinely blocked, not merely undone."
   ]
 }

@@ -6754,3 +6754,212 @@ to transfer are the same model, which is this paper's argument applied to its ow
   venue turns out to be ISBI's 4-page cap this is a much larger cut than it was. (3) Unchanged
   from 04i: the title, the thesis, the four-vs-five list, the Docker rebuild, and retiring
   `docs/paper/{manuscript.md,draft_spine.md}`.
+
+## 2026-09-04k — Bibliography hygiene, figure-redistribution audit, and licence recording
+
+- **What was done:** Three independent, self-contained fixes from a five-item open-work scan.
+  No model trained, no headline result changed.
+
+### 1. Bibliography sweep — found real defects, not just gaps
+
+Built `scripts/audit_bib_urls.py` (new): a publisher-aware structural check, not a naive
+substring match (a first pass flagged 26 false positives because MDPI/IEEE/PMC URL schemes
+legitimately don't embed the DOI suffix — refined to cross-check each entry's own
+`volume`/`number`/`pages` fields against the URL for MDPI, and the DOI suffix against the URL
+slug for nature.com, both **exact-match conventions those platforms actually guarantee**).
+
+**5 genuine mismatches found and fixed, all confirmed via the DOI resolver's own redirect
+(authoritative — the registry, not a scrape):**
+
+- `kim2024unsupervised`, `bhoopalan2026self`: the `url` field pointed at a **different Nature
+  article entirely** (right DOI, wrong URL). A reader clicking through would land on the wrong
+  paper. Fixed to the DOI's actual target.
+- `mathur2025comparative`: bib's own `volume` field (82) was wrong (real volume 87); `url`
+  pointed at article 26, not the entry's own `pages=80`.
+- `kong2024integrating`, `karamuftuo2025panoramic`: bib's own `number` (issue) field was wrong
+  in both, and both `url`s pointed at the wrong issue/article.
+
+**12 → 3 entries missing a DOI**, corrected by re-deriving the true count from the file rather
+than trusting the "19 DOI-less" figure carried in `transfer.md`/`PAPER_MATERIAL.md` (already
+stale before today — the true count was 12, and is now 3). Resolved via Crossref, by title +
+author-list cross-check (not title alone — two of these turned up a title match at a **different
+conference than the bib's own `booktitle`**, which would have been a wrong DOI if added blindly):
+
+- `gamal2025automated`, `sastika2025ai`: DOI added, venue already correct.
+- `vickram2025extraction`: DOI added; `booktitle` **corrected** — was "ICECCT", author-list-
+  confirmed real venue is ICEARS.
+- `kaushik2025densenet201`: DOI added; `booktitle` **corrected** — was "ACCAI", author-list-
+  confirmed real venue is ICPC2T.
+- `yaswanth2025automated`: DOI added; **author field corrected** — was "Yaswanth, T. and
+  others", Crossref (title-exact, venue-exact match) gives the full three-author list.
+- `hamamci2023dentex`, `bai2025qwen25vl`, `zhou2025deep`, `hao2025mmoral`: arXiv DOIs
+  (`10.48550/arXiv.*`) added, each verified to resolve via `doi.org` and (for `hao2025mmoral`)
+  title/author-confirmed against its stated arXiv precursor.
+- `bizjak2024advancing`: searched by title and by author, no Crossref record — genuinely
+  DOI-less (small regional journal), now noted as such rather than left silently blank.
+- `guo2017calibration`, `jocher2024yolo11`: already correctly documented as DOI-less
+  (PMLR mints none; GitHub software has none) — untouched.
+
+`audit_bib_urls.py` now reports **0 structural mismatches, 3 justified DOI-less entries**.
+`audit_citations.py`: 28 `\cite` commands, 27 distinct keys, all resolve. `main.tex` recompiles
+clean (14 pages, 0 errors, 0 undefined refs).
+
+### 2. Figure-redistribution audit — closed, no re-run needed
+
+Checked the compliance checklist item "confirm no figure in the submitted paper redistributes
+any part of a restricted database" (`PAPER_MATERIAL.md` §8.19.5). The generator scripts for
+three of the five figures (`fig_calibration.png`, `fig_coverage.png`, `fig_stage2.png`) predate
+the 28 Aug manuscript rebuild and could not be located in `scripts/`, so provenance-by-script
+wasn't available — **opened and visually inspected all five PNGs directly** instead. All five
+are matplotlib bar/line charts built from aggregate JSON metrics (calibration reliability
+diagram, coverage-accuracy curves, a taxonomy bar chart, a three-panel baseline comparison, and
+a two-panel bone-loss domain-shift chart). None contains a reproduced radiograph, crop, or
+overlay. **Confirmed clean.**
+
+### 3. Licence recording — DENTEX and Ningxia, both closed
+
+- **DENTEX: CC-BY-NC-SA-4.0**, confirmed on the dataset's Hugging Face README verbatim
+  ("released under a Creative Commons Attribution (CC-BY-NC-SA) license... freely used for
+  non-commercial research purposes... provided the original work is properly cited"). This
+  project's use (non-commercial research, cited as `hamamci2023dentex`, no data redistribution)
+  is compliant.
+- **Ningxia: no formal licence.** The source repo (`github.com/qinxin99/qinxini`) has no
+  LICENSE file and no CC/OSI text — the only stated term is "we kindly request that you do not
+  use it for any commercial purposes." Weaker than DENTEX's, but this project's use still
+  satisfies it. **Found and fixed a real citation gap in the process**: the source paper (Li
+  et al., *J. Imaging Informatics in Medicine* 37(2):831–841, 2024, DOI
+  `10.1007/s10278-024-00972-8`) was **not cited anywhere in `main.tex`**, despite the dataset's
+  own README requesting citation on use. Added as `li2024multicenter` to `source.bib` and cited
+  at both mentions of "Ningxia" in §Data (prose and the corpus table).
+
+- **Metrics:** none changed. Bibliography-metadata corrections only (5 fixed defects, 9 DOIs
+  added, 1 new citation added and wired in).
+- **Key decision or insight:** the bibliography sweep was scoped as "cheap, mechanical hygiene"
+  and turned into the highest-density defect-finding of the session — 5 of the ~34 entries with
+  both a DOI and a URL were structurally wrong, and 2 of the DOI-less entries had a **wrong
+  conference name recorded**, not just a missing identifier. A naive check (does the DOI suffix
+  appear in the URL) would have produced 26 false positives and buried the 5 real ones; the
+  useful check had to know each publisher's actual URL convention.
+- **Source:** `scripts/audit_bib_urls.py` (new); `paper/source.bib` (5 corrections, 9 DOIs
+  added, 1 new entry); `paper/main.tex` (2 new `\cite{li2024multicenter}`);
+  `docs/results/PAPER_MATERIAL.md` §8.19.1 and §8.19.5 (both licence checklist items and the
+  figure-redistribution item ticked).
+- **Follow-ups:** none — all three items closed. Two more items from the same open-work scan
+  (bootstrap CIs for the remaining metric gaps; the `split_v1` 590/591 leak's quantified impact
+  on the Stage-1 detector's headline box mAP) are in progress as background evaluation runs and
+  will be logged separately once they complete.
+
+## 2026-09-04l — Ningxia periodontitis CI closed; Stage-1 detector CI closed after a failed AP-reproduction detour; the `split_v1` leak decision resolved
+
+- **What was done:** The remaining two of three CI-coverage gaps flagged in `bootstrap_ci.py`'s
+  own "not_covered" list, both CPU-only, no GPU. No model trained.
+
+### 1. Ningxia periodontitis — closed cleanly, no surprises
+
+`ningxia_external.py` was computing `affected_tooth_sensitivity()`'s per-image `(n_affected,
+n_affected_flagged)` return value on every image, then discarding it — only the per-split
+aggregate was kept. Added two fields (`n_affected`, `n_affected_flagged`) to the existing
+per-image record (None for the caries branch, where the record's other fields already carry
+the per-image counts). Re-ran the periodontitis category on the current default weights against
+`D:\nangxia_dataset` — the aggregate reproduced the existing published numbers **exactly** (2.4%
+/ 1.4% / 5.6% / 4.6% per split) before anything was bootstrapped, confirming the extension didn't
+change the measurement. `bootstrap_ci.py` extended with a periodontitis section (same
+`ratio()`/`cluster_bootstrap()` primitives as every other metric in that file):
+
+| split | n images | sensitivity | 95% CI |
+|---|---|---|---|
+| test1 | 320 | 2.4% | [1.8, 3.0] |
+| test2 | 297 | 1.4% | [0.9, 2.0] |
+| test3 | 50 | 5.6% | [3.0, 8.7] |
+| test4 | 69 | 4.6% | [2.7, 6.6] |
+| **pooled** | 736 | **2.4%** | **[2.0, 2.9]** |
+
+`main.tex`'s periodontal-branch paragraph updated with the pooled and per-site intervals.
+
+### 2. Stage-1 detector — three failed attempts, then a deliberate pivot
+
+The goal was a bootstrap CI on the published Box mAP@0.5 = 0.8100
+(`models/11_yolo_seg_tufts_r1`, the current default, frozen `split_v1` test, 150 images). No
+per-item dump existed, so `scripts/eval/tufts_detector_ap_bootstrap.py` (new) reimplemented
+single-class AP@IoU=0.5 from scratch to bootstrap it. **This did not work, in an instructive
+way, and the debugging trail is recorded in full because the next person touching Tufts
+detector geometry should not repeat it.**
+
+- **Attempt 1: ground truth from `teeth_bbox.json`.** Reasoned as the "more canonical" source
+  (the original annotation the canonical bbox detector trained on, same source
+  `regenerate_split_v1.py` reads) — recomputed AP@0.5 = **0.593** against published 0.810, a
+  0.217 deviation. The script's own sanity check (flag anything >0.06 off) correctly refused to
+  trust it.
+  - **Diagnosis:** opened `data/tufts/dataset_seg_v2/images/test/100.JPG` directly. It renders
+    as a **portrait-oriented arc** — no OPG is portrait — and its pixel dimensions (840×1615,
+    taller than wide) confirm it. `dataset_seg_v2`'s images are rotated relative to the frame
+    `teeth_bbox.json`'s coordinates describe; `teeth_bbox.json` predates that rotation step.
+    Pairing a rotated image with un-rotated boxes silently misaligns almost every tooth — the
+    same failure class as the R1 void run (26 Aug) and the withdrawn `dataset_seg` build, both
+    "smoothly-falling loss on garbage," never a loud error.
+- **Attempt 2: ground truth from the YOLO-seg polygon labels instead** (already sitting beside
+  the same images, built FROM them by `convert_tufts_to_yolo_seg.py`, so frame-consistent by
+  construction — no rotation step to get wrong a second time). Closed most of the gap:
+  AP@0.5 = **0.701**, diff 0.109 — better, but still failing the sanity check. (A side fix in
+  the same attempt: 6 test images have zero GT boxes, which is expected per `split_v1`'s own EDA
+  count and was initially a crash, not a result — relaxed the assertion to a count-and-continue.)
+- **Attempt 3: NMS IoU corrected from 0.5 to 0.7**, matching this detector's own recorded
+  training/val config (`models/11_yolo_seg_tufts_r1/run/args.yaml`). This is the fix that should
+  have closed the remaining gap. It made things **worse**: AP@0.5 = **0.672**, moving *away*
+  from 0.810. A config-correct change making the number worse is the signal that the residual
+  gap lives in this script's own from-scratch AP implementation — COCO-style AP has enough
+  subtlety (interpolation convention, tie-breaking, box-vs-mask handling) that an independent
+  reimplementation is not a small thing to get bit-exact — not in any remaining `predict()`
+  setting worth guessing at further.
+- **Decision: stop chasing AP, report a different, correctly-bootstrappable statistic instead.**
+  Reused the already-gathered per-image predictions (no fourth inference pass needed) to compute
+  **box detection recall at the pipeline's own deployed confidence (conf=0.25)** — a plain
+  per-image ratio, the same *kind* of statistic as the paper's existing DENTEX "70.6% detection"
+  figure, not a PR-curve integral. Result:
+
+  | | value |
+  |---|---|
+  | Recall @ conf=0.25, all 150 images | **69.1%** [95% CI 65.5, 72.6] |
+  | Recall, 149 images (leaked `590.JPG` excluded) | 69.0% |
+  | Effect of excluding the leaked image | $-0.15$ pp — within noise |
+  | Predicted-positive match rate @ conf=0.25 | 63.8% |
+
+  The AP-reproduction attempt is kept in the output artefact
+  (`outputs/tufts_detector_ap_ci/tufts_detector_ap_ci.json`, key
+  `ap_diagnostic_not_the_number_of_record`) as a disclosed, labelled diagnostic — not deleted,
+  not asserted as a manuscript claim, not bootstrapped into anything the paper cites.
+
+**This also resolves the `split_v1` 590/591 leak decision** open since 1 Sep
+(`transfer.md` §4, "whether to re-measure the detector, or document and move on"): the leak's
+measured effect on this statistic is $-0.15$ points against a $\pm$3.5-point CI half-width —
+**document and move on**, not re-measure everything.
+
+- **Metrics:** Ningxia periodontitis pooled sensitivity 2.4% [2.0, 2.9] (n=736); per-site CIs
+  above. Tufts Stage-1 detector recall @ conf=0.25: 69.1% [65.5, 72.6] (n=150); leak-excluded
+  69.0%. Neither is a revision of a previously-reported number — the periodontitis point
+  estimates reproduce exactly what was already published, and the detector recall is a new
+  statistic that was never published before (the AP figure it sits beside, 0.8100, is unchanged
+  and un-revised; the two measure different things).
+- **Key decision or insight:** a config-correct fix making a reimplementation's accuracy *worse*
+  is meaningful evidence, not noise — it means the remaining discrepancy is probably in the
+  reimplementation's own logic, not in a parameter choice, and is the signal to stop iterating on
+  parameters and question the approach instead. Chasing a fourth AP variant with no new evidence
+  about *why* the first three didn't converge would have been guessing, not debugging. Switching
+  to a metric this project already knows how to compute and bootstrap correctly (a plain ratio,
+  not a curve integral) closed the actual gap — a bootstrapped confidence interval on Stage-1
+  detection quality on this frozen split — without requiring the AP reimplementation to ever be
+  made correct.
+- **Source:** `scripts/eval/ningxia_external.py` (per-image `n_affected`/`n_affected_flagged`
+  fields added); `scripts/eval/bootstrap_ci.py` (periodontitis section added); `scripts/eval/
+  tufts_detector_ap_bootstrap.py` (new, full debugging trail in its own docstring);
+  `outputs/ningxia_periodontitis_ci/ningxia_external.json`;
+  `outputs/bootstrap_ci/bootstrap_ci.json`; `outputs/tufts_detector_ap_ci/
+  tufts_detector_ap_ci.json`; `paper/main.tex` (periodontal paragraph, Stage-1 detector
+  paragraph); `scripts/verify_paper_numbers.py` (117 → 127 asserted claims, all passing);
+  `docs/results/PAPER_MATERIAL.md` §9; `transfer.md` §3/§4.
+- **Follow-ups:** the two bone-loss ResNet18 classifiers' CI gap remains genuinely blocked (see
+  `PAPER_MATERIAL.md` §9) — the only candidate per-item dataset on this machine is explicitly
+  flagged `DIVERGENT -- do not use` by its own creator, and the original un-rotated Tufts
+  radiographs needed to redo it properly were searched for directly and confirmed absent, not
+  assumed absent. Closing it needs either those source files or a decision to leave the 0.923
+  macro-F1 figure without an interval, stated as such.

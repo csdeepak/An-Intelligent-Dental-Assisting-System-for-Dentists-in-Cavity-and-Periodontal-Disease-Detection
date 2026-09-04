@@ -1743,8 +1743,8 @@ submission and one of them is a licence breach that is live today.
 | Corpus | Role | Licence / terms | De-identified? | Status |
 |---|---|---|---|---|
 | **Tufts Dental Database** | detector + bone-loss training | **Restrictive, read verbatim from `tdd.ece.tufts.edu` (26 Aug 2026)** — see below | Yes, by the provider | ⚠️ **BREACH TO RESOLVE** |
-| **DENTEX** | caries + FDI-head training, Stage-2 eval | ❓ **NOT VERIFIED** — no licence is recorded anywhere in this repo | Public challenge release | ⚠️ **must be established before submission** |
-| **Ningxia** | locked external test (4 hospitals) | ❓ **NOT VERIFIED** — obtained from a public GitHub release; terms not recorded | Public release | ⚠️ **must be established before submission** |
+| **DENTEX** | caries + FDI-head training, Stage-2 eval | ✅ **VERIFIED 4 Sep 2026 — CC-BY-NC-SA-4.0.** Confirmed on the dataset's Hugging Face README: "all elements of the DENTEX dataset are released under a Creative Commons Attribution (CC-BY-NC-SA) license... freely used for non-commercial research purposes... provided that the original work is properly cited and any derivative works are shared under similar terms." Non-commercial research use, attribution and share-alike are all satisfied by this project (research use, cited as `hamamci2023dentex`, no redistribution of the data itself). | Public challenge release (MICCAI 2023, `github.com/ibrahimethemhamamci/DENTEX`) | ✅ compliant |
+| **Ningxia** | locked external test (4 hospitals) | ✅ **VERIFIED 4 Sep 2026 — no formal licence, informal non-commercial request only.** The source repo (`github.com/qinxin99/qinxini`) carries no LICENSE file and no CC/OSI licence text; the only stated term is "we kindly request that you do not use it for any commercial purposes." Weaker than DENTEX's formal licence, but this project's use (non-commercial research, no redistribution) satisfies it. The source paper (Li et al. 2024, `li2024multicenter`, now added to `source.bib` and cited in `main.tex` — it was not cited before this pass despite the repo requesting citation on use) requests citation on use. | Public release, `Journal of Imaging Informatics in Medicine` 37(2):831-841 | ✅ compliant, weaker terms noted |
 | **SDH clinic (3,219 images)** | not used in any result | Institutional; no data-use agreement recorded | **Images yes, mapping file NO** | ⛔ **IRB not started; de-identification void** |
 
 #### 8.19.2 Tufts — the terms, and the breach
@@ -1813,12 +1813,22 @@ paper clean.
 #### 8.19.5 Pre-submission checklist
 
 - [ ] Restrict the Tufts Drive folder; confirm it is no longer link-accessible
-- [ ] Read and record the DENTEX licence, redistribution terms and citation form
-- [ ] Read and record the Ningxia licence and citation form
+- [x] Read and record the DENTEX licence, redistribution terms and citation form.
+      **Done 4 Sep 2026** — CC-BY-NC-SA-4.0, compliant. See §8.19.1.
+- [x] Read and record the Ningxia licence and citation form.
+      **Done 4 Sep 2026** — no formal licence, informal non-commercial request; source paper
+      added to `source.bib` and cited in `main.tex` (was missing). See §8.19.1.
 - [ ] Move SDH `metadata/index.csv` out of the shared Drive tree
 - [ ] Decide on the embedded Tufts pixels in the 7 notebooks **before** any public release
 - [ ] Start IRB paperwork if clinic data is ever to be used
-- [ ] Confirm no figure in the submitted paper redistributes any part of a restricted database
+- [x] Confirm no figure in the submitted paper redistributes any part of a restricted database.
+      **Done 4 Sep 2026.** All five figures the manuscript includes (`fig_baselines.png`,
+      `fig_calibration.png`, `fig_coverage.png`, `fig_stage2.png`, `fig_boneloss.png`) were
+      opened and inspected directly, not just traced to a generator script (several of the
+      original generator scripts predate the 28 Aug rebuild and could not be located). Every one
+      is a matplotlib bar/line chart built from aggregate JSON metrics -- no panel contains a
+      reproduced radiograph, a crop, or an overlay of one. No figure carries any Tufts, DENTEX or
+      Ningxia pixel data. `RESULTS_LOG` 2026-09-04k.
 
 ---
 
@@ -2424,8 +2434,34 @@ For whoever drafts the actual paper. Tick items off here as they land.
 - [ ] Failure-case figure panel: the 10 false negatives and 7 false positives from the
       bone-loss confusion matrix, with Grad-CAM. **Blocked** on the bone-loss crop rebuild
       (RESULTS_LOG 2026-08-27u). A caries failure panel is buildable from `crops_v3_phase1`.
-- [~] **PARTIALLY DONE 27 Aug 2026** (§8.14) — cluster-bootstrap 95% CIs over images for Stage-2 (recall, FDI exact ×2), DENTEX lesion agreement, and Ningxia caries per hospital, plus paired CIs on the detector-swap deltas. **Still missing: Ningxia periodontitis, detection mAP, and both ResNet18 classifiers**, all of which need per-item prediction dumps first. Original item: Statistical treatment: confidence intervals or k-fold for every headline metric —
-      especially the 52-crop severity model.
+- [~] **UPDATED 4 Sep 2026 — 2 of 3 remaining gaps closed** (`RESULTS_LOG` 2026-09-04k/04l).
+      Original: cluster-bootstrap 95% CIs over images for Stage-2 (recall, FDI exact ×2), DENTEX
+      lesion agreement, and Ningxia caries per hospital, plus paired CIs on the detector-swap
+      deltas — done 27 Aug (§8.14). Of the three gaps that remained after that pass:
+      - [x] **Ningxia periodontitis** — `ningxia_external.py` was discarding the per-image
+        affected-tooth counts it already computed; now writes them, and `bootstrap_ci.py`
+        bootstraps them. Pooled sensitivity 2.4% [95% CI 2.0, 2.9], n=736 images; per-site CIs
+        also computed. `main.tex` updated, `verify_paper_numbers.py` asserts it.
+      - [x] **Detection mAP** (Tufts Stage-1, frozen `split_v1` test) — reported instead as box
+        detection recall at the deployed confidence (conf=0.25): **69.1% [95% CI 65.5, 72.6]**,
+        n=150 images (`scripts/eval/tufts_detector_ap_bootstrap.py`, new). This is a *different*,
+        disclosed statistic, not a CI on the published 0.8100 AP figure — see that script's
+        docstring for why: an independent from-scratch AP reimplementation, built specifically
+        to bootstrap the exact published number, hit two real bugs (a ground-truth
+        coordinate-frame mismatch, then an NMS setting) and even after both fixes would not
+        converge closely enough to trust (0.593 → 0.701 → 0.672, moving *away* from 0.810 on the
+        second, config-correct fix) — the AP attempt is kept in the output artefact as a labelled
+        diagnostic, never asserted or quoted as a number. This same measurement closed the
+        `split_v1` 590/591 leak decision in §1/§4 of `transfer.md`: recall excluding the leaked
+        image is 69.0%, a $-0.15$-point shift — within noise, so "document and move on."
+      - [ ] **Both bone-loss ResNet18 classifiers** — genuinely blocked, not merely undone. The
+        only candidate per-item dataset on this machine
+        (`outputs/bone_loss_eval/bone_loss_val_nonjittered.json`) is explicitly flagged by its
+        own creator `"DIVERGENT -- suspect crop geometry, do not use these crops"` and scores a
+        very different 0.537 macro-F1 on a disqualified 785-crop subset — using it would put a
+        wrong number behind a real-looking interval. The original un-rotated Tufts radiographs
+        needed to redo this properly were searched for directly (every drive letter, OneDrive)
+        and confirmed absent from this machine, not merely assumed absent.
 - [x] Figures for Stages 3/4: training curves and confusion matrices. **Done 27 Aug 2026** —
       **regenerated** from committed artifacts rather than recovered from the archive, so both
       figure and numbers are reproducible from the repo (§8.18):

@@ -197,6 +197,41 @@ sens = [bl[f"periodontitis/test{i}"]["affected_tooth_sensitivity"] for i in rang
 check("bone-loss external range",
       r(min(sens)*100, 1) + "--" + r(max(sens)*100, 1) + "%", "ningxia_external_segdet")
 
+# ----------------------------------------- Tufts detector recall + 590/591 leak (4 Sep 2026)
+# Asserts primary_result only. The AP-reproduction diagnostic in the same artefact is
+# deliberately not asserted here -- it never converged on the published 0.8100 and is not
+# quoted as a number in the manuscript, only described in prose as an attempt that did not
+# succeed (scripts/eval/tufts_detector_ap_bootstrap.py's own docstring has the full story).
+tap = load("outputs/tufts_detector_ap_ci/tufts_detector_ap_ci.json")["primary_result"]
+check("Tufts detector recall @ conf=0.25", r(tap["recall_all_150"] * 100, 1) + "%",
+      "tufts_detector_ap_ci.json")
+check("Tufts detector recall CI", f"{r(tap['ci95'][0]*100,1)}, {r(tap['ci95'][1]*100,1)}",
+      "tufts_detector_ap_ci.json")
+recall_no_leak = tap["leak_impact"]["recall_without_leak_149_images"]
+check("Tufts detector recall without leak", r(recall_no_leak * 100, 1) + "%",
+      "tufts_detector_ap_ci.json")
+delta_pp = (recall_no_leak - tap["recall_all_150"]) * 100
+sign = "-" if delta_pp < 0 else "+"
+check("Tufts detector leak delta", f"${sign}{r(abs(delta_pp), 2)}$", "tufts_detector_ap_ci.json")
+
+# Bootstrap CIs added 4 Sep 2026 -- closes the "Ningxia periodontitis has no interval" gap
+# (bootstrap_ci.py's own former "not_covered" note). Read from the bootstrap artefact, not
+# recomputed here, so a re-run with a different seed/n_boot would be caught as drift.
+bci = load("outputs/bootstrap_ci/bootstrap_ci.json")
+PERIO_SITE = {"test1": "1.8--3.0", "test2": "0.9--2.0", "test3": "3.0--8.7", "test4": "2.7--6.6"}
+for m in bci["metrics"]:
+    if not m["metric"].startswith("periodontitis sensitivity"):
+        continue
+    lo, hi = m["ci95"]
+    if "pooled" in m["metric"]:
+        check("periodontitis sensitivity pooled CI",
+              f"{r(lo*100,1)}, {r(hi*100,1)}", "bootstrap_ci.json")
+        check("periodontitis sensitivity pooled point", r(m["point"]*100, 1) + "%",
+              "bootstrap_ci.json")
+    else:
+        site = m["metric"].rsplit(" ", 1)[-1]
+        check(f"periodontitis sensitivity {site} CI", PERIO_SITE[site], "bootstrap_ci.json")
+
 # ------------------------------------------------------- parameter counts
 # Counted from the checkpoints on 28 Aug 2026; see docs/paper/REBUILD_AUDIT.md.
 # --------------------------------------------------- CariesXrays (Table IV)

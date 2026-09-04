@@ -414,6 +414,7 @@ def main():
                     pos = [i for i, p in enumerate(preds) if p["finding"] == "bone_loss"]
 
                 k = (category, split)
+                n_affected_this_image = n_affected_flagged_this_image = None
                 if branch == "caries":
                     # focal lesions -> centroid containment is the right question
                     covered, strict = (match_by_centroid(lesions, [boxes[i] for i in pos])
@@ -428,6 +429,7 @@ def main():
                         msk_dir / f.name, boxes, pos)
                     agg[k]["affected_teeth"] += n_aff
                     agg[k]["affected_teeth_flagged"] += n_hit
+                    n_affected_this_image, n_affected_flagged_this_image = n_aff, n_hit
                 agg[k]["images"] += 1
                 agg[k]["teeth_detected"] += len(boxes)
                 agg[k]["predicted_positive"] += len(pos)
@@ -442,6 +444,12 @@ def main():
                     "image": f.name, "n_lesions": len(lesions),
                     "n_covered": covered, "n_strict": strict, "n_teeth": len(boxes),
                     "n_predicted_positive": len(pos),
+                    # Added 4 Sep 2026 for the periodontitis CI gap (bootstrap_ci.py's own
+                    # docstring: "records affected-tooth counts only in the per-split aggregate,
+                    # never per image, so there is no cluster to resample"). None for the caries
+                    # branch, where n_lesions/n_covered above already carry the per-image counts.
+                    "n_affected": n_affected_this_image,
+                    "n_affected_flagged": n_affected_flagged_this_image,
                 })
             print(f"  {category:15s} {split}  done ({agg[(category,split)]['images']} images)")
 

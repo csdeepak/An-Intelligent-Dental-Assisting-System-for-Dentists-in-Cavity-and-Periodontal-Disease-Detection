@@ -1,0 +1,43 @@
+{
+  "detector": "models\\11_yolo_seg_tufts_r1\\best.pt",
+  "test_images": 150,
+  "primary_result": {
+    "metric": "box detection recall at conf=0.25 (deployed default), IoU>=0.5 greedy match -- a plain per-image ratio, the same kind of statistic as the existing DENTEX detection-recall figure, not an AP curve",
+    "recall_all_150": 0.6911,
+    "ci95": [
+      0.6554,
+      0.7262
+    ],
+    "n_boot": 10000,
+    "seed": 42,
+    "predicted_positive_match_rate": 0.6376,
+    "leak_impact": {
+      "recall_with_leak_150_images": 0.6911,
+      "recall_without_leak_149_images": 0.6896,
+      "delta": -0.0015
+    }
+  },
+  "ap_diagnostic_not_the_number_of_record": {
+    "method": "single-class AP@IoU=0.5, all-points PR interpolation, independently reimplemented (not ultralytics' own validator)",
+    "published_ap50_run_summary": 0.81,
+    "recomputed_ap50_all_150": 0.6723,
+    "sanity_check_diff": 0.1377,
+    "sanity_check_verdict": "*** LARGE DEVIATION -- investigate before trusting the bootstrap ***",
+    "bootstrap": {
+      "n_boot": 10000,
+      "seed": 42,
+      "point": 0.6723,
+      "ci95": [
+        0.3817,
+        0.4766
+      ]
+    },
+    "leak_impact": {
+      "leaked_image": "590.JPG",
+      "ap50_with_leak_150_images": 0.6723,
+      "ap50_without_leak_149_images": 0.6701,
+      "delta": -0.0021
+    },
+    "note": "Two independent bugs were found and fixed in this reimplementation (ground-truth frame mismatch: 0.593->0.701; NMS iou 0.5->0.7 per the detector's own recorded config, which moved it further away: 0.701->0.672) without converging on 0.8100. Kept as a disclosed diagnostic rather than discarded; the recall-based primary_result above is the trustworthy interval and does not depend on this AP reimplementation being correct."
+  }
+}

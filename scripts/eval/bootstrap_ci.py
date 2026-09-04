@@ -10,6 +10,17 @@ external caries. `PAPER_MATERIAL.md` §9 lists "confidence intervals or k-fold f
 metric" as a blocking item, and a reviewer meeting a table of bare proportions on 936 teeth and
 148 images will ask for them before reading anything else.
 
+UPDATE, 4 Sep 2026 -- the Ningxia periodontitis gap below is CLOSED
+---------------------------------------------------------------------
+`ningxia_external.py` now writes `n_affected`/`n_affected_flagged` into each periodontitis
+per-image record (they were computed all along, just discarded before being written out). No
+new evaluation logic; a re-run against the locked cohort, weights unchanged from the deployed
+default, reproduces the existing aggregate numbers exactly (2.4/1.4/5.6/4.6% per split) before
+anything is bootstrapped. See the new section below. The "Detection mAP" and "two ResNet18s"
+gaps remain -- see `scripts/eval/tufts_detector_ap_bootstrap.py` for the former (new, same day);
+the bone-loss classifiers' own per-item dump would need the original un-rotated Tufts
+radiographs, confirmed still absent from every machine checked (RESULTS_LOG 2026-09-04l).
+
 THE ONE METHODOLOGICAL CHOICE THAT MATTERS: RESAMPLE IMAGES, NOT TEETH
 ----------------------------------------------------------------------
 Teeth are **not independent**. The 936 Stage-2 teeth come from 164 radiographs; teeth in one
@@ -216,12 +227,38 @@ def main():
                 add_delta("Δ caries agreement, pooled (seg − bbox)", *paired_bootstrap(
                     pa, pb, ratio("n_covered", "n_lesions"), args.n_boot, rng))
 
+    # ---------------------------------------------------------------- Ningxia periodontitis
+    perio = REPO_ROOT / "outputs/ningxia_periodontitis_ci/ningxia_external.json"
+    if perio.exists():
+        print("\nNINGXIA PERIODONTITIS — external, per hospital (affected-tooth sensitivity)")
+        rows, _ = load_per_image(perio, None)
+        rows = [r for r in rows if r["category"] == "periodontitis"]
+        by_split = defaultdict(list)
+        for r in rows:
+            by_split[r["split"]].append(r)
+        for sp in sorted(by_split):
+            add(f"periodontitis sensitivity — {sp}", "tooth", len(by_split[sp]),
+                *cluster_bootstrap(by_split[sp], ratio("n_affected_flagged", "n_affected"),
+                                    args.n_boot, rng)[:3])
+        add("periodontitis sensitivity — pooled (scale only)", "tooth", len(rows),
+            *cluster_bootstrap(rows, ratio("n_affected_flagged", "n_affected"),
+                                args.n_boot, rng)[:3],
+            note="pooled across hospitals for scale; report per-centre for inference")
+
     results["not_covered"] = [
-        "Ningxia periodontitis affected-tooth sensitivity: ningxia_external.py stores affected "
-        "counts only per split, not per image, so there is no cluster to resample. Not "
-        "recomputed -- that would spend a touch on locked external data for a logging omission.",
-        "Detection mAP@0.5 and the two ResNet18 classifiers: no per-item prediction dumps are "
-        "saved, so their intervals need a re-evaluation pass that writes per-image scores.",
+        "Detection mAP@0.5 (Tufts Stage-1 detector, frozen split_v1 test): no per-item "
+        "prediction dump was saved by the original evaluation. NOW COVERED SEPARATELY -- see "
+        "scripts/eval/tufts_detector_ap_bootstrap.py, which reimplements AP@0.5 from scratch "
+        "(not ultralytics' own validator) specifically so it can be bootstrapped, and reports "
+        "its own point estimate alongside the published 0.8100 rather than silently presenting "
+        "the interval as wrapped around ultralytics' exact number.",
+        "The two bone-loss ResNet18 classifiers (gate + severity): the headline 0.923 macro-F1 "
+        "has no per-item dump, and the only alternative dataset on this machine "
+        "(outputs/bone_loss_eval/bone_loss_val_nonjittered.json) is explicitly flagged by its "
+        "own creator as 'DIVERGENT -- suspect crop geometry, do not use these crops' and scores "
+        "a very different 0.537 macro-F1 on a disqualified subset. The original un-rotated "
+        "Tufts radiographs needed to redo this properly are confirmed absent from every machine "
+        "checked (RESULTS_LOG 2026-09-04l) -- genuinely blocked, not merely undone.",
     ]
 
     args.out.mkdir(parents=True, exist_ok=True)

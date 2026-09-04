@@ -201,6 +201,13 @@ I.~E. Hamamci, S.~Er, E.~Simsar, A.~Sekuboyina, and Others, ``{DENTEX}: An
   abnormal tooth detection with dental enumeration and diagnosis benchmark for
   panoramic x-rays,'' 2023, arXiv:2305.19112.
 
+\bibitem{li2024multicenter}
+X.~Li, X.~Ma, Y.~Zhao, J.~Hu, J.~Liu, Z.~Yang, F.~Han, J.~Zhang, W.~Liu, and
+  Z.~Zhou, ``A multi-center dental panoramic radiography image dataset for
+  impacted teeth, periodontitis, and dental caries: Benchmarking segmentation
+  and classification tasks,'' \emph{Journal of Imaging Informatics in
+  Medicine}, vol.~37, no.~2, pp. 831--841, 2024.
+
 \bibitem{bai2025qwen25vl}
 S.~Bai, K.~Chen, X.~Liu, J.~Wang, and Others, ``{Qwen2.5-VL} technical
   report,'' 2025, arXiv:2502.13923.

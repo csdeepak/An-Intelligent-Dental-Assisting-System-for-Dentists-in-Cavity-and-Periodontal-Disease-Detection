@@ -206,6 +206,14 @@ outputs/eda_tufts/*
 # Tiny, and the verifier reads it instead of the hardcoded literals it replaced.
 !outputs/param_counts/
 !outputs/param_counts/**
+# CI-coverage gaps closed 4 Sep 2026 (RESULTS_LOG 2026-09-04l): the per-image records
+# `verify_paper_numbers.py` bootstraps for the periodontitis and Stage-1-detector claims.
+# Small JSON, no checkpoints -- required for a clone to reproduce those CIs, same reasoning
+# as the Lever B rule above.
+!outputs/ningxia_periodontitis_ci/
+!outputs/ningxia_periodontitis_ci/**
+!outputs/tufts_detector_ap_ci/
+!outputs/tufts_detector_ap_ci/**
 runs/
 logs/
 wandb/
