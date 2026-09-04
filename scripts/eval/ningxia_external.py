@@ -265,16 +265,76 @@ def match_by_centroid(lesions, boxes):
     return covered, strict
 
 
+def lesion_preds_to_tooth_idx(lesion_boxes, tooth_boxes):
+    """
+    Lever B: map lesion-DETECTOR predictions onto tooth boxes for a Stage-3 verdict
+    (`outputs/lever_B_lesion_caries_path/PRE_REGISTRATION.md` Sec 4 / Sec 7 risk 3).
+
+    Each predicted lesion box is assigned to the SINGLE tooth box with the greatest overlap
+    (intersection area / lesion-box area -- "argmax containment"), not centroid-in-ANY-box: a
+    lesion box straddling two adjacent, slightly-overlapping tooth boxes must mark exactly one
+    tooth positive, not both, or predicted-positive-rate is inflated past Sec 6 cond. 2's cap.
+    A lesion with 0 overlap with every tooth box (a spurious detection outside all detected
+    teeth) maps to nothing -- it cannot manufacture a positive tooth from thin air.
+
+    This is deliberately NOT `match_by_centroid` (that function answers a different question --
+    for each GROUND-TRUTH lesion, is its centroid in ANY flagged tooth, many-to-one by design).
+    Here the direction is prediction -> verdict and must be one-to-one per prediction.
+
+    Returns the sorted list of positive tooth indices (into `tooth_boxes`).
+    """
+    pos = set()
+    for (lx1, ly1, lx2, ly2) in lesion_boxes:
+        larea = max(0.0, lx2 - lx1) * max(0.0, ly2 - ly1)
+        if larea <= 0:
+            continue
+        best_i, best_frac = None, 0.0
+        for i, (tx1, ty1, tx2, ty2) in enumerate(tooth_boxes):
+            ix1, iy1 = max(lx1, tx1), max(ly1, ty1)
+            ix2, iy2 = min(lx2, tx2), min(ly2, ty2)
+            inter = max(0.0, ix2 - ix1) * max(0.0, iy2 - iy1)
+            frac = inter / larea
+            if frac > best_frac:
+                best_i, best_frac = i, frac
+        if best_i is not None:
+            pos.add(best_i)
+    return sorted(pos)
+
+
+def run_lesion_detector(lesion_model, img, conf):
+    """
+    Lever B: run the caries-LESION detector on the plain upright image -- NO rotation.
+
+    `detect_upright()` is hardcoded to the deployed TOOTH detector's convention (always rotate
+    90 deg CCW before inference, always un-rotate the output -- see src/orientation.py, DEFAULT
+    = CCW, no identity/no-op direction exists). The lesion model was trained on CariesXrays +
+    DENTEX images fed NATIVELY UPRIGHT, no rotation anywhere in
+    `build_cariesxrays_detector_dataset.py` / `build_dentex_caries_boxes.py` /
+    `train_cariesxrays_detector.py`. Reusing `detect_upright` here would silently rotate every
+    image 90 deg before the lesion model sees it -- geometrically wrong predictions that would
+    still produce a plausible-looking number, the exact failure class RESULTS_LOG 2026-08-27a
+    documents for a different rotation bug. Returns plain xyxy boxes in the image's own frame.
+    """
+    r = lesion_model.predict(img, imgsz=1024, conf=conf, iou=0.50, verbose=False)[0]
+    return r.boxes.xyxy.cpu().numpy().tolist()
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", type=Path, default=DEF_ROOT)
     ap.add_argument("--out", type=Path, default=DEF_OUT)
     ap.add_argument("--limit", type=int, default=None, help="first N images per category/split")
     ap.add_argument("--detector", type=Path, default=DEF_DETECTOR)
-    ap.add_argument("--fdi-head", type=Path, default=DEF_FDI_HEAD)
-    ap.add_argument("--decision", choices=["pipeline", "constant-molars"], default="pipeline",
+    ap.add_argument("--fdi-head", type=Path, default=DEF_FDI_HEAD)
+    ap.add_argument("--decision", choices=["pipeline", "constant-molars", "lesion-detector"],
+                    default="pipeline",
                     help="constant-molars flags the eight first/second molars on every image, "
-                         "never reading the pixels. See CONSTANT ARM below.")
+                         "never reading the pixels. lesion-detector runs a caries-lesion YOLO "
+                         "model instead of the gate (Lever B). See CONSTANT ARM below.")
+    ap.add_argument("--lesion-model", type=Path, default=None,
+                    help="required for --decision lesion-detector (Lever B)")
+    ap.add_argument("--lesion-conf", type=float, default=0.25,
+                    help="frozen per PRE_REGISTRATION.md Sec 7 risk 4 -- not tuned on any cohort")
     ap.add_argument("--caries-gate", type=Path, default=DEF_CARIES_GATE)
     ap.add_argument("--caries-severity", type=Path, default=DEF_CARIES_SEVERITY)
     ap.add_argument("--bone-loss", type=Path, default=DEF_BONE_LOSS)
@@ -318,8 +378,18 @@ def main():
     used = {"detector": str(args.detector), "detector_sha256": _sha(args.detector),
             "fdi_head": str(args.fdi_head), "fdi_head_sha256": _sha(args.fdi_head)}
 
+    lesion_model = None
+    if args.decision == "lesion-detector":
+        if not args.lesion_model:
+            raise SystemExit("--decision lesion-detector requires --lesion-model")
+        lesion_model = YOLO(str(_need(args.lesion_model, "lesion detector")))
+        used["lesion_model"] = str(args.lesion_model)
+        used["lesion_model_sha256"] = _sha(args.lesion_model)
+        used["lesion_conf"] = args.lesion_conf
+        print(f"  lesion-detector arm: conf={args.lesion_conf} (frozen, see PRE_REGISTRATION.md)")
+
     gate = csev = bbin = bsev = None
-    if "caries" in branches:
+    if "caries" in branches and args.decision != "lesion-detector":
         gate, gate_cls = load_classifier(_need(args.caries_gate, "caries gate"), 2, device)
         csev, csev_cls = load_classifier(_need(args.caries_severity, "caries severity"), 2, device)
         if gate_cls and gate_cls != {"caries": 0, "no_caries": 1}:
@@ -370,13 +440,18 @@ def main():
                                           verbose=False)
                 fdi = assign_fdi_head(head, img, boxes, device) if boxes else []
                 if branch == "caries":
-                    preds = run_caries(gate, csev, img, boxes, device) if boxes else []
                     if args.decision == "constant-molars":
                         # The image is never read for the VERDICT. Codes come from Stage 2,
                         # already computed above, purely to know which boxes are molars.
                         pos = [i for i, a in enumerate(fdi)
                                if str(a.get("fdi")) in MOLAR_CONSTANT]
+                    elif args.decision == "lesion-detector":
+                        # Lever B: NOT detect_upright -- see run_lesion_detector's docstring.
+                        lesion_boxes = run_lesion_detector(lesion_model, img, args.lesion_conf) \
+                            if boxes else []
+                        pos = lesion_preds_to_tooth_idx(lesion_boxes, boxes) if lesion_boxes else []
                     else:
+                        preds = run_caries(gate, csev, img, boxes, device) if boxes else []
                         pos = [i for i, p in enumerate(preds) if p["finding"] != "no_caries"]
                 else:
                     preds = run_bone_loss(bbin, bsev, img, boxes, device) if boxes else []
@@ -418,6 +493,7 @@ def main():
                                                "no tuning of any kind against it",
                "matching": "centroid containment (NOT IoU -- see module docstring)",
                "rotation_applied": "none (Ningxia is upright, verified)",
+               "decision": args.decision,
                "tag": args.tag,
                "categories_evaluated": list(categories),
                "weights": used,

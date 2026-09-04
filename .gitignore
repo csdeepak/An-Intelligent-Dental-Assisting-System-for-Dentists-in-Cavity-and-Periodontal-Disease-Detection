@@ -309,6 +309,10 @@ data/cariesxrays_det/
 data/cariesxrays_det.tar
 data/cariesxrays_det.tar.sha256
 
+# Lever B B-pooled balanced train list — regenerable with
+# scripts/yolo/build_lever_b_pooled_dataset.py from data/cariesxrays_det/ + data/dentex_caries_det/.
+data/lever_b_pooled/
+
 # Lever-2 CariesXrays detector weights + the results bundle. SHA-256 in
 # models/14_cariesxrays_lever2/run_summary.txt; the plots/curves/csv ARE tracked.
 # EXCEPTION (3 Sep 2026): best.pt is committable — it is Lever B's B-single arm and
@@ -317,6 +321,15 @@ data/cariesxrays_det.tar.sha256
 models/14_cariesxrays_lever2/weights/*
 !models/14_cariesxrays_lever2/weights/best.pt
 models/14_cariesxrays_lever2/*.tar.gz
+
+# Lever B B-pooled weights (4 Sep 2026) — an ablation arm, not a DEF_* pipeline default, so no
+# best.pt exception (CLAUDE.md rule 4: "the lever weights... stay out"). sha256 in RESULTS_LOG
+# 2026-09-04b. NOTE (corrected 4 Sep): the "plots/curves/csv ARE tracked" comment above, for
+# models/14, is stale -- checked `git ls-files` directly and only args.yaml/results.csv/
+# run_summary.txt/weights/best.pt are actually tracked there; every .png/.jpg is already caught
+# by the blanket `*.jpg`/`*.png` rule near the top of this file. Same real behaviour applies here
+# with no extra rule needed -- this line only needs to stop the WEIGHTS.
+models/16_lever_b_pooled/lever_b_pooled_yolo11l-2/weights/*
 
 # LaTeX build artefacts — main.tex is tracked, main.pdf/main.bbl are committed deliberately,
 # everything else latexmk/pdflatex generates is transient.
