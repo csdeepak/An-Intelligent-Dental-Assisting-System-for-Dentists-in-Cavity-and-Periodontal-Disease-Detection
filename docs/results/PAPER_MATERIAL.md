@@ -863,6 +863,19 @@ canonical detector's reproducibility. The right framing for the paper is a publi
 annotation-quality finding, not a bug we introduced — it argues for deriving boxes from
 polygons where both exist, which is what the seg pipeline effectively does.
 
+**Two more Tufts box-label findings, surfaced by the Lever A multi-corpus build (Sep 2026,
+`outputs/lever_A_multicorpus_detector_v2/TUFTS_GUARD2_DIAGNOSIS.md` §1.5).** (1) The multi-corpus
+builder applies its degenerate-box guard only to the rotated corpora; Tufts passes through
+unfiltered, so ~21 of the sub-2 px boxes re-entered the Tufts training slice and a handful the
+Guard-2 test ground truth — an asymmetry with the other three corpora, though at < 0.1 % of the
+test GT it does not move the metric. (2) On matched predictions, *every* model — including one
+trained only on Tufts — draws Tufts boxes 17–36 % wider in the narrow (mesial-distal) direction
+than the ground truth, while matching its crown-to-root extent to within 5 %. The Tufts
+`teeth_bbox.json` boxes are drawn tighter mesial-distally than a detector naturally converges to;
+because the boxes are ~5:1 thin, that alone holds matched-pair IoU near 0.62 and mAP@0.5:0.95
+near 0.27 for any model trained on them — a property of the label convention, not of any model,
+that caps the box-mAP headroom on this corpus.
+
 ---
 
 ### 8.10 FDI numbering was the pipeline's weakest link — measured, then fixed
@@ -936,6 +949,28 @@ and the head achieves 69.4% of it.
 > first so the delta is attributable to the detector alone. RESULTS_LOG 2026-08-27e.
 >
 > The bottleneck is still Stage 1 (70.6% recall caps end-to-end), but it is a looser one.
+
+**Updated 4 September 2026 — the Tufts end-to-end number, which the pipeline never had.**
+`validate_fdi_assignment_tufts.py` runs the same detector → head → Hungarian assignment against
+the *complete* Tufts per-tooth numbering (3,760 permanent teeth on 149 frozen-test images,
+mirror-corrected via `tufts_title_to_fdi`), so it is a real recall and a real end-to-end
+accuracy, not the GT-only-teeth partial that DENTEX gives. With the deployed detector:
+**recall 82.4 %, FDI exact of detected 78.6 %, end-to-end 64.8 %** (`RESULTS_LOG` 2026-09-04d).
+Tufts end-to-end is *above* DENTEX's 58.3 % — the detector is in-domain here — on a harder
+test (every tooth, including the ambiguous posteriors, not just the ~6 pathological teeth per
+image DENTEX annotates). Two things this measurement settles. **(a)** The Lever A / A2
+multi-corpus detector, which fails the Tufts box-mAP guard (0.724 → 0.585), gives *the same*
+end-to-end Tufts FDI: 64.8 % → 63.5 % (arm3c) → 63.7 % (A2). A 14-point box-mAP@0.5 drop is a
+1-point end-to-end drop — box mAP@0.5 is not a proxy for pipeline accuracy, and the ablation's
+deployment cost on Tufts is ~1 point (see §8.16). **(b)** The superseded bbox detector
+(`models/06`) *beats* the deployed seg detector on Tufts end-to-end — 71.5 % vs 64.8 %, driven
+by recall (91 % vs 82 % at the conf-0.25 operating point; lowering conf makes the seg detector
+worse, not better, because spurious boxes flood the assignment). The 27 Aug bbox → seg swap
+gained +12 points on DENTEX *cross-domain* and costs 6.7 points on Tufts *in-domain*: a higher
+box mAP did not buy higher pipeline accuracy on the detector's home corpus, because Stage 2 is
+sensitive to the recall/precision operating point, not the PR-curve area. This is a
+detector–Stage-2 coupling nuance, not a reason to revert — `models/11` was adopted on its box
+result and the DENTEX gain, a dated decision (§7.1).
 
 **Prior art and framing (added 22 Aug 2026, after reading both papers directly).**
 DPML (Cao et al., *Expert Systems With Applications* 254:124446, 2024) §3.4 independently
@@ -1464,6 +1499,45 @@ statistically significant, this says the seg detector's contribution is box *qua
 That is a mechanism claim with evidence behind it, and it is the kind of stage-wise error
 attribution contribution [C3] promises.
 
+**The same taxonomy on TUFTS (4 Sep 2026, `RESULTS_LOG` 2026-09-04d).** Now that there is a
+Tufts end-to-end eval (§8.10), the identical seven-bucket taxonomy runs on it —
+`stage2_failure_taxonomy.py --rows outputs/stage2_tufts/...`, 3,760 permanent teeth, no
+inference re-run. Figure `figures/paper/stage2_failure_taxonomy_tufts.png`.
+
+| Outcome | DENTEX (936) | **Tufts (3,760)** |
+|---|---|---|
+| correct | 58.3 % | **64.8 %** |
+| not_detected | 29.4 % | **18.2 %** |
+| off_by_one | 9.5 % | 12.6 % |
+| same_quadrant_far | 1.1 % | 2.0 % |
+| mirror_lr | 0.9 % | 1.3 % |
+| wrong_arch | 0.6 % | 0.5 % |
+| other | 0.2 % | 0.6 % |
+
+The extra 6.5 points of "correct" on Tufts is entirely the lower miss rate (18.2 % vs 29.4 %) —
+the detector is in-domain. Among *detected* teeth the wrong-code rate is slightly *higher* on
+Tufts (20.7 % vs 17.4 %), because Tufts scores every tooth including the crowded anterior
+region, where DENTEX mostly annotates posterior pathology. The error *shape* is the same:
+**74 % of Tufts numbering errors are benign off-by-one neighbours, 3.2 % are category mistakes**
+(wrong_arch + mirror_lr — vs 12.2 % for DENTEX, and 43 of the 49 Tufts `mirror_lr` errors are
+central incisors, i.e. midline teeth, not a systematic mirror-correction fault). Molars are the
+easiest position (9–11 % wrong) and premolars/incisors the hardest (22–31 %), the same rank
+order as DENTEX. Off-by-one leans distal on Tufts (285 : 188) where it leaned mesial on DENTEX
+(53 : 36) — both ~1.5 : 1, opposite directions, consistent with the different failure modes
+(DENTEX under-detects posteriorly → anterior teeth number too low; Tufts detects densely and
+the head miscounts in crowded regions).
+
+**And the detector swap's effect on Tufts is the reverse of its effect on DENTEX.** Running the
+taxonomy with the *bbox* detector (`models/06`) as the control: on Tufts the seg swap moved
+`correct` 71.5 % → 64.8 %, and the entire delta is `not_detected` 9.6 % → 18.2 % — every error
+bucket (off_by_one, mirror_lr, wrong_arch) is unchanged to within a point. On DENTEX the same
+swap *improved* the error shape (`wrong_arch` −75 %, FDI-exact-of-detected +13.9 pp) because it
+suppressed the spurious boxes that perturb the Hungarian assignment. The seg detector's
+box-quality benefit is a **cross-domain** benefit — it mattered where the bbox detector was
+noisy (DENTEX); on its home corpus, where the bbox detector was already clean, the swap only
+cost recall. This is a concrete illustration of the paper's point that box mAP does not capture
+detector–Stage-2 coupling.
+
 **Direct confirmation that detection DOMAIN is the ceiling (1 Sep 2026, `RESULTS_LOG` 2026-09-01h).**
 Lever 1 re-trained the detector on Tufts **+ DENTEX** `quadrant_enumeration` (disjoint patients
 from the 164-image benchmark — leakage ruled out by MD5, filename and perceptual hash). Against
@@ -1517,6 +1591,70 @@ rather than used to move the bar.** The pipeline default detector stays `models/
 benchmark continuity; the paper reports the multi-corpus detector's full 6-cohort table as
 "what a deployment-optimised detector choice costs and buys", clearly labelled.
 `models/15_detector_multicorpus_leverA/run_summary.txt`, `RESULTS_LOG` 2026-09-03b.
+
+**Phase 0 (4 Sep 2026, `RESULTS_LOG` 2026-09-04) pinned the mechanism of the Guard-2 failure, and
+it is not what it looks like.** A greedy GT-match on the 150 Tufts frozen-test images, all three
+arms × confidence ∈ {0.10, 0.25, 0.40}: **matched-pair IoU is flat across the whole sweep**
+(0.62 / 0.64 / 0.68 — the multi-corpus arms localise if anything slightly *better*), and at
+confidence 0.10 the multi-corpus arms find as many Tufts teeth as the Tufts-only control or more
+(Arm 4C recall 0.80 vs 0.77). What breaks is **confidence calibration on the minority domain**:
+the score no longer separates real teeth from spurious boxes, so raising the threshold to clear
+the false positives also removes the true positives (recall drop from confidence 0.10 to 0.40:
+control −0.11, Arm 3C −0.29, Arm 4C −0.45). mAP@0.5 is a ranking metric, so it is exactly what
+this degrades — 0.724 → 0.585 → 0.552, monotonic in Tufts training share (100 % / 33 % / 25 %;
+Lever 1 at 52 % scored 0.647). The tested-and-refuted alternative was a box-annotation-convention
+clash (the Tufts GT boxes really are ~1.5× tighter in area than DENTEX's — visible in the
+overlays, `models/15_.../repro/diagnostics/gt_overlay.py`), but the trained arms adapt to it:
+their predicted Tufts boxes are *closer* to Tufts GT than the control's. **A separate, structural
+ceiling sits underneath all of this:** every detection model here — including the Tufts-only
+control — scores ≤ 0.724 on this metric, while the deployed *segmentation* Stage-1 scores
+**0.810** on the identical split (§7.1). The seg→detect conversion, forced because
+DENTEX/Kaggle/UFBA ship no masks, costs ~9 points of box mAP before a single extra corpus is
+added; Guard 2 compares each arm to the detect-head control, which is the right control for the
+*data* question but means "0.585 vs 0.810 deployed" overstates the multi-corpus penalty and
+"0.585 vs 0.724" is the honest figure. `outputs/lever_A_multicorpus_detector_v2/TUFTS_GUARD2_DIAGNOSIS.md`.
+
+**Lever A2 (4 Sep 2026, `RESULTS_LOG` 2026-09-04b) tested the fix the diagnosis implies, and
+closed the question.** If the failure is head calibration, then freezing the multi-corpus
+backbone and fine-tuning only the neck + detection head on Tufts should recover it. It does not.
+Starting from the Lever A 3-corpus checkpoint with the backbone frozen (`freeze=11`, layers 0–10,
+50.7 % of parameters), 40 epochs of Tufts-only fine-tuning moved the Tufts **test** box mAP@0.5
+by **+0.8 points** (0.585 → 0.593) — even though the Tufts **validation** mAP recovered
+(0.54 → 0.62). The validation gain did not transfer, and the result stays far below the
+from-scratch Tufts detector (0.593 vs 0.724). What the fine-tune *did* keep is the multi-corpus
+gains — DENTEX end-to-end +29 pp (vs +34 for Lever A) and pooled external caries +8.6 pp (vs
++9.1) — confirming those live in the frozen backbone. So the tradeoff is not catastrophic
+forgetting; it is that a Control-B-quality Tufts detector is simply **not reachable from the
+frozen 3-corpus features by the head alone**. The Lever 1 → A → A2 sequence therefore reads as
+one clean methodological result: a single-class multi-corpus tooth detector cannot be made to
+serve both the Tufts benchmark and the external cohorts — naively it fails the Tufts guard, with
+four balanced corpora it fails harder (monotonic in Tufts training share), the mechanism is a
+confidence-calibration collapse rather than a localisation failure, and it does not respond to
+head fine-tuning. The one lever left is multi-corpus **segmentation** (Tufts masks plus
+box-prompted pseudo-masks for the box-only corpora), which we scope as future work rather than a
+change to this submission. `models/17_detector_leverA2_finetune/run_summary.txt`,
+`outputs/lever_A2_detector_finetune/PRE_REGISTRATION.md`.
+
+**How much of the Guard-2 failure is the metric, and how much is a real deployment cost (GT-scale
+probe, `RESULTS_LOG` 2026-09-04c).** Guard 2 is box mAP@**0.5**; it was pre-registered and it
+failed, and that verdict stands. But the pipeline never asks the detector for IoU-0.5 boxes — the
+Stage-2 FDI head assigns a detection to a tooth at **IoU 0.3** (with a centroid fall-back), and
+the Stage-3 lesion matcher is looser still. Re-scoring the 150 Tufts test images at IoU-match
+0.3: the multi-corpus detector (Lever A / A2) holds **0.84** on Tufts box mAP against the
+Tufts-only control's 0.90 — a ~6-point gap, versus the ~14-point gap at IoU 0.5. Two effects
+account for the difference between the headline and this number. First, the recorded Tufts
+`teeth_bbox.json` boxes are ~15 % tighter than what a detector converges to (box mAP@0.5 peaks
+when the ground-truth boxes are dilated ×1.15, for *every* model including the Tufts-only one),
+so ~5–8 points of the mAP@0.5 gap is an annotation-tightness artefact shared by all detectors and
+not specific to the multi-corpus mix. Second, IoU 0.5 is simply a stricter bar than the pipeline
+needs. What survives both corrections is a genuine ~6-point deficit that is *box-independent* —
+the Tufts-only control beats the multi-corpus detector by a roughly constant margin at every IoU
+threshold and every ground-truth scale, which is the confidence-calibration / frozen-feature gap
+the diagnosis identified and cannot be closed by redrawing boxes. **The honest framing for the
+paper: the multi-corpus detector fails the pre-registered Tufts benchmark metric, but its cost on
+the matching threshold the pipeline actually uses is about 6 points on Tufts, not the ~22 the
+headline box-mAP drop (0.585 vs 0.810 deployed) implies** — while it gains 29–34 points on DENTEX
+end-to-end and 6–19 on every external cohort. `models/15_detector_multicorpus_leverA/repro/diagnostics/gt_scale_probe.py`.
 
 ---
 
@@ -2114,7 +2252,9 @@ no tuning — consistent with every other Ningxia number in this document. The g
 §8.24 (position as a partial confound) is not shown to be *wrong* by this result, only shown to
 be a property specific to the per-crop-classification framing, not to caries detection in general.
 
-Source: `RESULTS_LOG.md` 2026-09-04, 2026-09-04b, 2026-09-04c; `outputs/lever_B_lesion_caries_path/
+Source: `RESULTS_LOG.md` 2026-09-04f, 2026-09-04g, 2026-09-04h (labels reassigned on merging the
+parallel Mac-side session, which used `2026-09-04`/`04b`/`04c` first for its own entries);
+`outputs/lever_B_lesion_caries_path/
 PRE_REGISTRATION.md` (frozen, commit `ef3f453`); `outputs/lever_b_eval/acceptance_rule_B-pooled.json`;
 `models/16_lever_b_pooled/run_summary.txt`; `docs/session-memory/2026-09-04a-lever-b-build-and-both-arms.md`.
 

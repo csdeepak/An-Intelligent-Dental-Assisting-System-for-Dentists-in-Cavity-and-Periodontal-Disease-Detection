@@ -19,7 +19,7 @@ and is an ABLATION** (same verdict as Lever 1, stronger result — see below). A
 on DENTEX (8.6% tooth-level lesion agreement, a decisive loss vs. the gate/constant). B-pooled
 (this session's new training, `models/16_lever_b_pooled/`) recovers DENTEX to a statistical tie
 (45.5%) while barely costing the CariesXrays win (68.4%, was 69.4%). **Sec 6 acceptance rule not
-yet met by either arm** — needs Ningxia, not on this machine. `RESULTS_LOG.md` 2026-09-04 / 04b,
+yet met by either arm** — needs Ningxia, not on this machine. `RESULTS_LOG.md` 2026-09-04f / 04g,
 `docs/session-memory/2026-09-04a-lever-b-build-and-both-arms.md`. Cold-start / next steps:
 `outputs/lever_B_lesion_caries_path/START_HERE.md`.
 
@@ -76,7 +76,7 @@ an **RTX-PRO6000** (A100 was unavailable at rental time, confirmed live via `jl 
 120 epochs / patience 25, early-stopped at 54; ₹546.93, instance destroyed after a verified
 download. **Sec 6's literal bar (≥2 of 3 cohorts, "beats" not "ties") is not met by either
 arm** — Ningxia is the deciding cohort and is not on this machine.
-`models/16_lever_b_pooled/run_summary.txt`, `RESULTS_LOG.md` 2026-09-04 / 04b.
+`models/16_lever_b_pooled/run_summary.txt`, `RESULTS_LOG.md` 2026-09-04f / 04g.
 
 **Lever 1 in one line:** pool the 700 Tufts detection images with DENTEX `quadrant_enumeration`
 (634 images / 18,095 boxes) to lift detector **recall** (70.6%), which is the measured binding

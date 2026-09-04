@@ -337,7 +337,7 @@ B's B-single arm**) and
 DENTEX-domain caries-box training data to `14`'s recipe: recovers DENTEX from a decisive loss
 (8.6%) to a statistical tie (45.5%) on tooth-level lesion agreement, at ~1pp cost to the still-
 decisive CariesXrays win (68.4%); **ablation**, Sec 6 not yet met — needs Ningxia, `RESULTS_LOG`
-2026-09-04 / 04b);
+2026-09-04f / 04g);
 plus [`models/05_cej_estimation_v2_models/`](models/05_cej_estimation_v2_models/)
 (the exploratory CEJ negative result).
 
@@ -903,7 +903,7 @@ tie, and the report says so on every run.** The gate is retained, unchanged, via
 parameter count recomputed: caries path 61.2M → **75.3M**, whole pipeline 83.6M → **97.7M**
 ([`model_metrics.md`](docs/results/model_metrics.md)). 159/159 tests pass. `main.tex` itself is
 not yet updated — [`PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) §8.26 stages the
-resolution. Full detail: [`RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) 2026-09-04 through 04c,
+resolution. Full detail: [`RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) 2026-09-04f through 04h,
 [`docs/session-memory/2026-09-04a-lever-b-build-and-both-arms.md`](docs/session-memory/2026-09-04a-lever-b-build-and-both-arms.md)
 + [`2026-09-04b-ningxia-and-lever-b-adoption.md`](docs/session-memory/2026-09-04b-ningxia-and-lever-b-adoption.md).
 **D** (a bone-loss second corpus, now possible via the openly-released BRAR dataset) is opt-in.

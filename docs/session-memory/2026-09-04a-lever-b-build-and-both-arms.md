@@ -109,7 +109,7 @@ was launched via `nohup … & disown` on the remote box — fully detached from 
 killed CPU job was simply relaunched; it re-ran to completion with no side effects (it's a stock
 frozen-eval script, safe to re-run).
 
-## Results (see `RESULTS_LOG.md` 2026-09-04 / 2026-09-04b for the full numbers + sources)
+## Results (see `RESULTS_LOG.md` 2026-09-04f / 2026-09-04g for the full numbers + sources)
 
 | cohort | gate v3.0 | constant-molars | B-single | B-pooled |
 |---|---|---|---|---|

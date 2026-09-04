@@ -38,7 +38,7 @@ written into every report rather than left to a footnote:
     numbered wrongly attaches correct findings to the wrong tooth. Roughly two FDI codes in
     five are still expected to be wrong. `stage2_fdi_exact_end_to_end` is the authority.
   * THE CARIES BRANCH IS AN ADOPTED LESION DETECTOR, NOT A SOLVED PROBLEM. Adopted 4 Sep 2026
-    (Lever B, RESULTS_LOG 2026-09-04b) because it decisively beats both the old per-crop gate
+    (Lever B, RESULTS_LOG 2026-09-04h) because it decisively beats both the old per-crop gate
     AND an image-blind constant baseline -- on this project's six cohorts, that constant had
     tied or beaten the gate EVERYWHERE (`PAPER_MATERIAL.md` Sec 8.22/8.24/8.25). Pre-registered
     acceptance: beats the constant + the gate, CI excluding zero, on >=2 of 3 external cohorts
@@ -118,15 +118,15 @@ DEF_FDI_HEAD = REPO_ROOT / "models/10_fdi_head_dentex_tufts_v2/enumeration_head_
 # outputs/lever_B_lesion_caries_path/PRE_REGISTRATION.md (frozen BEFORE any of these numbers
 # existed) required: beats an image-blind molar constant AND the gate, CI excluding zero, on
 # >=2 of 3 external cohorts, at <=1.5x the constant's flagging rate. Measured (paired cluster
-# bootstrap, 10k resamples, RESULTS_LOG 2026-09-04b):
+# bootstrap, 10k resamples, RESULTS_LOG 2026-09-04h):
 #     cohort        gate v3.0   constant   lesion detector (this model)
 #     DENTEX          44.3%      48.9%     45.5% [40.9,50.1] -- TIE (CI incl. 0), fails Sec 6
 #     CariesXrays      31.7%      56.2%     68.4% [66.4,70.4] -- PASS (CI excl. 0, both deltas)
 #     Ningxia          40.8%      39.9%     50.0% [46.3,53.9] -- PASS (CI excl. 0, both deltas)
 # 2 of 3 -> Sec 6 met. Trained on CariesXrays + DENTEX-domain caries boxes, per-corpus balanced
-# (`models/16_lever_b_pooled/`, RESULTS_LOG 2026-09-04b) -- the DENTEX data is what closed the
+# (`models/16_lever_b_pooled/`, RESULTS_LOG 2026-09-04h) -- the DENTEX data is what closed the
 # out-of-domain gap the CariesXrays-only arm (B-single, `models/14`) could not (it lost DENTEX
-# decisively, -40/-36 pp, and lost Ningxia too, -16/-17 pp -- see RESULTS_LOG 2026-09-04).
+# decisively, -40/-36 pp, and lost Ningxia too, -16/-17 pp -- see RESULTS_LOG 2026-09-04h).
 #
 # Mechanism differs from every other stage here: this is a DETECTOR (whole image in, lesion
 # boxes out), not a per-crop classifier. `src.classifiers.run_caries_lesion_detector` maps each
@@ -154,7 +154,7 @@ DEF_CARIES_SEVERITY = REPO_ROOT / "models/07_caries_cascade/phase2_final_bundle.
 CARIES_METHOD_CAVEATS = {
     "lesion-detector": (
         "Stage 3 is the lesion detector (models/16_lever_b_pooled), adopted 4 Sep 2026 -- see "
-        "the DEF_CARIES_LESION_MODEL comment above and RESULTS_LOG 2026-09-04b for the full "
+        "the DEF_CARIES_LESION_MODEL comment above and RESULTS_LOG 2026-09-04h for the full "
         "pre-registered verdict. It decisively beats both the retained gate and an image-blind "
         "constant on 2 of 3 external cohorts (CariesXrays, Ningxia); on DENTEX it is a "
         "statistical TIE with both, not a win. IMPROVED ON TWO COHORTS, NOT SOLVED EVERYWHERE. "
@@ -166,7 +166,7 @@ CARIES_METHOD_CAVEATS = {
         "(RESULTS_LOG 2026-08-25a). It is IMPROVED, NOT SOLVED: precision on the "
         "held-out test split is 0.40, so roughly six of every ten positives are wrong. "
         "Do not read a caries field here as a diagnosis. Superseded as the pipeline default "
-        "4 Sep 2026 by the lesion detector (RESULTS_LOG 2026-09-04b); retained via "
+        "4 Sep 2026 by the lesion detector (RESULTS_LOG 2026-09-04h); retained via "
         "--caries-method gate for reproducibility of every number measured before that date."),
 }
 CARIES_NEGATIVE_ASSUMPTION = {
@@ -369,7 +369,7 @@ def run_pipeline(img_bgr, models, device, paths, image_label="image", imgsz=1024
     reaches both automatically. Returns the report dict; writes nothing to disk.
 
     `caries_method` -- "lesion-detector" (the pipeline default since 4 Sep 2026, Lever B,
-    RESULTS_LOG 2026-09-04b) or "gate" (the retained per-crop classifier, for reproducing any
+    RESULTS_LOG 2026-09-04h) or "gate" (the retained per-crop classifier, for reproducing any
     number measured before that date). See the DEF_CARIES_LESION_MODEL comment above.
     """
     from src.classifiers import (BONE_LOSS_SEVERITY_CLASSES, run_bone_loss, run_caries,
@@ -412,7 +412,7 @@ def run_pipeline(img_bgr, models, device, paths, image_label="image", imgsz=1024
             "severity_weights": str(paths["caries_severity"]),
             "tag": "caries-lesion-detector-yolo11l-leverb-bpooled-v1.0",
             "lesion_conf": caries_lesion_conf,
-            "adopted": "4 Sep 2026, Lever B Sec 6 -- RESULTS_LOG 2026-09-04b",
+            "adopted": "4 Sep 2026, Lever B Sec 6 -- RESULTS_LOG 2026-09-04h",
             "confidence_calibration": (
                 "NOT applied -- the isotonic calibrator was fit for the gate's score "
                 "distribution. gate_confidence here is a raw detection score, not a softmax."),
@@ -462,7 +462,7 @@ def main():
     ap.add_argument("--caries-method", choices=["lesion-detector", "gate"],
                     default="lesion-detector",
                     help="Stage-3 mechanism. lesion-detector = the pipeline default since "
-                         "4 Sep 2026 (Lever B, RESULTS_LOG 2026-09-04b); gate = the retained "
+                         "4 Sep 2026 (Lever B, RESULTS_LOG 2026-09-04h); gate = the retained "
                          "pre-4-Sep per-crop classifier, for reproducing older numbers.")
     ap.add_argument("--caries-lesion-conf", type=float, default=CARIES_LESION_CONF,
                     help="frozen per the pre-registration -- not tuned on any cohort")

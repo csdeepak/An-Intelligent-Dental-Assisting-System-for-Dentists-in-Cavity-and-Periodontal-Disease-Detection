@@ -5,7 +5,7 @@ obtained see `PAPER_MATERIAL.md`; for when and why it changed see `RESULTS_LOG.m
 
 **Last updated:** 2026-09-04 — **Stage 3 (caries) default changed**: the lesion detector
 (`models/16_lever_b_pooled/`) replaces the gate as the pipeline default, adopted via the
-pre-registered Lever B Sec 6 rule (`RESULTS_LOG.md` 2026-09-04c). The gate is retained,
+pre-registered Lever B Sec 6 rule (`RESULTS_LOG.md` 2026-09-04h). The gate is retained,
 unchanged, via `--caries-method gate` and its numbers below are unaffected. Everything else on
 this page is unchanged since 2026-08-28 (header corrected 2026-08-31): Stage 1 and Stage 2 are
 **current** on the seg detector + FDI head v2.0, re-measured 27 Aug 2026 (recall 70.6%, FDI
@@ -141,6 +141,31 @@ imgsz 1024 / CCW rotation, same head v2.0. Only the detector changed. `RESULTS_L
 since every spurious box perturbs the Hungarian one-to-one assignment across a whole quadrant,
 cleaner boxes lift FDI-exact-of-detected by 13.9 points on top of the recall gain.
 
+### Tufts end-to-end FDI (4 Sep 2026) — the Stage-2 number the paper lacked
+
+`scripts/eval/validate_fdi_assignment_tufts.py`, 149 frozen-test images, **3,760 permanent GT
+teeth** (all of them, mirror-corrected), same head v2.0 / conf 0.25 / NMS 0.50 / one-to-one.
+`RESULTS_LOG` 2026-09-04d.
+
+| detector | recall | FDI exact (of detected) | **end-to-end FDI** |
+|---|---|---|---|
+| **`models/11` deployed seg** | 82.4% | 78.6% | **64.8%** |
+| `models/06` old bbox (superseded) | 91.2% | 78.4% | **71.5%** |
+| `models/15` arm3c (Lever A multi-corpus) | 89.3% | 71.1% | 63.5% |
+| `models/16` A2 (Tufts head fine-tune) | 89.9% | 70.8% | 63.7% |
+
+Tufts end-to-end (64.8%, deployed) is **above** DENTEX (58.3%) — in-domain detector — on a
+*harder* test (every tooth, not just the ~6 pathological ones DENTEX annotates). Two findings:
+**(1)** the multi-corpus Guard-2 box-mAP drop (0.724 → 0.585) is a ~1-point end-to-end drop
+(64.8 → 63.5) — box mAP@0.5 is not a proxy for pipeline accuracy. **(2)** the old bbox detector
+beats the deployed seg detector on Tufts end-to-end (71.5 vs 64.8, recall-driven at conf 0.25) —
+the 27 Aug swap that gained +12 pp on DENTEX cross-domain costs −6.7 pp on Tufts in-domain.
+
+Failure taxonomy (`RESULTS_LOG` 2026-09-04e, same buckets as DENTEX): correct 64.8%,
+not_detected 18.2%, off_by_one 12.6%, category errors (wrong_arch + mirror_lr) 3.2%. The
+bbox→seg swap moved Tufts `correct` 71.5→64.8 **entirely via `not_detected`** — every error
+bucket unchanged, the reverse of the swap's shape-improving effect on DENTEX (`wrong_arch` −75%).
+
 > **Reproduction caveat, stated rather than hidden:** the control re-run of the *bbox*
 > configuration on this machine gave **67.3% / 46.3%**, against the **67.0% / 46.5%** originally
 > published — a ~3-tooth drift, consistent with CPU-vs-GPU float differences and inside the
@@ -214,6 +239,33 @@ The Guard-2 failure is **monotonic in corpus count** — Tufts-only 0.724 → +D
 mix, and a corpus's own held-out box mAP scales with its training share. The 92.8 % is an
 **in-domain** number (DENTEX-trained detector on held-out DENTEX), like Lever 1's 93.4 %; the
 same detector scores 0.585 on Tufts test.
+
+---
+
+### Lever A2 — Tufts head fine-tune of the Lever A detector (4 Sep 2026) — **ABLATION, NOT adopted**
+
+Tests the Phase-0 fix (`RESULTS_LOG` 2026-09-04): if Lever A's Guard-2 failure is a *head*
+calibration collapse, freeze the 3-corpus backbone (`freeze=11`) and fine-tune the neck + Detect
+head on Tufts-only. `models/17_detector_leverA2_finetune/`, `RESULTS_LOG` 2026-09-04b. Same
+pre-registered rule as Lever A.
+
+| criterion | comparator | A2 | bar | result |
+|---|---|---|---|---|
+| PRIMARY — DENTEX FDI e2e (164) | Control A 0.5844 | **0.8771**, Δ **+29.27 pp [+24.95, +33.59]** | lower bound ≥ +5 pp | ✅ |
+| GUARD 1 — pooled ext caries agreement | Control A 0.3313 | **0.4168**, Δ **+8.55 pp [+6.88, +10.24]** | lower bound ≥ −2 pp | ✅ |
+| GUARD 2 — Tufts frozen test box mAP@0.5 | Control B 0.7243 | **0.5929** | ≥ 0.6843 | ❌ |
+| **verdict** | | | primary ∧ both guards | **ABLATION** |
+
+The Tufts head fine-tune moved Tufts **test** box mAP **+0.8 pp** (0.585 → 0.593) — Tufts *val*
+recovered (0.54 → 0.62) but did not transfer. It kept most of the multi-corpus gains (DENTEX
++29 vs +34 pp, external +8.6 vs +9.1 pp — the gains live in the frozen backbone). **The
+calibration hypothesis was necessary but not sufficient:** a Control-B-quality Tufts detector is
+not reachable from the frozen 3-corpus features by the head alone. Ningxia pooled: 0.407 (Ctrl A)
+→ 0.600 (arm3c) → 0.570 (A2); CariesXrays: 0.309 → 0.370 → 0.372.
+
+The Lever 1 → A → Phase 0 → A2 arc is closed: the multi-corpus/Tufts tradeoff is real, its
+mechanism is a calibration collapse, and it is not fixable by head fine-tuning. Segmentation is
+the only untried lever — scoped post-submission.
 
 ---
 
@@ -317,7 +369,7 @@ Full record: `RESULTS_LOG.md` 2026-08-22i and **22j (the leakage correction)**.
 ## Stage 3 — Caries · current pipeline default since 4 Sep 2026: the LESION DETECTOR
 
 **`caries-lesion-detector-yolo11l-leverb-bpooled-v1.0`, `models/16_lever_b_pooled/`. Adopted
-4 Sep 2026 (Lever B, `RESULTS_LOG.md` 2026-09-04b/c) because it decisively beats both the gate
+4 Sep 2026 (Lever B, `RESULTS_LOG.md` 2026-09-04g/04h) because it decisively beats both the gate
 below AND an image-blind molar constant on 2 of 3 external cohorts — the first mechanism in
 this project's history to beat that constant anywhere.** Frozen tooth-level lesion-localisation
 agreement, paired cluster bootstrap (10k resamples):
@@ -721,7 +773,7 @@ Recorded here because the manuscript cites it and because a wrong version of thi
 propagated through nine places in the docs before it was caught (`RESULTS_LOG.md` 2026-08-28).
 
 **Updated 4 Sep 2026 — Stage 3a changed.** The lesion detector (25.3 M params) replaced the
-ResNet18 gate (11.2 M) as the pipeline default (Lever B, `RESULTS_LOG.md` 2026-09-04c). The row
+ResNet18 gate (11.2 M) as the pipeline default (Lever B, `RESULTS_LOG.md` 2026-09-04h). The row
 below is the **current default**; `--caries-method gate` still runs the smaller, 11.2 M model —
 see "Caries path only, `--caries-method gate`" for that total.
 

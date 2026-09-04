@@ -256,7 +256,7 @@ def run_caries(gate, severity, img_bgr, boxes, device):
 def lesion_preds_to_tooth_idx(lesion_boxes, tooth_boxes):
     """
     Map lesion-DETECTOR predictions onto tooth boxes for a Stage-3 verdict (Lever B, adopted
-    4 Sep 2026 -- RESULTS_LOG 2026-09-04b; pre-registration
+    4 Sep 2026 -- RESULTS_LOG 2026-09-04h; pre-registration
     `outputs/lever_B_lesion_caries_path/PRE_REGISTRATION.md` Sec 4 / Sec 7 risk 3).
 
     Each predicted lesion box is assigned to the SINGLE tooth box with the greatest overlap
@@ -317,7 +317,7 @@ def run_lesion_detector_raw(lesion_model, img_bgr, conf=0.25):
 def run_caries_lesion_detector(lesion_model, severity, img_bgr, boxes, device, conf=0.25):
     """
     Caries Stage 3, LESION-DETECTOR path -- the pipeline default since 4 Sep 2026 (Lever B,
-    RESULTS_LOG 2026-09-04b). Localises the lesion directly instead of classifying the tooth
+    RESULTS_LOG 2026-09-04h). Localises the lesion directly instead of classifying the tooth
     crop, which escapes the base-rate dominance the crop classifier (`run_caries`, retained
     below and still selectable via `--caries-method gate`) could not
     (`PAPER_MATERIAL.md` Sec 8.22/8.24/8.25): across this project's six cohorts, an image-blind

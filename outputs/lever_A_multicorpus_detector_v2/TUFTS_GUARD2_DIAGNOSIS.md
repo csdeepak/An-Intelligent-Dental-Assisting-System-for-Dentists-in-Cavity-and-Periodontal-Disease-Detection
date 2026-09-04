@@ -18,19 +18,23 @@ question the user asked after seeing the result:
   mismatch (Tufts GT boxes are mask-tight, DENTEX GT boxes look ~1.5× larger) and **tested it
   directly against the trained models — the hypothesis is refuted.** Arm 3C's predicted boxes on
   Tufts test are *closer* to Tufts GT in size and shape than Control B's, not further.
-- **The Guard-2 failure is exactly the pre-registered "domain dilution", and we now have its
-  mechanism:** with Tufts at 33 % of the training mix, the detector **misses ~35 % more Tufts
-  teeth (FN 1045 → 1427) and emits ~40 % more spurious boxes (FP 1058 → 1506)** at the same
-  confidence. Localisation of the teeth it *does* find is fine (matched-pair IoU 0.62 → 0.64,
-  unchanged). It is a **detection-confidence / capacity** effect, monotonic in Tufts training
-  share: 100 % → 0.724, 52 % (Lever 1) → 0.647, 33 % (Lever A) → 0.585.
+- **The Guard-2 failure is the pre-registered "domain dilution", and the Phase-0 sweep (§1.4b)
+  pins the mechanism: a confidence-calibration collapse on the minority domain.** At low
+  confidence the multi-corpus arms find as many Tufts teeth as Control B (Arm 4C recall 0.80 vs
+  0.77) — the detector *sees* them — but the confidence score no longer separates real teeth
+  from spurious boxes, so raising the threshold to clear the false-positive flood also kills the
+  true positives (recall drop 0.10 → 0.40 conf: Control B −0.11, Arm 3C −0.29, Arm 4C −0.45).
+  mAP@0.5 (Guard 2) is a ranking metric, so it breaks hardest: **0.724 → 0.585 → 0.552,
+  monotonic in Tufts training share** (100 % / 33 % / 25 %; Lever 1 at 52 % was 0.647).
+  Matched-pair IoU is **flat across the whole sweep** — localisation is not the loss.
 - **The single biggest lever on Tufts box quality is not the corpus mix at all — it is masks.**
   The *deployed* model is segmentation and scores **0.810**; every detection model here — even
   Tufts-only Control B — scores ≤ 0.724 because box supervision on Tufts is worse than mask
   supervision. DENTEX/Kaggle/UFBA have no masks, so the levers are forced to `detect`.
 - **Recommendation: stop detector work. The diagnosis is a clean, quantified paper result.**
-  Do the zero-GPU Phase-0 confirmations, fold the mechanism into the manuscript as a strengthened
-  ablation, and move to **Lever B**. A genuine "another way" exists (multi-corpus *segmentation*
+  **Phase 0 is done (4 Sep)** — the sweep + overlays are in `repro/diagnostics/`, the mechanism
+  is folded into `PAPER_MATERIAL.md` §8.16 (+ §8.9 for the Tufts-label findings), `RESULTS_LOG`
+  2026-09-04. Next is **Lever B**. A genuine "another way" exists (multi-corpus *segmentation*
   with pseudo-masks) but it is a Lever-D-scale effort that belongs behind Lever B and behind
   Track A, and only if an adoptable multi-corpus detector is worth a full downstream re-run.
 
@@ -125,6 +129,77 @@ mix the model is simply a weaker Tufts detector — it fails to fire on more rea
 fires with lower/misplaced confidence elsewhere. This is textbook capacity dilution, and it is
 **exactly the risk the pre-registration named** ("domain dilution risk #2").
 
+### 1.4b Phase 0 (4 Sep 2026) — the sweep sharpens this to a *confidence-calibration* failure
+
+`repro/diagnostics/iou_diag_sweep.py` — same greedy match, all three arms × conf ∈ {0.10, 0.25, 0.40}:
+
+| arm (Tufts train share) | conf | TP | FN | FP | P | R | matched IoU (median) |
+|---|---|---|---|---|---|---|---|
+| Control B (100 %) | 0.10 | 3027 | 897 | 1531 | 0.664 | 0.771 | 0.623 |
+| Control B (100 %) | 0.25 | 2879 | 1045 | 1058 | 0.731 | 0.734 | 0.624 |
+| Control B (100 %) | 0.40 | 2597 | 1327 | 783 | 0.768 | 0.662 | 0.625 |
+| Arm 3C (33 %) | 0.10 | 2929 | 995 | 2694 | 0.521 | 0.746 | 0.645 |
+| Arm 3C (33 %) | 0.25 | 2497 | 1427 | 1506 | 0.624 | 0.636 | 0.643 |
+| Arm 3C (33 %) | 0.40 | 1804 | 2120 | 967 | 0.651 | 0.460 | 0.643 |
+| Arm 4C (25 %) | 0.10 | 3143 | 781 | 3377 | 0.482 | 0.801 | 0.683 |
+| Arm 4C (25 %) | 0.25 | 2467 | 1457 | 1586 | 0.609 | 0.629 | 0.676 |
+| Arm 4C (25 %) | 0.40 | 1378 | 2546 | 668 | 0.674 | 0.351 | 0.674 |
+
+Three things, and the third is the finding:
+
+1. **Matched-pair IoU is flat at every threshold** (0.62 / 0.64 / 0.68) — if anything the
+   multi-corpus arms localise *slightly better*. Localisation is definitively not the loss.
+   This is the robust result and it holds across the whole sweep.
+2. **At low confidence (0.10) the multi-corpus arms find as many Tufts teeth as Control B or
+   more** — Arm 4C recall 0.801 vs Control B 0.771 — but with a flood of false positives
+   (Arm 4C FP 3377 vs Control B 1531). The detector *can* see the Tufts teeth.
+3. **The confidence score has stopped separating real teeth from spurious boxes.** As the
+   threshold rises 0.10 → 0.40, recall falls 0.11 for Control B, **0.29 for Arm 3C, 0.45 for
+   Arm 4C** — filtering the false positives also kills the true positives, because the arm
+   scores both about the same. mAP@0.5 (Guard 2) integrates the PR curve weighted by that
+   ranking, so it is exactly the metric this breaks: **0.724 → 0.585 → 0.552, monotonic in
+   Tufts training share.** The FN/FP split at a *fixed* threshold is threshold-dependent
+   (FP-flooding at low conf, FN-collapse at high conf); the mAP number and the calibration
+   collapse are what is monotonic.
+
+So the mechanism is **not** "the model can't find Tufts teeth" and **not** "the boxes are the
+wrong shape" — it is "with Tufts a minority of training, the model's confidence on Tufts
+detections is no longer trustworthy," and a ranking metric punishes that hardest.
+
+### 1.4c Post-A2 (4 Sep) — the GT-scale probe: is the Tufts GT "1.5× too tight"?
+
+`repro/diagnostics/gt_scale_probe.py` — run each detector on the 150 Tufts test images at
+conf 0.001, compute box mAP against the GT with the **GT boxes scaled about their centre** by
+s ∈ {1.0, 1.15, 1.3, 1.5, 1.7}, at IoU-match {0.3, 0.5}:
+
+| model | @IoU | s=1.0 | s=1.15 | s=1.3 | s=1.5 | s=1.7 |
+|---|---|---|---|---|---|---|
+| Control B | 0.3 | 0.904 | 0.910 | 0.912 | 0.912 | 0.900 |
+| Control B | 0.5 | 0.704 | **0.783** | 0.755 | 0.570 | 0.148 |
+| arm3c | 0.3 | 0.834 | 0.848 | 0.846 | 0.833 | 0.771 |
+| arm3c | 0.5 | 0.538 | 0.577 | 0.512 | 0.206 | 0.019 |
+| **A2** | **0.3** | **0.842** | 0.855 | 0.856 | 0.848 | 0.785 |
+| **A2** | 0.5 | 0.566 | **0.609** | 0.550 | 0.225 | 0.021 |
+
+1. **The "1.5×" is a between-corpus comparison, not a factor on Tufts.** DENTEX GT boxes are
+   1.49× Tufts GT *area* (`box_conv.py`). The offset between what the *detectors* predict and
+   the recorded Tufts GT is only **~1.15×** — mAP@0.5 peaks at s = 1.15 for all three models,
+   and s = 1.5 is catastrophic (A2 0.57 → 0.23). The recorded Tufts boxes are ~15 % tight; they
+   are not 1.5× tight.
+2. **Most of the "Guard-2 failure" is the IoU-0.5 threshold.** At IoU-match **0.3** — exactly
+   what the pipeline's FDI head uses — A2 scores **0.842** and the gap to Control B (0.904) is
+   ~6 pts, not the ~14 at IoU 0.5. On the metric the *pipeline* needs, A2/arm3c retain most of
+   the Tufts performance.
+3. **The residual deficit is real and box-independent.** At *every* IoU threshold and *every*
+   GT scale, Control B beats arm3c/A2 by a roughly constant margin (~6 pts @0.3, ~13–17 pts
+   @0.5). Loosening or tightening the GT does **not** close it. This is the calibration /
+   feature-quality gap from §1.4b and A2 — a genuine difference between a from-scratch Tufts
+   detector and one built on frozen 3-corpus features, and it does not respond to how the boxes
+   are drawn.
+
+**So a box-convention change is not the lever.** The ~15 % tightness is worth ~5–8 mAP@0.5 pts,
+is shared by all models, and does not help the multi-corpus detector relative to Control B.
+
 ### 1.5 Hypothesis B — Tufts label hygiene — real but minor
 
 Tufts boxes come from the original Labelbox export (`teeth_bbox.json`, Dec 2021), **not** from
@@ -136,11 +211,14 @@ masks. The builder applies its `MIN_PX = 2` degenerate-box filter to the *rotate
 - built Tufts **test** (Guard-2 GT): **4 / 3 924 (0.10 %)** un-matchable boxes → a ~0.1 pp
   guaranteed-FN tax on every model equally.
 
-Plus every model predicts Tufts boxes ~20–36 % taller than GT (§1.3), which means the Tufts GT
-boxes themselves are systematically short (crown-biased) relative to what a detector trained on
-any mix of corpora considers a tooth. This **caps the achievable Tufts box mAP for everyone**
-(hence the deployed seg model only reaching 0.81, Control B only 0.72) but does not explain why
-Arm 3C < Control B.
+Plus, on the matched pairs, every model predicts Tufts boxes that hug the crown-to-root axis
+(pred/GT long-axis ratio 1.03–1.05) but run **17–36 % wider mesial-distally than GT** (short-axis
+ratio: Control B 1.36, Arm 3C 1.17). Tufts `teeth_bbox.json` is drawn tight to the tooth in the
+narrow direction — tighter than a detector converges to, *even one trained only on Tufts*. Since
+the boxes are ~5:1 thin, a 36 % short-axis error alone puts a concentric prediction at IoU ≈ 0.70,
+so matched-pair IoU sits at ~0.62 and mAP@0.5:0.95 at ~0.27 for **everyone**. This **caps the
+achievable Tufts box mAP** (deployed seg 0.81, any detect model ≤ 0.72) but does not explain why
+Arm 3C < Control B — the calibration collapse in §1.4b does.
 
 **Verdict on "the mistake with Tufts":** there is no build error that flipped the result. There
 is (i) a fundamental capacity/dilution tradeoff — the confirmed cause — and (ii) a pre-existing
@@ -234,13 +312,16 @@ probe is promising.
 
 ### Phase 0 — confirm and document the diagnosis (no GPU, ~half a day)
 
-| # | step | verify |
+| # | step | status |
 |---|---|---|
-| 0.1 | ✅ **DONE** (commit `044ed3b`) — the three diagnostic scripts + a README are in `models/15_detector_multicorpus_leverA/repro/diagnostics/`. | scripts run from a clean checkout |
-| 0.2 | Overlay 15 Tufts + 15 DENTEX GT boxes on their images, save to `_check/`. | visual: confirm/deny DENTEX boxes include more root than Tufts (settles §1.3's GT-stat question qualitatively; does not change the model-level conclusion) |
-| 0.3 | Re-run the §1.4 greedy-match FN/FP/IoU diagnostic for Arm 4C too, and at conf ∈ {0.10, 0.25, 0.40}. | monotonic: Arm 4C FN/FP ≥ Arm 3C ≥ Control B at every threshold → dilution confirmed, not a threshold artefact |
-| 0.4 | Write the finding into `PAPER_MATERIAL.md` §8.10 (mechanism: FN +37 %, FP +42 %, localisation flat, monotonic in share; seg-vs-box ceiling 0.81 vs 0.72) and note the Tufts-label height bias + the unfiltered degenerate boxes in §8 Known Limitations. | §8.10 reads as a quantified ablation, not "dilution (vague)" |
-| 0.5 | `RESULTS_LOG.md` entry (diagnosis, no new model); `transfer.md` §5 council summary; session-memory. | house rules 1–2, 5 |
+| 0.1 | three diagnostic scripts + README in `models/15_detector_multicorpus_leverA/repro/diagnostics/` | ✅ **DONE** (commit `044ed3b`) |
+| 0.2 | GT-box overlays, Tufts vs DENTEX | ✅ **DONE 4 Sep** (`repro/diagnostics/gt_overlay.py` → `data/detector_multicorpus_v2/_check/gt_overlay/`, 24 panels, local-only; two examples kept in the diagnostics dir). **Confirms the box_conv.py stat visually:** DENTEX GT boxes are visibly larger and heavily overlapping, extending past the tooth into alveolar bone (`dentex_train_0` median box area 1.19 % img vs Tufts `1013` 0.64 %). Does not change the model-level conclusion — §1.3 stands. |
+| 0.3 | greedy-match FN/FP/IoU sweep, 3 arms × conf {0.10, 0.25, 0.40} | ✅ **DONE 4 Sep** (`repro/diagnostics/iou_diag_sweep.py`) → **§1.4b**. Sharper finding: the loss is a **confidence-calibration collapse** on the minority domain, not FN or FP alone; matched-pair IoU flat across the whole sweep; mAP monotonic in Tufts training share. |
+| 0.4 | fold into `PAPER_MATERIAL.md` — the mechanism (§1.4b) + the box-vs-mask ceiling → **§8.16**; the Tufts short-axis label tightness + the unfiltered degenerate boxes → **§8.9** | ✅ **DONE 4 Sep** (§8.10 was the wrong target — it is the numbering-head section; §8.16 already carries the Lever A write-up, §8.9 the Tufts box-annotation findings) |
+| 0.5 | `RESULTS_LOG.md` 2026-09-04 entry (sweep numbers, no new model); `transfer.md` §1; session-memory | ✅ **DONE 4 Sep** |
+
+**Phase 0 is complete.** Next: **Lever B** (the friend, Windows) and the Phase 1 gate below is
+downstream of Lever B's result.
 
 **Phase-0 success criterion:** a reviewer reading §8.10 can state, from numbers, why multi-corpus
 tooth *detection* regresses on Tufts and what would be required to prevent it. No GPU spent.

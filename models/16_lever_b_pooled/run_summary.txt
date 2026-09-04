@@ -25,7 +25,7 @@ WHY THIS EXISTS
 --------------------------------------------------------------------------------
 B-single (models/14, trained on CariesXrays only) wins CariesXrays decisively but
 collapses out-of-domain on DENTEX (8.6% tooth-level lesion agreement vs comparators'
-44-49%, RESULTS_LOG 2026-09-04). B-pooled adds DENTEX-domain caries-box training data
+44-49%, RESULTS_LOG 2026-09-04f). B-pooled adds DENTEX-domain caries-box training data
 (coarser, whole-tooth boxes rather than lesion boxes -- a domain adapter, not a second
 lesion-box source) to test whether the transfer gap closes without giving up the
 CariesXrays win.

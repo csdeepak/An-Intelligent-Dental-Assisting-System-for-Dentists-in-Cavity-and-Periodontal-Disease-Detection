@@ -1,0 +1,20 @@
+{
+  "n_gt_teeth": 3760,
+  "n_images": 143,
+  "recall": 0.8933510638297872,
+  "fdi_exact_of_detected": 0.7112235784459661,
+  "fdi_exact_of_all": 0.6353723404255319,
+  "quadrant_correct_of_detected": 0.9455194998511461,
+  "mean_detections_per_image": 27.832167832167833,
+  "duplicate_fdi_codes": 0,
+  "detector": "models/15_detector_multicorpus_leverA/arm3c_best.pt",
+  "head": "/Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/models/10_fdi_head_dentex_tufts_v2/enumeration_head_best.pth",
+  "conf": 0.25,
+  "det_nms_iou": 0.5,
+  "imgsz": 1024,
+  "min_iou": 0.3,
+  "one_to_one": true,
+  "excluded_leaked": [
+    "590"
+  ]
+}

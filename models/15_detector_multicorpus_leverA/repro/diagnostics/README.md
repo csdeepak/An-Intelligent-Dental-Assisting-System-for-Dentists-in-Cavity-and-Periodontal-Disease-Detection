@@ -11,6 +11,7 @@ All CPU/MPS, ~2 min each on this Mac, no GPU. Run from the repo root with
 |---|---|---|
 | `box_conv.py`      | GT box size / aspect / count per corpus, from the built YOLO labels | DENTEX GT boxes ≈ 1.5× Tufts/Kaggle area, longer along the tooth axis — *looks* like a convention clash |
 | `pred_box_size.py` | predicted box area on Tufts test: GT vs Control B vs Arm 3C vs Arm 4C | adding corpora makes Arm 3C's boxes *smaller / closer to Tufts GT* than Control B's — refutes the "blended box too big" idea |
+| `gt_scale_probe.py`| box mAP vs the Tufts GT with the GT scaled s∈{1.0..1.7}, IoU {0.3,0.5} | the offset is ~1.15× not 1.5×; most of the Guard-2 gap is the IoU-0.5 threshold (A2 = 0.84 @ IoU 0.3); the multi-corpus deficit vs Control B is box-independent (`RESULTS_LOG` 2026-09-04c) |
 | `iou_diag.py`      | greedy GT-match on Tufts test: TP / FN / FP, matched-pair IoU, pred/GT w+h ratio | Arm 3C vs Control B: **FN +37 %, FP +42 %, matched-IoU unchanged** → the loss is detection/confidence (capacity dilution), not localisation |
 
 Conclusion: no build bug. The Guard-2 failure is the pre-registered "domain dilution", monotonic

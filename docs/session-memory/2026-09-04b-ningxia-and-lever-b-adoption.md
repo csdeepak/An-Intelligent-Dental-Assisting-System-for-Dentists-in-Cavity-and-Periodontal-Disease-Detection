@@ -56,7 +56,9 @@ detector in as the Stage-3 caries path... pipeline Stage 3 updated." Did that:
   `verify_invariants.py` all-hold.
 
 ### Documentation
-- `RESULTS_LOG.md` — new entry (2026-09-04c) with the full Ningxia numbers, the complete 3-cohort
+- `RESULTS_LOG.md` — new entry (2026-09-04h — relabelled from 04c on merging the parallel
+  Mac-side session, which used that label first for its own "GT-scale probe" entry) with the
+  full Ningxia numbers, the complete 3-cohort
   Sec 6 table, and the adoption decision.
 - `model_metrics.md` — Stage 3 restructured (current default = lesion detector, gate retained
   below it, mirroring how Stage 1 already presents "current default" vs. "superseded"). Pipeline

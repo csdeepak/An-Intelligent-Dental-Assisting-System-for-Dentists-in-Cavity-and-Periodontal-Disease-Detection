@@ -8,7 +8,7 @@ against the working tree, not carried over from a previous version of this file.
 `10_.../enumeration_head_best.pth`, `09_caries_gate_v3/caries_gate_v3.pth` (43 MB, still needed
 for `--caries-method gate`), and, since **4 Sep 2026**, `16_lever_b_pooled/
 lever_b_pooled_yolo11l-2/weights/best.pt` (51 MB, `DEF_CARIES_LESION_MODEL` — the new Stage-3
-default, adopted via Lever B, `RESULTS_LOG.md` 2026-09-04c) — are all **committed to git**
+default, adopted via Lever B, `RESULTS_LOG.md` 2026-09-04h) — are all **committed to git**
 (`.gitignore` exceptions + `.gitattributes`), so `git clone` / `git pull` is enough to run the
 default pipeline with no Drive round-trip. Still Drive/local-only: `06_yolo_detection_a100_run/
 best.pt` (superseded, only for pre-27-Aug reproduction) and the pure-ablation lever weights
@@ -35,11 +35,11 @@ One numbered directory per trained stage, each with a `*summary*.txt` beside the
 | `13_detector_multicorpus_lever1/` | Stage 1 — **Lever 1** multi-corpus detector retrain (Tufts + DENTEX). Two arms + a same-day control. **ABLATION, not the default** — primary passes (FDI end-to-end 0.584 → 0.934 on DENTEX) but the pre-registered Tufts guard fails (box mAP 0.810 → 0.647). `run_summary.txt`, `RESULTS_LOG.md` 2026-09-01h. | `controlB_tuftsonly_best.pt`, `arm_multicorpus_best.pt` (49 MB each) | **No** — gitignored; SHA-256 in `run_summary.txt`, local disk only |
 | `14_cariesxrays_lever2/` | **Lever 2** — standalone caries-**lesion** detector (YOLOv11l) on the CariesXrays benchmark (Chen et al., AAAI 2024). **BENCHMARK ROW, not a pipeline component** — COCO AP 0.482 / AP50 0.845 on this project's own seed-42 split (the official FPCL split is not public), level with FPCL. **It is also Lever B's B-single arm.** `run_summary.txt`, `RESULTS_LOG.md` 2026-09-02b. | `best.pt`, `last.pt` (51 MB each) | `weights/best.pt` (sha256 `278d1e00…`) is **on the friend's Windows laptop** — committable via a 3 Sep `.gitignore` exception after verifying the hash (`outputs/lever_B_lesion_caries_path/WINDOWS_SETUP.md` §4); `last.pt` stays gitignored. SHA-256 in `run_summary.txt`. `run_summary.txt` / `results.csv` / `args.yaml` **are** tracked; the `.png` curves and `val_batch*` renders are `*.png`/`*.jpg`-ignored like every other `models/` dir. |
 | `15_detector_multicorpus_leverA/` | Stage 1 — **Lever A** multi-corpus detector, "done right" (4 corpora: Tufts + DENTEX `quadrant_enumeration` + Kaggle "dual" + UFBA-425, per-corpus balanced). 3 arms (`controlB` / `arm3c` / `arm4c`). **ABLATION, not the default** (`RESULTS_LOG.md` 2026-09-03 + 03b). Pre-registered verdict: **PRIMARY passes** (FDI e2e on DENTEX 0.584 → 0.928, Δ +34.4 pp — replicates Lever 1), **GUARD 1 passes** (pooled external caries agreement +9.1 pp; Ningxia 0.41 → 0.60, CariesXrays 0.31 → 0.37), **GUARD 2 fails** (Tufts frozen test box mAP 0.724 → 0.585 / 0.552). 2 of 3 → ablation. The tradeoff is **bidirectional**: worse on Tufts, better on the other 5 of 6 cohorts. | `controlB_best.pt`, `arm3c_best.pt`, `arm4c_best.pt` (51 MB each) | **No** — gitignored; SHA-256 in `run_summary.txt`, local disk only. `run_summary.txt` / `*_results.csv` / `leverA_train.log` / `repro/` (as-run scripts + a verify-every-number cheat sheet) / `repro/diagnostics/` (the Tufts Guard-2 post-mortem, `RESULTS_LOG` 2026-09-03c) **are** tracked. |
-| `16_lever_b_pooled/` | Stage 3 — **Lever B, B-pooled arm**: caries-**lesion** detector (YOLOv11l) trained on CariesXrays + DENTEX-caries, per-corpus balanced. **ADOPTED 4 Sep 2026 as the pipeline's Stage-3 default** — Sec 6 met, 2 of 3 cohorts (`RESULTS_LOG.md` 2026-09-04c). Tooth-level lesion agreement: DENTEX 45.5% [40.9,50.1] (statistical **tie** with gate v3.0/constant, not a win — B-single alone lost decisively at 8.6%); CariesXrays 68.4% [66.4,70.4] (decisive win); **Ningxia 50.0% [46.3,53.9]** (decisive win vs. gate 40.8%/constant 39.9% — B-single lost this cohort too, at 24.0%). Rented an **RTX-PRO6000** (A100 unavailable at rental time), ₹546.93. `--caries-method lesion-detector` is now `run_inference.py`'s default; `--caries-method gate` retained for pre-4-Sep reproducibility. | `lever_b_pooled_yolo11l-2/weights/best.pt` (51 MB) | **`best.pt` committed to git same day it was adopted** — this is now `DEF_CARIES_LESION_MODEL`, exactly the situation `09`/`10`/`11` were already in, and the same rule-4 exception applies: a fresh clone must run the default pipeline with no Drive round-trip. `last.pt` stays gitignored. SHA-256 in `run_summary.txt`. `run_summary.txt` / `results.csv` / `args.yaml` / `train.log` **are** tracked; the `.png`/`.jpg` plots are `*.png`/`*.jpg`-ignored like every other `models/` dir. |
+| `16_lever_b_pooled/` | Stage 3 — **Lever B, B-pooled arm**: caries-**lesion** detector (YOLOv11l) trained on CariesXrays + DENTEX-caries, per-corpus balanced. **ADOPTED 4 Sep 2026 as the pipeline's Stage-3 default** — Sec 6 met, 2 of 3 cohorts (`RESULTS_LOG.md` 2026-09-04h). Tooth-level lesion agreement: DENTEX 45.5% [40.9,50.1] (statistical **tie** with gate v3.0/constant, not a win — B-single alone lost decisively at 8.6%); CariesXrays 68.4% [66.4,70.4] (decisive win); **Ningxia 50.0% [46.3,53.9]** (decisive win vs. gate 40.8%/constant 39.9% — B-single lost this cohort too, at 24.0%). Rented an **RTX-PRO6000** (A100 unavailable at rental time), ₹546.93. `--caries-method lesion-detector` is now `run_inference.py`'s default; `--caries-method gate` retained for pre-4-Sep reproducibility. | `lever_b_pooled_yolo11l-2/weights/best.pt` (51 MB) | **`best.pt` committed to git same day it was adopted** — this is now `DEF_CARIES_LESION_MODEL`, exactly the situation `09`/`10`/`11` were already in, and the same rule-4 exception applies: a fresh clone must run the default pipeline with no Drive round-trip. `last.pt` stays gitignored. SHA-256 in `run_summary.txt`. `run_summary.txt` / `results.csv` / `args.yaml` / `train.log` **are** tracked; the `.png`/`.jpg` plots are `*.png`/`*.jpg`-ignored like every other `models/` dir. |
 
 > **Adopted vs ablation:** dirs `06`–`11` **and now `16`** are pipeline components (current or
 > hash-pinned superseded — `16` replaced `09` as the Stage-3 default 4 Sep 2026, Lever B,
-> `RESULTS_LOG.md` 2026-09-04c); `05`, `12`, `12a`, `13`, `15` are ablations / negative results
+> `RESULTS_LOG.md` 2026-09-04h); `05`, `12`, `12a`, `13`, `15` are ablations / negative results
 > kept per `CLAUDE.md` rule 3, none in the runtime pipeline; `14` is a standalone benchmark model
 > also not in the pipeline directly (it IS Lever B's B-single arm, reused via
 > `--caries-lesion-model` — `14` and `16` are the two Lever B arms, scored against each other in
@@ -48,6 +48,12 @@ One numbered directory per trained stage, each with a `*summary*.txt` beside the
 > no CLI switch back to them. **`13` and `15` are both the same experiment (multi-corpus
 > detector)** — `15` is `13` re-done with more corpora and a differently-scoped guard; the
 > verdict was the same (ablation), the result is stronger (bidirectional, replicated).
+>
+> *(A concurrent edit on this same row, merged from the friend's branch, called this "ABLATION,
+> not adopted — needs Ningxia" and cited a `2026-09-04g` that doesn't exist in this history. That
+> was written before Ningxia was obtained; it since was (`D:\nangxia_dataset`, scored in place),
+> Sec 6 passed, and adoption is real and code-complete — see the `feat:`/`docs:` commits dated
+> 4 Sep. Resolved in favour of the adopted state, which is the current, verified ground truth.)*
 
 > The previous version of this file claimed "**Model files (.pth, .pt) are git-ignored** due
 > to file size" and showed a flat `models/*.pth` layout. Both were wrong: the ResNet18 `.pth`
@@ -66,7 +72,7 @@ One numbered directory per trained stage, each with a `*summary*.txt` beside the
 | `bone-loss-binary-resnet18-v1.0` | Stage 4a bone loss present/absent (**pipeline default**) | 27 Aug 2026 — `03_bone_loss_model_training_notebook_models/run_summary.txt` |
 | `bone-loss-severity-resnet18-v1.0` | Stage 4b severity Mild/Moderate/Severe (**pipeline default**) | 27 Aug 2026 — `04_bone_loss_severity_notebook_models/run_summary.txt` |
 | `caries-lesion-detector-yolo11l-cariesxrays-v1.0` | Lever 2 — CariesXrays lesion detector (**benchmark only, not in the pipeline directly; reused as Lever B's B-single arm**) | 2 Sep 2026 — `14_cariesxrays_lever2/run_summary.txt` |
-| `caries-lesion-detector-yolo11l-leverb-bpooled-v1.0` | Stage 3 caries (**pipeline default since 4 Sep 2026**, `DEF_CARIES_LESION_MODEL`) | 4 Sep 2026 — `16_lever_b_pooled/run_summary.txt`, `RESULTS_LOG.md` 2026-09-04c |
+| `caries-lesion-detector-yolo11l-leverb-bpooled-v1.0` | Stage 3 caries (**pipeline default since 4 Sep 2026**, `DEF_CARIES_LESION_MODEL`) | 4 Sep 2026 — `16_lever_b_pooled/run_summary.txt`, `RESULTS_LOG.md` 2026-09-04h |
 
 **No gaps remain — every trained model in this project is now tagged and hash-pinned**
 (closed 27 Aug 2026). Stages 4a/4b were the last, and had been serving as pipeline defaults
@@ -160,7 +166,7 @@ just a newer version of it. Adopted because it decisively beats both the gate an
 image-blind constant on 2 of 3 external cohorts (CariesXrays +37/+12pp, Ningxia +9/+10pp, both
 CI excluding zero) — the first mechanism in this project's history to beat that constant
 anywhere. DENTEX is a **statistical tie**, not a win — not solved everywhere. Full numbers:
-`RESULTS_LOG.md` 2026-09-04c, `docs/results/model_metrics.md` "Stage 3 — current pipeline
+`RESULTS_LOG.md` 2026-09-04h, `docs/results/model_metrics.md` "Stage 3 — current pipeline
 default." The gate below is **retained, unchanged, via `--caries-method gate`** for reproducing
 every number measured before 4 Sep 2026 — it did not get worse, it got superseded.
 

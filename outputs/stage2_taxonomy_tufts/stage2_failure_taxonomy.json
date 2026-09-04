@@ -1,0 +1,134 @@
+{
+  "n_gt_teeth": 3760,
+  "source": "outputs/stage2_tufts/stage2_rows_head.json",
+  "categories": {
+    "off_by_one": 473,
+    "not_detected": 686,
+    "correct": 2438,
+    "mirror_lr": 49,
+    "same_quadrant_far": 75,
+    "other": 22,
+    "wrong_arch": 17
+  },
+  "n_detected": 3074,
+  "n_wrong_code": 636,
+  "off_by_one_direction": {
+    "mesial (-1)": 188,
+    "distal (+1)": 285
+  },
+  "by_position": {
+    "1": {
+      "not_detected": 68,
+      "correct": 343,
+      "mirror_lr": 43,
+      "same_quadrant_far": 17,
+      "other": 8,
+      "off_by_one": 58,
+      "wrong_arch": 2
+    },
+    "2": {
+      "not_detected": 101,
+      "correct": 318,
+      "off_by_one": 85,
+      "same_quadrant_far": 9,
+      "other": 8,
+      "wrong_arch": 3,
+      "mirror_lr": 2
+    },
+    "3": {
+      "not_detected": 127,
+      "off_by_one": 80,
+      "correct": 320,
+      "same_quadrant_far": 14,
+      "other": 3,
+      "mirror_lr": 1
+    },
+    "4": {
+      "not_detected": 104,
+      "correct": 273,
+      "off_by_one": 98,
+      "same_quadrant_far": 15,
+      "wrong_arch": 4,
+      "other": 3,
+      "mirror_lr": 2
+    },
+    "5": {
+      "not_detected": 121,
+      "correct": 285,
+      "off_by_one": 67,
+      "same_quadrant_far": 11,
+      "wrong_arch": 1
+    },
+    "6": {
+      "correct": 377,
+      "off_by_one": 30,
+      "not_detected": 56,
+      "wrong_arch": 3,
+      "same_quadrant_far": 4
+    },
+    "7": {
+      "off_by_one": 41,
+      "not_detected": 52,
+      "correct": 369,
+      "wrong_arch": 3,
+      "same_quadrant_far": 4
+    },
+    "8": {
+      "correct": 153,
+      "not_detected": 57,
+      "off_by_one": 14,
+      "wrong_arch": 1,
+      "mirror_lr": 1,
+      "same_quadrant_far": 1
+    }
+  },
+  "by_quadrant": {
+    "1": {
+      "correct": 666,
+      "not_detected": 126,
+      "off_by_one": 92,
+      "wrong_arch": 9,
+      "other": 6,
+      "same_quadrant_far": 19,
+      "mirror_lr": 5
+    },
+    "2": {
+      "off_by_one": 116,
+      "not_detected": 120,
+      "correct": 655,
+      "mirror_lr": 9,
+      "wrong_arch": 4,
+      "same_quadrant_far": 18,
+      "other": 1
+    },
+    "3": {
+      "not_detected": 193,
+      "off_by_one": 146,
+      "correct": 577,
+      "other": 5,
+      "same_quadrant_far": 15,
+      "mirror_lr": 13,
+      "wrong_arch": 2
+    },
+    "4": {
+      "not_detected": 247,
+      "correct": 540,
+      "off_by_one": 119,
+      "same_quadrant_far": 23,
+      "mirror_lr": 22,
+      "other": 10,
+      "wrong_arch": 2
+    }
+  },
+  "note": "computed from an already-saved evaluation; no inference re-run, no test data re-touched",
+  "control_categories": {
+    "correct": 2690,
+    "not_detected": 361,
+    "off_by_one": 506,
+    "mirror_lr": 51,
+    "same_quadrant_far": 114,
+    "other": 21,
+    "wrong_arch": 17
+  },
+  "control_n": 3760
+}
