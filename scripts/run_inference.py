@@ -13,7 +13,11 @@ end-to-end behaviour had never been observed. This is paper claim C3.
 
     Stage 1  YOLOv11l detection            -> tooth boxes, upright coordinates
     Stage 2  learned enumeration head      -> FDI code per tooth, one-to-one constrained
-    Stage 3  caries cascade                -> no_caries | caries | deep_caries   (TIGHT crop)
+    Stage 3  caries LESION detector        -> no_caries | caries | deep_caries   (whole-image
+                                               detection + argmax-containment onto tooth boxes;
+                                               severity still graded on a TIGHT crop of flagged
+                                               teeth. `--caries-method gate` reverts to the
+                                               retained per-crop classifier -- see below)
     Stage 4  bone-loss cascade             -> normal | bone_loss + severity      (1.5x/2.0x)
     Stage 5  fusion, flags, assessability
     Stage 6  structured JSON (+ optional overlay)
@@ -33,15 +37,21 @@ written into every report rather than left to a footnote:
     bbox detector). A tooth that is missed is absent from the report entirely, and a tooth
     numbered wrongly attaches correct findings to the wrong tooth. Roughly two FDI codes in
     five are still expected to be wrong. `stage2_fdi_exact_end_to_end` is the authority.
-  * THE CARIES GATE IS IMPROVED BUT NOT RELIABLE. The legacy gate's `no_caries` class held
-    no healthy teeth at all and called 84.9% of detected teeth carious. The default is now
-    caries-gate-resnet18-v3.0, trained on a rebuilt negative class of 5,366 real healthy
-    teeth, which calls 19.1% against an 11.7% annotated floor. But its held-out precision is
-    0.40 -- most positives are still wrong -- and its healthy class rests on treating
-    unannotated teeth as healthy. Every caries prediction still carries a flag.
+  * THE CARIES BRANCH IS AN ADOPTED LESION DETECTOR, NOT A SOLVED PROBLEM. Adopted 4 Sep 2026
+    (Lever B, RESULTS_LOG 2026-09-04b) because it decisively beats both the old per-crop gate
+    AND an image-blind constant baseline -- on this project's six cohorts, that constant had
+    tied or beaten the gate EVERYWHERE (`PAPER_MATERIAL.md` Sec 8.22/8.24/8.25). Pre-registered
+    acceptance: beats the constant + the gate, CI excluding zero, on >=2 of 3 external cohorts
+    at <=1.5x the constant's flagging rate. It cleared that on CariesXrays (+37/+12 pp) and
+    Ningxia (+9/+10 pp). On DENTEX it is a statistical TIE with both (CI including zero) -- not
+    a third win, and not reported as one. **This is real, measured progress on a problem five
+    prior fix attempts on the gate could not move -- it is not "solved everywhere."** The
+    retained gate path (`--caries-method gate`) still calls 19.1% of detected teeth carious
+    against an 11.7% annotated floor at 0.40 held-out precision; pass it for reproducibility of
+    every pre-4-Sep number.
 
-Neither is fixable at this layer. They are surfaced so the report cannot be quoted as more
-than it is.
+Neither branch is fixable-to-perfect at this layer, and neither field is a diagnosis. They are
+surfaced so the report cannot be quoted as more than it is.
 """
 
 import argparse
@@ -102,12 +112,75 @@ DETECTOR_TAG = "tooth-detector-seg-tufts-1024-v1.0"
 # v1.0 (models/08_fdi_enumeration_head/) is retained unchanged — it is the head every
 # Stage-2 number before this date was measured on. RESULTS_LOG 2026-08-25j.
 DEF_FDI_HEAD = REPO_ROOT / "models/10_fdi_head_dentex_tufts_v2/enumeration_head_best.pth"
-# The v3 gate, whose negative class contains 5,366 real healthy teeth. The legacy gate
-# (models/07_caries_cascade/final_model.pth) had NO healthy teeth in its negative class and
-# called 84.9% of detected teeth carious in this pipeline; v3 calls 19.1% against an 11.7%
-# annotated floor. Pass --caries-gate to use the legacy one. RESULTS_LOG 2026-08-25a.
+# Caries Stage 3 -- LESION DETECTOR, adopted 4 Sep 2026 by the pre-registered Lever B rule.
+#
+# ADOPTED BECAUSE THE PRE-REGISTERED BAR WAS MET, not just because it looked better. Sec 6 of
+# outputs/lever_B_lesion_caries_path/PRE_REGISTRATION.md (frozen BEFORE any of these numbers
+# existed) required: beats an image-blind molar constant AND the gate, CI excluding zero, on
+# >=2 of 3 external cohorts, at <=1.5x the constant's flagging rate. Measured (paired cluster
+# bootstrap, 10k resamples, RESULTS_LOG 2026-09-04b):
+#     cohort        gate v3.0   constant   lesion detector (this model)
+#     DENTEX          44.3%      48.9%     45.5% [40.9,50.1] -- TIE (CI incl. 0), fails Sec 6
+#     CariesXrays      31.7%      56.2%     68.4% [66.4,70.4] -- PASS (CI excl. 0, both deltas)
+#     Ningxia          40.8%      39.9%     50.0% [46.3,53.9] -- PASS (CI excl. 0, both deltas)
+# 2 of 3 -> Sec 6 met. Trained on CariesXrays + DENTEX-domain caries boxes, per-corpus balanced
+# (`models/16_lever_b_pooled/`, RESULTS_LOG 2026-09-04b) -- the DENTEX data is what closed the
+# out-of-domain gap the CariesXrays-only arm (B-single, `models/14`) could not (it lost DENTEX
+# decisively, -40/-36 pp, and lost Ningxia too, -16/-17 pp -- see RESULTS_LOG 2026-09-04).
+#
+# Mechanism differs from every other stage here: this is a DETECTOR (whole image in, lesion
+# boxes out), not a per-crop classifier. `src.classifiers.run_caries_lesion_detector` maps each
+# lesion box to the tooth box it overlaps most (argmax containment), then reuses the existing
+# severity classifier on flagged teeth only -- severity was never part of what Lever B tested.
+#
+# Consequences, stated here because they are easy to miss:
+#   - single-class ("decay") -- it has no native severity signal of its own; `gate_confidence`
+#     on a positive tooth is a DETECTION score, not a softmax over {caries, no_caries}, and is
+#     0.0 (not "0% confidence healthy") on a negative tooth. See the flag
+#     `gate_confidence_is_detection_not_softmax`.
+#   - DENTEX is a statistical TIE, not a win -- do not read this as beating the gate everywhere.
+#   - the isotonic confidence calibrator (models/09/isotonic_calibrator.json) was fit for the
+#     GATE's score distribution and is not applied here; `gate_confidence_calibrated` is absent
+#     from lesion-detector reports (present, as before, under --caries-method gate).
+# The gate is RETAINED, unchanged and fully functional, via --caries-method gate -- every
+# pre-4-Sep caries number in this project was measured on it and remains reproducible.
+DEF_CARIES_LESION_MODEL = REPO_ROOT / "models/16_lever_b_pooled/lever_b_pooled_yolo11l-2/weights/best.pt"
+CARIES_LESION_CONF = 0.25   # frozen per the pre-registration -- never tuned on any cohort
 DEF_CARIES_GATE = REPO_ROOT / "models/09_caries_gate_v3/caries_gate_v3.pth"
 DEF_CARIES_SEVERITY = REPO_ROOT / "models/07_caries_cascade/phase2_final_bundle.pth"
+
+# Report-limitations text, keyed by which caries mechanism actually ran -- read by build_report
+# so a report never carries the OTHER method's caveat by accident.
+CARIES_METHOD_CAVEATS = {
+    "lesion-detector": (
+        "Stage 3 is the lesion detector (models/16_lever_b_pooled), adopted 4 Sep 2026 -- see "
+        "the DEF_CARIES_LESION_MODEL comment above and RESULTS_LOG 2026-09-04b for the full "
+        "pre-registered verdict. It decisively beats both the retained gate and an image-blind "
+        "constant on 2 of 3 external cohorts (CariesXrays, Ningxia); on DENTEX it is a "
+        "statistical TIE with both, not a win. IMPROVED ON TWO COHORTS, NOT SOLVED EVERYWHERE. "
+        "Do not read a caries field here as a diagnosis."),
+    "gate": (
+        "The gate is caries-gate-resnet18-v3.0, retrained with a real negative class "
+        "(5,366 healthy teeth). In-pipeline it calls 19.1% of detected teeth carious "
+        "against an 11.7% annotated floor -- 1.6x, down from 7.3x for the legacy gate "
+        "(RESULTS_LOG 2026-08-25a). It is IMPROVED, NOT SOLVED: precision on the "
+        "held-out test split is 0.40, so roughly six of every ten positives are wrong. "
+        "Do not read a caries field here as a diagnosis. Superseded as the pipeline default "
+        "4 Sep 2026 by the lesion detector (RESULTS_LOG 2026-09-04b); retained via "
+        "--caries-method gate for reproducibility of every number measured before that date."),
+}
+CARIES_NEGATIVE_ASSUMPTION = {
+    "lesion-detector": (
+        "A negative tooth here means no lesion box was DETECTED overlapping it -- bounded by "
+        "the detector's own recall, not by a training-label assumption the way the gate's "
+        "negative class was. A lesion the detector missed is a false negative exactly like any "
+        "other detection miss; unmeasurable per-tooth without an exhaustively-annotated cohort."),
+    "gate": (
+        "The gate's healthy class comes from teeth carrying no disease annotation in "
+        "DENTEX, which annotates only diseased teeth. That is absence of evidence: any "
+        "lesion the annotators missed is a false negative in training and in the "
+        "reported precision. Unmeasurable inside DENTEX."),
+}
 DEF_BONE_LOSS = REPO_ROOT / "models/03_bone_loss_model_training_notebook_models/bone_loss_resnet18_best.pth"
 DEF_BONE_SEVERITY = REPO_ROOT / "models/04_bone_loss_severity_notebook_models/bone_loss_severity_resnet18_best.pth"
 
@@ -186,18 +259,12 @@ def build_report(image_path, img_bgr, boxes, confs, fdi_assign, caries, bone, me
                 "A missed tooth is absent "
                 "from this report; a misnumbered tooth carries correct findings under the "
                 "wrong FDI code. Expect roughly half the codes in this report to be wrong."),
-            "caries_gate_precision": (
-                "The gate is caries-gate-resnet18-v3.0, retrained with a real negative class "
-                "(5,366 healthy teeth). In-pipeline it calls 19.1% of detected teeth carious "
-                "against an 11.7% annotated floor -- 1.6x, down from 7.3x for the legacy gate "
-                "(RESULTS_LOG 2026-08-25a). It is IMPROVED, NOT SOLVED: precision on the "
-                "held-out test split is 0.40, so roughly six of every ten positives are wrong. "
-                "Do not read a caries field here as a diagnosis."),
+            "caries_method_caveat": (
+                CARIES_METHOD_CAVEATS["lesion-detector"] if meta["caries"].get("method") ==
+                "lesion-detector" else CARIES_METHOD_CAVEATS["gate"]),
             "caries_presumed_negative_assumption": (
-                "The gate's healthy class comes from teeth carrying no disease annotation in "
-                "DENTEX, which annotates only diseased teeth. That is absence of evidence: any "
-                "lesion the annotators missed is a false negative in training and in the "
-                "reported precision. Unmeasurable inside DENTEX."),
+                CARIES_NEGATIVE_ASSUMPTION["lesion-detector"] if meta["caries"].get("method") ==
+                "lesion-detector" else CARIES_NEGATIVE_ASSUMPTION["gate"]),
             "bone_loss_domain_shift": (
                 "The bone-loss models were trained on TUFTS radiographs and are applied here to "
                 "whatever image is supplied; on DENTEX they fire on 0.7% of teeth (2/299) with "
@@ -240,13 +307,17 @@ def pick_device():
 
 
 def load_models(detector=DEF_DETECTOR, fdi_head=DEF_FDI_HEAD, caries_gate=DEF_CARIES_GATE,
-                caries_severity=DEF_CARIES_SEVERITY, bone_loss=DEF_BONE_LOSS,
-                bone_severity=DEF_BONE_SEVERITY, device=None):
+                caries_severity=DEF_CARIES_SEVERITY, caries_lesion_model=DEF_CARIES_LESION_MODEL,
+                bone_loss=DEF_BONE_LOSS, bone_severity=DEF_BONE_SEVERITY, device=None):
     """
-    Load all six checkpoints once. Both the CLI and any other caller (the Streamlit app) use
+    Load all seven checkpoints once. Both the CLI and any other caller (the Streamlit app) use
     this SAME function -- loading is the slow, one-time part (~seconds), and a second
     independently-written loader would be a second place for the class_to_idx safety check
     below to be forgotten.
+
+    Loads BOTH caries mechanisms (lesion detector + the retained gate) unconditionally, same as
+    every other stage here -- run_pipeline's `caries_method` picks which one actually runs, and
+    a caller can switch methods without a second, separate load_models() call.
 
     Returns (models_dict, device, weight_paths_dict) -- weight_paths is kept separately so
     build_report's `meta` can cite exactly what was loaded, unchanged from before this
@@ -260,6 +331,7 @@ def load_models(detector=DEF_DETECTOR, fdi_head=DEF_FDI_HEAD, caries_gate=DEF_CA
 
     paths = {"detector": Path(detector), "fdi_head": Path(fdi_head),
              "caries_gate": Path(caries_gate), "caries_severity": Path(caries_severity),
+             "caries_lesion_model": Path(caries_lesion_model),
              "bone_loss": Path(bone_loss), "bone_severity": Path(bone_severity)}
     for name, p in paths.items():
         if not p.exists():
@@ -269,15 +341,17 @@ def load_models(detector=DEF_DETECTOR, fdi_head=DEF_FDI_HEAD, caries_gate=DEF_CA
     m = {
         "detector": YOLO(str(paths["detector"])),
         "head": load_head(paths["fdi_head"], device),
+        "caries_lesion_model": YOLO(str(paths["caries_lesion_model"])),
     }
     m["gate"], gate_cls = load_classifier(paths["caries_gate"], 2, device)
     m["csev"], csev_cls = load_classifier(paths["caries_severity"], 2, device)
     m["bbin"], _ = load_classifier(paths["bone_loss"], 2, device)
     m["bsev"], _ = load_classifier(paths["bone_severity"], 3, device)
 
-    # The two caries checkpoints carry their own class_to_idx. Assert it matches the order
-    # src/classifiers.py assumes, rather than trusting that it does -- an inverted index here
-    # would report every healthy tooth as carious and still look like a working pipeline.
+    # The two caries CLASSIFIER checkpoints carry their own class_to_idx. Assert it matches the
+    # order src/classifiers.py assumes, rather than trusting that it does -- an inverted index
+    # here would report every healthy tooth as carious and still look like a working pipeline.
+    # (The lesion detector has no class_to_idx to check -- it is single-class.)
     if gate_cls and gate_cls != {"caries": 0, "no_caries": 1}:
         raise SystemExit(f"caries gate class_to_idx changed: {gate_cls}")
     if csev_cls and csev_cls != {"caries": 0, "deep_caries": 1}:
@@ -287,13 +361,19 @@ def load_models(detector=DEF_DETECTOR, fdi_head=DEF_FDI_HEAD, caries_gate=DEF_CA
 
 
 def run_pipeline(img_bgr, models, device, paths, image_label="image", imgsz=1024, conf=0.25,
-                 det_iou=0.50, one_to_one=True, verbose=True):
+                 det_iou=0.50, one_to_one=True, verbose=True, caries_method="lesion-detector",
+                 caries_lesion_conf=CARIES_LESION_CONF):
     """
     Stages 1-6 on an already-loaded image, using already-loaded models. This is the function
     both `main()` and the Streamlit app call -- one code path, so a fix or a limitation update
     reaches both automatically. Returns the report dict; writes nothing to disk.
+
+    `caries_method` -- "lesion-detector" (the pipeline default since 4 Sep 2026, Lever B,
+    RESULTS_LOG 2026-09-04b) or "gate" (the retained per-crop classifier, for reproducing any
+    number measured before that date). See the DEF_CARIES_LESION_MODEL comment above.
     """
-    from src.classifiers import BONE_LOSS_SEVERITY_CLASSES, run_bone_loss, run_caries
+    from src.classifiers import (BONE_LOSS_SEVERITY_CLASSES, run_bone_loss, run_caries,
+                                 run_caries_lesion_detector)
     from src.fdi_head_inference import assign_fdi_head
     from src.orientation import detect_upright
 
@@ -310,8 +390,37 @@ def run_pipeline(img_bgr, models, device, paths, image_label="image", imgsz=1024
 
     log("stage 2 — FDI enumeration …")
     fdi_assign = assign_fdi_head(models["head"], img_bgr, boxes, device, one_to_one=one_to_one)
-    log("stage 3 — caries cascade (tight crops) …")
-    caries = run_caries(models["gate"], models["csev"], img_bgr, boxes, device)
+
+    if caries_method == "gate":
+        log("stage 3 — caries GATE (tight crops, retained pre-4-Sep default) …")
+        caries = run_caries(models["gate"], models["csev"], img_bgr, boxes, device)
+        caries_meta = {
+            "method": "gate", "weights": str(paths["caries_gate"]),
+            "severity_weights": str(paths["caries_severity"]),
+            "tag": "caries-cascade-resnet18-v1.0", "crop_expand": [1.0, 1.0],
+            "confidence_calibration": (
+                "isotonic, fitted on the crops_v3_phase1 val split; applied to "
+                "gate_confidence_calibrated ONLY. Verdicts remain argmax on raw "
+                "logits. Test ECE 0.136 -> 0.043. RESULTS_LOG 2026-08-27s."),
+        }
+    elif caries_method == "lesion-detector":
+        log("stage 3 — caries LESION DETECTOR (whole image, adopted 4 Sep 2026) …")
+        caries = run_caries_lesion_detector(models["caries_lesion_model"], models["csev"],
+                                            img_bgr, boxes, device, conf=caries_lesion_conf)
+        caries_meta = {
+            "method": "lesion-detector", "weights": str(paths["caries_lesion_model"]),
+            "severity_weights": str(paths["caries_severity"]),
+            "tag": "caries-lesion-detector-yolo11l-leverb-bpooled-v1.0",
+            "lesion_conf": caries_lesion_conf,
+            "adopted": "4 Sep 2026, Lever B Sec 6 -- RESULTS_LOG 2026-09-04b",
+            "confidence_calibration": (
+                "NOT applied -- the isotonic calibrator was fit for the gate's score "
+                "distribution. gate_confidence here is a raw detection score, not a softmax."),
+        }
+    else:
+        raise ValueError(f"unknown caries_method: {caries_method!r} (expected "
+                         f"'lesion-detector' or 'gate')")
+
     log("stage 4 — bone-loss cascade (1.5x/2.0x crops) …")
     bone = run_bone_loss(models["bbin"], models["bsev"], img_bgr, boxes, device)
 
@@ -321,12 +430,7 @@ def run_pipeline(img_bgr, models, device, paths, image_label="image", imgsz=1024
                      "input_rotation": "90 deg counter-clockwise (src/orientation.py)"},
         "fdi_head": {"weights": str(paths["fdi_head"]), "tag": "fdi-enumeration-head-resnet18-v1.0",
                      "one_to_one": one_to_one, "crop_expand": [1.5, 1.5]},
-        "caries": {"gate": str(paths["caries_gate"]), "severity": str(paths["caries_severity"]),
-                   "tag": "caries-cascade-resnet18-v1.0", "crop_expand": [1.0, 1.0],
-                   "confidence_calibration": (
-                       "isotonic, fitted on the crops_v3_phase1 val split; applied to "
-                       "gate_confidence_calibrated ONLY. Verdicts remain argmax on raw "
-                       "logits. Test ECE 0.136 -> 0.043. RESULTS_LOG 2026-08-27s.")},
+        "caries": caries_meta,
         "bone_loss": {"binary": str(paths["bone_loss"]), "severity": str(paths["bone_severity"]),
                       "crop_expand": [1.5, 2.0], "severity_classes": BONE_LOSS_SEVERITY_CLASSES,
                       "tag_binary": "bone-loss-binary-resnet18-v1.0",
@@ -354,6 +458,14 @@ def main():
     ap.add_argument("--fdi-head", type=Path, default=DEF_FDI_HEAD)
     ap.add_argument("--caries-gate", type=Path, default=DEF_CARIES_GATE)
     ap.add_argument("--caries-severity", type=Path, default=DEF_CARIES_SEVERITY)
+    ap.add_argument("--caries-lesion-model", type=Path, default=DEF_CARIES_LESION_MODEL)
+    ap.add_argument("--caries-method", choices=["lesion-detector", "gate"],
+                    default="lesion-detector",
+                    help="Stage-3 mechanism. lesion-detector = the pipeline default since "
+                         "4 Sep 2026 (Lever B, RESULTS_LOG 2026-09-04b); gate = the retained "
+                         "pre-4-Sep per-crop classifier, for reproducing older numbers.")
+    ap.add_argument("--caries-lesion-conf", type=float, default=CARIES_LESION_CONF,
+                    help="frozen per the pre-registration -- not tuned on any cohort")
     ap.add_argument("--bone-loss", type=Path, default=DEF_BONE_LOSS)
     ap.add_argument("--bone-severity", type=Path, default=DEF_BONE_SEVERITY)
     ap.add_argument("--conf", type=float, default=0.25, help="detector confidence threshold")
@@ -370,13 +482,16 @@ def main():
         raise SystemExit(f"cannot read image: {args.image}")
 
     models, device, paths = load_models(
-        args.detector, args.fdi_head, args.caries_gate, args.caries_severity,
-        args.bone_loss, args.bone_severity)
-    print(f"device={device}   image={args.image.name}  {img.shape[1]}x{img.shape[0]}")
+        detector=args.detector, fdi_head=args.fdi_head, caries_gate=args.caries_gate,
+        caries_severity=args.caries_severity, caries_lesion_model=args.caries_lesion_model,
+        bone_loss=args.bone_loss, bone_severity=args.bone_severity)
+    print(f"device={device}   image={args.image.name}  {img.shape[1]}x{img.shape[0]}"
+          f"   caries_method={args.caries_method}")
 
     report = run_pipeline(img, models, device, paths, image_label=str(args.image),
                           imgsz=args.imgsz, conf=args.conf, det_iou=args.det_iou,
-                          one_to_one=not args.no_one_to_one)
+                          one_to_one=not args.no_one_to_one, caries_method=args.caries_method,
+                          caries_lesion_conf=args.caries_lesion_conf)
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2) + "\n")
@@ -396,8 +511,8 @@ def main():
     _wrong = 1.0 - STAGE2_FDI_EXACT_END_TO_END
     print("")
     print(f"  NOTE: ~{_wrong:.0%} of FDI codes are expected wrong "
-          f"(Stage 2 = {STAGE2_FDI_EXACT_END_TO_END:.1%} end-to-end), and")
-    print("  the caries gate is out of distribution here. See report['limitations'].")
+          f"(Stage 2 = {STAGE2_FDI_EXACT_END_TO_END:.1%} end-to-end). Caries "
+          f"({args.caries_method}) is improved, not solved -- see report['limitations'].")
 
 
 if __name__ == "__main__":

@@ -140,11 +140,11 @@ def main():
 
     import cv2
     import torch
-    from ningxia_external import (MOLAR_CONSTANT, match_by_centroid,
-                                  lesion_preds_to_tooth_idx, run_lesion_detector)
+    from ningxia_external import MOLAR_CONSTANT, match_by_centroid
     from run_inference import (DEF_CARIES_GATE, DEF_CARIES_SEVERITY, DEF_DETECTOR,
                                DEF_FDI_HEAD)
-    from src.classifiers import load_classifier, run_caries
+    from src.classifiers import (lesion_preds_to_tooth_idx, load_classifier, run_caries,
+                                 run_lesion_detector_raw)
     from src.fdi_head_inference import assign_fdi_head, load_head
     from src.orientation import detect_upright
     from ultralytics import YOLO
@@ -211,10 +211,10 @@ def main():
             fdi = assign_fdi_head(head, img, boxes, device) if boxes else []
             pos = [i for i, a in enumerate(fdi) if str(a.get("fdi")) in MOLAR_CONSTANT]
         elif args.decision == "lesion-detector":
-            # Lever B: NOT detect_upright -- see run_lesion_detector's docstring
-            # (ningxia_external.py) -- the lesion model expects the plain upright image.
-            lesion_boxes = run_lesion_detector(lesion_model, img, args.lesion_conf) if boxes else []
-            pos = lesion_preds_to_tooth_idx(lesion_boxes, boxes) if lesion_boxes else []
+            # Lever B: NOT detect_upright -- see run_lesion_detector_raw's docstring
+            # (src/classifiers.py) -- the lesion model expects the plain upright image.
+            lesion_preds = run_lesion_detector_raw(lesion_model, img, conf=args.lesion_conf) if boxes else []
+            pos, _ = lesion_preds_to_tooth_idx(lesion_preds, boxes) if lesion_preds else ([], {})
         else:
             preds = run_caries(gate, csev, img, boxes, device) if boxes else []
             pos = [i for i, p in enumerate(preds) if p["finding"] != "no_caries"]

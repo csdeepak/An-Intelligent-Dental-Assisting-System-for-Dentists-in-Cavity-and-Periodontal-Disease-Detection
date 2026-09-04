@@ -148,7 +148,7 @@ def main():
     st.markdown(f"""
 - **Detector recall {lim['stage1_detector_recall']:.1%}** and **Stage-2 numbering
   {lim['stage2_fdi_exact_end_to_end']:.1%} end-to-end** — {lim['interpretation']}
-- **Caries**: {lim['caries_gate_precision']}
+- **Caries**: {lim['caries_method_caveat']}
 - **Caries labelling**: {lim['caries_presumed_negative_assumption']}
 """)
     st.warning(

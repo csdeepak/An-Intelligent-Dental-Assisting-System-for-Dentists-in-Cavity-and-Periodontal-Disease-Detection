@@ -265,58 +265,12 @@ def match_by_centroid(lesions, boxes):
     return covered, strict
 
 
-def lesion_preds_to_tooth_idx(lesion_boxes, tooth_boxes):
-    """
-    Lever B: map lesion-DETECTOR predictions onto tooth boxes for a Stage-3 verdict
-    (`outputs/lever_B_lesion_caries_path/PRE_REGISTRATION.md` Sec 4 / Sec 7 risk 3).
-
-    Each predicted lesion box is assigned to the SINGLE tooth box with the greatest overlap
-    (intersection area / lesion-box area -- "argmax containment"), not centroid-in-ANY-box: a
-    lesion box straddling two adjacent, slightly-overlapping tooth boxes must mark exactly one
-    tooth positive, not both, or predicted-positive-rate is inflated past Sec 6 cond. 2's cap.
-    A lesion with 0 overlap with every tooth box (a spurious detection outside all detected
-    teeth) maps to nothing -- it cannot manufacture a positive tooth from thin air.
-
-    This is deliberately NOT `match_by_centroid` (that function answers a different question --
-    for each GROUND-TRUTH lesion, is its centroid in ANY flagged tooth, many-to-one by design).
-    Here the direction is prediction -> verdict and must be one-to-one per prediction.
-
-    Returns the sorted list of positive tooth indices (into `tooth_boxes`).
-    """
-    pos = set()
-    for (lx1, ly1, lx2, ly2) in lesion_boxes:
-        larea = max(0.0, lx2 - lx1) * max(0.0, ly2 - ly1)
-        if larea <= 0:
-            continue
-        best_i, best_frac = None, 0.0
-        for i, (tx1, ty1, tx2, ty2) in enumerate(tooth_boxes):
-            ix1, iy1 = max(lx1, tx1), max(ly1, ty1)
-            ix2, iy2 = min(lx2, tx2), min(ly2, ty2)
-            inter = max(0.0, ix2 - ix1) * max(0.0, iy2 - iy1)
-            frac = inter / larea
-            if frac > best_frac:
-                best_i, best_frac = i, frac
-        if best_i is not None:
-            pos.add(best_i)
-    return sorted(pos)
-
-
-def run_lesion_detector(lesion_model, img, conf):
-    """
-    Lever B: run the caries-LESION detector on the plain upright image -- NO rotation.
-
-    `detect_upright()` is hardcoded to the deployed TOOTH detector's convention (always rotate
-    90 deg CCW before inference, always un-rotate the output -- see src/orientation.py, DEFAULT
-    = CCW, no identity/no-op direction exists). The lesion model was trained on CariesXrays +
-    DENTEX images fed NATIVELY UPRIGHT, no rotation anywhere in
-    `build_cariesxrays_detector_dataset.py` / `build_dentex_caries_boxes.py` /
-    `train_cariesxrays_detector.py`. Reusing `detect_upright` here would silently rotate every
-    image 90 deg before the lesion model sees it -- geometrically wrong predictions that would
-    still produce a plausible-looking number, the exact failure class RESULTS_LOG 2026-08-27a
-    documents for a different rotation bug. Returns plain xyxy boxes in the image's own frame.
-    """
-    r = lesion_model.predict(img, imgsz=1024, conf=conf, iou=0.50, verbose=False)[0]
-    return r.boxes.xyxy.cpu().numpy().tolist()
+# lesion_preds_to_tooth_idx / run_lesion_detector_raw MOVED to src/classifiers.py on adoption
+# (4 Sep 2026, RESULTS_LOG 2026-09-04b) -- run_caries_lesion_detector there is now the pipeline's
+# production Stage-3 path, so the shared primitive lives beside it, not upstream of it in an
+# eval-only script. Re-imported here (not just left to the call sites) so anything still doing
+# `from ningxia_external import lesion_preds_to_tooth_idx` keeps working.
+from src.classifiers import lesion_preds_to_tooth_idx, run_lesion_detector_raw  # noqa: E402
 
 
 def main():
@@ -446,10 +400,12 @@ def main():
                         pos = [i for i, a in enumerate(fdi)
                                if str(a.get("fdi")) in MOLAR_CONSTANT]
                     elif args.decision == "lesion-detector":
-                        # Lever B: NOT detect_upright -- see run_lesion_detector's docstring.
-                        lesion_boxes = run_lesion_detector(lesion_model, img, args.lesion_conf) \
+                        # Lever B: NOT detect_upright -- see run_lesion_detector_raw's docstring
+                        # (src/classifiers.py).
+                        lesion_preds = run_lesion_detector_raw(lesion_model, img, conf=args.lesion_conf) \
                             if boxes else []
-                        pos = lesion_preds_to_tooth_idx(lesion_boxes, boxes) if lesion_boxes else []
+                        pos, _ = (lesion_preds_to_tooth_idx(lesion_preds, boxes) if lesion_preds
+                                 else ([], {}))
                     else:
                         preds = run_caries(gate, csev, img, boxes, device) if boxes else []
                         pos = [i for i, p in enumerate(preds) if p["finding"] != "no_caries"]

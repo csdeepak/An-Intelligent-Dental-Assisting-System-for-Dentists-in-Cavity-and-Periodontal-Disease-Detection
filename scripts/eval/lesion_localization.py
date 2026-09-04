@@ -226,10 +226,10 @@ def main():
     import torch
     from ultralytics import YOLO
 
-    from src.classifiers import load_classifier, run_caries
+    from src.classifiers import (lesion_preds_to_tooth_idx, load_classifier, run_caries,
+                                 run_lesion_detector_raw)
     from src.fdi_head_inference import assign_fdi_head
     from src.orientation import detect_upright
-    from ningxia_external import lesion_preds_to_tooth_idx, run_lesion_detector
 
     leaked = _load_leaked()
     labels = sorted(p for p in args.disease_dir.glob("label/*.json") if p.stem not in leaked)
@@ -286,10 +286,10 @@ def main():
         elif args.decision == "all-teeth":
             pos_idx = list(range(len(boxes)))
         elif args.decision == "lesion-detector":
-            # Lever B: NOT detect_upright -- see run_lesion_detector's docstring
-            # (ningxia_external.py) -- the lesion model expects the plain upright image.
-            lesion_boxes = run_lesion_detector(lesion_model, img, args.lesion_conf) if boxes else []
-            pos_idx = lesion_preds_to_tooth_idx(lesion_boxes, boxes) if lesion_boxes else []
+            # Lever B: NOT detect_upright -- see run_lesion_detector_raw's docstring
+            # (src/classifiers.py) -- the lesion model expects the plain upright image.
+            lesion_preds = run_lesion_detector_raw(lesion_model, img, conf=args.lesion_conf) if boxes else []
+            pos_idx, _ = lesion_preds_to_tooth_idx(lesion_preds, boxes) if lesion_preds else ([], {})
         else:                                    # constant-molars -- the image is never read
             assigns = assign_fdi_head(fdi_head, img, boxes, device, one_to_one=True) if boxes else []
             pos_idx = [i for i, a in enumerate(assigns)

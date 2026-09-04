@@ -253,6 +253,126 @@ def run_caries(gate, severity, img_bgr, boxes, device):
     return results
 
 
+def lesion_preds_to_tooth_idx(lesion_boxes, tooth_boxes):
+    """
+    Map lesion-DETECTOR predictions onto tooth boxes for a Stage-3 verdict (Lever B, adopted
+    4 Sep 2026 -- RESULTS_LOG 2026-09-04b; pre-registration
+    `outputs/lever_B_lesion_caries_path/PRE_REGISTRATION.md` Sec 4 / Sec 7 risk 3).
+
+    Each predicted lesion box is assigned to the SINGLE tooth box with the greatest overlap
+    (intersection area / lesion-box area -- "argmax containment"), not centroid-in-ANY-box: a
+    lesion box straddling two adjacent, slightly-overlapping tooth boxes must mark exactly one
+    tooth positive, not both, or predicted-positive-rate is inflated past the pre-reg's Sec 6
+    cond. 2 cap. A lesion with 0 overlap with every tooth box (a spurious detection outside all
+    detected teeth) maps to nothing -- it cannot manufacture a positive tooth from thin air.
+
+    Moved here from `scripts/eval/ningxia_external.py` on adoption -- this is now a Stage-3
+    production primitive (used by `run_caries_lesion_detector` below), not an eval-only helper,
+    so it belongs beside `run_caries`, not upstream of it. The three eval scripts
+    (`ningxia_external.py`, `cariesxrays_external.py`, `lesion_localization.py`) import it from
+    here now.
+
+    Returns (positive tooth indices, best-overlap confidence per positive index) -- the
+    confidence dict lets the Stage-3 report cite a real per-tooth score instead of inventing one.
+    """
+    best = {}   # tooth idx -> (best_frac, lesion_conf)
+    for (lx1, ly1, lx2, ly2), lconf in lesion_boxes:
+        larea = max(0.0, lx2 - lx1) * max(0.0, ly2 - ly1)
+        if larea <= 0:
+            continue
+        best_i, best_frac = None, 0.0
+        for i, (tx1, ty1, tx2, ty2) in enumerate(tooth_boxes):
+            ix1, iy1 = max(lx1, tx1), max(ly1, ty1)
+            ix2, iy2 = min(lx2, tx2), min(ly2, ty2)
+            inter = max(0.0, ix2 - ix1) * max(0.0, iy2 - iy1)
+            frac = inter / larea
+            if frac > best_frac:
+                best_i, best_frac = i, frac
+        if best_i is not None and (best_i not in best or lconf > best[best_i][1]):
+            best[best_i] = (best_frac, lconf)
+    return sorted(best), {i: v[1] for i, v in best.items()}
+
+
+def run_lesion_detector_raw(lesion_model, img_bgr, conf=0.25):
+    """
+    Run the caries-LESION detector on the plain upright image -- NO rotation.
+
+    `src.orientation.detect_upright()` is hardcoded to the tooth DETECTOR's convention (always
+    rotate 90 deg CCW before inference, always un-rotate the output -- DEFAULT = CCW, no
+    identity/no-op direction exists). The lesion model was trained on CariesXrays + DENTEX
+    images fed NATIVELY UPRIGHT, no rotation anywhere in their dataset builders. Reusing
+    `detect_upright` here would silently rotate every image 90 deg before the lesion model sees
+    it -- geometrically wrong predictions that would still produce a plausible-looking number.
+    `img_bgr` here is already the upright frame `run_pipeline` works in throughout (Stage 1's
+    boxes are already un-rotated back to it), so no transform is needed -- just don't add one.
+
+    Returns [(xyxy_box, confidence), ...] in the image's own (upright) pixel frame.
+    """
+    r = lesion_model.predict(img_bgr, imgsz=1024, conf=conf, iou=0.50, verbose=False)[0]
+    boxes = r.boxes.xyxy.cpu().numpy().tolist()
+    confs = r.boxes.conf.cpu().numpy().tolist()
+    return list(zip(boxes, confs))
+
+
+def run_caries_lesion_detector(lesion_model, severity, img_bgr, boxes, device, conf=0.25):
+    """
+    Caries Stage 3, LESION-DETECTOR path -- the pipeline default since 4 Sep 2026 (Lever B,
+    RESULTS_LOG 2026-09-04b). Localises the lesion directly instead of classifying the tooth
+    crop, which escapes the base-rate dominance the crop classifier (`run_caries`, retained
+    below and still selectable via `--caries-method gate`) could not
+    (`PAPER_MATERIAL.md` Sec 8.22/8.24/8.25): across this project's six cohorts, an image-blind
+    constant tied or beat the gate everywhere. The lesion detector decisively beats both the
+    gate and that constant on CariesXrays (+37/+12 pp) and Ningxia (+9/+10 pp, both CI excluding
+    zero); on DENTEX it is a statistical TIE with both (CI including zero) -- not a third win,
+    recorded as such rather than rounded up.
+
+    Mechanism: run the lesion detector ONCE on the whole image (a detection model, not a
+    per-crop classifier -- there is no "gate crop" here), map each predicted lesion box to the
+    tooth box it overlaps most (`lesion_preds_to_tooth_idx`, argmax containment), then grade
+    severity on flagged teeth with the SAME severity classifier and tight-crop convention
+    `run_caries` used -- severity was never part of what Lever B tested or replaced, so it is
+    reused unchanged rather than reinvented.
+
+    Confidence threshold is FROZEN at 0.25 (the ultralytics default) per the pre-registration --
+    not tuned on any cohort, including this one.
+
+    Returns one dict per box, matching `run_caries`'s exact shape (`finding`, `gate_confidence`,
+    `severity`, `severity_confidence`, `flags`) so `build_report` and every downstream consumer
+    (the CLI, the Streamlit app, the report schema) need no change to consume either path.
+    """
+    if len(boxes) == 0:
+        return []
+    lesion_preds = run_lesion_detector_raw(lesion_model, img_bgr, conf=conf)
+    positives, conf_of = (lesion_preds_to_tooth_idx(lesion_preds, boxes)
+                          if lesion_preds else ([], {}))
+
+    batch = crop_batch(img_bgr, boxes, CARIES_EXPAND, device) if positives else None
+    ps = _probs(severity, batch[positives]) if positives else np.empty((0, 2))
+    sev_of = {i: ps[k] for k, i in enumerate(positives)}
+
+    results = []
+    for i in range(len(boxes)):
+        r = {
+            "finding": "no_caries",
+            # A DETECTION confidence (the best-overlap lesion box's own score), not a softmax
+            # over {caries, no_caries} the way the gate's gate_confidence was -- there is no
+            # natural "confidence of absence" for a model that only ever emits positive boxes.
+            # 0.0 on a negative tooth means "no lesion box mapped here", not "0% confidence
+            # healthy". Flagged below so this is never misread as the old field's semantics.
+            "gate_confidence": round(float(conf_of.get(i, 0.0)), 4),
+            "severity": None,
+            "severity_confidence": None,
+            "flags": ["lesion_detector_v1.0", "gate_confidence_is_detection_not_softmax"],
+        }
+        if i in sev_of:
+            p = sev_of[i]
+            r["finding"] = CARIES_SEVERITY_CLASSES[int(p.argmax())]   # caries | deep_caries
+            r["severity"] = r["finding"]
+            r["severity_confidence"] = round(float(p.max()), 4)
+        results.append(r)
+    return results
+
+
 def run_bone_loss(binary, severity, img_bgr, boxes, device):
     """
     Bone-loss cascade on 1.5xW / 2.0xH crops. Binary first; severity only on positives, which

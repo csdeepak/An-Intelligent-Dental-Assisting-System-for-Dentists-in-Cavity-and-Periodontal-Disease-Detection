@@ -44,6 +44,10 @@ SOURCES = {
     ("cariesxrays", "constant-molars"):
         (REPO_ROOT / "outputs/cariesxrays_external_lever_b_b_single/cariesxrays_external_constant-molars.json",
          "lesions", "covered", "flagged"),
+    ("ningxia", "pipeline"): (DEF_OUT / "ningxia_pipeline/ningxia_external.json",
+                              "n_lesions", "n_covered", "n_predicted_positive"),
+    ("ningxia", "constant-molars"): (DEF_OUT / "ningxia_constant/ningxia_external.json",
+                                      "n_lesions", "n_covered", "n_predicted_positive"),
 }
 
 LESION_RUN_SOURCES = {
@@ -54,6 +58,9 @@ LESION_RUN_SOURCES = {
         ("cariesxrays", "lesion-detector"):
             (REPO_ROOT / "outputs/cariesxrays_external_lever_b_b_single/cariesxrays_external_lesion-detector.json",
              "lesions", "covered", "flagged"),
+        ("ningxia", "lesion-detector"):
+            (DEF_OUT / "ningxia_lesion_b_single/ningxia_external.json",
+             "n_lesions", "n_covered", "n_predicted_positive"),
     },
     "B-pooled": {
         ("dentex", "lesion-detector"):
@@ -62,15 +69,29 @@ LESION_RUN_SOURCES = {
         ("cariesxrays", "lesion-detector"):
             (REPO_ROOT / "outputs/cariesxrays_external_lever_b_b_pooled/cariesxrays_external_lesion-detector.json",
              "lesions", "covered", "flagged"),
+        ("ningxia", "lesion-detector"):
+            (DEF_OUT / "ningxia_lesion_b_pooled/ningxia_external.json",
+             "n_lesions", "n_covered", "n_predicted_positive"),
     },
 }
 
 
 def load_normalised(path, lkey, mkey, pkey):
+    """
+    Ningxia filenames REPEAT across splits (test1/1.png and test2/1.png are both "1.png" --
+    ningxia_external.py's own docstring, and the reason bootstrap_ci.py keys Ningxia rows on
+    (category, split, image) rather than image alone). Build the same composite id here so a
+    plain "image" dict key in the paired-comparison step below can't silently collapse two
+    different images from different hospitals onto each other. DENTEX/CariesXrays rows have no
+    "split"/"category" fields, so this degrades to plain "image" for them -- unchanged behaviour.
+    """
     d = json.loads(Path(path).read_text())
     rows = d["per_image"]
-    out = [{"image": r.get("image"), "n_lesions": r[lkey], "n_matched": r[mkey],
-            "n_pos": r[pkey]} for r in rows]
+    out = []
+    for r in rows:
+        img_id = "/".join(str(r[k]) for k in ("category", "split", "image") if k in r)
+        out.append({"image": img_id, "n_lesions": r[lkey], "n_matched": r[mkey],
+                    "n_pos": r[pkey]})
     return out, d
 
 
@@ -101,7 +122,7 @@ def main():
         if len(missing) == len(SOURCES):
             raise SystemExit("no eval outputs found -- nothing to bootstrap")
 
-    for cohort in ("dentex", "cariesxrays"):
+    for cohort in ("dentex", "cariesxrays", "ningxia"):
         arms = {}
         for arm in ("pipeline", "constant-molars", "lesion-detector"):
             key = (cohort, arm)
@@ -177,11 +198,11 @@ def main():
     results["sec6_rule_met"] = len(winning_cohorts) >= 2
     print(f"\n  cohorts passing all 3 conditions: {winning_cohorts} "
           f"({len(winning_cohorts)} of {len(results['cohorts'])} scored)")
-    print(f"  Sec 6 requires >=2 of 3 cohorts (Ningxia not yet scored this run) "
-          f"=> rule met on scored cohorts: {results['sec6_rule_met']}")
+    print(f"  Sec 6 requires >=2 of 3 cohorts => rule met: {results['sec6_rule_met']}")
     if len(results["cohorts"]) < 3:
-        print("  NOTE: Ningxia not included in this run -- see PRE_REGISTRATION.md fallback "
-              "(2 of the available cohorts), final call needs Ningxia before Sec 6 is fully applied.")
+        missing_cohorts = sorted({"dentex", "cariesxrays", "ningxia"} - set(results["cohorts"]))
+        print(f"  NOTE: {missing_cohorts} not scored this run -- see PRE_REGISTRATION.md "
+              f"fallback (2 of the available cohorts). Final call needs all available cohorts.")
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(results, indent=2) + "\n")
