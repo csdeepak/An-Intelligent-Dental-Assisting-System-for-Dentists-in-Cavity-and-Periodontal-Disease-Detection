@@ -137,6 +137,26 @@ imgsz 1024 / CCW rotation, same head v2.0. Only the detector changed. `RESULTS_L
 since every spurious box perturbs the Hungarian one-to-one assignment across a whole quadrant,
 cleaner boxes lift FDI-exact-of-detected by 13.9 points on top of the recall gain.
 
+### Tufts end-to-end FDI (4 Sep 2026) — the Stage-2 number the paper lacked
+
+`scripts/eval/validate_fdi_assignment_tufts.py`, 149 frozen-test images, **3,760 permanent GT
+teeth** (all of them, mirror-corrected), same head v2.0 / conf 0.25 / NMS 0.50 / one-to-one.
+`RESULTS_LOG` 2026-09-04d.
+
+| detector | recall | FDI exact (of detected) | **end-to-end FDI** |
+|---|---|---|---|
+| **`models/11` deployed seg** | 82.4% | 78.6% | **64.8%** |
+| `models/06` old bbox (superseded) | 91.2% | 78.4% | **71.5%** |
+| `models/15` arm3c (Lever A multi-corpus) | 89.3% | 71.1% | 63.5% |
+| `models/16` A2 (Tufts head fine-tune) | 89.9% | 70.8% | 63.7% |
+
+Tufts end-to-end (64.8%, deployed) is **above** DENTEX (58.3%) — in-domain detector — on a
+*harder* test (every tooth, not just the ~6 pathological ones DENTEX annotates). Two findings:
+**(1)** the multi-corpus Guard-2 box-mAP drop (0.724 → 0.585) is a ~1-point end-to-end drop
+(64.8 → 63.5) — box mAP@0.5 is not a proxy for pipeline accuracy. **(2)** the old bbox detector
+beats the deployed seg detector on Tufts end-to-end (71.5 vs 64.8, recall-driven at conf 0.25) —
+the 27 Aug swap that gained +12 pp on DENTEX cross-domain costs −6.7 pp on Tufts in-domain.
+
 > **Reproduction caveat, stated rather than hidden:** the control re-run of the *bbox*
 > configuration on this machine gave **67.3% / 46.3%**, against the **67.0% / 46.5%** originally
 > published — a ~3-tooth drift, consistent with CPU-vs-GPU float differences and inside the

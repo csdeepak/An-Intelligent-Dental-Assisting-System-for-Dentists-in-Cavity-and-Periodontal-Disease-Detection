@@ -950,6 +950,28 @@ and the head achieves 69.4% of it.
 >
 > The bottleneck is still Stage 1 (70.6% recall caps end-to-end), but it is a looser one.
 
+**Updated 4 September 2026 — the Tufts end-to-end number, which the pipeline never had.**
+`validate_fdi_assignment_tufts.py` runs the same detector → head → Hungarian assignment against
+the *complete* Tufts per-tooth numbering (3,760 permanent teeth on 149 frozen-test images,
+mirror-corrected via `tufts_title_to_fdi`), so it is a real recall and a real end-to-end
+accuracy, not the GT-only-teeth partial that DENTEX gives. With the deployed detector:
+**recall 82.4 %, FDI exact of detected 78.6 %, end-to-end 64.8 %** (`RESULTS_LOG` 2026-09-04d).
+Tufts end-to-end is *above* DENTEX's 58.3 % — the detector is in-domain here — on a harder
+test (every tooth, including the ambiguous posteriors, not just the ~6 pathological teeth per
+image DENTEX annotates). Two things this measurement settles. **(a)** The Lever A / A2
+multi-corpus detector, which fails the Tufts box-mAP guard (0.724 → 0.585), gives *the same*
+end-to-end Tufts FDI: 64.8 % → 63.5 % (arm3c) → 63.7 % (A2). A 14-point box-mAP@0.5 drop is a
+1-point end-to-end drop — box mAP@0.5 is not a proxy for pipeline accuracy, and the ablation's
+deployment cost on Tufts is ~1 point (see §8.16). **(b)** The superseded bbox detector
+(`models/06`) *beats* the deployed seg detector on Tufts end-to-end — 71.5 % vs 64.8 %, driven
+by recall (91 % vs 82 % at the conf-0.25 operating point; lowering conf makes the seg detector
+worse, not better, because spurious boxes flood the assignment). The 27 Aug bbox → seg swap
+gained +12 points on DENTEX *cross-domain* and costs 6.7 points on Tufts *in-domain*: a higher
+box mAP did not buy higher pipeline accuracy on the detector's home corpus, because Stage 2 is
+sensitive to the recall/precision operating point, not the PR-curve area. This is a
+detector–Stage-2 coupling nuance, not a reason to revert — `models/11` was adopted on its box
+result and the DENTEX gain, a dated decision (§7.1).
+
 **Prior art and framing (added 22 Aug 2026, after reading both papers directly).**
 DPML (Cao et al., *Expert Systems With Applications* 254:124446, 2024) §3.4 independently
 argues for exactly this design — *"dentists typically identify tooth categories by considering

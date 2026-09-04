@@ -6255,3 +6255,51 @@ the GT boxes scaled about their centre by s ∈ {1.0, 1.15, 1.3, 1.5, 1.7}, at I
   `outputs/lever_A_multicorpus_detector_v2/TUFTS_GUARD2_DIAGNOSIS.md` §1.4c.
 - **Follow-ups:** fold the IoU-0.3 reframing into `PAPER_MATERIAL.md` §8.16 (pending user call
   on whether to also re-pre-register a pipeline-relevant Tufts guard). Lever B unaffected.
+
+
+## 2026-09-04d — Tufts end-to-end FDI: the Stage-2 number the paper never had
+
+Built `scripts/eval/validate_fdi_assignment_tufts.py` — the Tufts twin of the DENTEX
+`validate_fdi_assignment.py`. Same detector → `models/10` head → Hungarian one-to-one → greedy
+IoU-0.30 + centroid matcher, scored against the **complete** mirror-corrected Tufts per-tooth
+numbering (`teeth_bbox.json`, `tufts_title_to_fdi`). 149 frozen-test images (150 − `590`, a
+train duplicate excluded by MD5), **3,760 permanent GT teeth** — so this is a real recall *and*
+a real end-to-end accuracy, unlike DENTEX which only annotates ~6 pathological teeth/image.
+
+- **Metrics** (conf 0.25, NMS IoU 0.50, one-to-one, `models/10` head):
+
+  | detector | recall | FDI exact (of detected) | **end-to-end FDI** | quadrant (of det) | off-by-one |
+  |---|---|---|---|---|---|
+  | **`models/11` deployed seg** (Tufts-trained) | 82.4 % | 78.6 % | **64.8 %** | 96.3 % | 15.3 % |
+  | `models/06` old bbox (superseded) | 91.2 % | 78.4 % | **71.5 %** | 96.5 % | 14.8 % |
+  | `models/15` arm3c — Lever A multi-corpus | 89.3 % | 71.1 % | **63.5 %** | 94.6 % | 19.4 % |
+  | `models/16` A2 — Tufts head fine-tune | 89.9 % | 70.8 % | 63.7 % | 94.2 % | 19.8 % |
+
+  0 duplicate FDI codes (Hungarian). Mirror verified on 6 viz overlays (Q1 upper-viewer-left,
+  Q2 upper-viewer-right). `models/11` at conf 0.10 is *worse* end-to-end (61.3 %, recall 95 %
+  but det/img 35.7 — spurious boxes flood the assignment), so conf 0.25 is near-optimal.
+
+- **Key insights:**
+  1. **The pipeline's Tufts Stage-2 number is 64.8 % end-to-end / 78.6 % of detected** — vs
+     DENTEX 58.3 % / 82.6 %. Tufts is higher end-to-end (in-domain detector) on a *harder*
+     test (all ~26 teeth/image, including the ambiguous posterior ones, not just ~6 pathological).
+  2. **The Lever A / A2 Guard-2 box-mAP "failure" does NOT translate to an end-to-end Tufts
+     cost.** `models/11` 64.8 % → arm3c 63.5 % → A2 63.7 % — a ~1-point drop, from a −14-point
+     box mAP@0.5 drop (0.724 → 0.585). This is the §8.16 IoU-0.3 reframing confirmed at the
+     actual pipeline output, not a threshold analysis. The multi-corpus detector finds *more*
+     Tufts teeth (recall 82 → 89 %) and numbers them slightly worse (of-detected 79 → 71 %),
+     netting flat.
+  3. **The old bbox detector beats the deployed seg detector on Tufts end-to-end (71.5 % vs
+     64.8 %)** — driven by recall (91 % vs 82 % at conf 0.25). The 27 Aug bbox→seg swap improved
+     DENTEX cross-domain (+12 pp, §8.10) but costs Tufts in-domain end-to-end (−6.7 pp): the seg
+     detector's higher box mAP does not mean higher pipeline accuracy on its home domain,
+     because Stage 2 is sensitive to the recall/precision *operating point*, not the PR-curve
+     area. A real detector–Stage-2 coupling nuance — not a reason to revert (`models/11` was
+     adopted on box mAP + the DENTEX gain, a dated human decision).
+- **Source:** `scripts/eval/validate_fdi_assignment_tufts.py`;
+  `outputs/stage2_tufts{,_arm3c,_a2,_bbox06,_conf010}/stage2_*_head.json`. Reuses
+  `validate_fdi_assignment.py` (matcher, viz), `src.utils.fdi_converter.tufts_title_to_fdi`
+  (the mirror), `src.orientation.detect_upright`, `src.fdi_head_inference`.
+- **Follow-ups:** (1) `PAPER_MATERIAL.md` §8.10 + `model_metrics.md` Stage-2 — add the Tufts
+  end-to-end row + insights 2 & 3. (2) Insight 3 (bbox vs seg on Tufts e2e) is paper-worthy —
+  fold into §8.16's detector–Stage-2 discussion. (3) No GPU used.
