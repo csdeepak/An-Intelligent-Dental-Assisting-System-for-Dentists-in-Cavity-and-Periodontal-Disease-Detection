@@ -21,8 +21,8 @@ The multi-corpus **backbone learned good features** — at confidence 0.10 the m
 detect Tufts teeth as well as the Tufts-only control or better (Arm 4C recall 0.80 vs 0.77). What
 degraded is the **detection head's calibration on Tufts**. So:
 
-> **Freezing the multi-corpus **backbone** and fine-tuning the **neck + detection head** on Tufts
-> should re-specialise the Tufts confidence distribution — recovering Tufts box mAP toward
+> **Freezing the multi-corpus backbone and fine-tuning the neck + detection head on Tufts
+> should re-specialise the Tufts confidence distribution** — recovering Tufts box mAP toward
 > Control B's — while the frozen backbone preserves the DENTEX and external-cohort gains that
 > live in the shared features.**
 
@@ -133,7 +133,7 @@ default unchanged) and keeps the paper's schedule off the critical path of a sin
 ## 6. Risks recorded in advance
 
 1. **Catastrophic forgetting.** The Tufts fine-tune could pull the head back toward Tufts-only
-   behaviour and erode the +34 pp DENTEX / +9 pp external gains. `freeze=10` is the mitigation
+   behaviour and erode the +34 pp DENTEX / +9 pp external gains. `freeze=11` is the mitigation
    (backbone features fixed); PRIMARY and GUARD 1 are the checks. If they erode → clean negative.
 2. **`arm3c_best.pt` was Tufts-val-selected.** It is the epoch-~118 checkpoint that scored best on
    Tufts val during multi-corpus training, so it is already the most Tufts-favourable multi-corpus
@@ -161,7 +161,7 @@ default unchanged) and keeps the paper's schedule off the critical path of a sin
 
 ## 8. Cost, fixed in advance
 
-One training run: `arm3c_best.pt` + `train_tufts.txt` (700 img), `freeze=10`, ≤ 40 epochs, batch 32,
+One training run: `arm3c_best.pt` + `train_tufts.txt` (700 img), `freeze=11`, ≤ 40 epochs, batch 32,
 1024 px, on an RTX-PRO-6000 / A100 @ ~₹179/hr. ~8 min training + ~1 h upload/gate/download/destroy
 overhead ≈ **~₹250**. One redo budgeted ⇒ **~₹450 ceiling**. Evaluation is all CPU. GPU balance
 before A2: **₹1,732**.

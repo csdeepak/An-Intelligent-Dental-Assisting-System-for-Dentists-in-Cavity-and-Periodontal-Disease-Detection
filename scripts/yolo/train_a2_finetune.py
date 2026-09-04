@@ -4,7 +4,7 @@
 Pre-registration: outputs/lever_A2_detector_finetune/PRE_REGISTRATION.md
 
 Loads models/15_detector_multicorpus_leverA/arm3c_best.pt (the frozen 3-corpus Lever A
-checkpoint), freezes the backbone (freeze=10), and fine-tunes the neck + detection head on
+checkpoint), freezes the backbone (freeze=11), and fine-tunes the neck + detection head on
 `train_tufts.txt` (700 Tufts images) for 40 epochs. Hypothesis: re-specialise the Tufts
 confidence distribution (Phase 0 diagnosed a calibration collapse) while the frozen backbone
 keeps the DENTEX / external-cohort gains.
