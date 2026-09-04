@@ -135,6 +135,10 @@ def main():
     ap.add_argument("--detector", type=Path, default=None,
                     help="override the Stage-1 detector (Lever A Guard 1: swap in an arm's best.pt, "
                          "everything else frozen). Defaults to the pipeline default.")
+    ap.add_argument("--allow-train-overlap", action="store_true",
+                    help="permit --decision lesion-detector without --manifest-split val. Only "
+                         "correct for a lesion model that never saw CariesXrays; see the guard "
+                         "below for why it is otherwise a leak.")
     ap.add_argument("--tag", default=None, help="suffix for the output directory")
     args = ap.parse_args()
 
@@ -159,6 +163,20 @@ def main():
     if args.decision == "lesion-detector":
         if not args.lesion_model:
             raise SystemExit("--decision lesion-detector requires --lesion-model")
+        # LEAKAGE GUARD. Unlike the gate and the constant, the adopted lesion detector
+        # (models/16, B-pooled) TRAINED on 4,800 CariesXrays images. The default cohort here
+        # is a random draw from all 6,000, so ~80% of it is training data -- a run without
+        # --manifest-split val would score the model on its own training images and return a
+        # number that looks excellent and means nothing. The val split is disjoint from those
+        # 4,800 by construction, which is why Lever B was evaluated on it.
+        if not args.manifest_split and not args.allow_train_overlap:
+            raise SystemExit(
+                "--decision lesion-detector on the full corpus overlaps the Lever B training "
+                "split (~4,800 of 6,000 images). Pass --manifest-split val for the frozen "
+                "held-out cohort, or --allow-train-overlap if this lesion model never saw "
+                "CariesXrays.")
+        if args.manifest_split == "train" and not args.allow_train_overlap:
+            raise SystemExit("--manifest-split train IS the Lever B training data; refusing.")
         lesion_model = YOLO(str(args.lesion_model))
         print(f"lesion model: {args.lesion_model}  conf={args.lesion_conf} (frozen)")
     else:

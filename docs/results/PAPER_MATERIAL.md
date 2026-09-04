@@ -2097,7 +2097,7 @@ checkpoint changed, same centroid-containment matcher imported from the Ningxia 
 
 | cohort | n | pipeline | constant | constant − pipeline | verdict |
 |---|---|---|---|---|---|
-| DENTEX | 164 img / 479 lesions | 0.443 | 0.488 | +0.046 [+0.006, +0.089] | constant wins |
+| DENTEX | 164 img / 479 lesions | 0.443 | 0.489 | +0.046 [+0.006, +0.089] | constant wins |
 | Ningxia, 4 hospitals | 337 img / 1,013 lesions | 0.408 | 0.399 | −0.009 [−0.049, +0.030] | indistinguishable |
 | **CariesXrays** | **1,500 img / 3,421 lesions** | **0.309** | **0.561** | **+0.252 [+0.232, +0.273]** | **constant wins decisively** |
 
@@ -2266,12 +2266,20 @@ For whoever drafts the actual paper. Tick items off here as they land.
 
 **Blocking — must be done before submission**
 
-- [ ] **Fold §8.26 into `main.tex`.** New material, not yet drafted into the manuscript: the
-      Lever B adoption, the resolved-on-2-of-3-cohorts caries result, and the revised parameter
-      counts. Every occurrence of "61.2 M" / "83.6 M" / "~550×" in `main.tex` needs re-checking
-      against `model_metrics.md`'s "Pipeline size" table — most describe the retained
-      `--caries-method gate` path and should either stay correctly labelled as that, or be
-      re-quoted as the new default's 75.3 M / 97.7 M / ~444×, not silently left ambiguous.
+- [x] **Fold §8.26 into `main.tex`. Done 4 Sep 2026** (RESULTS_LOG 2026-09-04i). Table I now
+      reports both Stage-3a paths under one counting rule; §System gained
+      `\subsection{Stage 3a: two formulations of the same clinical question}` (`sec:lesiondet`);
+      §Results gained `\subsection{Changing the task, not the architecture}` (`sec:leverb`) with
+      the three-cohort table, the not-a-volume-effect check and the B-single transfer collapse;
+      §Discussion's Main finding and "Why the floor is high" were reframed — the paper's claim
+      that *architectural* work cannot raise the ceiling is **confirmed** by Lever B, which moved
+      the task instead, so the result is additive rather than contradictory. The abstract gained
+      one factual sentence. `verify_paper_numbers.py` grew from 90 to 117 asserted claims,
+      covering every Lever B figure and all four parameter totals.
+      *Not done, deliberately, and left to the author:* the title and the paper's central thesis
+      are unchanged, and the abstract's closing "four things a constant cannot do" is still a
+      list of four — localising the finding is arguably a fifth, but adding it changes the
+      paper's prescription, which is not a call to make while reconciling numbers.
 - [x] Re-run the caries notebook and **save** the Phase 1 gate classification report
       (`caries` vs `no_caries`), plus the `Counter` cell confirming DENTEX class counts.
       **Done 25 Aug 2026** — `scripts/dentex/train_caries_cascade.py` replaced the notebook and

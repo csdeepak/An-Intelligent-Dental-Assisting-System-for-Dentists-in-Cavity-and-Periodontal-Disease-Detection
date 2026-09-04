@@ -1,0 +1,119 @@
+{
+  "n_boot": 10000,
+  "seed": 42,
+  "arm": "B-single",
+  "pre_registration": "outputs/lever_B_lesion_caries_path/PRE_REGISTRATION.md Sec 5/6",
+  "method": "cluster bootstrap over IMAGES, reused from bootstrap_ci.py",
+  "cohorts": {
+    "dentex": {
+      "n_images": 148,
+      "arms": {
+        "pipeline": {
+          "lesion_agreement": 0.4426,
+          "ci95": [
+            0.3918,
+            0.4929
+          ],
+          "mean_predicted_positive_per_image": 5.101
+        },
+        "constant-molars": {
+          "lesion_agreement": 0.4885,
+          "ci95": [
+            0.441,
+            0.5353
+          ],
+          "mean_predicted_positive_per_image": 5.804
+        },
+        "lesion-detector": {
+          "lesion_agreement": 0.0856,
+          "ci95": [
+            0.0547,
+            0.1194
+          ],
+          "mean_predicted_positive_per_image": 0.73
+        }
+      },
+      "acceptance": {
+        "lesion-detector_minus_constant-molars": {
+          "delta_pp": -40.29,
+          "ci95_pp": [
+            -46.08,
+            -34.56
+          ],
+          "excludes_zero": true,
+          "beats_comparator": false,
+          "predicted_positive_rate_ratio": 0.126,
+          "rate_ratio_le_1.5x": true
+        },
+        "lesion-detector_minus_pipeline": {
+          "delta_pp": -35.7,
+          "ci95_pp": [
+            -41.58,
+            -29.94
+          ],
+          "excludes_zero": true,
+          "beats_comparator": false,
+          "predicted_positive_rate_ratio": 0.143,
+          "rate_ratio_le_1.5x": true
+        }
+      }
+    },
+    "cariesxrays": {
+      "n_images": 1200,
+      "arms": {
+        "pipeline": {
+          "lesion_agreement": 0.3169,
+          "ci95": [
+            0.2962,
+            0.3375
+          ],
+          "mean_predicted_positive_per_image": 3.985
+        },
+        "constant-molars": {
+          "lesion_agreement": 0.562,
+          "ci95": [
+            0.5396,
+            0.5847
+          ],
+          "mean_predicted_positive_per_image": 6.438
+        },
+        "lesion-detector": {
+          "lesion_agreement": 0.6938,
+          "ci95": [
+            0.6739,
+            0.7135
+          ],
+          "mean_predicted_positive_per_image": 1.902
+        }
+      },
+      "acceptance": {
+        "lesion-detector_minus_constant-molars": {
+          "delta_pp": 13.18,
+          "ci95_pp": [
+            11.13,
+            15.19
+          ],
+          "excludes_zero": true,
+          "beats_comparator": true,
+          "predicted_positive_rate_ratio": 0.295,
+          "rate_ratio_le_1.5x": true
+        },
+        "lesion-detector_minus_pipeline": {
+          "delta_pp": 37.69,
+          "ci95_pp": [
+            35.38,
+            39.99
+          ],
+          "excludes_zero": true,
+          "beats_comparator": true,
+          "predicted_positive_rate_ratio": 0.477,
+          "rate_ratio_le_1.5x": true
+        }
+      }
+    }
+  },
+  "sec6_winning_cohorts": [
+    "cariesxrays"
+  ],
+  "sec6_rule_met": false
+}

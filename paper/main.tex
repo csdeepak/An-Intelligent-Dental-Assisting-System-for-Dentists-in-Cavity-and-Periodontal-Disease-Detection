@@ -75,7 +75,7 @@ progressively less informed systems---two general-purpose
 vision--language models and, finally, that image-blind constant---using one
 scorer on one set of 164 radiographs. The constant scored highest (F1 0.320
 versus our pipeline's 0.294), and a second metric that requires the flagged
-tooth to sit where the lesion actually is produced the same ordering (0.488
+tooth to sit where the lesion actually is produced the same ordering (0.489
 versus 0.443). On 337 radiographs from four hospitals that contributed no
 training data, the comparison produced no separation at all, and the difference
 between the two systems swung 26 percentage points across sites; on a second,
@@ -84,6 +84,12 @@ percentage points. Both language
 models returned confident, correctly formatted tooth lists for an image
 containing pure random noise. The bone-loss branch scored 0.923 macro-F1 on the
 data it was developed on and 1.4--5.6\,\% sensitivity on the external hospitals.
+Acting on this, we then rebuilt the caries stage to localise lesions rather than
+label teeth---something the constant cannot do at all---and on the same 337
+external radiographs it beat the constant by 10.2 percentage points while flagging
+fewer teeth than it, having been registered in advance against a bar it was scored
+on afterwards. Five prior attempts to improve the classifier, leaving the task
+unchanged, had all failed.
 We do not conclude that automated caries screening fails. We conclude that a
 tooth-level score alone cannot establish that a system is reading the
 radiograph, and that four things a constant cannot do---identifying which tooth,
@@ -298,17 +304,25 @@ resulting scores are resolved to a one-to-one assignment across the mouth by the
 Hungarian algorithm~\cite{kuhn1955hungarian}, so no two teeth receive the same
 code.
 
-\textbf{Stage 3} classifies each tooth for caries and \textbf{Stage 4} for
-periodontal bone loss, using independent ResNet18 branches. Each branch is a
-coarse-to-fine cascade: a binary gate decides whether the finding is present,
-and a second model grades severity only on teeth the gate flags.
+\textbf{Stage 3} reports caries per tooth and \textbf{Stage 4} periodontal bone
+loss. Stage 4 is a coarse-to-fine ResNet18 cascade: a binary gate decides whether
+the finding is present on a tooth crop, and a second model grades severity only on
+the teeth the gate flags. Stage 3 was built the same way and is reported that way
+throughout Section~\ref{sec:results}. It now defaults instead to a whole-image
+lesion detector, whose predicted lesion boxes are assigned to teeth before the same
+severity head runs on the teeth so flagged; the per-crop gate is retained,
+unchanged, as a selectable variant. Section~\ref{sec:lesiondet} states why the
+formulation changed and what that costs.
 
 \textbf{Stages 5 and 6} fuse the per-stage outputs on the FDI key and emit the
 per-tooth record.
 
 \begin{table}[t]
-\caption{Pipeline stages and model sizes. Parameter counts are read from the
-saved checkpoints, not from the architecture nominal.}
+\caption{Pipeline stages and model sizes. Parameter counts are learnable
+parameters read from the saved checkpoints, not from the architecture nominal.
+Stage 3a has two interchangeable implementations; the whole-image lesion
+detector is the default and the per-crop gate is retained as a variant
+(Section~\ref{sec:lesiondet}).}
 \label{tab:stages}
 \centering
 \small
@@ -316,21 +330,64 @@ saved checkpoints, not from the architecture nominal.}
 \toprule
 Stage & Model & Parameters \\
 \midrule
-1 \ Tooth detection      & YOLOv11l-seg & 27.62\,M \\
-2 \ FDI numbering        & ResNet18 + 4 positional feats & 11.20\,M \\
-3a Caries gate           & ResNet18 & 11.19\,M \\
-3b Caries severity       & ResNet18 & 11.19\,M \\
-4a Bone-loss gate        & ResNet18 & 11.19\,M \\
-4b Bone-loss severity    & ResNet18 & 11.19\,M \\
+1 \ Tooth detection    & YOLOv11l-seg & 27.62\,M \\
+2 \ FDI numbering      & ResNet18 + 4 pos.\ feats & 11.19\,M \\
+3a Caries localisation & YOLOv11l detector & 25.31\,M \\
+\quad \textit{variant} & \textit{ResNet18 per-crop gate} & \textit{11.18\,M} \\
+3b Caries severity     & ResNet18 & 11.18\,M \\
+4a Bone-loss gate      & ResNet18 & 11.18\,M \\
+4b Bone-loss severity  & ResNet18 & 11.18\,M \\
 \midrule
-\multicolumn{2}{l}{\textbf{Total}} & \textbf{83.56\,M} \\
-\multicolumn{2}{l}{\textit{Caries path (stages 1--3)}} & \textit{61.20\,M} \\
+\multicolumn{2}{l}{\textbf{Total}} & \textbf{97.65\,M} \\
+\multicolumn{2}{l}{\textit{Caries path (stages 1--3)}} & \textit{75.29\,M} \\
 \bottomrule
 \end{tabular}
+
+\vspace{2pt}
+\raggedright\footnotesize
+Running the Stage-3a gate variant in place of the detector gives 83.52\,M total
+and 61.16\,M for the caries path.
 \end{table}
 
 The complete system runs at \textbf{2.39\,s per image on CPU} with no GPU
 present. Both figures become relevant in Section~\ref{sec:results}.
+
+\subsection{Stage 3a: two formulations of the same clinical question}
+\label{sec:lesiondet}
+The two Stage-3a implementations are not two models for one task. They pose two
+different tasks, and the distance between them is the subject of
+Section~\ref{sec:results}.
+
+The \textbf{per-crop gate} asks, of each detected tooth in isolation, whether that
+tooth is carious. Posed that way, the question is dominated by its base rate.
+Caries is uncommon per tooth and concentrated in the molars, so a rule that names
+the molars and never looks at the image is a serious competitor---serious enough,
+on our data, to tie or beat the trained gate on all six cohorts we scored it against.
+
+The \textbf{lesion detector} asks instead where the lesions are in the radiograph.
+A YOLOv11l detector runs once over the whole image and predicts caries lesion boxes
+directly; each predicted box is assigned to the detected tooth box it overlaps most,
+by argmax containment, and those teeth are the positives. The severity head is
+unchanged and runs on the teeth so flagged. A model that must place a lesion cannot
+score well by reproducing a prior over tooth positions, because naming the molars
+produces no boxes.
+
+Training pools two corpora: 4{,}800 CariesXrays images with their lesion boxes, and
+650 DENTEX images whose caries annotations are coarser, whole-tooth boxes, the latter
+replicated to equal weight (9{,}600 samples per epoch, seed 42, zero cross-corpus
+byte overlap verified). Detection confidence is fixed at 0.25 \emph{a priori} and was
+never tuned against any cohort. A CariesXrays-only arm was trained and scored
+alongside the pooled one; Section~\ref{sec:results} reports both, because the
+difference between them is the result.
+
+\textbf{What the reformulation costs, stated plainly.} Both training corpora were
+external test data for the gate and are development data for the detector. Of the
+cohorts in Section~\ref{sec:data}, only the Chinese one is external to both, so the
+detector is supported by one external cohort where the gate had two. We regard that
+as the honest price of the change rather than a detail: it is why the detector's
+external result is reported on its own below, and not averaged with the rest. The
+decision rule, the comparators, the confidence and the acceptance bar were written
+down and committed before any arm was trained, and are reported where they fell.
 
 \subsection{Two diseases, one of which is reported as a negative result}
 The periodontal branch is a full component of the implemented system, and its
@@ -661,7 +718,7 @@ rewards flagging more.}
 \toprule
 System & Agreement & Teeth flagged & Match rate \\
 \midrule
-\textbf{Constant}            & \textbf{0.488} & 859 & 0.272 \\
+\textbf{Constant}            & \textbf{0.489} & 859 & 0.272 \\
 Our pipeline                 & 0.443          & 755 & 0.281 \\
 \textit{All teeth (ceiling)} & \textit{0.722} & \textit{3{,}344} &
 \textit{0.103} \\
@@ -742,7 +799,7 @@ images.}
 \toprule
 Cohort & Lesions & Pipeline & Constant & $\Delta$ (pp), 95\,\% CI \\
 \midrule
-DENTEX (development) & 479   & 0.443 & \textbf{0.488} & $+4.6\ [+0.6, +8.9]$ \\
+DENTEX (development) & 479   & 0.443 & \textbf{0.489} & $+4.6\ [+0.6, +8.9]$ \\
 Ningxia (4 hospitals) & 1{,}013 & 0.408 & 0.399 & $-0.9\ [-4.9, +3.0]$ \\
 CariesXrays & 3{,}421 & 0.309 & \textbf{0.561} & $\mathbf{+25.2\ [+23.2, +27.3]}$ \\
 \bottomrule
@@ -770,6 +827,78 @@ cohorts is 25. \textbf{A tooth-level agreement figure reported on one cohort
 therefore carries almost no information about a system's perceptual ability},
 which is a stronger and better-supported statement than the development set alone
 would license.
+
+\subsection{Changing the task, not the architecture}
+\label{sec:leverb}
+
+Everything above scores the per-crop gate of Section~\ref{sec:lesiondet}. Five
+attempts to repair that gate directly---contrast equalisation, crop expansion,
+position-balanced sampling, a retrained gate, and threshold tuning---all returned
+intervals spanning zero. We therefore changed the question rather than the model,
+and replaced the gate with the whole-image lesion detector. The decision rule was
+registered and committed before any arm was trained: to be adopted, the detector
+had to beat both the constant and the gate, on at least two of three cohorts, at
+no more than $1.5\times$ their rate of flagging teeth.
+
+\begin{table}[t]
+\caption{Stage 3a reformulated as lesion detection. \textbf{Metric:} tooth-level
+lesion agreement, matched exactly as in Table~\ref{tab:cohorts}. \textbf{Unit:}
+lesion. Within a cohort all three arms score the same images; intervals are paired
+cluster bootstraps over images (10{,}000 resamples). The DENTEX and Ningxia rows
+are the same cohorts as Table~\ref{tab:cohorts} and are directly comparable to it.
+The CariesXrays row is not: it is the 1{,}200-image held-out split the detector was
+kept away from, where Table~\ref{tab:cohorts} used a 1{,}500-image draw from the
+whole corpus. Lesion counts are 479, 2{,}815 and 1{,}013 by row.}
+\label{tab:leverb}
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrl}
+\toprule
+Cohort & Gate & Const. & Lesion & $\Delta$ vs const. (pp) \\
+\midrule
+DENTEX$^{d}$      & 0.443 & 0.489 & 0.455 & $-3.3\ [-8.4, +1.3]$ \\
+CariesXrays$^{d}$ & 0.317 & 0.562 & \textbf{0.684} & $\mathbf{+12.2\ [+10.1, +14.3]}$ \\
+Ningxia$^{e}$     & 0.408 & 0.399 & \textbf{0.500} & $\mathbf{+10.2\ [+6.3, +14.0]}$ \\
+\bottomrule
+\end{tabular}
+
+\vspace{2pt}
+\raggedright\footnotesize
+$^{d}$ Development data for the lesion detector: a corpus it trained on, scored on
+images held out from that training. $^{e}$ External: never trained on, never tuned
+against.
+\end{table}
+
+\textbf{The rule was met on two cohorts of three} (Table~\ref{tab:leverb}), and
+the third is a tie rather than a win: on DENTEX the detector is $3.3$ points
+behind the constant with an interval that includes zero. We report DENTEX as a tie
+everywhere it appears. The bar was not moved after the numbers were seen.
+
+Three things about this result are worth more than the margin itself.
+
+\textbf{It is not a volume effect.} The objection we raised against the constant
+applies here in reverse, so we apply it. The detector flags \emph{fewer} teeth than
+either comparator on every cohort---1.97 per image against the constant's 6.44 on
+CariesXrays, 3.85 against 5.79 on Ningxia---so it is not buying agreement by
+flagging more.
+
+\textbf{It replicates on the one cohort that is genuinely external.} The Ningxia
+row of Table~\ref{tab:leverb} scores the same 337 images, the same 1{,}013 lesions
+and the same constant as the Ningxia row of Table~\ref{tab:cohorts}. On that fixed
+comparison the gate was $0.9$ points behind the constant and could not be
+separated from it; the detector is $10.2$ points ahead with an interval excluding
+zero. This is the first arm in this work to beat the image-blind prior on data it
+has never seen.
+
+\textbf{The training mixture, not the detector, is what transfers.} A second arm
+trained on CariesXrays alone reaches $0.694\ [0.674, 0.714]$ on CariesXrays, a
+shade above the pooled arm's $0.684$, and then collapses to $0.086\ [0.055, 0.119]$
+on DENTEX and $0.240\ [0.209, 0.272]$ on Ningxia---far below even the constant.
+Judged on its own corpus the two arms look like the same model, and the
+single-corpus one looks slightly better. Judged anywhere else, it does not work.
+We could not have told them apart without the external cohort, which is the
+argument of this paper applied to our own result.
 
 \subsection{What the constant cannot do}
 \label{sec:numbering}
@@ -964,6 +1093,16 @@ finding is therefore not that the constant wins---it does not, reliably---but
 that \textbf{these metrics cannot tell the two apart}, which is a stronger and
 more troubling result than either outcome alone.
 
+That conclusion is about a task, and it survives being acted on. Reformulating
+Stage 3a from per-tooth classification to lesion detection---the same backbone
+family, no supervision beyond boxes the corpora already carried---moved the
+external comparison from a tie to a $10.2$-point win over the constant, on the
+same 337 images and the same metric (Section~\ref{sec:leverb}). What changed was
+the question the model was asked, not how well it was asked. We read the two
+results as one finding rather than two: a tooth-level agreement figure is
+uninformative about perception, and the way past that is to score something the
+prior cannot produce---not to build a better classifier of the same thing.
+
 \subsection{Why the floor is high, and why that is not a criticism of any model}
 Caries in these cohorts is anatomically concentrated: molars carry most of the
 disease. A tooth-level decision is a set-membership question over a fixed
@@ -978,6 +1117,11 @@ ceiling imposed by the pairing of task and metric. A system distinguishes itself
 here only by being right about \emph{this patient} in a way the population prior
 is not, and tooth-level set membership is a poor instrument for detecting that
 difference.
+
+We treated that as a claim to be tested rather than a rhetorical flourish, and it
+held in both directions. Five separate repairs to the classifier returned intervals
+spanning zero; the ceiling moved only once the pairing itself did
+(Section~\ref{sec:leverb}).
 
 That two unrelated metrics agree on development data is what makes this a
 property rather than an anecdote. Set-membership F1 and lesion-localisation

@@ -6570,3 +6570,89 @@ the next free letter, `04h`, on integrating both sessions' work back together.)*
   `app.py` "Caries conf (cal.)" column shows "—" for every tooth under the new default (no
   isotonic calibration for a detection score) — not broken, just less informative; a future
   session could add a lesion-detector-appropriate confidence display.
+
+## 2026-09-04i — Manuscript reconciled with the Lever B adoption; two pre-existing numeric defects found and fixed
+
+*(Label `04i`, continuing this session's `04f`/`04g`/`04h` sequence — see the note on 2026-09-04h
+for why this session's letters do not start at `04b`.)*
+
+- **What was done:** Folded the Lever B adoption into `paper/main.tex`, which until now
+  described only the per-crop caries gate. Two defects that predate this session were found in
+  the process and are recorded here because both had propagated into the manuscript.
+- **Manuscript changes:**
+  - Table I (pipeline stages) now reports **both** Stage-3a implementations and four totals —
+    97.65 M / 75.29 M for the adopted lesion-detector default, 83.52 M / 61.16 M for the
+    retained gate variant.
+  - §System gained `\subsection{Stage 3a: two formulations of the same clinical question}`
+    (`sec:lesiondet`) — the method, the pooled training mixture, the frozen 0.25 confidence,
+    and an explicit statement of what the reformulation **costs**: both training corpora were
+    external test data for the gate and are development data for the detector, so the detector
+    is supported by one external cohort where the gate had two.
+  - §Results gained `\subsection{Changing the task, not the architecture}` (`sec:leverb`) with
+    the three-cohort table, the not-a-volume-effect check, and the B-single transfer collapse.
+  - §Discussion reframed. The paper's existing claim — *"no amount of **architectural** work
+    raises a ceiling imposed by the pairing of task and metric"* — is **confirmed** by Lever B,
+    not falsified: five repairs to the classifier failed, and the ceiling moved only when the
+    task did. The result is additive to the thesis rather than in tension with it.
+  - Abstract gained one factual sentence so it is not contradicted by its own Results section.
+- **Defect 1 — a headline number was mis-rounded, in the abstract and two tables.** The DENTEX
+  constant's lesion agreement is 234/479 = **0.488518**, which rounds to **0.489**. The
+  manuscript carried **0.488** in the abstract, Table II and Table IV. Cause: the eval scripts
+  store `lesion_localization_agreement` rounded to 4 dp (0.4885), and `verify_paper_numbers.py`
+  formatted *that stored value* with `f"{x:.3f}"` — rounding an already-rounded number, with the
+  binary double breaking the tie downward. The verifier was therefore validating the manuscript
+  against a number that was itself wrong, and had been since 28 Aug. **Audited every 3-dp
+  agreement figure in the paper the same way: this is the only one affected** — the other
+  fourteen are unchanged under either rule. Corrected to 0.489 in `main.tex` (4 occurrences),
+  `model_metrics.md` and `PAPER_MATERIAL.md`; the derived Δ (+0.046 [+0.006, +0.089]) is
+  unaffected. The verifier now recomputes from the integer counts using the house `r()`
+  half-up rounder at every such site. **Not corrected** in `RESULTS_LOG` entries 2026-08-28*,
+  which are history (rule 1), nor in `docs/paper/{manuscript.md,draft_spine.md,REBUILD_AUDIT.md}`,
+  which are superseded drafts of the 28 Aug rebuild — a reader of those should take
+  `main.tex` and `model_metrics.md` as authoritative.
+- **Defect 2 — the parameter table mixed two counting conventions.** The detector row (27.62 M)
+  counted `.parameters()`; the four ResNet18 rows (11.19/11.20 M) summed every tensor in the
+  state dict, which includes batch-norm `running_mean`/`running_var` buffers. No single rule
+  reproduced the table. The three parameter claims in `verify_paper_numbers.py` were meanwhile
+  **hardcoded literals** carrying the provenance label `"torch.load over models/*/"`, so nothing
+  had ever checked them. Fixed by `scripts/count_model_params.py` (new), which applies one
+  stated rule — **learnable parameters only** — to all seven checkpoints and writes
+  `outputs/param_counts/param_counts.json`. Each ResNet18 row drops by 9,620 buffer values; the
+  totals move by 0.04 M. Nothing about any model changed. `models/16`'s `run_summary.txt`
+  separately reports 25.28 M, the *fused* count ultralytics prints — a third quantity, also not
+  an error, now noted in that file so it is never reported as drift.
+- **Defect 3 — a live leakage hazard, fixed before it produced a number.**
+  `cariesxrays_external.py --decision lesion-detector` would, without `--manifest-split val`,
+  score the adopted detector on a random draw from all 6,000 CariesXrays images — roughly 4,800
+  of which are its own training data. Nothing prevented this, and `lesion-detector` is now the
+  pipeline default, so the next person to run the script's obvious invocation would have
+  produced a spuriously excellent number. The script now **refuses** that combination, with an
+  `--allow-train-overlap` escape hatch for a lesion model that never saw the corpus. Verified
+  the guard fires. No published number was affected: every CariesXrays figure in the paper is a
+  gate or constant arm, and neither trained on that corpus.
+- **Metrics:** no new evaluation was run and no model changed. Corrected current-best values:
+  DENTEX constant lesion agreement **0.489** (was 0.488, mis-rounded); pipeline parameter totals
+  **97,649,753** default / **83,516,040** gate variant / **75,294,164** caries path default /
+  **61,160,451** caries path gate variant (each was ~0.04 M higher under the buffer-inclusive
+  count).
+- **Key decision or insight:** the manuscript's numbers were never *false* after the Lever B
+  adoption — every claim still described the gate, whose artefacts are unchanged — but the
+  **referent of "our pipeline" had moved**, which is a subtler and more dangerous state than a
+  wrong number, because nothing fails. It took writing the reconciliation to surface all three
+  defects above; none would have been caught by re-running the existing checks.
+- **Source:** `paper/main.tex`; `scripts/count_model_params.py` (new);
+  `outputs/param_counts/param_counts.json` (new); `scripts/verify_paper_numbers.py` (90 → **117**
+  asserted claims, all passing); `scripts/eval/cariesxrays_external.py` (leakage guard);
+  `models/16_lever_b_pooled/run_summary.txt` (adoption section appended); `model_metrics.md`;
+  `PAPER_MATERIAL.md` §9.
+- **Follow-ups:** (1) The title and the paper's central thesis are **unchanged and are the
+  author's call** — the abstract's closing "four things a constant cannot do" is arguably five
+  now that localising the finding has been demonstrated, but changing that list changes the
+  paper's prescription. (2) `docs/paper/{manuscript.md,draft_spine.md}` still carry 0.488 and
+  the gate-only pipeline description; they are superseded drafts, and someone should decide
+  whether to retire them rather than let them rot. (3) Still open from 2026-09-04h: the Docker
+  rebuild, and the C4 abstention curves computed from the gate's confidence distribution, which
+  are now scoped to `--caries-method gate` by implication but not in writing. (4) Five figure
+  and table labels in `main.tex` (`fig:boneloss`, `fig:calib`, `fig:coverage`, `fig:stage2`,
+  `tab:data`) are defined but never referenced — pre-existing, harmless to LaTeX, but worth a
+  pass before submission.

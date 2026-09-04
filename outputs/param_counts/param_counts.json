@@ -1,0 +1,27 @@
+{
+  "rule": "learnable parameters only; batch-norm buffers excluded",
+  "checkpoints": {
+    "stage1_detector": "models/11_yolo_seg_tufts_r1/best.pt",
+    "stage2_fdi_head": "models/10_fdi_head_dentex_tufts_v2/enumeration_head_best.pth",
+    "stage3a_lesion": "models/16_lever_b_pooled/lever_b_pooled_yolo11l-2/weights/best.pt",
+    "stage3a_gate_variant": "models/09_caries_gate_v3/caries_gate_v3.pth",
+    "stage3b_caries_sev": "models/07_caries_cascade/phase2_final_bundle.pth",
+    "stage4a_bone_gate": "models/03_bone_loss_model_training_notebook_models/bone_loss_resnet18_best.pth",
+    "stage4b_bone_sev": "models/04_bone_loss_severity_notebook_models/bone_loss_severity_resnet18_best.pth"
+  },
+  "params": {
+    "stage1_detector": 27617459,
+    "stage2_fdi_head": 11187916,
+    "stage3a_lesion": 25311251,
+    "stage3a_gate_variant": 11177538,
+    "stage3b_caries_sev": 11177538,
+    "stage4a_bone_gate": 11177538,
+    "stage4b_bone_sev": 11178051
+  },
+  "totals": {
+    "total_default": 97649753,
+    "total_gate_variant": 83516040,
+    "caries_path_default": 75294164,
+    "caries_path_gate_variant": 61160451
+  }
+}

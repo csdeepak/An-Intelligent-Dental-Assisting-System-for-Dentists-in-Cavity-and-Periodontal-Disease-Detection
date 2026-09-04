@@ -92,15 +92,21 @@ for code in ("16", "17", "26", "27", "36", "37", "46", "47"):
         bad.append(f"  FAIL constant set missing {code} in {held['baseline']}")
 
 # --------------------------------------------------------- lesion localisation
+# The *_agreement fields in these artefacts are stored to 4 dp. Formatting a stored
+# 4-dp value to 3 dp rounds a rounded number, and the binary double breaks the tie
+# downward: 0.4885 formats as "0.488" while the underlying 234/479 is 0.488518, which
+# rounds to 0.489. That is how the manuscript carried 0.488 in Table II, Table IV and
+# the abstract until 4 Sep 2026. Round once, from the integer counts, using r().
 for tag, name in (("constant-molars", "constant"), ("pipeline", "pipeline"),
                   ("all-teeth", "ceiling")):
     j = load(f"outputs/lesion_loc_{tag}/lesion_localization.json")
     check(f"Table II {name} agreement",
-          f"{j['lesion_localization_agreement']:.3f}", tag)
+          r(j["n_lesions_matched"] / j["n_lesions"], 3), tag)
     check(f"Table II {name} teeth flagged",
           f"{j['n_predicted_positive_teeth']:,}", tag)
     check(f"Table II {name} match rate",
-          f"{j['predicted_positive_match_rate_DIAGNOSTIC_NOT_PRECISION']:.3f}", tag)
+          r(j["n_predicted_positive_matched_to_a_lesion"]
+            / j["n_predicted_positive_teeth"], 3), tag)
 lesions = load("outputs/lesion_loc_pipeline/lesion_localization.json")
 check("479 annotated lesions", f"{lesions['n_lesions']}", "lesion_loc_pipeline")
 
@@ -113,18 +119,19 @@ ep, ec = ext("ningxia_pipeline"), ext("ningxia_constant-molars")
 sites = sorted(ep)
 for s in sites:
     tag = s.split("/")[-1]
+    # From counts, not the stored 4-dp field -- see the note above Table II.
     check(f"Table III {tag} pipeline",
-          f"{ep[s]['lesion_agreement_covered']:.3f}", "ningxia_pipeline")
+          r(ep[s]["lesions_covered"] / ep[s]["lesions"], 3), "ningxia_pipeline")
     check(f"Table III {tag} constant",
-          f"{ec[s]['lesion_agreement_covered']:.3f}", "ningxia_constant-molars")
+          r(ec[s]["lesions_covered"] / ec[s]["lesions"], 3), "ningxia_constant-molars")
     check(f"Table III {tag} lesions", f"{ep[s]['lesions']:,}", "ningxia_pipeline")
 tot = sum(ep[s]["lesions"] for s in sites)
 check("external total lesions", f"{tot:,}", "sum over four sites")
 check("external total images", f"{sum(ep[s]['images'] for s in sites)}", "sum")
 check("pooled pipeline",
-      f"{sum(ep[s]['lesions_covered'] for s in sites) / tot:.3f}", "recomputed")
+      r(sum(ep[s]["lesions_covered"] for s in sites) / tot, 3), "recomputed")
 check("pooled constant",
-      f"{sum(ec[s]['lesions_covered'] for s in sites) / tot:.3f}", "recomputed")
+      r(sum(ec[s]["lesions_covered"] for s in sites) / tot, 3), "recomputed")
 
 # ------------------------------------------------------------------- stage 2
 s2 = load("outputs/stage2_segdet/stage2_summary_head.json")
@@ -213,9 +220,106 @@ _fl_p = cx_p["counts"]["teeth_flagged"]; _fl_c = cx_c["counts"]["teeth_flagged"]
 check("CariesXrays constant flags more by",
       f"{(_fl_c / _fl_p - 1) * 100:.0f}%", "recomputed")
 
-for label, val in (("total params", "83.56 M"), ("caries-path params", "61.20 M"),
-                   ("detector params", "27.62 M")):
-    check(label, val, "torch.load over models/*/")
+# ------------------------------------- Lever B: Stage 3a reformulation (Table V)
+# The acceptance bar was frozen at commit ef3f453 before any arm was trained
+# (outputs/lever_B_lesion_caries_path/PRE_REGISTRATION.md Sec 5/6). Assert the verdict
+# itself, not only the numbers: a manuscript that claims the rule was met must not
+# outlive an artefact that says it was not.
+lb_p = load("outputs/lever_b_eval/acceptance_rule_B-pooled.json")
+lb_s = load("outputs/lever_b_eval/acceptance_rule_B-single.json")
+assert lb_p["sec6_rule_met"], "acceptance rule NOT met -- the manuscript claims it is"
+assert sorted(lb_p["sec6_winning_cohorts"]) == ["cariesxrays", "ningxia"], \
+    f"winning cohorts changed: {lb_p['sec6_winning_cohorts']}"
+
+
+def pp(x):
+    """Percentage-point delta the way the table writes it, sign always shown."""
+    return ("+" if x >= 0 else "-") + r(abs(x), 1)
+
+
+# Point estimates are recomputed from the raw per-arm outputs rather than read from
+# the acceptance file, whose values are already rounded to 4 dp: Ningxia's 0.500494
+# is stored there as 0.5005, and rounding that again to 3 dp gives 0.501, a digit
+# that exists nowhere in the evaluation. Round once, from the counts.
+def agreement(rel):
+    """Cohort-level lesion agreement, over three different output schemas."""
+    d = load(rel)
+    if "n_lesions" in d:                                    # lesion_localization.py
+        return d["n_lesions_matched"] / d["n_lesions"]
+    if "counts" in d:                                       # cariesxrays_external.py
+        return d["counts"]["lesions_covered"] / d["counts"]["lesions"]
+    splits = d["by_category_split"].values()                # ningxia_external.py
+    return (sum(s["lesions_covered"] for s in splits)
+            / sum(s["lesions"] for s in splits))
+
+
+LEVER_B = {
+    "DENTEX": ("outputs/lever_b_eval/dentex_{}/lesion_localization.json",
+               {"gate": "pipeline", "constant": "constant", "lesion": "lesion_b_pooled",
+                "single": "lesion_b_single"}, "dentex"),
+    "Ningxia": ("outputs/lever_b_eval/ningxia_{}/ningxia_external.json",
+                {"gate": "pipeline", "constant": "constant", "lesion": "lesion_b_pooled",
+                 "single": "lesion_b_single"}, "ningxia"),
+}
+for cohort, (tpl, arms, key) in LEVER_B.items():
+    for name in ("gate", "constant", "lesion"):
+        check(f"Lever B {cohort} {name}", r(agreement(tpl.format(arms[name])), 3),
+              f"lever_b_eval/{arms[name]}")
+# CariesXrays arms live in two directories: the three comparators were scored in the
+# B-single pass and reused unchanged, since the gate and the constant do not depend
+# on which lesion arm is being tested.
+CX = "outputs/cariesxrays_external_lever_b_b_{}/cariesxrays_external_{}.json"
+for name, (arm, dec) in {"gate": ("single", "pipeline"),
+                         "constant": ("single", "constant-molars"),
+                         "lesion": ("pooled", "lesion-detector")}.items():
+    check(f"Lever B CariesXrays {name}", r(agreement(CX.format(arm, dec)), 3),
+          f"cariesxrays_external_lever_b_b_{arm}")
+
+for cohort, key in (("DENTEX", "dentex"), ("CariesXrays", "cariesxrays"),
+                    ("Ningxia", "ningxia")):
+    c = lb_p["cohorts"][key]
+    d = c["acceptance"]["lesion-detector_minus_constant-molars"]
+    lo, hi = d["ci95_pp"]
+    check(f"Lever B {cohort} delta pp", pp(d["delta_pp"]), "acceptance_rule_B-pooled")
+    check(f"Lever B {cohort} delta CI", f"[{pp(lo)}, {pp(hi)}]", "acceptance_rule_B-pooled")
+    # Not a volume effect: the detector must flag no more teeth than the constant.
+    rate_lesion = c["arms"]["lesion-detector"]["mean_predicted_positive_per_image"]
+    assert rate_lesion <= c["arms"]["constant-molars"]["mean_predicted_positive_per_image"], \
+        f"{cohort}: detector now flags MORE teeth than the constant -- prose says fewer"
+
+# The single-corpus arm, quoted in the prose as the transfer failure.
+for cohort, key in (("DENTEX", "dentex"), ("CariesXrays", "cariesxrays"),
+                    ("Ningxia", "ningxia")):
+    a = lb_s["cohorts"][key]["arms"]["lesion-detector"]
+    lo, hi = a["ci95"]
+    check(f"Lever B single-corpus {cohort} CI", f"[{r(lo, 3)}, {r(hi, 3)}]",
+          "acceptance_rule_B-single")
+
+for cohort, key in (("CariesXrays", "cariesxrays"), ("Ningxia", "ningxia")):
+    for arm in ("lesion-detector", "constant-molars"):
+        rate = lb_p["cohorts"][key]["arms"][arm]["mean_predicted_positive_per_image"]
+        check(f"Lever B {cohort} {arm} teeth/image", r(rate, 2), "acceptance_rule_B-pooled")
+
+# ----------------------------------------------- Parameter counts (Table I)
+# These were hardcoded literals until 4 Sep 2026, carrying a provenance label they
+# did not earn. They are now derived by scripts/count_model_params.py, which states
+# one counting rule and applies it to every checkpoint -- see that file for why the
+# old table mixed two rules. Stage 3a has two implementations since the Lever B
+# adoption, so both totals are asserted; a table that reports only one of them will
+# fail here, which is the point.
+pc = load("outputs/param_counts/param_counts.json")
+_P, _T = pc["params"], pc["totals"]
+SRC = "outputs/param_counts (torch.load over models/*/)"
+for label, key in (("stage-1 detector params", "stage1_detector"),
+                   ("stage-2 FDI head params", "stage2_fdi_head"),
+                   ("stage-3a lesion detector params", "stage3a_lesion"),
+                   ("stage-3a gate variant params", "stage3a_gate_variant")):
+    check(label, f"{r(_P[key] / 1e6, 2)} M", SRC)
+for label, key in (("total params (default)", "total_default"),
+                   ("total params (gate variant)", "total_gate_variant"),
+                   ("caries-path params (default)", "caries_path_default"),
+                   ("caries-path params (gate variant)", "caries_path_gate_variant")):
+    check(label, f"{r(_T[key] / 1e6, 2)} M", SRC)
 
 print("\n".join(ok))
 if bad:

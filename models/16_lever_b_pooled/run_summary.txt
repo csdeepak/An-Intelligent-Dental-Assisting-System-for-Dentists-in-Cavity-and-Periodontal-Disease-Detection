@@ -1,8 +1,15 @@
 ================================================================================
 16_lever_b_pooled — Lever B: B-pooled caries-LESION detector (CariesXrays + DENTEX-caries)
 ================================================================================
-Status:   ABLATION ARM, not adopted. Sec 6 of the pre-registration is not yet met
-          (needs Ningxia, not on this machine) -- pipeline Stage 3 stays gate v3.0.
+Status:   ADOPTED as the pipeline's Stage-3 caries path, 4 September 2026
+          (RESULTS_LOG 2026-09-04h). Sec 6 of the pre-registration is MET: Ningxia was
+          located on this machine and scored, giving 2 of 3 cohorts passing all three
+          conditions against a bar frozen before any of these numbers existed.
+          `run_inference.py` DEF_CARIES_LESION_MODEL points here; gate v3.0 is retained
+          and reachable via `--caries-method gate`.
+          NOTE: everything below the "RESULTS" heading was written BEFORE Ningxia was
+          scored and is left as written (rule 1: never edit a logged result). The
+          superseding verdict is in the ADOPTION section at the foot of this file.
 Tag:      caries-lesion-detector-yolo11l-leverb-bpooled-v1.0 (4 September 2026)
 Date:     4 September 2026
 Pre-reg:  outputs/lever_B_lesion_caries_path/PRE_REGISTRATION.md (frozen 4 Sep, commit ef3f453)
@@ -103,3 +110,38 @@ train.log                                         full training console log
 remote_sha256.txt                                 sha256 computed on the rented box,
                                                    before download, for the verification
                                                    compared against the local copy
+
+--------------------------------------------------------------------------------
+ADOPTION (4 September 2026) -- supersedes the "Sec 6 verdict" paragraph above
+--------------------------------------------------------------------------------
+Ningxia WAS on this machine after all, at D:\nangxia_dataset, in the exact layout
+ningxia_external.py expects. Scored on the full dental_caries category, all four
+hospital splits (337 images, 1,013 lesions -- matches the pre-registered count):
+
+cohort               gate v3.0   constant-molars   B-single            B-pooled
+Ningxia (337 img)      40.8%         39.9%       24.0% [20.9,27.2]  50.0% [46.3,53.9]
+
+B-pooled vs constant-molars: +10.2pp [+6.3,+14.0], excludes 0 -- a WIN, not a tie.
+B-pooled vs gate v3.0:       +9.3pp [+5.3,+13.3], excludes 0 -- a WIN.
+Predicted-positive rate 3.85 teeth/image, below both comparators, so again not volume.
+
+Full Sec 6 table: DENTEX fail (tie), CariesXrays PASS, Ningxia PASS. 2 of 3 >= 2 of 3,
+so the rule is MET and B-pooled was adopted. The bar was frozen at commit ef3f453
+before any arm was trained; nothing was moved to make this pass. DENTEX remains a TIE
+and is reported as a tie everywhere -- this is not "solved on every cohort".
+
+Ningxia is the only one of the three cohorts this detector never trained on, so it is
+the only external evidence in the table. That is stated in the paper rather than
+glossed: pooling bought DENTEX transfer at the cost of DENTEX's status as held-out data.
+
+WEIGHTS, revised: best.pt is now a DEF_* pipeline default, but it is 51 MB and stays
+gitignored (CLAUDE.md rule 4's 50 MB bar). It lives on this Windows laptop and in the
+archive; a fresh clone must fetch it before `--caries-method lesion-detector` will run.
+The models/14 best.pt exception was granted when that file was the candidate default;
+this one exceeds the bar, so it did not get the same exception.
+
+PARAMETER COUNT, to prevent a false drift report: 25.28 M above is the FUSED count that
+ultralytics prints (batch-norm folded into the preceding convolutions). The paper's
+Table I reports 25.31 M, the unfused learnable-parameter count, under the single rule
+stated in scripts/count_model_params.py. Both are correct; they count different states
+of the same network.

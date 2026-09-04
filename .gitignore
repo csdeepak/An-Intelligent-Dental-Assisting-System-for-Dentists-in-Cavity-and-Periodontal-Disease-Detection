@@ -191,6 +191,21 @@ outputs/eda_tufts/*
 !outputs/ningxia_external_control_olddet/
 !outputs/ningxia_external_control_olddet/**
 !outputs/related_work_extract.csv
+# Lever B (4 Sep 2026): the three-cohort acceptance verdict and the per-arm eval outputs
+# behind it. ~1.3 MB of JSON, no checkpoints. These are NOT optional -- as of RESULTS_LOG
+# 2026-09-04i, `verify_paper_numbers.py` asserts Table V against them, so a clone without
+# them cannot verify the manuscript. The per-image records are what make the paired
+# bootstrap between arms reproducible, same reason as the cariesxrays_external_* rules.
+!outputs/lever_b_eval/
+!outputs/lever_b_eval/**
+!outputs/cariesxrays_external_lever_b_b_pooled/
+!outputs/cariesxrays_external_lever_b_b_pooled/**
+!outputs/cariesxrays_external_lever_b_b_single/
+!outputs/cariesxrays_external_lever_b_b_single/**
+# Parameter counts for the paper's Table I, written by scripts/count_model_params.py.
+# Tiny, and the verifier reads it instead of the hardcoded literals it replaced.
+!outputs/param_counts/
+!outputs/param_counts/**
 runs/
 logs/
 wandb/

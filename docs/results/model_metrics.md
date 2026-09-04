@@ -695,7 +695,7 @@ by every row. Paired cluster bootstrap over images, 10,000 resamples, seed 42.
 
 | cohort | n | pipeline | constant | constant − pipeline | verdict |
 |---|---|---|---|---|---|
-| DENTEX (internal) | 164 img / 479 lesions | 0.443 | 0.488 | +0.046 [+0.006, +0.089] | constant wins |
+| DENTEX (internal) | 164 img / 479 lesions | 0.443 | 0.489 | +0.046 [+0.006, +0.089] | constant wins |
 | Ningxia, 4 hospitals | 337 img / 1,013 lesions | 0.408 | 0.399 | −0.009 [−0.049, +0.030] | indistinguishable |
 | **CariesXrays** | **1,500 img / 3,421 lesions** | **0.309** | **0.561** | **+0.252 [+0.232, +0.273]** | **constant wins decisively** |
 
@@ -768,28 +768,39 @@ Accuracy on retained predictions as the least-confident are declined. Threshold 
 
 ## Pipeline size — parameter counts per stage
 
-Counted with `torch.load` / `ultralytics.YOLO(...).model.parameters()`, summing `numel()`.
-Recorded here because the manuscript cites it and because a wrong version of this number
-propagated through nine places in the docs before it was caught (`RESULTS_LOG.md` 2026-08-28).
+Produced by **`scripts/count_model_params.py`**, which writes
+`outputs/param_counts/param_counts.json`; `verify_paper_numbers.py` asserts the manuscript
+against that artefact. Recorded here because the manuscript cites it and because a wrong
+version of this number propagated through nine places in the docs before it was caught
+(`RESULTS_LOG.md` 2026-08-28).
 
 **Updated 4 Sep 2026 — Stage 3a changed.** The lesion detector (25.3 M params) replaced the
 ResNet18 gate (11.2 M) as the pipeline default (Lever B, `RESULTS_LOG.md` 2026-09-04h). The row
 below is the **current default**; `--caries-method gate` still runs the smaller, 11.2 M model —
 see "Caries path only, `--caries-method gate`" for that total.
 
+**Re-counted 4 Sep 2026 under one rule — every ResNet18 row moved down by 9,620.** The previous
+counts here summed every tensor in a `.pth` state dict, which includes batch-norm `running_mean`
+/ `running_var` buffers, while the two YOLO rows summed `.parameters()`, which does not. Two
+conventions in one table. The counts below are **learnable parameters only**, applied to all
+seven checkpoints (`RESULTS_LOG.md` 2026-09-04i). Nothing about any model changed; the
+buffer-inclusive figures were not wrong, they were a different quantity, and the totals moved by
+0.04 M. `models/16`'s `run_summary.txt` separately reports 25.28 M, the *fused* count
+ultralytics prints — a third quantity again, and also not an error.
+
 | Stage | Model | Checkpoint | Parameters |
 |---|---|---|---|
 | 1  | YOLOv11l-seg | `models/11_yolo_seg_tufts_r1/best.pt` | 27,617,459 |
-| 2  | ResNet18 + 4 positional feats | `models/10_fdi_head_dentex_tufts_v2/` | 11,197,536 |
+| 2  | ResNet18 + 4 positional feats | `models/10_fdi_head_dentex_tufts_v2/` | 11,187,916 |
 | **3a (default)** | **YOLOv11l lesion detector** | **`models/16_lever_b_pooled/.../best.pt`** | **25,311,251** |
-| 3a (`--caries-method gate`) | ResNet18 caries gate | `models/09_caries_gate_v3/` | 11,187,158 |
-| 3b | ResNet18 caries severity | `models/07_caries_cascade/` | 11,187,158 |
-| 4a | ResNet18 bone-loss gate | `models/03_bone_loss_model_training_notebook_models/` | 11,187,158 |
-| 4b | ResNet18 bone-loss severity | `models/04_bone_loss_severity_notebook_models/` | 11,187,671 |
-| | **Total, all six, current default (lesion detector)** | | **97,688,233** |
-| | Total, all six, `--caries-method gate` | | 83,564,140 |
-| | **Caries path only** (1, 2, 3a-default, 3b) | | **75,313,404** |
-| | Caries path only, `--caries-method gate` (1, 2, 3a-gate, 3b) | | 61,189,311 |
+| 3a (`--caries-method gate`) | ResNet18 caries gate | `models/09_caries_gate_v3/` | 11,177,538 |
+| 3b | ResNet18 caries severity | `models/07_caries_cascade/` | 11,177,538 |
+| 4a | ResNet18 bone-loss gate | `models/03_bone_loss_model_training_notebook_models/` | 11,177,538 |
+| 4b | ResNet18 bone-loss severity | `models/04_bone_loss_severity_notebook_models/` | 11,178,051 |
+| | **Total, all six, current default (lesion detector)** | | **97,649,753** |
+| | Total, all six, `--caries-method gate` | | 83,516,040 |
+| | **Caries path only** (1, 2, 3a-default, 3b) | | **75,294,164** |
+| | Caries path only, `--caries-method gate` (1, 2, 3a-gate, 3b) | | 61,160,451 |
 
 **Do not quote "~25 M" for the pipeline.** That is the *superseded bbox* detector's own
 count (`tooth-detector-a100-1024-v1.0`, 25.3 M, recorded under Stage 1 above) -- coincidentally
@@ -800,3 +811,10 @@ default) -- roughly 444x, still overwhelmingly in the small pipeline's favour, d
 caries path" / "83.6 M total" in the paper describes the retained `--caries-method gate` path,
 not the current default — flagged for `PAPER_MATERIAL.md` to disambiguate, not silently
 overwrite.**
+
+*Closed 4 Sep 2026:* `paper/main.tex` Table I now reports both paths explicitly — 97.65 M /
+75.29 M for the default, 83.52 M / 61.16 M for the gate variant — under the same single rule as
+the table above, and `verify_paper_numbers.py` asserts all four totals plus each stage row
+against `outputs/param_counts/param_counts.json`. The 83.56 / 61.20 figures the paper carried
+until then were the buffer-inclusive counts of the gate path, so they were describing the right
+path with the wrong rule; both changes are folded into the numbers above.

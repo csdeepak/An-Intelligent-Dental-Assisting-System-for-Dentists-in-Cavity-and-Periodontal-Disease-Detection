@@ -1,0 +1,1210 @@
+{
+  "decision": "constant-molars",
+  "n_images": 164,
+  "n_images_with_caries_lesions": 148,
+  "n_lesions": 479,
+  "n_lesions_matched": 234,
+  "lesion_localization_agreement": 0.4885,
+  "n_predicted_positive_teeth": 859,
+  "n_predicted_positive_matched_to_a_lesion": 234,
+  "predicted_positive_match_rate_DIAGNOSTIC_NOT_PRECISION": 0.2724,
+  "min_iou": 0.3,
+  "target_finding": "\u00e7\u00fcr\u00fck (caries) only, see module docstring",
+  "caveat": "unmatched predicted-positive teeth are NOT confirmed false positives -- disease/ annotates only ~6 of ~30 teeth per image (compare_caries_gates.py); an unmatched positive may be real, unannotated caries.",
+  "weights": {
+    "detector": "C:\\Users\\csdee\\PESU\\capstone\\An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection\\models\\11_yolo_seg_tufts_r1\\best.pt",
+    "detector_sha256": "271316c46caaf4029ea707fa77b6fe30697795e46632e1f6fcae3498c48781ba",
+    "caries_gate": "C:\\Users\\csdee\\PESU\\capstone\\An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection\\models\\09_caries_gate_v3\\caries_gate_v3.pth",
+    "caries_severity": "C:\\Users\\csdee\\PESU\\capstone\\An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection\\models\\07_caries_cascade\\phase2_final_bundle.pth"
+  },
+  "flag_counts": {
+    "caries_uncalibrated": 3344,
+    "caries_confidence_isotonic": 3344
+  },
+  "per_image": [
+    {
+      "image": "test_0",
+      "n_lesions": 3,
+      "n_matched": 1,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_1",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_10",
+      "n_lesions": 2,
+      "n_matched": 1,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_101",
+      "n_lesions": 4,
+      "n_matched": 1,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_102",
+      "n_lesions": 3,
+      "n_matched": 1,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_103",
+      "n_lesions": 6,
+      "n_matched": 4,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_104",
+      "n_lesions": 3,
+      "n_matched": 1,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_105",
+      "n_lesions": 3,
+      "n_matched": 3,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_106",
+      "n_lesions": 1,
+      "n_matched": 1,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_11",
+      "n_lesions": 2,
+      "n_matched": 1,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_110",
+      "n_lesions": 4,
+      "n_matched": 1,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_113",
+      "n_lesions": 2,
+      "n_matched": 0,
+      "n_predicted_positive": 3,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_114",
+      "n_lesions": 13,
+      "n_matched": 7,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_119",
+      "n_lesions": 2,
+      "n_matched": 0,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_120",
+      "n_lesions": 7,
+      "n_matched": 4,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_122",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_123",
+      "n_lesions": 2,
+      "n_matched": 2,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_124",
+      "n_lesions": 9,
+      "n_matched": 2,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_126",
+      "n_lesions": 2,
+      "n_matched": 0,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_127",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 1,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_131",
+      "n_lesions": 3,
+      "n_matched": 3,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_134",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 2,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_135",
+      "n_lesions": 4,
+      "n_matched": 3,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_136",
+      "n_lesions": 2,
+      "n_matched": 1,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_137",
+      "n_lesions": 2,
+      "n_matched": 2,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_138",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_14",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 3,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_140",
+      "n_lesions": 6,
+      "n_matched": 4,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_141",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_142",
+      "n_lesions": 1,
+      "n_matched": 1,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_143",
+      "n_lesions": 4,
+      "n_matched": 1,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_146",
+      "n_lesions": 2,
+      "n_matched": 1,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_147",
+      "n_lesions": 8,
+      "n_matched": 1,
+      "n_predicted_positive": 3,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_15",
+      "n_lesions": 2,
+      "n_matched": 0,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_151",
+      "n_lesions": 4,
+      "n_matched": 4,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_152",
+      "n_lesions": 10,
+      "n_matched": 6,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_153",
+      "n_lesions": 7,
+      "n_matched": 3,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_154",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 3,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_155",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_156",
+      "n_lesions": 4,
+      "n_matched": 3,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_157",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 3,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_158",
+      "n_lesions": 5,
+      "n_matched": 2,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_16",
+      "n_lesions": 1,
+      "n_matched": 1,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_160",
+      "n_lesions": 5,
+      "n_matched": 3,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_161",
+      "n_lesions": 8,
+      "n_matched": 0,
+      "n_predicted_positive": 1,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_162",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_163",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_165",
+      "n_lesions": 3,
+      "n_matched": 1,
+      "n_predicted_positive": 3,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_166",
+      "n_lesions": 4,
+      "n_matched": 2,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_167",
+      "n_lesions": 6,
+      "n_matched": 3,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_168",
+      "n_lesions": 2,
+      "n_matched": 1,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_17",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_171",
+      "n_lesions": 3,
+      "n_matched": 1,
+      "n_predicted_positive": 2,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_172",
+      "n_lesions": 5,
+      "n_matched": 4,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_173",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_174",
+      "n_lesions": 2,
+      "n_matched": 0,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_175",
+      "n_lesions": 2,
+      "n_matched": 2,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_176",
+      "n_lesions": 2,
+      "n_matched": 0,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_177",
+      "n_lesions": 4,
+      "n_matched": 0,
+      "n_predicted_positive": 3,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_178",
+      "n_lesions": 2,
+      "n_matched": 2,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_179",
+      "n_lesions": 1,
+      "n_matched": 1,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_180",
+      "n_lesions": 1,
+      "n_matched": 1,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_182",
+      "n_lesions": 4,
+      "n_matched": 2,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_183",
+      "n_lesions": 1,
+      "n_matched": 1,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_185",
+      "n_lesions": 2,
+      "n_matched": 0,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_186",
+      "n_lesions": 3,
+      "n_matched": 3,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_187",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_191",
+      "n_lesions": 1,
+      "n_matched": 1,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_193",
+      "n_lesions": 2,
+      "n_matched": 0,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_194",
+      "n_lesions": 2,
+      "n_matched": 1,
+      "n_predicted_positive": 3,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_195",
+      "n_lesions": 2,
+      "n_matched": 2,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_197",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_198",
+      "n_lesions": 2,
+      "n_matched": 0,
+      "n_predicted_positive": 2,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_200",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 0,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_201",
+      "n_lesions": 2,
+      "n_matched": 2,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_205",
+      "n_lesions": 4,
+      "n_matched": 1,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_208",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_211",
+      "n_lesions": 11,
+      "n_matched": 6,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_212",
+      "n_lesions": 6,
+      "n_matched": 3,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_213",
+      "n_lesions": 3,
+      "n_matched": 1,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_216",
+      "n_lesions": 1,
+      "n_matched": 1,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_217",
+      "n_lesions": 5,
+      "n_matched": 4,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_218",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 2,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_219",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_22",
+      "n_lesions": 2,
+      "n_matched": 2,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_220",
+      "n_lesions": 7,
+      "n_matched": 3,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_222",
+      "n_lesions": 3,
+      "n_matched": 0,
+      "n_predicted_positive": 1,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_224",
+      "n_lesions": 4,
+      "n_matched": 0,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_226",
+      "n_lesions": 3,
+      "n_matched": 1,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_227",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_228",
+      "n_lesions": 2,
+      "n_matched": 0,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_229",
+      "n_lesions": 1,
+      "n_matched": 1,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_231",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 2,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_233",
+      "n_lesions": 8,
+      "n_matched": 3,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_235",
+      "n_lesions": 3,
+      "n_matched": 1,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_236",
+      "n_lesions": 2,
+      "n_matched": 1,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_239",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_240",
+      "n_lesions": 6,
+      "n_matched": 5,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_241",
+      "n_lesions": 1,
+      "n_matched": 1,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_242",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_243",
+      "n_lesions": 2,
+      "n_matched": 2,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_246",
+      "n_lesions": 2,
+      "n_matched": 1,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_247",
+      "n_lesions": 8,
+      "n_matched": 4,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_25",
+      "n_lesions": 3,
+      "n_matched": 3,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_26",
+      "n_lesions": 2,
+      "n_matched": 1,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_27",
+      "n_lesions": 6,
+      "n_matched": 4,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_29",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_30",
+      "n_lesions": 7,
+      "n_matched": 3,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_32",
+      "n_lesions": 6,
+      "n_matched": 4,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_35",
+      "n_lesions": 4,
+      "n_matched": 3,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_38",
+      "n_lesions": 3,
+      "n_matched": 1,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_4",
+      "n_lesions": 5,
+      "n_matched": 4,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_41",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_43",
+      "n_lesions": 1,
+      "n_matched": 1,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_44",
+      "n_lesions": 3,
+      "n_matched": 1,
+      "n_predicted_positive": 3,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_46",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_47",
+      "n_lesions": 1,
+      "n_matched": 1,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_49",
+      "n_lesions": 2,
+      "n_matched": 1,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_5",
+      "n_lesions": 11,
+      "n_matched": 5,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_51",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_52",
+      "n_lesions": 4,
+      "n_matched": 2,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_53",
+      "n_lesions": 4,
+      "n_matched": 0,
+      "n_predicted_positive": 2,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_55",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 3,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_57",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_59",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 1,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_6",
+      "n_lesions": 1,
+      "n_matched": 1,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_62",
+      "n_lesions": 3,
+      "n_matched": 3,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_63",
+      "n_lesions": 2,
+      "n_matched": 1,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_65",
+      "n_lesions": 4,
+      "n_matched": 3,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_68",
+      "n_lesions": 4,
+      "n_matched": 2,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_69",
+      "n_lesions": 3,
+      "n_matched": 3,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_7",
+      "n_lesions": 4,
+      "n_matched": 1,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_70",
+      "n_lesions": 3,
+      "n_matched": 0,
+      "n_predicted_positive": 1,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_75",
+      "n_lesions": 1,
+      "n_matched": 1,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_76",
+      "n_lesions": 2,
+      "n_matched": 1,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_8",
+      "n_lesions": 6,
+      "n_matched": 2,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_80",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_81",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_83",
+      "n_lesions": 1,
+      "n_matched": 0,
+      "n_predicted_positive": 3,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_84",
+      "n_lesions": 2,
+      "n_matched": 0,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_89",
+      "n_lesions": 6,
+      "n_matched": 2,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_9",
+      "n_lesions": 5,
+      "n_matched": 1,
+      "n_predicted_positive": 6,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_91",
+      "n_lesions": 2,
+      "n_matched": 0,
+      "n_predicted_positive": 4,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_92",
+      "n_lesions": 2,
+      "n_matched": 0,
+      "n_predicted_positive": 5,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_95",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_96",
+      "n_lesions": 3,
+      "n_matched": 2,
+      "n_predicted_positive": 8,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_97",
+      "n_lesions": 5,
+      "n_matched": 1,
+      "n_predicted_positive": 2,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    },
+    {
+      "image": "test_99",
+      "n_lesions": 2,
+      "n_matched": 2,
+      "n_predicted_positive": 7,
+      "n_predicted_positive_unmatched": 0,
+      "unmatched_positive_gate_confidence": []
+    }
+  ]
+}
