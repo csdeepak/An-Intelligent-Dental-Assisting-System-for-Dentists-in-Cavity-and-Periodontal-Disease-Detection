@@ -6656,3 +6656,101 @@ for why this session's letters do not start at `04b`.)*
   and table labels in `main.tex` (`fig:boneloss`, `fig:calib`, `fig:coverage`, `fig:stage2`,
   `tab:data`) are defined but never referenced — pre-existing, harmless to LaTeX, but worth a
   pass before submission.
+
+## 2026-09-04j — Calibration/abstention scoped to the gate variant; Lever 2 benchmark row folded in, and re-verifying it against the AAAI PDF caught two transcription errors
+
+- **What was done:** Two follow-ups from 2026-09-04i, both in `paper/main.tex`. No model was
+  trained and no evaluation re-run.
+
+### 1. Calibration and selective prediction are now scoped to the gate variant
+
+§"What the constant cannot do" reported ECE **0.136 → 0.043** (isotonic), average precision
+**0.550**, and caries abstention **+14.25 pp** — all measured on the **per-crop caries gate**,
+which 2026-09-04h demoted from the pipeline default to a retained variant. Nothing in those
+numbers was wrong, but they were doing work in the paper's argument that they can no longer do:
+two of the four axes the Discussion proposes as the right way to compare OPG systems were, for
+caries, being demonstrated on a component that no longer ships.
+
+Changes: both figure captions (`fig:calib`, `fig:coverage`) now name the gate explicitly; the
+subsection opens with the scoping and its consequence; the §Discussion axis list separates
+numbering from caries on axes 2 and 3; and a **new first item in §Limitations** (`sec:limits`)
+states that the adopted lesion detector has no calibrator and no coverage–accuracy curve, that
+its score is a detection score rather than a posterior, and that the **pre-registered 0.30
+abstention threshold was located on the gate's curve and does not transfer** to a quantity with a
+different meaning. Closing this is named as the first piece of follow-up work and as needing its
+own pre-registration — a threshold chosen after seeing the detector's curve would be exactly the
+practice this paper argues against.
+
+Numbering is unaffected (Stage 2 did not change) and demonstrates all four axes; the paper now
+says so rather than letting the reader assume it of caries too.
+
+**Not done, deliberately:** the abstract's closing "four things a constant cannot do" is still
+four. Adding *localisation* as a fifth is the thesis change flagged on 04i and remains the
+author's call. An earlier draft of this session added it and it was reverted.
+
+### 2. Lever 2's benchmark row is in Related Work — and its stated precondition found real errors
+
+§8.26's own instruction was "**re-verify the FPCL / baseline numbers against the AAAI PDF**
+before quoting in the paper". Done first, against
+`ojs.aaai.org/index.php/AAAI/article/view/30196/32123`, Table 1, p. 21945. **Two of the seven
+transcribed rows were wrong.**
+
+| claim, as transcribed 2 Sep | AAAI Table 1 | verdict |
+|---|---|---|
+| RetinaNet R50 13.0 / 30.5 / 10.2 | 13.0 / 30.5 / 10.2 | ✅ |
+| **DINO 37.8 / 75.3 / 29.4** | **there is no DINO row** | ❌ corresponds to nothing published; nearest is FCOS 35.9 / 75.6 / 29.5 |
+| Faster R-CNN R50 39.9 / 78.0 / 37.8 | 39.9 / 78.0 / 37.8 | ✅ |
+| YOLOX 40.5 / 81.3 / 36.1 | 40.5 / 81.3 / 36.1 | ✅ |
+| — | **Conditional-DETR 42.2 / 80.6 / 40.4** | ❌ omitted, and it is their **strongest** baseline |
+| FPCL 48.2 / 84.1 / 50.6 | 48.2 / 84.1 / 50.6 | ✅ |
+| **"~8 AP above every off-the-shelf baseline"** | 48.2 − 42.2 = **6.0** | ❌ the 8 came from comparing against YOLOx 40.5 because Conditional-DETR had been dropped |
+
+The authors' own text states both gaps explicitly — "+7.7% (48.2 vs 40.5)" over the best CNN
+baseline and "+6.0% (48.2 vs 42.2)" over the best transformer one — so the correct claim for the
+manuscript is **"about six points above the strongest of their ten baselines"**. Had this gone
+into `main.tex` unverified, the paper would have cited a non-existent baseline row and overstated
+a margin by two points, both attributed to someone else's published table.
+
+Also verified: their split is **4,800 train / 1,200 test** (p. 21942), so this project's seed-42
+80/20 draw matches their ratio, as claimed.
+
+**A third discrepancy, on the dataset size.** The 1 Sep record said "their stated 13,783 caries
+instances against 13,784 measured here — a +1 counting-convention difference". The 13,783 is from
+the authors' **GitHub README**; the **AAAI paper states 13,778** (p. 21942). The authors publish
+two different figures and ours is a third. `main.tex` now reports **our own 13,784** and names all
+three rather than adopting one of theirs. Nothing in this project is derived from the published
+count, so no number moves.
+
+**DVCTNet (48.9 / 84.7 / 52.2)** is from a different paper (arXiv 2508.20813) and was **not**
+verified, so it is kept out of `main.tex` entirely and marked unverified in §8.26.
+
+### What went into the manuscript
+
+New `\subsection{A published benchmark, and what a stock detector reaches on it}`
+(`sec:benchmarkrow`) in Related Work, with `tab:fpcl` (four verified baseline/FPCL rows plus
+ours), the split caveat in the authors' own terms, and no claim of matching or beating FPCL. One
+connective fact was added that §8.26 did not have: **the checkpoint behind our 48.2 AP is the same
+`models/14` that is Lever B's single-corpus arm** — the arm that reaches 0.694 tooth-level
+agreement on this corpus and falls to **0.086** on DENTEX. A strong benchmark number and a failure
+to transfer are the same model, which is this paper's argument applied to its own result.
+
+- **Metrics:** none new. One corrected external claim (FPCL's margin over baselines, ~8 → ~6 AP)
+  and one corrected dataset figure (caries instances now reported as our measured 13,784, with the
+  authors' 13,778 and 13,783 both named).
+- **Key decision or insight:** a stated precondition earned its keep. "Re-verify against the PDF
+  before quoting" was written on 2 Sep by the session that did the transcribing, and it caught two
+  errors that no internal check could have — `verify_paper_numbers.py` asserts against *our*
+  artefacts, and both of these were about someone else's table. **Numbers taken from other
+  people's papers are the one class of claim this project has no automated guard for.**
+- **Source:** `paper/main.tex` (`sec:benchmarkrow`, `tab:fpcl`, `sec:limits`, `sec:demonstrate`);
+  AAAI PDF `ojs.aaai.org/index.php/AAAI/article/view/30196/32123` Table 1 p. 21945 and dataset
+  statistics p. 21942; `github.com/Binz-Chen/AAAI2024_CariesXrays` README (the 13,783);
+  `models/14_cariesxrays_lever2/run_summary.txt` (correction block appended, original left as
+  written per rule 1); `PAPER_MATERIAL.md` §8.26 + §9.
+- **Follow-ups:** (1) `PAPER_MATERIAL.md` had **two sections numbered §8.26** — the two parallel
+  4 Sep sessions each wrote one. The Lever B one is renumbered **§8.27**; anything citing "§8.26"
+  for Lever B before 4 Sep means §8.27. (2) The manuscript is now **14 pages** (12 before this
+  session's work), still 0 errors / 0 undefined refs, 2 overfull hboxes both pre-existing. If the
+  venue turns out to be ISBI's 4-page cap this is a much larger cut than it was. (3) Unchanged
+  from 04i: the title, the thesis, the four-vs-five list, the Docker rebuild, and retiring
+  `docs/paper/{manuscript.md,draft_spine.md}`.

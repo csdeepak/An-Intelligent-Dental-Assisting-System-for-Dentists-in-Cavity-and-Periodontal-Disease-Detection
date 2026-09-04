@@ -2125,9 +2125,22 @@ bounds every tooth-level arm on this cohort, ours included.
 `github.com/Binz-Chen/AAAI2024_CariesXrays`. It is described by its authors as hospital-scale,
 "meticulously annotated by dental professionals", and it ships its own FPCL baselines. Identity
 was verified against AAAI's OJS, ACM DL, DBLP and AAAI's Underline session page rather than the
-repository README alone. Their stated 6,000 images matches exactly; their stated 13,783 caries
-instances against 13,784 non-degenerate boxes measured here is a **+1 (0.007%)** counting-convention
-difference, recorded rather than rounded away. **Licence is not stated** — there is no LICENSE
+repository README alone. Their stated 6,000 images matches exactly.
+
+**Corrected 4 Sep 2026 (`RESULTS_LOG` 2026-09-04j).** The instance count was recorded on 1 Sep as
+"their stated 13,783 against 13,784 measured here, a +1 (0.007%) counting-convention difference".
+The 13,783 came from the **GitHub README**. The **AAAI paper states 13,778** (p. 21942, verified
+against the PDF). So the authors publish two different figures, and ours is a third:
+
+| source | caries instances |
+|---|---|
+| AAAI paper, p. 21942 | 13,778 |
+| authors' GitHub README | 13,783 |
+| **counted here, non-degenerate boxes in the release** | **13,784** (13,785 raw `<object>` entries) |
+
+`main.tex` now reports **our own 13,784** and names all three, rather than adopting one of theirs.
+Nothing downstream depends on which is right — no number in this project is derived from the
+published count. **Licence is not stated** — there is no LICENSE
 file and the GitHub API reports none — so the Data Availability statement should say "released
 publicly by the authors alongside the AAAI paper; no explicit licence stated; cited as requested."
 
@@ -2162,19 +2175,32 @@ public (the FPCL repo ships only a 0.5% sample; the data download is images + an
 80/20 split** matching only their ratio, so it is scored on different random test images. The
 manuscript must say this in these words and must not read as "we beat / matched FPCL".
 
-| method (their split) | AP | AP50 | AP75 |
-|---|---|---|---|
-| RetinaNet R50 | 13.0 | 30.5 | 10.2 |
-| DINO | 37.8 | 75.3 | 29.4 |
-| Faster R-CNN R50 | 39.9 | 78.0 | 37.8 |
-| YOLOX | 40.5 | 81.3 | 36.1 |
-| FPCL (their method) | 48.2 | 84.1 | 50.6 |
-| DVCTNet (MICCAI 2025) | 48.9 | 84.7 | 52.2 |
-| **YOLOv11l, our split (Lever 2)** | **48.2** | **84.5** | **50.0** |
+**Table re-verified against the AAAI PDF, 4 Sep 2026** (Table 1, p. 21945 — `RESULTS_LOG`
+2026-09-04j). Two rows of the 2 Sep transcription were wrong and are struck through below.
+
+| method (their split) | AP | AP50 | AP75 | |
+|---|---|---|---|---|
+| RetinaNet R50 | 13.0 | 30.5 | 10.2 | ✅ verified |
+| ~~DINO~~ | ~~37.8~~ | ~~75.3~~ | ~~29.4~~ | ❌ **no DINO row exists in their table** |
+| Faster R-CNN R50 | 39.9 | 78.0 | 37.8 | ✅ verified |
+| YOLOX | 40.5 | 81.3 | 36.1 | ✅ verified |
+| **Conditional-DETR** | **42.2** | **80.6** | **40.4** | ⬅ **was missing; it is their strongest baseline** |
+| FPCL (their method) | 48.2 | 84.1 | 50.6 | ✅ verified |
+| DVCTNet (MICCAI 2025) | 48.9 | 84.7 | 52.2 | ⚠️ from arXiv 2508.20813, **not** verified — kept out of `main.tex` |
+| **YOLOv11l, our split (Lever 2)** | **48.2** | **84.5** | **50.0** | ours |
+
+Their full table has ten baselines (SSD 12.7, RetinaNet 13.0, DETR 25.7, EfficientDet 34.1,
+FCOS 35.9, YOLOv7 39.3, YOLOv8 40.3, YOLOx 40.5, Conditional-DETR 42.2, Faster R-CNN 39.9) —
+the five strongest are in `models/14_cariesxrays_lever2/run_summary.txt`'s correction block.
+Their split is confirmed **4,800 train / 1,200 test** (p. 21942), so our seed-42 80/20 draw
+matches their ratio.
 
 **A generic 2024 one-stage detector with no caries-specific design reaches ~48 AP on this
-benchmark's data** — level with the task-specific FPCL contrastive-learning method and ~8 AP
-above every off-the-shelf baseline in their own table. The reading for the paper: this benchmark
+benchmark's data** — level with the task-specific FPCL contrastive-learning method and **about
+six** AP above the strongest of their ten baselines. *(The 2 Sep note said "~8 AP above every
+off-the-shelf baseline". That compared against YOLOx at 40.5 because Conditional-DETR at 42.2
+had been dropped from the transcription. The authors' own text gives both gaps: +7.7 over the
+best CNN baseline, +6.0 over the best transformer one.)* The reading for the paper: this benchmark
 does not appear to require a specialised architecture to reach its reported ceiling. (COCO AP@
 [.5:.95] via `ultralytics val`, which uses the same 101-point definition as the `pycocotools`
 `CocoEvaluator` the FPCL repo uses. `best.pt`, epoch 61 of 86, early-stopped. `batch` auto-reduced
@@ -2182,9 +2208,16 @@ does not appear to require a specialised architecture to reach its reported ceil
 rule, which likely costs a few AP on small objects — recorded, not excused. Predictions track the
 ground truth with no geometry error, `models/14_cariesxrays_lever2/val_batch*_pred.jpg`.)
 
-**Before this goes in `main.tex`:** re-verify the FPCL / baseline numbers against the AAAI PDF
-(currently transcribed from the paper text + DVCTNet arXiv 2508.20813), and present it as one
-benchmark row in Related Work with the split caveat, not as a result of the pipeline.
+**✅ DONE 4 Sep 2026 — this is now in `main.tex`** as `\subsection{A published benchmark, and
+what a stock detector reaches on it}` (`sec:benchmarkrow`) in Related Work, with
+Table~`tab:fpcl`, the split caveat in the authors' own terms, and no claim of matching or
+beating FPCL. The FPCL / baseline numbers were re-verified against the AAAI PDF first, which is
+what caught the two errors struck through above. DVCTNet is omitted from the manuscript because
+it was never verified. One connective fact was added that was not in this section: **the
+checkpoint behind our 48.2 AP is the same `models/14` that serves as Lever B's single-corpus
+arm** — the arm that reaches 0.694 tooth-level agreement on this corpus and falls to 0.086 on
+DENTEX. A strong benchmark number and a failure to transfer are the same model, which is the
+paper's own argument turned on its own result.
 
 Source: `RESULTS_LOG.md` 2026-09-02b, `models/14_cariesxrays_lever2/run_summary.txt`,
 `outputs/lever2_cariesxrays/PRE_REGISTRATION.md`,
@@ -2192,7 +2225,11 @@ Source: `RESULTS_LOG.md` 2026-09-02b, `models/14_cariesxrays_lever2/run_summary.
 
 ---
 
-### 8.26 The caries-constant problem, resolved on 2 of 3 cohorts — Lever B adopted
+### 8.27 The caries-constant problem, resolved on 2 of 3 cohorts — Lever B adopted
+
+*(Renumbered from §8.26 on 4 Sep 2026: the two parallel sessions each wrote a "§8.26", this one
+and the Lever 2 benchmark row above. This is the later of the two, so it moved. Anything citing
+"§8.26" for Lever B before 4 Sep means this section.)*
 
 §8.22 and §8.24 diagnosed *why* the tooth-level caries gate loses to an image-blind constant:
 it "scores teeth partly by which tooth they are," its mean score on genuinely healthy teeth
@@ -2266,7 +2303,8 @@ For whoever drafts the actual paper. Tick items off here as they land.
 
 **Blocking — must be done before submission**
 
-- [x] **Fold §8.26 into `main.tex`. Done 4 Sep 2026** (RESULTS_LOG 2026-09-04i). Table I now
+- [x] **Fold §8.27 (Lever B; §8.26 at the time this box was written) into `main.tex`.
+      Done 4 Sep 2026** (RESULTS_LOG 2026-09-04i). Table I now
       reports both Stage-3a paths under one counting rule; §System gained
       `\subsection{Stage 3a: two formulations of the same clinical question}` (`sec:lesiondet`);
       §Results gained `\subsection{Changing the task, not the architecture}` (`sec:leverb`) with
@@ -2280,6 +2318,22 @@ For whoever drafts the actual paper. Tick items off here as they land.
       are unchanged, and the abstract's closing "four things a constant cannot do" is still a
       list of four — localising the finding is arguably a fifth, but adding it changes the
       paper's prescription, which is not a call to make while reconciling numbers.
+- [x] **Scope the calibration and selective-prediction results to the gate variant.
+      Done 4 Sep 2026** (RESULTS_LOG 2026-09-04j). §"What the constant cannot do" reported ECE
+      0.136→0.043 and +14.25 pp caries abstention, both measured on the per-crop gate that
+      §8.27 demoted to a variant — so the paper was, for caries, demonstrating two of its own
+      four proposed axes on a component that no longer ships. Both figure captions now name the
+      gate, the subsection opens with the scoping and its consequence, the §Discussion axis list
+      distinguishes numbering from caries, and **a new first Limitations item** states plainly
+      that the adopted detector has no calibrator and no coverage–accuracy curve, that the
+      pre-registered 0.30 threshold was located on the gate's curve and does not transfer to a
+      detection score, and that closing this needs its own pre-registration. Numbering is
+      unaffected and demonstrates all four axes.
+- [x] **Fold the Lever 2 benchmark row (§8.26) into Related Work. Done 4 Sep 2026**
+      (RESULTS_LOG 2026-09-04j) — `sec:benchmarkrow` + `tab:fpcl`. Its stated precondition,
+      re-verifying the FPCL table against the AAAI PDF, was done first and **caught two errors**
+      in the 2 Sep transcription (a DINO row that does not exist in their table, and "~8 AP"
+      which should be ~6 once the omitted Conditional-DETR row is restored). See §8.26.
 - [x] Re-run the caries notebook and **save** the Phase 1 gate classification report
       (`caries` vs `no_caries`), plus the `Counter` cell confirming DENTEX class counts.
       **Done 25 Aug 2026** — `scripts/dentex/train_caries_cascade.py` replaced the notebook and

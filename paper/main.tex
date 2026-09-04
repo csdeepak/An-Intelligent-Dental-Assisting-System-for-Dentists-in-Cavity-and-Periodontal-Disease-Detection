@@ -242,6 +242,55 @@ classifiers~\cite{bilal2024pdcnet}, and contrastive feature-pyramid
 designs~\cite{chen2024cariesxrays}, alongside broader detection and segmentation
 work~\cite{chen2023deep,alharbi2023detection}.
 
+\subsection{A published benchmark, and what a stock detector reaches on it}
+\label{sec:benchmarkrow}
+One of our corpora, CariesXrays~\cite{chen2024cariesxrays}, ships its own
+detection baselines, which lets us place a number of ours beside prior work on
+the same data rather than only against our own arms. We trained a stock YOLOv11l
+on that corpus's training portion, changing nothing for the task, and report COCO
+AP against the authors' table (Table~\ref{tab:fpcl}).
+
+\begin{table}[t]
+\caption{Lesion-detection AP (\%) on CariesXrays. Rows 1--4 are reproduced from
+Table 1 of~\cite{chen2024cariesxrays}; row 5 is ours. \textbf{The comparison is
+indicative, not head-to-head}---see the caveat in the text. Rows 1--3 are the
+three strongest of the ten baselines the authors report.}
+\label{tab:fpcl}
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llrrr}
+\toprule
+Method & Backbone & AP & AP$_{50}$ & AP$_{75}$ \\
+\midrule
+Faster R-CNN & ResNet-50 & 39.9 & 78.0 & 37.8 \\
+YOLOx & CSPDarkNet & 40.5 & 81.3 & 36.1 \\
+Conditional-DETR & Transformer & 42.2 & 80.6 & 40.4 \\
+FPCL (theirs) & ResNet-50 & \textbf{48.2} & 84.1 & \textbf{50.6} \\
+\midrule
+YOLOv11l (ours) & CSPDarkNet & \textbf{48.2} & \textbf{84.5} & 50.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{We do not claim to have matched or beaten FPCL.} The authors' 4{,}800 /
+1{,}200 split is not public---the released repository ships a 0.5\,\% sample and
+the data download carries no image sets---so we drew our own seed-fixed split at
+the same ratio. The two rows are therefore scored on different test images and
+are not directly comparable. What the comparison supports is weaker and about the
+benchmark rather than about us: a generic one-stage detector with no
+caries-specific design lands at the same AP as a task-specific contrastive method
+and about six points above the strongest of the ten baselines the authors
+themselves report, so reaching this benchmark's published ceiling does not appear
+to require a specialised architecture.
+
+Two properties of this row matter later. It is a \emph{lesion-level} detection
+score, a different quantity from the tooth-level agreement everything else in this
+paper is measured on. And the checkpoint behind it is the same one that appears in
+Section~\ref{sec:leverb} as the single-corpus arm---the arm that reaches 0.694 on
+this corpus and then falls to 0.086 on another. A strong benchmark number and a
+failure to transfer are, here, the same model.
+
 \subsection{Tooth numbering, and two different tasks with one name}
 Tooth numbering is typically reported at very high accuracy---one recent system
 reports 0.9988~\cite{zancan2025ai}, and multi-stage segmentation-and-numbering
@@ -434,8 +483,8 @@ $^{a}$ The DENTEX \texttt{disease/} subset, which is the portion carrying
 per-lesion annotation. \quad
 $^{b}$ Caries-annotated subset; the periodontal subset of the same cohort is 736
 images. \quad
-$^{c}$ 13{,}783 annotated caries instances; we score a seed-fixed random 1{,}500
-images carrying 3{,}421 lesions.
+$^{c}$ 13{,}784 annotated caries instances counted in the release; we score a
+seed-fixed random 1{,}500 images carrying 3{,}421 lesions.
 \end{table*}
 
 \subsection{Development corpora}
@@ -495,8 +544,11 @@ entitled to know that the two facts coincide.
 
 A second external cohort is the published \textbf{CariesXrays}
 benchmark~\cite{chen2024cariesxrays}: 6{,}000 hospital-scale panoramic radiographs
-with 13{,}783 caries instances annotated by dental professionals, released with
-its own detection baselines. We score a seed-fixed random sample of 1{,}500 images
+from 5{,}380 patients, annotated by dental professionals and released with its own
+detection baselines (Section~\ref{sec:benchmarkrow}). We count \textbf{13{,}784}
+caries instances in the release we obtained; the paper states 13{,}778 and the
+authors' repository 13{,}783. We report our own count and note the discrepancy
+rather than adopt either figure, since nothing here depends on which is right. We score a seed-fixed random sample of 1{,}500 images
 carrying \textbf{3{,}421 lesions}---more than the development and first external
 cohorts combined---and verified it leakage-free against every corpus above, both
 byte-wise and perceptually, before use. Its licence is not stated by its authors;
@@ -933,9 +985,10 @@ corner of the mouth. A constant cannot attempt this task at all.
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{fig_calibration.png}
-\caption{Reliability of the caries gate before and after isotonic regression, on
-863 held-out test crops. The uncorrected model is systematically overconfident:
-at a stated confidence of 0.85 the observed frequency of caries is 0.26.}
+\caption{Reliability of the caries \emph{gate} --- the retained Stage-3a variant,
+not the adopted lesion detector --- before and after isotonic regression, on 863
+held-out test crops. The uncorrected model is systematically overconfident: at a
+stated confidence of 0.85 the observed frequency of caries is 0.26.}
 \label{fig:calib}
 \end{figure}
 
@@ -944,6 +997,16 @@ behaves like a probability: of the teeth it calls carious with 80\,\%
 confidence, are 80\,\% actually carious? \textbf{Expected calibration error}
 (ECE) is the average gap between stated confidence and observed frequency across
 confidence bins; 0 is perfect.
+
+Everything in this subsection that concerns caries was measured on the
+\textbf{per-crop gate}, which since Section~\ref{sec:leverb} is the retained
+Stage-3a variant rather than the default. We state the consequence rather than
+leave it implied: the adopted lesion detector emits a detection score, not a
+posterior over a tooth, so it has no reliability diagram, no calibrator and no
+abstention curve of its own, and we do not claim one for it
+(Section~\ref{sec:limits}). The numbering results below are unaffected---Stage~2
+did not change---and they are what the two capabilities look like in the system
+as it ships today.
 
 The caries gate's confidences are not probabilities. Its ECE is \textbf{0.136}
 and every reliability bin lies below the diagonal---it is systematically
@@ -970,8 +1033,9 @@ ability to rank teeth.
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{fig_coverage.png}
-\caption{Coverage--accuracy for tooth numbering (left) and the caries gate
-(right). Accuracy on retained predictions rises as the least-confident cases are
+\caption{Coverage--accuracy for tooth numbering (left) and the caries \emph{gate}
+(right); the caries panel is the retained Stage-3a variant, not the adopted lesion
+detector. Accuracy on retained predictions rises as the least-confident cases are
 declined. The vertical line marks the pre-registered threshold of 0.30, located
 on the curve rather than tuned against it.}
 \label{fig:coverage}
@@ -1149,6 +1213,7 @@ supported the opposite. Reporting either alone would have been defensible,
 publishable, and wrong.
 
 \subsection{What the system can still demonstrate}
+\label{sec:demonstrate}
 A constant cannot name a tooth, cannot express a calibrated confidence, cannot
 decline informatively, and has no behaviour under domain shift to measure. We
 propose these as the axes on which OPG systems should be compared, with our own
@@ -1157,18 +1222,22 @@ figures as an illustration of what reporting them looks like:
 \begin{enumerate}
   \item \textbf{Identification}---can it say \emph{which} tooth? Here 82.6\,\% of
         detected teeth, with the 70.6\,\% detection bound stated alongside.
-  \item \textbf{Calibration}---do its confidences behave like probabilities? ECE
-        $0.136 \rightarrow 0.043$, with the failed temperature-scaling attempt
-        reported because it diagnoses the miscalibration as structural, and with
-        the 0.550\,$\rightarrow$\,0.500 average-precision cost stated.
+  \item \textbf{Calibration}---do its confidences behave like probabilities? For
+        numbering, yes; for caries, ECE $0.136 \rightarrow 0.043$ \emph{on the
+        gate variant}, with the failed temperature-scaling attempt reported
+        because it diagnoses the miscalibration as structural, and with the
+        0.550\,$\rightarrow$\,0.500 average-precision cost stated.
   \item \textbf{Selective prediction}---does declining improve accuracy, and does
-        the gain survive a shuffle control? $+14.25$ pp, and yes.
+        the gain survive a shuffle control? $+5.91$ pp for numbering and
+        $+14.25$ pp for the caries gate, and yes to the control in both cases.
   \item \textbf{Domain shift}---measured on held-out institutions and reported per
         site, including when the answer is that a branch does not transfer.
 \end{enumerate}
 
 A constant scores nothing on any of these. That asymmetry, rather than a caries
-F1, is what the system has to show.
+F1, is what the system has to show. We hold ourselves to it: on axes 2 and 3 the
+caries branch as it now ships has no result, because the stage those numbers
+describe is no longer the default one (Section~\ref{sec:limits}).
 
 \subsection{Anticipated objections}
 \textbf{``Your pipeline is simply weak.''} Possibly, but that does not explain
@@ -1234,11 +1303,26 @@ image-blind baselines to others while declining to survive one ourselves.
 
 %% =====================================================================
 \section{Limitations}
+\label{sec:limits}
 %% =====================================================================
 
 Each item states what it prevents us from concluding.
 
 \begin{enumerate}
+  \item \textbf{The adopted caries stage has no calibrated confidence and no
+        abstention curve.} The calibration and selective-prediction results of
+        Section~\ref{sec:numbering} were measured on the per-crop gate, which
+        Section~\ref{sec:leverb} demoted to a retained variant. The lesion
+        detector that replaced it emits a detection score, and we have neither
+        fitted a calibrator for it nor re-derived a coverage--accuracy curve
+        against it; the pre-registered 0.30 threshold was located on the gate's
+        curve and does not transfer to a quantity with a different meaning. So
+        for caries, the system as it ships today demonstrates identification and
+        domain-shift behaviour but neither of the middle two axes of
+        Section~\ref{sec:demonstrate}. Numbering demonstrates all four. We regard
+        closing this as the first piece of follow-up work, and it needs its own
+        pre-registration rather than a threshold chosen once the curve is
+        visible.
   \item \textbf{No clinician comparison.} We do not know how any system here
         compares against a dentist on these images. We therefore cannot claim
         clinical utility, non-inferiority, or that the constant would mislead a
