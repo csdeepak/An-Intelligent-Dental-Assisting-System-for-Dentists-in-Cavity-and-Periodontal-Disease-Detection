@@ -1574,6 +1574,27 @@ box-prompted pseudo-masks for the box-only corpora), which we scope as future wo
 change to this submission. `models/16_detector_leverA2_finetune/run_summary.txt`,
 `outputs/lever_A2_detector_finetune/PRE_REGISTRATION.md`.
 
+**How much of the Guard-2 failure is the metric, and how much is a real deployment cost (GT-scale
+probe, `RESULTS_LOG` 2026-09-04c).** Guard 2 is box mAP@**0.5**; it was pre-registered and it
+failed, and that verdict stands. But the pipeline never asks the detector for IoU-0.5 boxes — the
+Stage-2 FDI head assigns a detection to a tooth at **IoU 0.3** (with a centroid fall-back), and
+the Stage-3 lesion matcher is looser still. Re-scoring the 150 Tufts test images at IoU-match
+0.3: the multi-corpus detector (Lever A / A2) holds **0.84** on Tufts box mAP against the
+Tufts-only control's 0.90 — a ~6-point gap, versus the ~14-point gap at IoU 0.5. Two effects
+account for the difference between the headline and this number. First, the recorded Tufts
+`teeth_bbox.json` boxes are ~15 % tighter than what a detector converges to (box mAP@0.5 peaks
+when the ground-truth boxes are dilated ×1.15, for *every* model including the Tufts-only one),
+so ~5–8 points of the mAP@0.5 gap is an annotation-tightness artefact shared by all detectors and
+not specific to the multi-corpus mix. Second, IoU 0.5 is simply a stricter bar than the pipeline
+needs. What survives both corrections is a genuine ~6-point deficit that is *box-independent* —
+the Tufts-only control beats the multi-corpus detector by a roughly constant margin at every IoU
+threshold and every ground-truth scale, which is the confidence-calibration / frozen-feature gap
+the diagnosis identified and cannot be closed by redrawing boxes. **The honest framing for the
+paper: the multi-corpus detector fails the pre-registered Tufts benchmark metric, but its cost on
+the matching threshold the pipeline actually uses is about 6 points on Tufts, not the ~22 the
+headline box-mAP drop (0.585 vs 0.810 deployed) implies** — while it gains 29–34 points on DENTEX
+end-to-end and 6–19 on every external cohort. `models/15_detector_multicorpus_leverA/repro/diagnostics/gt_scale_probe.py`.
+
 ---
 
 ### 8.17 Caries failure panel — what the 0.40 precision is actually made of
