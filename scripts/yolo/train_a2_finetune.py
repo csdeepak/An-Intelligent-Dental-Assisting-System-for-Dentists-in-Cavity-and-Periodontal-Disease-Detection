@@ -10,7 +10,9 @@ confidence distribution (Phase 0 diagnosed a calibration collapse) while the fro
 keeps the DENTEX / external-cohort gains.
 
 Every hyperparameter is byte-identical to train_multicorpus_detector_v2.py EXCEPT the four
-recorded in PRE_REGISTRATION.md §3: freeze=10, epochs=40, patience=12, warmup_epochs=1.
+recorded in PRE_REGISTRATION.md §3: freeze=11, epochs=40, patience=12, warmup_epochs=1.
+freeze=11 freezes YOLOv11l layers 0-10 (full backbone, 50.7% of params); neck 11-22 + Detect
+head 23 train (verified locally on arm3c_best.pt).
 
 Usage (on the GPU box, from data/detector_multicorpus_v2's parent or with --data-root):
     python train_a2_finetune.py --weights /home/arm3c_best.pt --data-root /home/detector_multicorpus_v2
@@ -71,7 +73,7 @@ def main():
         exist_ok=False,
 
         # --- the four knobs recorded in PRE_REGISTRATION.md §3 ---
-        freeze=10,
+        freeze=11,
         epochs=40,
         patience=12,
         warmup_epochs=1,

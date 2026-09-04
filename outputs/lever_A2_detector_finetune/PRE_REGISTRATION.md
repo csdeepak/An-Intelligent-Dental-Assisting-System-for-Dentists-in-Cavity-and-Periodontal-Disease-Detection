@@ -1,7 +1,8 @@
 # Pre-registration — Lever A2: can a target-domain fine-tune recover the Tufts benchmark without losing the multi-corpus gains?
 
-**DRAFT written 4 September 2026.** Bars are open to **one review round** with the user/mentor,
-then frozen. **No GPU is rented until this file is committed as frozen.**
+**FROZEN 4 September 2026** — reviewed by the user, bars accepted (`freeze` corrected 10 → 11
+after a local check, see §3). No knob in this file moves after this point; a failing bar is a
+reported result, not a reason to re-tune.
 
 Follow-up to Lever A (`outputs/lever_A_multicorpus_detector_v2/`, `RESULTS_LOG` 2026-09-03 + 03b +
 03c + 2026-09-04). Lever A pooled 4 corpora, doubled DENTEX end-to-end FDI (+34 pp) and lifted
@@ -20,7 +21,7 @@ The multi-corpus **backbone learned good features** — at confidence 0.10 the m
 detect Tufts teeth as well as the Tufts-only control or better (Arm 4C recall 0.80 vs 0.77). What
 degraded is the **detection head's calibration on Tufts**. So:
 
-> **Freezing the multi-corpus backbone and fine-tuning only the neck + detection head on Tufts
+> **Freezing the multi-corpus **backbone** and fine-tuning the **neck + detection head** on Tufts
 > should re-specialise the Tufts confidence distribution — recovering Tufts box mAP toward
 > Control B's — while the frozen backbone preserves the DENTEX and external-cohort gains that
 > live in the shared features.**
@@ -41,8 +42,8 @@ to be in the weights.
 
 **Is:** one training run — load `models/15_detector_multicorpus_leverA/arm3c_best.pt` (the frozen
 3-corpus Lever A checkpoint, sha256 `5d301f13fb48da5c74e7ef01bd0f91226f9b6800cb433dee5aebc8f8db8f161e`),
-freeze the backbone (`freeze=10`), fine-tune neck + head on the **Tufts-only** train list for 40
-epochs at the canonical LR. Then the identical Lever A evaluation: primary + two guards.
+freeze the backbone (`freeze=11` — verified below), fine-tune the neck + detection head on the
+**Tufts-only** train list for 40 epochs at the canonical LR. Then the identical Lever A evaluation: primary + two guards.
 
 **Is not:**
 - a re-run of the 130-epoch multi-corpus pretrain — `arm3c_best.pt` already *is* the 3-corpus
@@ -64,7 +65,7 @@ epochs at the canonical LR. Then the identical Lever A evaluation: primary + two
 | start checkpoint | `models/15_detector_multicorpus_leverA/arm3c_best.pt` (sha256 `5d301f13…`) |
 | train list | `data/detector_multicorpus_v2/train_tufts.txt` — **700 Tufts images** (identical to Lever A Control B's data) |
 | val | `data/detector_multicorpus_v2/images/val` — 150 frozen Tufts val, canonical box count 3,794 |
-| `freeze` | **10** (YOLOv11l backbone frozen; neck + detection head trainable) |
+| `freeze` | **11** (YOLOv11l backbone = layers 0–10, incl. the SPPF + C2PSA blocks, frozen; neck layers 11–22 + Detect head 23 trainable) |
 | `epochs` | **40** |
 | `patience` | **12** (early-stop on Tufts-val mAP@0.5) |
 | `warmup_epochs` | **1** |
@@ -75,10 +76,14 @@ Script: `scripts/yolo/train_a2_finetune.py` (a ~40-line companion to the Lever A
 config block above is copied from it verbatim). The Guard-2 Tufts-test `yolo val` runs on
 `best.pt` immediately after training, same as Lever A.
 
-**Rationale for the three changed knobs** (`freeze=10`, `epochs=40`, `patience=12`,
+**Rationale for the four changed knobs** (`freeze=11`, `epochs=40`, `patience=12`,
 `warmup_epochs=1`), recorded so they are visibly *not* moved after seeing results:
-- `freeze=10` — Phase 0 says the failure is head calibration, not features; freezing the
-  backbone targets that and maximally protects the DENTEX/external gains.
+- `freeze=11` — Phase 0 says the failure is head calibration, not features; freezing the whole
+  backbone targets that and maximally protects the DENTEX/external gains. **Verified locally on
+  `arm3c_best.pt` (24 layers, 25.3 M params):** `freeze=11` freezes layers 0–10 = 12.83 M params
+  (50.7 %), leaving the neck + head (12.48 M, 49.3 %) trainable. `freeze=10` would leave the
+  final C2PSA attention block (1.46 M) trainable too — a fuzzier "backbone" boundary, so 11.
+  `freeze=23` (Detect head only, 1.4 M / 5.6 %) was judged too small to move calibration.
 - `epochs=40` / `patience=12` — a light fine-tune of an already-trained head on 700 images;
   40 gives room, patience 12 stops it when Tufts-val plateaus. Chosen once, not tuned.
 
@@ -135,10 +140,9 @@ default unchanged) and keeps the paper's schedule off the critical path of a sin
    checkpoint. Fine-tuning from it is the right starting point for *this* goal but means A2's
    Tufts recovery is measured from a slightly optimistic base. Stated, not corrected (`last.pt`
    was not downloaded from the Lever A box).
-3. **`freeze=10` boundary.** YOLOv11l's backbone/neck split is around module 10; `freeze=10`
-   freezes modules 0–9. If the calibration problem lives partly in the neck (trained here) this
-   is fine; if it needs backbone movement, A2 under-fits Tufts and GUARD 2 fails — an informative
-   negative, not a wasted run.
+3. **`freeze=11` boundary.** The full backbone (layers 0–10) is frozen; the neck (11–22) and
+   Detect head (23) train. If the calibration fix needs *backbone* movement, A2 under-fits Tufts
+   and GUARD 2 fails — an informative negative (points at segmentation, §8.9), not a wasted run.
 4. **A2 and Lever B both land.** If both produce adopt-worthy positives, there are two candidate
    pipeline changes and a harder adoption call — a good problem, resolved with the mentor.
 5. **Schedule.** A2 itself is ~1 h GPU + ~½ day local eval. The risk is *adoption* (the
@@ -151,7 +155,7 @@ default unchanged) and keeps the paper's schedule off the critical path of a sin
 1. `arm3c_best.pt` sha256 == `5d301f13fb48da5c74e7ef01bd0f91226f9b6800cb433dee5aebc8f8db8f161e`.
 2. `data/detector_multicorpus_v2/` re-gated on the box (tar sha256, no AppleDouble, `train_tufts.txt`
    = 700 lines, val = 150 / 3,794 boxes) — the Lever A `leverA_box_gate.py` covers this.
-3. `train_a2_finetune.py` prints the `freeze=10` layer list and refuses CPU, like the Lever A trainer.
+3. `train_a2_finetune.py` prints the frozen-layer list (expect layers 0–10) and refuses CPU.
 
 ---
 
