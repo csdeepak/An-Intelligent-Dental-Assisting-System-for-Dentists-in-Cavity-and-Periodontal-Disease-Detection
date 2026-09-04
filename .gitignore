@@ -141,6 +141,9 @@ outputs/lever_A_multicorpus_detector_v2/**/*.pt
 !outputs/lever_B_lesion_caries_path/
 !outputs/lever_B_lesion_caries_path/**
 outputs/lever_B_lesion_caries_path/**/*.pt
+!outputs/lever_A2_detector_finetune/
+!outputs/lever_A2_detector_finetune/**
+outputs/lever_A2_detector_finetune/**/*.pt
 !outputs/lesion_loc_pipeline/
 !outputs/lesion_loc_pipeline/**
 !outputs/lesion_localization_segdet/
