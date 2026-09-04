@@ -6216,3 +6216,42 @@ ABLATION; pipeline default detector unchanged.
   (same Drive gap as models/11–15). (4) **Lever B** (the friend, Windows) is now the only
   active score lever. (5) `transfer.md` GPU balance was ₹1,732, actually ₹1,184.84 before A2 —
   a ~₹547 gap to explain (not this session's spend).
+
+
+## 2026-09-04c — GT-scale probe: the Tufts Guard-2 gap is NOT a box-convention problem (no new model)
+
+Follow-up to A2 (`RESULTS_LOG` 2026-09-04b), answering "is the Tufts GT ~1.5× too tight, and
+would fixing it recover the multi-corpus detector?". `models/15_detector_multicorpus_leverA/repro/diagnostics/gt_scale_probe.py`
+— Control B / arm3c / A2 run on the 150 Tufts test images at conf 0.001, box mAP vs the GT with
+the GT boxes scaled about their centre by s ∈ {1.0, 1.15, 1.3, 1.5, 1.7}, at IoU-match {0.3, 0.5}.
+
+- **Metrics** (box mAP; s = GT scale factor):
+
+  | model | @IoU 0.5, s=1.0 / 1.15 / 1.5 | @IoU 0.3, s=1.0 |
+  |---|---|---|
+  | Control B (Tufts-only) | 0.704 / **0.783** / 0.570 | **0.904** |
+  | arm3c (Lever A) | 0.538 / 0.577 / 0.206 | 0.834 |
+  | A2 (Tufts head FT) | 0.566 / 0.609 / 0.225 | **0.842** |
+
+- **Findings:**
+  1. **The "1.5×" is a between-corpus comparison** (DENTEX GT boxes are 1.49× Tufts GT area,
+     `box_conv.py`), **not a factor applied to Tufts.** The offset between detector predictions
+     and the recorded Tufts GT is only **~1.15×** — mAP@0.5 peaks at s = 1.15 for all three
+     models; s = 1.5 is catastrophic. The recorded Tufts boxes are ~15 % tight, not 1.5× tight.
+  2. **Most of the Guard-2 "failure" is the IoU-0.5 threshold.** At **IoU-match 0.3** — what the
+     pipeline's FDI head actually uses — A2 = **0.842**, Control B = 0.904, gap ~6 pts (vs ~14
+     at IoU 0.5). On the metric the pipeline needs, arm3c/A2 retain most of the Tufts performance.
+  3. **The residual deficit is real and box-independent.** Control B beats arm3c/A2 by a roughly
+     constant margin at *every* IoU threshold and *every* GT scale (~6 pts @0.3, ~13–17 @0.5).
+     Rescaling the GT does not close it — it is the calibration / frozen-feature gap from Phase 0
+     and A2.
+- **Key insight:** a box-convention change is **not** a lever for the multi-corpus detector.
+  What it *does* show, and this is useful for the paper: the Lever A / A2 Guard-2 "failure" is
+  **substantially a strict-threshold artefact** — at the IoU-0.3 matching the pipeline uses, the
+  multi-corpus detector holds **0.84 on Tufts** and 0.93 on DENTEX. The pre-registered
+  mAP@0.5 verdict stands (bar not moved); this is post-hoc context showing the deployment impact
+  is smaller than the headline number.
+- **Source:** `models/15_detector_multicorpus_leverA/repro/diagnostics/gt_scale_probe.py`;
+  `outputs/lever_A_multicorpus_detector_v2/TUFTS_GUARD2_DIAGNOSIS.md` §1.4c.
+- **Follow-ups:** fold the IoU-0.3 reframing into `PAPER_MATERIAL.md` §8.16 (pending user call
+  on whether to also re-pre-register a pipeline-relevant Tufts guard). Lever B unaffected.

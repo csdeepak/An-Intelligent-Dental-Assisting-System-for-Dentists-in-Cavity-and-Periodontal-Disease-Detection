@@ -166,6 +166,40 @@ So the mechanism is **not** "the model can't find Tufts teeth" and **not** "the 
 wrong shape" — it is "with Tufts a minority of training, the model's confidence on Tufts
 detections is no longer trustworthy," and a ranking metric punishes that hardest.
 
+### 1.4c Post-A2 (4 Sep) — the GT-scale probe: is the Tufts GT "1.5× too tight"?
+
+`repro/diagnostics/gt_scale_probe.py` — run each detector on the 150 Tufts test images at
+conf 0.001, compute box mAP against the GT with the **GT boxes scaled about their centre** by
+s ∈ {1.0, 1.15, 1.3, 1.5, 1.7}, at IoU-match {0.3, 0.5}:
+
+| model | @IoU | s=1.0 | s=1.15 | s=1.3 | s=1.5 | s=1.7 |
+|---|---|---|---|---|---|---|
+| Control B | 0.3 | 0.904 | 0.910 | 0.912 | 0.912 | 0.900 |
+| Control B | 0.5 | 0.704 | **0.783** | 0.755 | 0.570 | 0.148 |
+| arm3c | 0.3 | 0.834 | 0.848 | 0.846 | 0.833 | 0.771 |
+| arm3c | 0.5 | 0.538 | 0.577 | 0.512 | 0.206 | 0.019 |
+| **A2** | **0.3** | **0.842** | 0.855 | 0.856 | 0.848 | 0.785 |
+| **A2** | 0.5 | 0.566 | **0.609** | 0.550 | 0.225 | 0.021 |
+
+1. **The "1.5×" is a between-corpus comparison, not a factor on Tufts.** DENTEX GT boxes are
+   1.49× Tufts GT *area* (`box_conv.py`). The offset between what the *detectors* predict and
+   the recorded Tufts GT is only **~1.15×** — mAP@0.5 peaks at s = 1.15 for all three models,
+   and s = 1.5 is catastrophic (A2 0.57 → 0.23). The recorded Tufts boxes are ~15 % tight; they
+   are not 1.5× tight.
+2. **Most of the "Guard-2 failure" is the IoU-0.5 threshold.** At IoU-match **0.3** — exactly
+   what the pipeline's FDI head uses — A2 scores **0.842** and the gap to Control B (0.904) is
+   ~6 pts, not the ~14 at IoU 0.5. On the metric the *pipeline* needs, A2/arm3c retain most of
+   the Tufts performance.
+3. **The residual deficit is real and box-independent.** At *every* IoU threshold and *every*
+   GT scale, Control B beats arm3c/A2 by a roughly constant margin (~6 pts @0.3, ~13–17 pts
+   @0.5). Loosening or tightening the GT does **not** close it. This is the calibration /
+   feature-quality gap from §1.4b and A2 — a genuine difference between a from-scratch Tufts
+   detector and one built on frozen 3-corpus features, and it does not respond to how the boxes
+   are drawn.
+
+**So a box-convention change is not the lever.** The ~15 % tightness is worth ~5–8 mAP@0.5 pts,
+is shared by all models, and does not help the multi-corpus detector relative to Control B.
+
 ### 1.5 Hypothesis B — Tufts label hygiene — real but minor
 
 Tufts boxes come from the original Labelbox export (`teeth_bbox.json`, Dec 2021), **not** from
