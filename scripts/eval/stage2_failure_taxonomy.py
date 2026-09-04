@@ -76,6 +76,9 @@ def main():
     ap.add_argument("--control", type=Path, default=DEF_CTL)
     ap.add_argument("--out", type=Path, default=DEF_OUT)
     ap.add_argument("--fig", type=Path, default=DEF_FIG)
+    ap.add_argument("--label", default="164 leak-free DENTEX images",
+                    help="dataset description for the printout")
+    ap.add_argument("--fig-name", default="stage2_failure_taxonomy.png")
     args = ap.parse_args()
 
     rows = json.loads(args.rows.read_text(encoding="utf-8"))
@@ -93,7 +96,7 @@ def main():
         if c == "off_by_one":
             drift["distal (+1)" if (pred % 10) > (gt % 10) else "mesial (-1)"] += 1
 
-    print(f"STAGE 2 FAILURE TAXONOMY — {n} ground-truth teeth, 164 leak-free DENTEX images")
+    print(f"STAGE 2 FAILURE TAXONOMY — {n} ground-truth teeth, {args.label}")
     print(f"source: {args.rows.name} (already-saved evaluation; nothing re-run)\n")
     order = ["correct", "not_detected", "off_by_one", "same_quadrant_far",
              "mirror_lr", "wrong_arch", "other"]
@@ -179,7 +182,7 @@ def main():
         ax[1].set_title("Numbering error rate by tooth position")
         fig.tight_layout()
         args.fig.mkdir(parents=True, exist_ok=True)
-        fp = args.fig / "stage2_failure_taxonomy.png"
+        fp = args.fig / args.fig_name
         fig.savefig(fp, dpi=160)
         print(f"\n  figure -> {fp}")
     except Exception as exc:

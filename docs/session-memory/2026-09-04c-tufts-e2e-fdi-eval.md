@@ -68,8 +68,22 @@ boxes flood the assignment). conf 0.25 is near-optimal.
 2. `models/06`'s Tufts advantage is at conf 0.25 — a per-detector conf tune was not done
    (would contaminate; conf 0.25 is the frozen pipeline default).
 
+## Continued — Tufts failure taxonomy (same session, `RESULTS_LOG` 2026-09-04e)
+
+Ran `scripts/eval/stage2_failure_taxonomy.py` on the Tufts rows — added `--label` + `--fig-name`
+args (DENTEX defaults unchanged, regression verified: 546/275/89/10/8/6/2). `models/11` main,
+`models/06` control.
+
+- Tufts: correct **64.8 %**, not_detected **18.2 %** (vs DENTEX 29.4 %), off_by_one 12.6 %,
+  category errors (wrong_arch + mirror_lr) **3.2 %** of teeth. 74 % of numbering errors are
+  off-by-one. 43/49 `mirror_lr` are central incisors — not a mirror-correction bug.
+- **The detector swap's effect on Tufts is the reverse of DENTEX:** bbox→seg moved `correct`
+  71.5 → 64.8, entirely via `not_detected` 9.6 → 18.2 — error shape unchanged. On DENTEX the
+  swap improved the shape (`wrong_arch` −75 %). The seg detector's box-quality benefit is
+  cross-domain; on Tufts (in-domain, bbox already clean) it only cost recall.
+- Reverted the no-op regen of the DENTEX taxonomy fig + json (Windows path only differed).
+
 ## Next steps
 
 1. **Lever B** — the friend, on Windows. Still the only active *score* lever.
-2. Optionally: the Tufts failure taxonomy (open question 1).
-3. Commit this session's work.
+2. Commit this session's work.

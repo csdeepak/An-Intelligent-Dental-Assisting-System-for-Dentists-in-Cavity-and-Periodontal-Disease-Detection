@@ -157,6 +157,11 @@ Tufts end-to-end (64.8%, deployed) is **above** DENTEX (58.3%) — in-domain det
 beats the deployed seg detector on Tufts end-to-end (71.5 vs 64.8, recall-driven at conf 0.25) —
 the 27 Aug swap that gained +12 pp on DENTEX cross-domain costs −6.7 pp on Tufts in-domain.
 
+Failure taxonomy (`RESULTS_LOG` 2026-09-04e, same buckets as DENTEX): correct 64.8%,
+not_detected 18.2%, off_by_one 12.6%, category errors (wrong_arch + mirror_lr) 3.2%. The
+bbox→seg swap moved Tufts `correct` 71.5→64.8 **entirely via `not_detected`** — every error
+bucket unchanged, the reverse of the swap's shape-improving effect on DENTEX (`wrong_arch` −75%).
+
 > **Reproduction caveat, stated rather than hidden:** the control re-run of the *bbox*
 > configuration on this machine gave **67.3% / 46.3%**, against the **67.0% / 46.5%** originally
 > published — a ~3-tooth drift, consistent with CPU-vs-GPU float differences and inside the
@@ -229,9 +234,9 @@ The Guard-2 failure is **monotonic in corpus count** — Tufts-only 0.724 → +D
 +UFBA 0.552 — and *worse* than Lever 1's 0.647: balanced sampling drops Tufts to 33 % of the
 mix, and a corpus's own held-out box mAP scales with its training share. The 92.8 % is an
 **in-domain** number (DENTEX-trained detector on held-out DENTEX), like Lever 1's 93.4 %; the
-same detector scores 0.585 on Tufts test.
-
----
+same detector scores 0.585 on Tufts test.
+
+---
 
 ### Lever A2 — Tufts head fine-tune of the Lever A detector (4 Sep 2026) — **ABLATION, NOT adopted**
 

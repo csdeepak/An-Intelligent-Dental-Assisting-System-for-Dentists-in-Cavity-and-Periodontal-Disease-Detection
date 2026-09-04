@@ -1499,6 +1499,45 @@ statistically significant, this says the seg detector's contribution is box *qua
 That is a mechanism claim with evidence behind it, and it is the kind of stage-wise error
 attribution contribution [C3] promises.
 
+**The same taxonomy on TUFTS (4 Sep 2026, `RESULTS_LOG` 2026-09-04d).** Now that there is a
+Tufts end-to-end eval (§8.10), the identical seven-bucket taxonomy runs on it —
+`stage2_failure_taxonomy.py --rows outputs/stage2_tufts/...`, 3,760 permanent teeth, no
+inference re-run. Figure `figures/paper/stage2_failure_taxonomy_tufts.png`.
+
+| Outcome | DENTEX (936) | **Tufts (3,760)** |
+|---|---|---|
+| correct | 58.3 % | **64.8 %** |
+| not_detected | 29.4 % | **18.2 %** |
+| off_by_one | 9.5 % | 12.6 % |
+| same_quadrant_far | 1.1 % | 2.0 % |
+| mirror_lr | 0.9 % | 1.3 % |
+| wrong_arch | 0.6 % | 0.5 % |
+| other | 0.2 % | 0.6 % |
+
+The extra 6.5 points of "correct" on Tufts is entirely the lower miss rate (18.2 % vs 29.4 %) —
+the detector is in-domain. Among *detected* teeth the wrong-code rate is slightly *higher* on
+Tufts (20.7 % vs 17.4 %), because Tufts scores every tooth including the crowded anterior
+region, where DENTEX mostly annotates posterior pathology. The error *shape* is the same:
+**74 % of Tufts numbering errors are benign off-by-one neighbours, 3.2 % are category mistakes**
+(wrong_arch + mirror_lr — vs 12.2 % for DENTEX, and 43 of the 49 Tufts `mirror_lr` errors are
+central incisors, i.e. midline teeth, not a systematic mirror-correction fault). Molars are the
+easiest position (9–11 % wrong) and premolars/incisors the hardest (22–31 %), the same rank
+order as DENTEX. Off-by-one leans distal on Tufts (285 : 188) where it leaned mesial on DENTEX
+(53 : 36) — both ~1.5 : 1, opposite directions, consistent with the different failure modes
+(DENTEX under-detects posteriorly → anterior teeth number too low; Tufts detects densely and
+the head miscounts in crowded regions).
+
+**And the detector swap's effect on Tufts is the reverse of its effect on DENTEX.** Running the
+taxonomy with the *bbox* detector (`models/06`) as the control: on Tufts the seg swap moved
+`correct` 71.5 % → 64.8 %, and the entire delta is `not_detected` 9.6 % → 18.2 % — every error
+bucket (off_by_one, mirror_lr, wrong_arch) is unchanged to within a point. On DENTEX the same
+swap *improved* the error shape (`wrong_arch` −75 %, FDI-exact-of-detected +13.9 pp) because it
+suppressed the spurious boxes that perturb the Hungarian assignment. The seg detector's
+box-quality benefit is a **cross-domain** benefit — it mattered where the bbox detector was
+noisy (DENTEX); on its home corpus, where the bbox detector was already clean, the swap only
+cost recall. This is a concrete illustration of the paper's point that box mAP does not capture
+detector–Stage-2 coupling.
+
 **Direct confirmation that detection DOMAIN is the ceiling (1 Sep 2026, `RESULTS_LOG` 2026-09-01h).**
 Lever 1 re-trained the detector on Tufts **+ DENTEX** `quadrant_enumeration` (disjoint patients
 from the 164-image benchmark — leakage ruled out by MD5, filename and perceptual hash). Against

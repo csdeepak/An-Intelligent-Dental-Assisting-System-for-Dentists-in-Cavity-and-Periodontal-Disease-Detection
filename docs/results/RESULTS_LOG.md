@@ -6303,3 +6303,41 @@ a real end-to-end accuracy, unlike DENTEX which only annotates ~6 pathological t
 - **Follow-ups:** (1) `PAPER_MATERIAL.md` §8.10 + `model_metrics.md` Stage-2 — add the Tufts
   end-to-end row + insights 2 & 3. (2) Insight 3 (bbox vs seg on Tufts e2e) is paper-worthy —
   fold into §8.16's detector–Stage-2 discussion. (3) No GPU used.
+
+
+## 2026-09-04e — Tufts Stage-2 failure taxonomy: same error shape as DENTEX, opposite detector-swap effect
+
+Extends `RESULTS_LOG` 2026-09-04d. Ran the existing `scripts/eval/stage2_failure_taxonomy.py`
+(gave it `--label` + `--fig-name` args — DENTEX defaults unchanged, regression verified) on the
+Tufts end-to-end rows: 3,760 permanent teeth, `models/11` main vs `models/06` (bbox) control.
+No inference re-run.
+
+- **Metrics** (fraction of 3,760 GT teeth):
+
+  | outcome | DENTEX | **Tufts** |
+  |---|---|---|
+  | correct | 58.3 % | **64.8 %** |
+  | not_detected | 29.4 % | **18.2 %** |
+  | off_by_one | 9.5 % | 12.6 % |
+  | same_quadrant_far | 1.1 % | 2.0 % |
+  | mirror_lr | 0.9 % | 1.3 % |
+  | wrong_arch | 0.6 % | 0.5 % |
+  | other | 0.2 % | 0.6 % |
+
+  Of detected teeth: 20.7 % wrong code (DENTEX 17.4 %). **74 % of Tufts numbering errors are
+  off-by-one; 3.2 % are category errors** (wrong_arch + mirror_lr). 43 of 49 `mirror_lr` errors
+  are central incisors (midline) — not a systematic mirror-correction fault. Molars easiest
+  (9-11 % wrong), premolars/incisors hardest (22-31 %) — same rank as DENTEX. Off-by-one leans
+  distal (285:188) where DENTEX leaned mesial (53:36).
+- **Key insight — the detector swap's effect on Tufts is the reverse of DENTEX.** bbox->seg
+  control: `correct` 71.5 % -> 64.8 %, and the whole delta is `not_detected` 9.6 % -> 18.2 %;
+  every error bucket is unchanged to <1 pt. On DENTEX the same swap *improved* the error shape
+  (`wrong_arch` -75 %, of-detected +13.9 pp). **The seg detector's box-quality benefit is
+  cross-domain** — it suppressed the spurious boxes that perturb the Hungarian on DENTEX; on
+  Tufts (in-domain) the bbox detector was already clean, so the swap only cost recall. A clean
+  illustration that box mAP does not capture detector-Stage-2 coupling.
+- **Source:** `scripts/eval/stage2_failure_taxonomy.py`
+  (`--rows outputs/stage2_tufts/... --control outputs/stage2_tufts_bbox06/...`),
+  `outputs/stage2_taxonomy_tufts/stage2_failure_taxonomy.json`,
+  `docs/results/figures/paper/stage2_failure_taxonomy_tufts.png`. Folded into `PAPER_MATERIAL.md`
+  §8.16. No GPU.

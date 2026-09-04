@@ -99,6 +99,9 @@ outputs/*
 !outputs/stage2_control_olddet/**
 !outputs/stage2_taxonomy/
 !outputs/stage2_taxonomy/**
+# Tufts Stage-2 failure taxonomy (4 Sep 2026) -- same buckets as the DENTEX one.
+!outputs/stage2_taxonomy_tufts/
+!outputs/stage2_taxonomy_tufts/**
 # Tufts end-to-end FDI eval (4 Sep 2026) -- the Stage-2 number the paper lacked.
 # JSON only (summary + per-image + rows), a few hundred KB. viz/ stays local.
 !outputs/stage2_tufts/
