@@ -6246,3 +6246,86 @@ this did not re-open the pre-registration or move any bar.**
   lost to this; recorded so the next script that shells out to `model.train(project=..., ...)`
   checks the real output path rather than trusting the argument it passed. (3) Neither arm is
   adopted; the pipeline's Stage-3 caries path stays gate v3.0 until Sec 6 is actually met.
+
+---
+
+## 2026-09-04c — Lever B: Ningxia scored, Sec 6 MET, B-pooled ADOPTED as Stage 3
+
+- **What was done:** The Ningxia dataset was located on this machine (`D:\nangxia_dataset`,
+  already in the exact `segmentation/{category}/{split}/{img,mask}` layout
+  `ningxia_external.py` expects — no copy needed, `--root` points at it directly). Ran the same
+  frozen eval (pipeline, constant-molars, B-single lesion-detector, B-pooled lesion-detector) on
+  the full `dental_caries` category, all 4 hospital splits (337 images, 1,013 lesions — matches
+  the pre-registered count exactly). `lever_b_bootstrap.py` extended to fold Ningxia in as the
+  third cohort (a third, distinct `per_image` key naming scheme —
+  `n_lesions`/`n_covered`/`n_predicted_positive` — normalised alongside DENTEX's and
+  CariesXrays'; Ningxia filenames repeat across splits, so the pairing key was made
+  `category/split/image`, not `image` alone, to avoid silently collapsing two different
+  hospitals' images together). Then **adopted B-pooled as the pipeline's Stage-3 caries path**,
+  per the pre-registration's own Sec 6 text ("wire the lesion detector in ... pipeline Stage 3
+  updated").
+- **Metrics — Ningxia, full `dental_caries` cohort, paired cluster bootstrap (10k resamples):**
+
+  | | gate v3.0 | constant-molars | B-single | **B-pooled** |
+  |---|---|---|---|---|
+  | Ningxia (337 img, 1,013 lesions) | 40.8% | 39.9% | 24.0% [20.9,27.2] | **50.0% [46.3,53.9]** |
+  | vs constant | — | — | −15.9pp, excludes 0 (loss) | **+10.2pp [+6.3,+14.0], excludes 0 (win)** |
+  | vs gate | — | — | −16.8pp, excludes 0 (loss) | **+9.3pp [+5.3,+13.3], excludes 0 (win)** |
+
+  B-single loses Ningxia too — same failure-to-transfer pattern as DENTEX, confirming the
+  transfer failure is a property of CariesXrays-only training, not of lesion detection itself.
+  B-pooled **wins** Ningxia decisively — not a tie like its own DENTEX result.
+- **Full Sec 6 table, all three cohorts, B-pooled:**
+
+  | cohort | cond1 (beats constant) | cond2 (rate ≤1.5×) | cond3 (beats gate) | verdict |
+  |---|---|---|---|---|
+  | DENTEX | False (tie, CI incl. 0) | True | False (tie, CI incl. 0) | fail |
+  | CariesXrays | True | True | True | **PASS** |
+  | Ningxia | True | True | True | **PASS** |
+
+  **2 of 3 cohorts pass all three conditions. Sec 6 requires ≥2 of 3. Rule MET.** The bar was
+  frozen 4 Sep, before any of these numbers existed (`ef3f453`); nothing was moved to make this
+  pass.
+- **Key decision or insight:** **Adopted B-pooled as Stage 3**, per the pre-registration's own
+  outcome table. This is the first time in this project's history that anything has decisively
+  beaten the image-blind molar constant that had tied-or-beaten the caries branch on every one
+  of six cohorts (`PAPER_MATERIAL.md` §8.22/8.24/8.25) — five prior attempts to fix the gate
+  directly (CLAHE, crop expansion, position-balanced sampling, gate v4, threshold tuning) all
+  failed with CIs spanning zero. **Adoption is a mechanism change, not a constant swap**: the
+  lesion detector is a whole-image DETECTOR, not a per-crop classifier, so Stage 3's actual
+  computation changed (`src/classifiers.run_caries_lesion_detector`, new — maps predicted lesion
+  boxes to the tooth box each overlaps most via argmax containment, then reuses the existing
+  severity classifier on flagged teeth only). The old gate is retained, unchanged and fully
+  functional, via `--caries-method gate` — every pre-4-Sep caries number stays reproducible.
+  **DENTEX is a tie, not a win, and is reported as such everywhere** — this is not "solved
+  everywhere," and the report's own limitations text says so on every run.
+- **Implementation:** `lesion_preds_to_tooth_idx` and the raw lesion-detector call moved from
+  `scripts/eval/ningxia_external.py` (eval-only) to `src/classifiers.py` (production) — Stage 3
+  now owns the primitive it depends on, rather than depending on an eval script; the three eval
+  scripts import it back from there. `run_inference.py` gained `DEF_CARIES_LESION_MODEL`,
+  `--caries-method {lesion-detector,gate}` (default `lesion-detector`), and
+  `--caries-lesion-conf` (frozen 0.25). `load_models()` loads both caries mechanisms
+  unconditionally (same pattern as every other stage). The report schema's
+  `limitations.caries_gate_precision` key is renamed `caries_method_caveat` (content now
+  depends on which method ran; `app.py`'s one reference updated) — the old gate-specific text
+  would have been actively misleading under the new default. `gate_confidence` on a
+  lesion-detector report is a raw detection score, not a softmax probability, and is flagged
+  `gate_confidence_is_detection_not_softmax` so it is never misread as the old field's meaning.
+  Regression-checked: the refactor reproduces the pre-refactor smoke-test numbers byte-for-byte,
+  **159/159 tests pass**, `verify_invariants.py` all-hold.
+- **Source:** `outputs/lever_b_eval/ningxia_{pipeline,constant,lesion_b_single,lesion_b_pooled}/
+  ningxia_external.json`; `outputs/lever_b_eval/acceptance_rule_B-pooled.json` (full 3-cohort
+  verdict); `scripts/eval/lever_b_bootstrap.py`; `src/classifiers.py`
+  (`run_caries_lesion_detector`, `lesion_preds_to_tooth_idx`, `run_lesion_detector_raw`);
+  `scripts/run_inference.py` (`DEF_CARIES_LESION_MODEL` block); `outputs/lever_B_lesion_caries_path/PRE_REGISTRATION.md` Sec 6 (frozen, `ef3f453`).
+- **Follow-ups:** (1) `docs/results/model_metrics.md` — Stage 3's current-best caries numbers
+  need updating to the adopted mechanism (this session). (2) `PAPER_MATERIAL.md` §8.22/8.24/8.25
+  — the caries-constant-dominance narrative needs the resolution folded in, honestly scoped to
+  "2 of 3 cohorts, not universal" (this session). (3) The Docker image predates this change and
+  needs a rebuild before any demo (`transfer.md` §3 item 8 already flagged this for the
+  isotonic-calibration wiring; now doubly stale). (4) `C4` abstention curves and any other
+  downstream number computed FROM the caries gate's confidence distribution have not been
+  re-run against the new mechanism — flagged, not done, out of scope for this pass. (5) The
+  `app.py` "Caries conf (cal.)" column shows "—" for every tooth under the new default (no
+  isotonic calibration for a detection score) — not broken, just less informative; a future
+  session could add a lesion-detector-appropriate confidence display.

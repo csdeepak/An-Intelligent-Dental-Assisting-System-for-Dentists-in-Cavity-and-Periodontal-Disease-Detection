@@ -884,20 +884,28 @@ behind Lever B.
 + 2026-09-03 + 03b + 03c, [`PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) §8.10,
 [`TUFTS_GUARD2_DIAGNOSIS.md`](outputs/lever_A_multicorpus_detector_v2/TUFTS_GUARD2_DIAGNOSIS.md).
 
-**Lever B — a lesion-detection caries path that is not base-rate dominated — ran 4 Sep.** Both
-arms trained and evaluated on the frozen tooth-level lesion-agreement metric across DENTEX +
-CariesXrays: **B-single** (`models/14`, reused zero-GPU) wins CariesXrays decisively (69.4% vs.
-gate 31.7% / constant 56.2%) but loses DENTEX decisively (8.6%) — the pre-registered
-"wins in-domain, fails to transfer" outcome. **B-pooled** (`models/16`, new training, adds
-DENTEX-domain data) recovers DENTEX to a **statistical tie** (45.5%, CI includes zero against
-both comparators) at a ~1pp cost to the still-decisive CariesXrays win (68.4%) — not one of the
-pre-registration's discrete outcome bins, recorded as its own honest result. **The acceptance
-rule is not yet met by either arm** (needs ≥2 of 3 cohorts; only 1 of 2 scored passes) —
-**Ningxia is the deciding cohort and is not on this machine.** Full detail:
-[`RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) 2026-09-04 / 04b,
-[`docs/session-memory/2026-09-04a-lever-b-build-and-both-arms.md`](docs/session-memory/2026-09-04a-lever-b-build-and-both-arms.md).
-Next: get Ningxia, re-run the (already-wired) eval + `scripts/eval/lever_b_bootstrap.py` a third
-time for the real verdict — [`outputs/lever_B_lesion_caries_path/START_HERE.md`](outputs/lever_B_lesion_caries_path/START_HERE.md).
+**Lever B — a lesion-detection caries path that is not base-rate dominated — ADOPTED 4 Sep.**
+Both arms trained and evaluated on the frozen tooth-level lesion-agreement metric across all
+three pre-registered cohorts: **B-single** (`models/14`, reused zero-GPU) wins CariesXrays
+decisively (69.4% vs. gate 31.7% / constant 56.2%) but loses DENTEX (8.6%) and Ningxia (24.0%)
+decisively — CariesXrays-only training does not transfer. **B-pooled** (`models/16`, new
+training, adds DENTEX-domain data) recovers DENTEX to a **statistical tie** (45.5%, CI includes
+zero against both comparators — not a win, reported as such), holds the CariesXrays win (68.4%),
+and **wins Ningxia decisively** (50.0% vs. gate 40.8% / constant 39.9%, both deltas CI-excluding
+zero). **2 of 3 cohorts pass the pre-registered acceptance rule → adopted as the pipeline's
+Stage-3 default.** First mechanism in this project's history to decisively beat the image-blind
+constant that had tied-or-beaten the caries branch on every one of six cohorts (§8.22/8.24/8.25)
+— five prior attempts to fix the gate directly all failed. **Not solved everywhere: DENTEX is a
+tie, and the report says so on every run.** The gate is retained, unchanged, via
+`--caries-method gate` for every pre-4-Sep number's reproducibility.
+[`run_inference.py`](scripts/run_inference.py) defaults to the lesion detector now;
+[`src/classifiers.py`](src/classifiers.py) gained `run_caries_lesion_detector`. Pipeline
+parameter count recomputed: caries path 61.2M → **75.3M**, whole pipeline 83.6M → **97.7M**
+([`model_metrics.md`](docs/results/model_metrics.md)). 159/159 tests pass. `main.tex` itself is
+not yet updated — [`PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) §8.26 stages the
+resolution. Full detail: [`RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) 2026-09-04 through 04c,
+[`docs/session-memory/2026-09-04a-lever-b-build-and-both-arms.md`](docs/session-memory/2026-09-04a-lever-b-build-and-both-arms.md)
++ [`2026-09-04b-ningxia-and-lever-b-adoption.md`](docs/session-memory/2026-09-04b-ningxia-and-lever-b-adoption.md).
 **D** (a bone-loss second corpus, now possible via the openly-released BRAR dataset) is opt-in.
 If the tracks conflict for time, the write-up wins.
 [`transfer.md`](transfer.md) §3.

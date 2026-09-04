@@ -2054,12 +2054,84 @@ Source: `RESULTS_LOG.md` 2026-09-02b, `models/14_cariesxrays_lever2/run_summary.
 
 ---
 
+### 8.26 The caries-constant problem, resolved on 2 of 3 cohorts — Lever B adopted
+
+§8.22 and §8.24 diagnosed *why* the tooth-level caries gate loses to an image-blind constant:
+it "scores teeth partly by which tooth they are," its mean score on genuinely healthy teeth
+tracking the training base rate for that position. §8.25 showed the same pattern generalises to
+a sixth cohort, at cohort scale, with the constant winning outright. **Five direct attempts to
+fix the gate — threshold tuning, per-tooth-type thresholds, a 2.67×-larger positive set (gate
+v4), CLAHE, a 1.25× crop, position-balanced sampling — all returned effects with confidence
+intervals spanning zero** (§8.24). Every prior number in §8.22/§8.24/§8.25 stands unchanged;
+this section is the resolution, not a correction to them.
+
+**Lever B changed the task rather than the model.** Instead of classifying a per-tooth crop
+(where the position prior lives), a single-class YOLOv11l detector localises the lesion
+directly — a mechanism with no per-tooth prior to lean on, tested against the *exact* metric
+the constant was winning on: does the pipeline flag the tooth an expert-annotated lesion is
+actually on? Pre-registered acceptance (`outputs/lever_B_lesion_caries_path/
+PRE_REGISTRATION.md` Sec 6, frozen before any of the numbers below existed): beats the constant
+**and** the gate, 95% CI excluding zero, on **≥2 of 3 external cohorts**, at ≤1.5× the
+constant's flagging rate.
+
+Two arms were tested. **B-single** (trained on CariesXrays only, `models/14`, reused zero-cost
+from §8.25's Lever 2) won CariesXrays decisively but **lost DENTEX decisively** (8.6% vs. the
+gate's 44.3% / constant's 48.9%, both deltas excluding zero the wrong way) and lost Ningxia too
+— exactly the domain-transfer failure this project's whole external-validation thesis
+(§8.1–§8.13) would predict from a single-corpus model. **B-pooled** added DENTEX-domain caries
+boxes to the training data (whole-tooth granularity, a domain adapter, not a second lesion-box
+source — `scripts/dentex/build_dentex_caries_boxes.py`) and recovered DENTEX to a **statistical
+tie** with both comparators, at negligible cost to the still-decisive CariesXrays win:
+
+| cohort | gate v3.0 | image-blind constant | **lesion detector (B-pooled)** | Sec 6 |
+|---|---|---|---|---|
+| DENTEX (148 img, 479 çürük) | 44.3% | 48.9% | 45.5% [40.9, 50.1] — tie, CI incl. 0 | fail |
+| CariesXrays-val (1,200 img) | 31.7% | 56.2% | **68.4% [66.4, 70.4]**, Δ+12.2/+36.7 pp, CI excl. 0 | **PASS** |
+| Ningxia (337 img, 1,013 lesions) | 40.8% | 39.9% | **50.0% [46.3, 53.9]**, Δ+10.2/+9.3 pp, CI excl. 0 | **PASS** |
+
+Paired cluster bootstrap over images, 10,000 resamples, identical to every other CI in this
+document. **2 of 3 cohorts pass all three conditions — Sec 6 is met.** Predicted-positive rate
+stays at 0.6–0.7× the constant's on the winning cohorts, so neither win is a volume effect.
+
+**Adopted as the Stage-3 pipeline default 4 Sep 2026** (`src/classifiers.py`
+`run_caries_lesion_detector`; `scripts/run_inference.py` `DEF_CARIES_LESION_MODEL`). The gate
+is retained, unchanged, selectable via `--caries-method gate` — every number in §8.22/§8.24/§8.25
+and every table elsewhere in this document that does not explicitly say otherwise was measured
+on the gate and remains reproducible on it. **Parameter count changed**: the lesion detector is
+25.3 M params against the gate's 11.2 M, moving the caries-path total from 61.2 M to **75.3 M**
+and the whole-pipeline total from 83.6 M to **97.7 M** (`docs/results/model_metrics.md`
+"Pipeline size"). The C1 efficiency comparison (§8.20/§8.22, "61.2 M vs. Qwen's 33.45 B") should
+be re-quoted as **75.3 M vs. 33.45 B, ~444×** wherever it appears in `main.tex` — still an
+overwhelming efficiency advantage, a smaller multiple than the 550× figure computed against the
+retained gate's parameter count, not a different conclusion.
+
+**How to write this honestly.** This is real, first-of-its-kind progress on the base-rate
+dominance problem central to this paper's caries story — not a claim that caries scoring is
+solved. DENTEX is a tie, and the pre-registration's own outcome table anticipated a cleaner
+"wins in-domain, fails to transfer" bin that this result does not fall into; say so rather than
+rounding a tie up to a win. Ningxia was the deciding cohort and was scored exactly once, frozen,
+no tuning — consistent with every other Ningxia number in this document. The gate's diagnosis in
+§8.24 (position as a partial confound) is not shown to be *wrong* by this result, only shown to
+be a property specific to the per-crop-classification framing, not to caries detection in general.
+
+Source: `RESULTS_LOG.md` 2026-09-04, 2026-09-04b, 2026-09-04c; `outputs/lever_B_lesion_caries_path/
+PRE_REGISTRATION.md` (frozen, commit `ef3f453`); `outputs/lever_b_eval/acceptance_rule_B-pooled.json`;
+`models/16_lever_b_pooled/run_summary.txt`; `docs/session-memory/2026-09-04a-lever-b-build-and-both-arms.md`.
+
+---
+
 ## 9. What's not yet written — checklist
 
 For whoever drafts the actual paper. Tick items off here as they land.
 
 **Blocking — must be done before submission**
 
+- [ ] **Fold §8.26 into `main.tex`.** New material, not yet drafted into the manuscript: the
+      Lever B adoption, the resolved-on-2-of-3-cohorts caries result, and the revised parameter
+      counts. Every occurrence of "61.2 M" / "83.6 M" / "~550×" in `main.tex` needs re-checking
+      against `model_metrics.md`'s "Pipeline size" table — most describe the retained
+      `--caries-method gate` path and should either stay correctly labelled as that, or be
+      re-quoted as the new default's 75.3 M / 97.7 M / ~444×, not silently left ambiguous.
 - [x] Re-run the caries notebook and **save** the Phase 1 gate classification report
       (`caries` vs `no_caries`), plus the `Counter` cell confirming DENTEX class counts.
       **Done 25 Aug 2026** — `scripts/dentex/train_caries_cascade.py` replaced the notebook and

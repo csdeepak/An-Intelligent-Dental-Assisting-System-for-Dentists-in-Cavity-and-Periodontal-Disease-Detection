@@ -3,12 +3,16 @@
 Current best numbers only. One table per model, nothing else. For how a number was
 obtained see `PAPER_MATERIAL.md`; for when and why it changed see `RESULTS_LOG.md`.
 
-**Last updated:** 2026-08-28 (header corrected 2026-08-31). Stage 1 and Stage 2 are **current** on
-the seg detector + FDI head v2.0, re-measured 27 Aug 2026 (recall 70.6%, FDI exact 58.3%
-end-to-end) — the "figures are STALE" warning this line used to carry is retired. 28 Aug added the
-C1-hardened arms (32B / few-shot / image-blind constant), the C4 coverage–accuracy table, the
-Stage-2 head-v3 three-corpus ablation, and the per-stage parameter table (83.6 M total / 61.2 M
-caries path). The 29 Aug README rebuild changed no number here.
+**Last updated:** 2026-09-04 — **Stage 3 (caries) default changed**: the lesion detector
+(`models/16_lever_b_pooled/`) replaces the gate as the pipeline default, adopted via the
+pre-registered Lever B Sec 6 rule (`RESULTS_LOG.md` 2026-09-04c). The gate is retained,
+unchanged, via `--caries-method gate` and its numbers below are unaffected. Everything else on
+this page is unchanged since 2026-08-28 (header corrected 2026-08-31): Stage 1 and Stage 2 are
+**current** on the seg detector + FDI head v2.0, re-measured 27 Aug 2026 (recall 70.6%, FDI
+exact 58.3% end-to-end). 28 Aug added the C1-hardened arms (32B / few-shot / image-blind
+constant), the C4 coverage–accuracy table, the Stage-2 head-v3 three-corpus ablation, and the
+per-stage parameter table (83.6 M total / 61.2 M caries path). The 29 Aug README rebuild changed
+no number here.
 
 ---
 
@@ -310,9 +314,39 @@ Full record: `RESULTS_LOG.md` 2026-08-22i and **22j (the leakage correction)**.
 
 ---
 
-## Stage 3 — Caries cascade · ResNet18 · DENTEX
+## Stage 3 — Caries · current pipeline default since 4 Sep 2026: the LESION DETECTOR
 
-**Phase 1 gate (caries vs no_caries) — `caries-gate-resnet18-v3.0`, pipeline default.**
+**`caries-lesion-detector-yolo11l-leverb-bpooled-v1.0`, `models/16_lever_b_pooled/`. Adopted
+4 Sep 2026 (Lever B, `RESULTS_LOG.md` 2026-09-04b/c) because it decisively beats both the gate
+below AND an image-blind molar constant on 2 of 3 external cohorts — the first mechanism in
+this project's history to beat that constant anywhere.** Frozen tooth-level lesion-localisation
+agreement, paired cluster bootstrap (10k resamples):
+
+| cohort | gate v3.0 (retained, `--caries-method gate`) | image-blind constant | **lesion detector (default)** |
+|---|---|---|---|
+| DENTEX (148 img, 479 lesions) | 44.3% | 48.9% | 45.5% [40.9,50.1] — **tie**, CI incl. 0 |
+| CariesXrays-val (1,200 img) | 31.7% | 56.2% | **68.4% [66.4,70.4]** — win, CI excl. 0 |
+| Ningxia (337 img, 1,013 lesions) | 40.8% | 39.9% | **50.0% [46.3,53.9]** — win, CI excl. 0 |
+
+Predicted-positive rate stays well under the constant's on every cohort (rate ratio 0.6–0.7×) —
+neither win is a volume effect. **DENTEX is a tie, not a win — this is not solved everywhere.**
+Mechanism: single-class YOLOv11l lesion detector (not a per-crop classifier), trained on
+CariesXrays + DENTEX-domain caries boxes, per-corpus balanced (`models/16_lever_b_pooled/
+run_summary.txt`); predictions mapped to the tooth box each overlaps most (argmax containment,
+`src.classifiers.lesion_preds_to_tooth_idx`); severity graded on flagged teeth by the **same**
+Phase-2 severity classifier the gate used (below) — severity was not part of what changed.
+
+Weights: `models/16_lever_b_pooled/lever_b_pooled_yolo11l-2/weights/best.pt` (gitignored, 51 MB
+— ablation-arm rule, same as `models/13`/`15`), sha256 `029018db…`.
+
+---
+
+## Stage 3 — Caries GATE (retained, `--caries-method gate`) · ResNet18 · DENTEX
+
+**Superseded as the pipeline default 4 Sep 2026 by the lesion detector above.** Retained,
+unchanged and fully functional, for reproducing every caries number published before that date.
+
+**Phase 1 gate (caries vs no_caries) — `caries-gate-resnet18-v3.0`, pre-4-Sep pipeline default.**
 Retrained 25 Aug 2026 with a rebuilt negative class (5,366 real healthy teeth, MD5-joined
 from DENTEX's enumeration and disease subsets — RESULTS_LOG 2026-08-25a). Both T0.1 arms now
 exist; arm B is frozen as the shipped model (val macro-F1 selected it, narrowly):
@@ -680,24 +714,37 @@ Accuracy on retained predictions as the least-confident are declined. Threshold 
 
 ---
 
-## Pipeline size — parameter counts per stage (28 Aug 2026)
+## Pipeline size — parameter counts per stage
 
-Counted with `torch.load` over the six checkpoints, summing `numel()`. Recorded here
-because the manuscript cites it and because a wrong version of this number propagated
-through nine places in the docs before it was caught (`RESULTS_LOG.md` 2026-08-28).
+Counted with `torch.load` / `ultralytics.YOLO(...).model.parameters()`, summing `numel()`.
+Recorded here because the manuscript cites it and because a wrong version of this number
+propagated through nine places in the docs before it was caught (`RESULTS_LOG.md` 2026-08-28).
+
+**Updated 4 Sep 2026 — Stage 3a changed.** The lesion detector (25.3 M params) replaced the
+ResNet18 gate (11.2 M) as the pipeline default (Lever B, `RESULTS_LOG.md` 2026-09-04c). The row
+below is the **current default**; `--caries-method gate` still runs the smaller, 11.2 M model —
+see "Caries path only, `--caries-method gate`" for that total.
 
 | Stage | Model | Checkpoint | Parameters |
 |---|---|---|---|
 | 1  | YOLOv11l-seg | `models/11_yolo_seg_tufts_r1/best.pt` | 27,617,459 |
 | 2  | ResNet18 + 4 positional feats | `models/10_fdi_head_dentex_tufts_v2/` | 11,197,536 |
-| 3a | ResNet18 caries gate | `models/09_caries_gate_v3/` | 11,187,158 |
+| **3a (default)** | **YOLOv11l lesion detector** | **`models/16_lever_b_pooled/.../best.pt`** | **25,311,251** |
+| 3a (`--caries-method gate`) | ResNet18 caries gate | `models/09_caries_gate_v3/` | 11,187,158 |
 | 3b | ResNet18 caries severity | `models/07_caries_cascade/` | 11,187,158 |
 | 4a | ResNet18 bone-loss gate | `models/03_bone_loss_model_training_notebook_models/` | 11,187,158 |
 | 4b | ResNet18 bone-loss severity | `models/04_bone_loss_severity_notebook_models/` | 11,187,671 |
-| | **Total, all six** | | **83,564,140** |
-| | **Caries path only** (1, 2, 3a, 3b) | | **61,189,311** |
+| | **Total, all six, current default (lesion detector)** | | **97,688,233** |
+| | Total, all six, `--caries-method gate` | | 83,564,140 |
+| | **Caries path only** (1, 2, 3a-default, 3b) | | **75,313,404** |
+| | Caries path only, `--caries-method gate` (1, 2, 3a-gate, 3b) | | 61,189,311 |
 
 **Do not quote "~25 M" for the pipeline.** That is the *superseded bbox* detector's own
-count (`tooth-detector-a100-1024-v1.0`, 25.3 M, recorded under Stage 1 above); the current
-seg detector is 27.6 M and the pipeline is not one model. The efficiency comparison against
-Qwen2.5-VL-32B-Instruct is 33.45 B vs 61.2 M — roughly 550x, in the VLM's disfavour.
+count (`tooth-detector-a100-1024-v1.0`, 25.3 M, recorded under Stage 1 above) -- coincidentally
+close to the NEW Stage 3a's own count, a separate model; the two must not be conflated. The
+efficiency comparison against Qwen2.5-VL-32B-Instruct is now 33.45 B vs **75.3 M** (current
+default) -- roughly 444x, still overwhelmingly in the small pipeline's favour, down from the
+~550x quoted against the old 61.2 M caries-path figure. **Every pre-4-Sep mention of "61.2 M
+caries path" / "83.6 M total" in the paper describes the retained `--caries-method gate` path,
+not the current default — flagged for `PAPER_MATERIAL.md` to disambiguate, not silently
+overwrite.**
