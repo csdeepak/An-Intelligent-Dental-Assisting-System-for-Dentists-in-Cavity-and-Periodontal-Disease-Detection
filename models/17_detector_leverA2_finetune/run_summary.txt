@@ -1,5 +1,5 @@
 ================================================================================
-16_detector_leverA2_finetune — Lever A2: Tufts head fine-tune of the Lever A 3-corpus detector
+17_detector_leverA2_finetune — Lever A2: Tufts head fine-tune of the Lever A 3-corpus detector
 ================================================================================
 Status:   ABLATION. NOT adopt-worthy. Pipeline default detector stays
           models/11_yolo_seg_tufts_r1 (tooth-detector-seg-tufts-1024-v1.0).

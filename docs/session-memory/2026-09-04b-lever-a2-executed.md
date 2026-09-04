@@ -23,7 +23,7 @@ Continues `2026-09-04-phase0-tufts-guard2-writeup.md`.
 - **Local eval (CPU/MPS):** primary (`validate_fdi_assignment.py` on the 164 DENTEX images) +
   Guard 1 (`ningxia_external.py` + `cariesxrays_external.py` with `--detector a2_best.pt`) +
   `score_leverA_arm.py --label a2`. Reused Lever A's Control A / Control B numbers.
-- **Logged:** `models/16_detector_leverA2_finetune/run_summary.txt`, `outputs/lever_A2_detector_finetune/STATUS.md`,
+- **Logged:** `models/17_detector_leverA2_finetune/run_summary.txt`, `outputs/lever_A2_detector_finetune/STATUS.md`,
   `RESULTS_LOG.md` 2026-09-04b, `model_metrics.md` (new Lever A2 subsection), `PAPER_MATERIAL.md`
   §8.16 (+1 paragraph), `transfer.md` §1/§3/§4/§8.
 

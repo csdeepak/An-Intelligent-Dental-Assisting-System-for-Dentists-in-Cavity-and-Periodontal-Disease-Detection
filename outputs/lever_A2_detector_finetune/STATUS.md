@@ -2,7 +2,7 @@
 
 **Verdict (`score_leverA_arm.py --label a2`): PRIMARY passes, GUARD 1 passes, GUARD 2 fails → not
 adopt-worthy** (pre-reg §5 needs all three). Pipeline default detector unchanged. Instance 496782
-destroyed. Full record: `models/16_detector_leverA2_finetune/run_summary.txt`, `RESULTS_LOG`
+destroyed. Full record: `models/17_detector_leverA2_finetune/run_summary.txt`, `RESULTS_LOG`
 2026-09-04b, `a2/leverA2_verdict.json`.
 
 | criterion | comparator | A2 | bar | result |

@@ -242,7 +242,7 @@ same detector scores 0.585 on Tufts test.
 
 Tests the Phase-0 fix (`RESULTS_LOG` 2026-09-04): if Lever A's Guard-2 failure is a *head*
 calibration collapse, freeze the 3-corpus backbone (`freeze=11`) and fine-tune the neck + Detect
-head on Tufts-only. `models/16_detector_leverA2_finetune/`, `RESULTS_LOG` 2026-09-04b. Same
+head on Tufts-only. `models/17_detector_leverA2_finetune/`, `RESULTS_LOG` 2026-09-04b. Same
 pre-registered rule as Lever A.
 
 | criterion | comparator | A2 | bar | result |

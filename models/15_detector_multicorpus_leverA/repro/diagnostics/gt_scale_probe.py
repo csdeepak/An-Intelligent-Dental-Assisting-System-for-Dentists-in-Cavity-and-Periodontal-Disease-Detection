@@ -22,7 +22,7 @@ MAN = [r for r in csv.DictReader(open(ROOT / "manifest.csv"))
 MODELS = [
     ("Control B (Tufts-only)", "models/15_detector_multicorpus_leverA/controlB_best.pt"),
     ("arm3c (Lever A)",         "models/15_detector_multicorpus_leverA/arm3c_best.pt"),
-    ("A2 (Tufts head FT)",      "models/16_detector_leverA2_finetune/a2_best.pt"),
+    ("A2 (Tufts head FT)",      "models/17_detector_leverA2_finetune/a2_best.pt"),
 ]
 SCALES = [1.0, 1.15, 1.3, 1.5, 1.7]
 IOUS = [0.3, 0.5]

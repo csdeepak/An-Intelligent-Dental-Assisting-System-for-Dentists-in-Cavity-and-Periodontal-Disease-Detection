@@ -1,0 +1,105 @@
+================================================================================
+16_lever_b_pooled — Lever B: B-pooled caries-LESION detector (CariesXrays + DENTEX-caries)
+================================================================================
+Status:   ABLATION ARM, not adopted. Sec 6 of the pre-registration is not yet met
+          (needs Ningxia, not on this machine) -- pipeline Stage 3 stays gate v3.0.
+Tag:      caries-lesion-detector-yolo11l-leverb-bpooled-v1.0 (4 September 2026)
+Date:     4 September 2026
+Pre-reg:  outputs/lever_B_lesion_caries_path/PRE_REGISTRATION.md (frozen 4 Sep, commit ef3f453)
+Hardware: JarvisLabs RTX-PRO6000, on-demand, IN1, instance 496516 (destroyed after a
+          verified download). A100 (40GB and 80GB) was unavailable at rental time --
+          confirmed live via `jl gpus`, not assumed. Spend Rs 546.93 (Rs 1,731.77 -> Rs 1,184.84).
+Trainer:  scripts/yolo/train_lever_b_pooled_detector.py (config copied verbatim from
+          train_cariesxrays_detector.py / Lever 2's own recipe; only deliberate change:
+          the per-corpus-balanced pooled train list in place of a single corpus).
+Data:     data/lever_b_pooled/train_pooled.txt (9,600 lines/epoch: CariesXrays-train
+          4,800 as-is + DENTEX-caries 650 replicated x8 sliced to 4,800, Lever A's
+          balancing recipe, seed 42, 0 cross-corpus MD5 overlap verified) + val =
+          data/cariesxrays_det/images/val (1,200, unreplicated -- same split B-single
+          used). scripts/yolo/build_lever_b_pooled_dataset.py,
+          scripts/dentex/build_dentex_caries_boxes.py.
+ultralytics 8.4.127 (pinned to match B-single), torch 2.11.0+cu130, Python 3.10.
+
+--------------------------------------------------------------------------------
+WHY THIS EXISTS
+--------------------------------------------------------------------------------
+B-single (models/14, trained on CariesXrays only) wins CariesXrays decisively but
+collapses out-of-domain on DENTEX (8.6% tooth-level lesion agreement vs comparators'
+44-49%, RESULTS_LOG 2026-09-04f). B-pooled adds DENTEX-domain caries-box training data
+(coarser, whole-tooth boxes rather than lesion boxes -- a domain adapter, not a second
+lesion-box source) to test whether the transfer gap closes without giving up the
+CariesXrays win.
+
+--------------------------------------------------------------------------------
+WEIGHTS (51 MB, gitignored per CLAUDE.md rule 4 -- this is a lever ablation, not a
+         DEF_* pipeline default, so unlike models/14 there is no best.pt exception)
+--------------------------------------------------------------------------------
+weights/best.pt   sha256 029018dbe37a92d1fd764322fa1c38b229698750e34d36c533b4338793e870ed
+  YOLOv11l detect, 1 class ("decay"). Early-stopped at epoch 54 of 120 (patience 25).
+  25.28 M params fused. This is the scored checkpoint.
+weights/last.pt   sha256 f774bb1e39473219508a86699c267861afc32b6f392395d8159c0845fc4c4922
+  Epoch 54 (== best in this run). Retained; not separately scored.
+
+--------------------------------------------------------------------------------
+RESULTS -- two different metrics, do not conflate them
+--------------------------------------------------------------------------------
+(1) COCO AP on the CariesXrays-val split (secondary here -- NOT the acceptance metric):
+
+                        AP@[.5:.95]  AP50    AP75    Precision  Recall
+B-pooled (this run)         0.379    0.822   0.291    0.799     0.732
+B-single (models/14)        0.482    0.845   0.500    0.803     0.774
+
+B-pooled scores lower on raw COCO AP -- the expected cost of pooling in coarser,
+different-domain DENTEX boxes into a detector trained to find CariesXrays-style
+lesions. This is NOT the number Lever B's acceptance rule is scored on.
+
+(2) Tooth-level lesion-localisation agreement, frozen eval, paired cluster bootstrap
+    (10,000 resamples, seed 42) -- THIS is the pre-registered acceptance metric:
+
+cohort              gate v3.0   constant-molars   B-single            B-pooled
+DENTEX (148 img)      44.3%         48.9%       8.6% [5.5,11.9]   45.5% [40.9,50.1]
+CariesXrays (1,200)   31.7%         56.2%      69.4% [67.4,71.3]  68.4% [66.4,70.4]
+
+B-pooled vs constant-molars: DENTEX -3.3pp [-8.4,+1.3] INCLUDES 0 (tie, was a -40.3pp
+  loss for B-single); CariesXrays +12.2pp [+10.1,+14.3] excludes 0 (still a clear win).
+B-pooled vs gate v3.0: DENTEX +1.3pp [-3.2,+5.7] INCLUDES 0 (tie, was -35.7pp for
+  B-single); CariesXrays +36.7pp [+34.4,+39.0] excludes 0 (still a clear win).
+Predicted-positive rate: 3.56 teeth/image (DENTEX), 1.97 (CariesXrays) -- lower than
+  every comparator on both cohorts, so neither win is a volume effect.
+
+Sec 6 verdict: 1 of 2 scored cohorts passes (CariesXrays; DENTEX is now a tie, not a
+pass -- a tie does not satisfy "beats"). Rule needs >=2 of 3. Ningxia is the deciding
+cohort and is not on this machine.
+
+--------------------------------------------------------------------------------
+CONFIG NOTES / DEVIATIONS
+--------------------------------------------------------------------------------
+- batch: 16, not the canonical 32 -- B-single's own training hit CUDA OOM at 32 on an
+  A100-40GB (RESULTS_LOG 2026-09-02b); 16 avoids repeating that AND keeps this arm's
+  realised recipe identical to B-single's realised (not nominal) one.
+- mosaic=0.0, flipud=0.0 by house rule (medical-imaging spatial-context / anatomy).
+- epochs 120 / patience 25, matching B-single -- cost cap, pre-registered.
+- Early-stopped at epoch 54 -- shorter than B-single's 86, consistent with the lower
+  total spend relative to the pre-registered ceiling.
+- `project=` behaviour: ultralytics saved this run under
+  `runs/detect/runs_lever_b/lever_b_pooled_yolo11l-2/` on the training box, NOT under
+  the plain `runs_lever_b/lever_b_pooled_yolo11l/` the trainer script's own arguments
+  implied (ultralytics silently prepends its internal `runs_dir` setting, and a stale
+  dir from a crashed first launch attempt added the `-2` suffix). Recorded so the next
+  script that shells out to `model.train(project=..., ...)` checks the REAL output
+  path rather than trusting the argument it passed.
+
+--------------------------------------------------------------------------------
+FILES
+--------------------------------------------------------------------------------
+lever_b_pooled_yolo11l-2/weights/{best,last}.pt   the checkpoints (gitignored)
+lever_b_pooled_yolo11l-2/results.csv              per-epoch losses + metrics
+lever_b_pooled_yolo11l-2/results.png              training curves
+lever_b_pooled_yolo11l-2/BoxPR_curve.png etc.     PR/P/R/F1 curves for best.pt
+lever_b_pooled_yolo11l-2/confusion_matrix*.png    (single class, so 2x2)
+lever_b_pooled_yolo11l-2/val_batch{0,1,2}_{labels,pred}.jpg   qualitative predictions
+lever_b_pooled_yolo11l-2/args.yaml                full ultralytics config as run
+train.log                                         full training console log
+remote_sha256.txt                                 sha256 computed on the rented box,
+                                                   before download, for the verification
+                                                   compared against the local copy

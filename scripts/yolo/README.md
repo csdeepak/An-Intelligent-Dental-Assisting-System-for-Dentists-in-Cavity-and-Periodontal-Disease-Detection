@@ -1,21 +1,26 @@
 # `scripts/yolo/` — YOLO detector scripts (tooth detection + the Lever experiments)
 
-**Last verified: 2 September 2026.**
+**Last verified: 4 September 2026.**
 
 Three of these were recovered from the ad-hoc `DataSets/` exploration workspace that used to
 sit at the repo root (relocated to `_repo_archive/datasets_workspace/`, a sibling of this repo
 — nothing was deleted). Two more were added in August 2026 for the **R1 bbox → instance-mask
 upgrade** (`docs/research/MASTER_PLAN_2026H2.md` §3 R1); two more on 1 Sep for **Lever 1 / B1**,
 the multi-corpus detector retrain; two more on 2 Sep for **Lever 2**, a standalone
-caries-**lesion** detector on the CariesXrays benchmark; and two more (2–3 Sep) for **Lever A**,
+caries-**lesion** detector on the CariesXrays benchmark; two more (2–3 Sep) for **Lever A**,
 the multi-corpus detector *done right* — `build_multicorpus_detector_v2_dataset.py` and
-`train_multicorpus_detector_v2.py`. **Lever A ran 3 Sep and is an ABLATION** (same verdict as
-Lever 1, stronger result — see below). All under `transfer.md` §3 Track B.
+`train_multicorpus_detector_v2.py`; and two more on 4 Sep for **Lever B's B-pooled arm** —
+`build_lever_b_pooled_dataset.py` and `train_lever_b_pooled_detector.py`. **Lever A ran 3 Sep
+and is an ABLATION** (same verdict as Lever 1, stronger result — see below). All under
+`transfer.md` §3 Track B.
 
-**Lever B (lesion-detection caries path) is NOT STARTED** — it reuses
-`build_cariesxrays_detector_dataset.py` and adds a DENTEX `quadrant-enumeration-disease` →
-YOLO caries-box converter (still to be written; `category_id_3 ∈ {1,3}`, reuse `CARIES_CLASSES`
-from `scripts/dentex/build_dentex_crops.py`). Cold-start steps:
+**Lever B (lesion-detection caries path) — pre-reg frozen and BOTH arms trained/evaluated,
+4 Sep.** B-single (Lever 2's `models/14`, zero GPU) wins CariesXrays decisively but collapses
+on DENTEX (8.6% tooth-level lesion agreement, a decisive loss vs. the gate/constant). B-pooled
+(this session's new training, `models/16_lever_b_pooled/`) recovers DENTEX to a statistical tie
+(45.5%) while barely costing the CariesXrays win (68.4%, was 69.4%). **Sec 6 acceptance rule not
+yet met by either arm** — needs Ningxia, not on this machine. `RESULTS_LOG.md` 2026-09-04f / 04g,
+`docs/session-memory/2026-09-04a-lever-b-build-and-both-arms.md`. Cold-start / next steps:
 `outputs/lever_B_lesion_caries_path/START_HERE.md`.
 
 The tooth-detection scripts are the **Stage 1 (YOLOv11 tooth detection)** toolchain, kept
@@ -54,6 +59,25 @@ and better on DENTEX (+34) and every external cohort (+6 to +19), i.e. better on
 paper cohorts. Guard 2 protects Tufts-benchmark continuity, not the deployment goal.
 `outputs/lever_A_multicorpus_detector_v2/{PRE_REGISTRATION,STATUS}.md`.
 
+**Lever B, B-pooled arm — DONE 4 Sep, ablation (Sec 6 not yet met).** Unlike Levers 1/A/2, this
+is a **caries-lesion detector**, not a tooth detector — it competes with the caries *gate*
+(Stage 3), not Stage 1. B-single (`models/14`, CariesXrays-only training, zero GPU here — see
+Lever 2 below) wins CariesXrays decisively (69.4% tooth-level lesion agreement vs. gate 31.7% /
+constant 56.2%, CI excludes 0) but loses DENTEX decisively (8.6%, CI excludes 0 the wrong way)
+— the pre-registered "wins in-domain, fails to transfer" outcome. B-pooled adds DENTEX-domain
+caries-box training data (`scripts/dentex/build_dentex_caries_boxes.py`, whole-tooth boxes, a
+domain adapter — not a second lesion-box source) via a per-corpus-balanced pool
+(`build_lever_b_pooled_dataset.py`, Lever A's exact balancing recipe: CariesXrays 4,800 +
+DENTEX-caries 650 replicated to 4,800 = 9,600 images/epoch). Result: DENTEX moves from a
+decisive loss to a **statistical tie** (45.5% [40.9,50.1], both deltas now include zero) at a
+~1pp cost to the still-decisive CariesXrays win (68.4%). Not one of the pre-reg's discrete
+outcome bins — recorded as its own honest result rather than forced into the nearest one. Rented
+an **RTX-PRO6000** (A100 was unavailable at rental time, confirmed live via `jl gpus`), trained
+120 epochs / patience 25, early-stopped at 54; ₹546.93, instance destroyed after a verified
+download. **Sec 6's literal bar (≥2 of 3 cohorts, "beats" not "ties") is not met by either
+arm** — Ningxia is the deciding cohort and is not on this machine.
+`models/16_lever_b_pooled/run_summary.txt`, `RESULTS_LOG.md` 2026-09-04f / 04g.
+
 **Lever 1 in one line:** pool the 700 Tufts detection images with DENTEX `quadrant_enumeration`
 (634 images / 18,095 boxes) to lift detector **recall** (70.6%), which is the measured binding
 constraint on the 58.3% Stage-2 headline. DENTEX ships no polygons, so this is a `detect` (not
@@ -76,7 +100,9 @@ and tooth detection is largely indifferent to a 180° flip.
 | `build_multicorpus_detector_v2_dataset.py` | **Lever A (2 Sep, session 3c).** Builds `data/detector_multicorpus_v2/` — Tufts 700 (frozen split) + DENTEX `quadrant_enumeration` 561 + Kaggle-dual 449 + UFBA-425 382, each upright corpus rotated 90°-CCW into the detector frame via `src.orientation.rot_box`. **Gates, all must pass or it aborts:** Tufts canonical box-count reproduction (val 3,794 / test 3,924), a combined geometry re-score of all 42,500 rotated boxes (median IoU ≥ 0.99 — measured 1.0000), MD5 leakage guard vs the 164 leak-free eval images, and within-/cross-corpus byte-identical dedup (11 DENTEX + 1 Kaggle dropped). Writes a **per-corpus balanced** `train.txt` (4×700) and `train_3corpus.txt` (3×700, no UFBA), `train_tufts.txt` (Control B), per-corpus `test_*.txt`, + `_check/` renders. Paths are `./`-relative so the lists survive the move to a GPU box. **Rotated corpora capped at 1600 px / JPEG q85** (3 Sep — upload-size mitigation for a slow home connection, 1.1 GB → 467 MB; training imgsz is 1024, geometry gate re-passed). val/test = Tufts-only. `--dry-run` supported. |
 | `train_multicorpus_detector_v2.py` | **Lever A (3 Sep).** `--arm {controlB, arm3c, arm4c}` selects `train_tufts.txt` (700) / `train_3corpus.txt` (2,100) / `train.txt` (2,800). Config **byte-identical** to `train_multicorpus_detector.py` — the only thing that varies between arms is the `train:` list. Writes `data_<arm>.yaml` at runtime, refuses CPU, and runs the Guard-2 Tufts-frozen-test val on `best.pt` immediately after training. Result: `models/15_detector_multicorpus_leverA/`. |
 | `build_cariesxrays_detector_dataset.py` | **Lever 2 (2 Sep).** Builds `data/cariesxrays_det/` from the CariesXrays benchmark (`~/Downloads/Capstone/CariesXrays_Dataset/`) — 6,000 VOC images, single class `decay`, **this project's own seed-42 4,800/1,200 image-level split** (the official FPCL split is not public). **Reads box dims from the decoded image, never the XML `<size>`** — 27.3% of the XMLs carry a wrong width, the same class of defect that voided a 90-epoch run (`RESULTS_LOG.md` 2026-08-27a). Gate: 0 px round-trip error, 0 normalised coords outside [0,1], 0 train/val overlap, renders eyeballed. `--dry-run` supported. |
-| `train_cariesxrays_detector.py` | **Lever 2 (2 Sep).** YOLOv11l `detect`, config verbatim from `train_multicorpus_detector.py` except `nc=1` (`decay`), this project's CariesXrays split, and epochs/patience 150/30 → 120/25 (cost cap). Runs a final COCO-AP val on `best.pt` and prints AP / AP50 / AP75. Writes `data_lever2.yaml` at runtime; refuses CPU. **Result: AP 0.482 / AP50 0.845 / AP75 0.500** — level with FPCL, indicative not head-to-head (`models/14_cariesxrays_lever2/run_summary.txt`). |
+| `train_cariesxrays_detector.py` | **Lever 2 (2 Sep).** YOLOv11l `detect`, config verbatim from `train_multicorpus_detector.py` except `nc=1` (`decay`), this project's CariesXrays split, and epochs/patience 150/30 → 120/25 (cost cap). Runs a final COCO-AP val on `best.pt` and prints AP / AP50 / AP75. Writes `data_lever2.yaml` at runtime; refuses CPU. **Result: AP 0.482 / AP50 0.845 / AP75 0.500** — level with FPCL, indicative not head-to-head (`models/14_cariesxrays_lever2/run_summary.txt`). Batch auto-reduced 32 → 16 after CUDA OOM at 1024px on an A100-40GB — **the fallback that became `train_lever_b_pooled_detector.py`'s pre-chosen default, below**. |
+| `build_lever_b_pooled_dataset.py` | **Lever B, B-pooled (4 Sep).** Builds `data/lever_b_pooled/train_pooled.txt` — CariesXrays-train (4,800, as-is) + DENTEX-caries (650, replicated `list * ceil(4800/650)` sliced to 4,800 — Lever A's exact `balanced()` recipe) = 9,600 lines, shuffled seed 42. val stays CariesXrays-only (1,200, unreplicated — the same split B-single used for early stopping and its reported AP, so neither arm is advantaged by this choice). Gate: 0 cross-corpus MD5 overlap, every path in the pooled list resolves to both an image and a same-stem label. `--dry-run` supported. |
+| `train_lever_b_pooled_detector.py` | **Lever B, B-pooled (4 Sep).** Config copied verbatim from `train_cariesxrays_detector.py` except the pooled train list. **`batch=16` by default, not the canonical 32** — B-single's own training already hit this exact OOM on an A100-40GB at 1024px (see the row above); 16 avoids repeating it AND keeps both arms' *realised* recipes identical. Asserts the pool is exactly 9,600 lines and val is exactly 1,200 images before training, refusing a stale or partial build. `data.yaml`'s `path:` (and, after a real bug found here, the train-list itself) are rewritten to **absolute paths at train time** — ultralytics' `train.txt` loader only rewrites a `./`-prefixed line, resolving a bare relative one against the training process's cwd rather than `path:` (verified directly against `ultralytics/data/base.py get_img_files`, not guessed — the first launch crashed with "No labels found" before this was found and fixed). **Result: AP 0.379 / AP50 0.822 / AP75 0.291** (COCO AP on CariesXrays-val — lower than B-single's own, the expected cost of pooling in coarser DENTEX boxes; **not** the number Lever B's acceptance rule is scored on — see the Lever B section above for the metric that is). Early-stopped at epoch 54 of 120. `models/16_lever_b_pooled/run_summary.txt`. |
 
 ## Relationship to the rest of the repo
 

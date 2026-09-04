@@ -189,11 +189,18 @@ def main():
                     help="inherited from validate_fdi_assignment.py, not re-tuned here")
     ap.add_argument("--n", type=int, default=None, help="limit to first N non-leaked images")
     ap.add_argument("--out", type=Path, default=DEF_OUT)
-    ap.add_argument("--decision", choices=["pipeline", "constant-molars", "all-teeth"],
+    ap.add_argument("--decision", choices=["pipeline", "constant-molars", "all-teeth",
+                                           "lesion-detector"],
                     default="pipeline",
-                    help="what decides a tooth is diseased. See CONSTANT ARMS below.")
+                    help="what decides a tooth is diseased. See CONSTANT ARMS below. "
+                         "lesion-detector runs a caries-lesion YOLO model instead of the gate "
+                         "(Lever B), scored via argmax-containment onto detected tooth boxes.")
     ap.add_argument("--fdi-head", type=Path, default=DEF_FDI_HEAD,
                     help="only used by --decision constant-molars, to know which teeth are molars")
+    ap.add_argument("--lesion-model", type=Path, default=None,
+                    help="required for --decision lesion-detector (Lever B)")
+    ap.add_argument("--lesion-conf", type=float, default=0.25,
+                    help="frozen per PRE_REGISTRATION.md Sec 7 risk 4 -- not tuned on any cohort")
     args = ap.parse_args()
 
     # ------------------------------------------------------------------ CONSTANT ARMS
@@ -222,6 +229,7 @@ def main():
     from src.classifiers import load_classifier, run_caries
     from src.fdi_head_inference import assign_fdi_head
     from src.orientation import detect_upright
+    from ningxia_external import lesion_preds_to_tooth_idx, run_lesion_detector
 
     leaked = _load_leaked()
     labels = sorted(p for p in args.disease_dir.glob("label/*.json") if p.stem not in leaked)
@@ -232,13 +240,22 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available()
                           else "mps" if torch.backends.mps.is_available() else "cpu")
     det = YOLO(str(args.detector))
-    gate, gate_cls = load_classifier(args.caries_gate, 2, device)
-    sev, sev_cls = load_classifier(args.caries_severity, 2, device)
-    if gate_cls and gate_cls != {"caries": 0, "no_caries": 1}:
-        raise SystemExit(f"caries gate class order changed: {gate_cls}")
-    if sev_cls and sev_cls != {"caries": 0, "deep_caries": 1}:
-        raise SystemExit(f"caries severity class order changed: {sev_cls}")
-    print(f"device={device}  gate={args.caries_gate.name}")
+
+    lesion_model = gate = sev = None
+    if args.decision == "lesion-detector":
+        if not args.lesion_model:
+            raise SystemExit("--decision lesion-detector requires --lesion-model")
+        lesion_model = YOLO(str(args.lesion_model))
+        print(f"device={device}  lesion_model={args.lesion_model.name} "
+              f"conf={args.lesion_conf} (frozen)")
+    else:
+        gate, gate_cls = load_classifier(args.caries_gate, 2, device)
+        sev, sev_cls = load_classifier(args.caries_severity, 2, device)
+        if gate_cls and gate_cls != {"caries": 0, "no_caries": 1}:
+            raise SystemExit(f"caries gate class order changed: {gate_cls}")
+        if sev_cls and sev_cls != {"caries": 0, "deep_caries": 1}:
+            raise SystemExit(f"caries severity class order changed: {sev_cls}")
+        print(f"device={device}  gate={args.caries_gate.name}")
     fdi_head = None
     if args.decision == "constant-molars":
         from src.fdi_head_inference import assign_fdi_head, load_head
@@ -262,12 +279,17 @@ def main():
         n_images_with_lesions += 1
 
         boxes, _ = detect_upright(det, img, imgsz=1024, conf=0.25, iou=0.50, verbose=False)
-        caries = run_caries(gate, sev, img, boxes, device) if boxes else []
+        caries = run_caries(gate, sev, img, boxes, device) if (boxes and gate) else []
 
         if args.decision == "pipeline":
             pos_idx = [i for i, c in enumerate(caries) if c["finding"] != "no_caries"]
         elif args.decision == "all-teeth":
             pos_idx = list(range(len(boxes)))
+        elif args.decision == "lesion-detector":
+            # Lever B: NOT detect_upright -- see run_lesion_detector's docstring
+            # (ningxia_external.py) -- the lesion model expects the plain upright image.
+            lesion_boxes = run_lesion_detector(lesion_model, img, args.lesion_conf) if boxes else []
+            pos_idx = lesion_preds_to_tooth_idx(lesion_boxes, boxes) if lesion_boxes else []
         else:                                    # constant-molars -- the image is never read
             assigns = assign_fdi_head(fdi_head, img, boxes, device, one_to_one=True) if boxes else []
             pos_idx = [i for i, a in enumerate(assigns)
@@ -288,8 +310,12 @@ def main():
         # confidence looks more like real, unannotated caries; at low confidence, more like
         # noise. Either way this is a hint for manual review, not a verdict -- see the
         # module docstring on why an unmatched positive is never a confirmed false positive.
-        unmatched_conf = [round(caries[pos_idx[i]]["gate_confidence"], 3)
-                          for i in range(len(pos_idx)) if i not in matched_det_local]
+        # Only meaningful for the gate arm (pipeline) -- the other arms have no per-tooth
+        # confidence score to report (a constant reads no pixels; the lesion detector's score
+        # lives on the lesion box, not the tooth verdict), so the field is left empty for them.
+        unmatched_conf = ([round(caries[pos_idx[i]]["gate_confidence"], 3)
+                           for i in range(len(pos_idx)) if i not in matched_det_local]
+                          if args.decision == "pipeline" else [])
         per_image.append({
             "image": stem, "n_lesions": len(gt), "n_matched": len(matches),
             "n_predicted_positive": len(pos_idx),
@@ -302,7 +328,17 @@ def main():
     agreement = n_matched / n_lesions if n_lesions else 0.0
     pos_match_rate = n_pred_pos_matched / n_pred_pos if n_pred_pos else 0.0
 
+    weights = {"detector": str(args.detector), "detector_sha256": _sha256(args.detector)}
+    if args.decision == "lesion-detector":
+        weights["lesion_model"] = str(args.lesion_model)
+        weights["lesion_model_sha256"] = _sha256(args.lesion_model)
+        weights["lesion_conf"] = args.lesion_conf
+    else:
+        weights["caries_gate"] = str(args.caries_gate)
+        weights["caries_severity"] = str(args.caries_severity)
+
     res = {
+        "decision": args.decision,
         "n_images": len(labels), "n_images_with_caries_lesions": n_images_with_lesions,
         "n_lesions": n_lesions, "n_lesions_matched": n_matched,
         "lesion_localization_agreement": round(agreement, 4),
@@ -317,10 +353,7 @@ def main():
         # files are structurally identical and distinguishable only by the output
         # directory someone happened to name -- the same provenance gap that let the
         # 42.6% figure become a stale old-detector number without anyone noticing.
-        "weights": {"detector": str(args.detector),
-                    "detector_sha256": _sha256(args.detector),
-                    "caries_gate": str(args.caries_gate),
-                    "caries_severity": str(args.caries_severity)},
+        "weights": weights,
         "flag_counts": dict(flag_counts),
         "per_image": per_image,
     }

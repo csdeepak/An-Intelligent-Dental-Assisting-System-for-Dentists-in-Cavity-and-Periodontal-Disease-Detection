@@ -8,7 +8,7 @@
     "dental_caries"
   ],
   "weights": {
-    "detector": "models/16_detector_leverA2_finetune/a2_best.pt",
+    "detector": "models/17_detector_leverA2_finetune/a2_best.pt",
     "detector_sha256": "48e23e84797712edd63322bdd7407f3e57890a00f9e494cc862f1a3250bba300",
     "fdi_head": "/Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/models/10_fdi_head_dentex_tufts_v2/enumeration_head_best.pth",
     "fdi_head_sha256": "6c675fa014551a0f184cf87a52d55ea26d21f23ae84dd5df1f7efce78a43004b",

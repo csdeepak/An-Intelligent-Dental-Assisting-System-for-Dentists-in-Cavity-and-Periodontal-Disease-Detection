@@ -115,7 +115,23 @@ def main():
                          "run 415-30,664 and are not shuffled, so a --limit prefix may be a "
                          "single acquisition batch rather than a representative draw.")
     ap.add_argument("--seed", type=int, default=42)
-    ap.add_argument("--decision", choices=["pipeline", "constant-molars"], default="pipeline")
+    ap.add_argument("--decision", choices=["pipeline", "constant-molars", "lesion-detector"],
+                    default="pipeline",
+                    help="lesion-detector runs a caries-lesion YOLO model instead of the gate "
+                         "(Lever B), scored via argmax-containment onto detected tooth boxes.")
+    ap.add_argument("--lesion-model", type=Path, default=None,
+                    help="required for --decision lesion-detector (Lever B)")
+    ap.add_argument("--lesion-conf", type=float, default=0.25,
+                    help="frozen per PRE_REGISTRATION.md Sec 7 risk 4 -- not tuned on any cohort")
+    ap.add_argument("--manifest", type=Path,
+                    default=REPO_ROOT / "data/cariesxrays_det/manifest.csv",
+                    help="Lever B frozen eval cohort source -- see --manifest-split")
+    ap.add_argument("--manifest-split", choices=["train", "val"], default=None,
+                    help="Lever B (PRE_REGISTRATION.md Sec 4, amended 4 Sep): restrict to the "
+                         "stems in this manifest split BEFORE --sample/--limit. 'val' = the "
+                         "existing 1,200-image held-out split, disjoint from the 4,800 training "
+                         "images by construction -- this IS the frozen eval cohort, not a new "
+                         "draw. Omit for the old first-N/random-sample-of-all-6000 behaviour.")
     ap.add_argument("--detector", type=Path, default=None,
                     help="override the Stage-1 detector (Lever A Guard 1: swap in an arm's best.pt, "
                          "everything else frozen). Defaults to the pipeline default.")
@@ -124,7 +140,8 @@ def main():
 
     import cv2
     import torch
-    from ningxia_external import MOLAR_CONSTANT, match_by_centroid
+    from ningxia_external import (MOLAR_CONSTANT, match_by_centroid,
+                                  lesion_preds_to_tooth_idx, run_lesion_detector)
     from run_inference import (DEF_CARIES_GATE, DEF_CARIES_SEVERITY, DEF_DETECTOR,
                                DEF_FDI_HEAD)
     from src.classifiers import load_classifier, run_caries
@@ -137,16 +154,32 @@ def main():
     print(f"detector: {det_path}")
     det = YOLO(str(det_path))
     head = load_head(DEF_FDI_HEAD, device)
-    gate, gate_cls = load_classifier(DEF_CARIES_GATE, 2, device)
-    csev, csev_cls = load_classifier(DEF_CARIES_SEVERITY, 2, device)
-    # Same guard ningxia_external applies: a silently reordered class map would invert every
-    # verdict while still producing plausible-looking numbers.
-    if gate_cls and gate_cls != {"caries": 0, "no_caries": 1}:
-        raise SystemExit(f"caries gate class order changed: {gate_cls}")
-    if csev_cls and csev_cls != {"caries": 0, "deep_caries": 1}:
-        raise SystemExit(f"caries severity class order changed: {csev_cls}")
+
+    lesion_model = gate = csev = None
+    if args.decision == "lesion-detector":
+        if not args.lesion_model:
+            raise SystemExit("--decision lesion-detector requires --lesion-model")
+        lesion_model = YOLO(str(args.lesion_model))
+        print(f"lesion model: {args.lesion_model}  conf={args.lesion_conf} (frozen)")
+    else:
+        gate, gate_cls = load_classifier(DEF_CARIES_GATE, 2, device)
+        csev, csev_cls = load_classifier(DEF_CARIES_SEVERITY, 2, device)
+        # Same guard ningxia_external applies: a silently reordered class map would invert every
+        # verdict while still producing plausible-looking numbers.
+        if gate_cls and gate_cls != {"caries": 0, "no_caries": 1}:
+            raise SystemExit(f"caries gate class order changed: {gate_cls}")
+        if csev_cls and csev_cls != {"caries": 0, "deep_caries": 1}:
+            raise SystemExit(f"caries severity class order changed: {csev_cls}")
 
     files = sorted((args.root / "JPEGImages").glob("*.jpg"))
+    manifest_note = "none -- first-N/sample-of-all-6000"
+    if args.manifest_split:
+        import csv
+        with open(args.manifest) as mf:
+            keep = {row["stem"] for row in csv.DictReader(mf) if row["split"] == args.manifest_split}
+        files = [f for f in files if f.stem in keep]
+        manifest_note = f"{args.manifest} split={args.manifest_split} ({len(keep)} stems, {len(files)} resolved)"
+        print(f"manifest filter: {manifest_note}")
     if args.sample:
         import random
         files = sorted(random.Random(args.seed).sample(files, min(args.sample, len(files))))
@@ -172,11 +205,16 @@ def main():
         agg["xml_size_mismatch"] += int(mismatched)
 
         boxes, _ = detect_upright(det, img, imgsz=1024, conf=0.25, iou=0.50, verbose=False)
-        fdi = assign_fdi_head(head, img, boxes, device) if boxes else []
         if args.decision == "constant-molars":
             # The image is never read for the VERDICT: Stage-2 codes are used only to know
             # which detected boxes are molars.
+            fdi = assign_fdi_head(head, img, boxes, device) if boxes else []
             pos = [i for i, a in enumerate(fdi) if str(a.get("fdi")) in MOLAR_CONSTANT]
+        elif args.decision == "lesion-detector":
+            # Lever B: NOT detect_upright -- see run_lesion_detector's docstring
+            # (ningxia_external.py) -- the lesion model expects the plain upright image.
+            lesion_boxes = run_lesion_detector(lesion_model, img, args.lesion_conf) if boxes else []
+            pos = lesion_preds_to_tooth_idx(lesion_boxes, boxes) if lesion_boxes else []
         else:
             preds = run_caries(gate, csev, img, boxes, device) if boxes else []
             pos = [i for i, p in enumerate(preds) if p["finding"] != "no_caries"]
@@ -205,6 +243,9 @@ def main():
     res = {
         "cohort": "CariesXrays — Chen et al., AAAI 2024, 38(20) 21940-21948, DOI 10.1609/aaai.v38i20.30196 (licence not stated)",
         "decision": args.decision,
+        "lesion_model": (str(args.lesion_model) if args.decision == "lesion-detector" else None),
+        "lesion_conf": (args.lesion_conf if args.decision == "lesion-detector" else None),
+        "manifest_filter": manifest_note,
         "sampling": (f"random {args.sample}, seed {args.seed}" if args.sample
                      else f"first {args.limit} by id" if args.limit else "all"),
         "n_images_scored": agg["images"],

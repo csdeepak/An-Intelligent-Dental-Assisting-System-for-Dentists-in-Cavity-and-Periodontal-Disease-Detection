@@ -1632,7 +1632,7 @@ four balanced corpora it fails harder (monotonic in Tufts training share), the m
 confidence-calibration collapse rather than a localisation failure, and it does not respond to
 head fine-tuning. The one lever left is multi-corpus **segmentation** (Tufts masks plus
 box-prompted pseudo-masks for the box-only corpora), which we scope as future work rather than a
-change to this submission. `models/16_detector_leverA2_finetune/run_summary.txt`,
+change to this submission. `models/17_detector_leverA2_finetune/run_summary.txt`,
 `outputs/lever_A2_detector_finetune/PRE_REGISTRATION.md`.
 
 **How much of the Guard-2 failure is the metric, and how much is a real deployment cost (GT-scale
