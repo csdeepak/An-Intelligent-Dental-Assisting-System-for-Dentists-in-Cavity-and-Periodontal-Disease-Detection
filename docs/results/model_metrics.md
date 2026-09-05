@@ -3,16 +3,19 @@
 Current best numbers only. One table per model, nothing else. For how a number was
 obtained see `PAPER_MATERIAL.md`; for when and why it changed see `RESULTS_LOG.md`.
 
-**Last updated:** 2026-09-04 — **Stage 3 (caries) default changed**: the lesion detector
+**Last updated:** 2026-09-04 (night) — **Stage 3 (caries) default changed**: the lesion detector
 (`models/16_lever_b_pooled/`) replaces the gate as the pipeline default, adopted via the
 pre-registered Lever B Sec 6 rule (`RESULTS_LOG.md` 2026-09-04h). The gate is retained,
-unchanged, via `--caries-method gate` and its numbers below are unaffected. Everything else on
-this page is unchanged since 2026-08-28 (header corrected 2026-08-31): Stage 1 and Stage 2 are
-**current** on the seg detector + FDI head v2.0, re-measured 27 Aug 2026 (recall 70.6%, FDI
-exact 58.3% end-to-end). 28 Aug added the C1-hardened arms (32B / few-shot / image-blind
-constant), the C4 coverage–accuracy table, the Stage-2 head-v3 three-corpus ablation, and the
-per-stage parameter table (83.6 M total / 61.2 M caries path). The 29 Aug README rebuild changed
-no number here.
+unchanged, via `--caries-method gate` and its numbers below are unaffected. Parameter table
+re-derived under one stated rule 4 Sep (`scripts/count_model_params.py`): **97.65 M total
+default / 75.29 M caries path**, or 83.52 M / 61.16 M with the gate variant. Two of the three CI
+gaps flagged below are now closed — Ningxia periodontitis and Stage-1 detection quality both
+carry a bootstrap interval as of 4 Sep (`RESULTS_LOG.md` 2026-09-04l); only the two bone-loss
+ResNet18 classifiers' CI remains open, and it is genuinely blocked on missing source data, not
+undone. Stage 1 and Stage 2 are otherwise unchanged since the 27 Aug re-measurement on the seg
+detector + FDI head v2.0 (recall 70.6%, FDI exact 58.3% end-to-end). 28 Aug added the
+C1-hardened arms (32B / few-shot / image-blind constant), the C4 coverage–accuracy table, and
+the Stage-2 head-v3 three-corpus ablation.
 
 ---
 
@@ -615,8 +618,17 @@ tooth-level bootstrap would report intervals far too narrow.
 ⚠️ **Two deltas reported earlier on 27 Aug do not survive their intervals** — detection recall
 (+3.3 pp) and DENTEX-internal lesion agreement (+2.3 pp) both have CIs spanning zero and must not
 be quoted as improvements. The end-to-end and external-caries gains do survive.
-**Not yet covered:** Ningxia periodontitis (no per-image counts stored) and detection mAP / the two
-ResNet18 classifiers (no per-item dumps). `RESULTS_LOG.md` 2026-08-27p.
+**Updated 4 Sep 2026 — two of three CI gaps closed.** Ningxia periodontitis now has a bootstrap
+CI (below); Stage-1 detection quality now has one too, via a different statistic than mAP after
+an AP-reproduction attempt failed to converge — see `docs/results/RESULTS_LOG.md` 2026-09-04l for
+the full account: **detection recall at the deployed confidence (conf=0.25), 69.1% [95% CI 65.5,
+72.6], n=150 Tufts test images** (`outputs/tufts_detector_ap_ci/tufts_detector_ap_ci.json`). This
+also resolved the documented `590.JPG`/`591.JPG` train-test leak: its effect on this statistic is
+−0.15 pp, within noise — decision was "document, don't re-measure." **Still not covered:** the
+two bone-loss ResNet18 classifiers — the only candidate per-item dataset on this machine
+(`outputs/bone_loss_eval/bone_loss_val_nonjittered.json`) is flagged `DIVERGENT — do not use` by
+its own creator, and the original un-rotated Tufts radiographs needed to redo it properly were
+searched for directly and confirmed absent (not merely assumed absent).
 
 ---
 
@@ -657,6 +669,18 @@ denominator grew 9%. Per-split 2.4 / 1.4 / 5.6 / 4.6% (was 3.7 / 0.8 / 1.5 / 5.4
 both directions; test3's rise is 4 → 23 teeth on 50 images and is noise. ⚠️ This metric's
 denominator is **model-dependent** (affected teeth are counted from detected boxes), so it is
 not a plain sensitivity delta. The bone-loss branch's domain-shift failure is unmoved.
+
+**Bootstrap CI added 4 Sep 2026** (`RESULTS_LOG` 2026-09-04l) — the per-image affected-tooth
+counts were being computed all along and discarded before being written out; fixed, re-ran
+(reproduced the pooled/per-split point estimates above exactly), then bootstrapped:
+
+| Split | n images | Sensitivity | 95% CI |
+|---|---|---|---|
+| test1 | 320 | 2.4% | [1.8, 3.0] |
+| test2 | 297 | 1.4% | [0.9, 2.0] |
+| test3 | 50 | 5.6% | [3.0, 8.7] |
+| test4 | 69 | 4.6% | [2.7, 6.6] |
+| **Pooled** | 736 | **2.4%** | **[2.0, 2.9]** |
 
 ---
 

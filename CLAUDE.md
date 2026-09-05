@@ -118,7 +118,7 @@ search — see `transfer.md` §6.
 
 **Do not maintain project status here.** This section goes stale faster than anything else in
 the repo, and has twice described a closed item as open. The authoritative snapshot is
-**`transfer.md`** (§1 "Where we are, in five lines"); the authoritative history is
+**`transfer.md`** (§1 "Where we are"); the authoritative history is
 `docs/results/RESULTS_LOG.md`; the authoritative work list is
 `docs/research/PUBLICATION_TODO.md` (status block at the top), sequenced by
 `docs/research/MASTER_PLAN_2026H2.md`, which supersedes the other planning docs for ordering.
