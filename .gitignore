@@ -153,6 +153,10 @@ outputs/lever_B_lesion_caries_path/**/*.pt
 !outputs/lever_A2_detector_finetune/
 !outputs/lever_A2_detector_finetune/**
 outputs/lever_A2_detector_finetune/**/*.pt
+# Lever C (structural FDI post-processor) -- Tufts-FDI council 2026-09-05b. Pre-registration +
+# JSON results tracked; no weights (zero-training lever).
+!outputs/lever_C_fdi_structural_postproc/
+!outputs/lever_C_fdi_structural_postproc/**
 !outputs/lesion_loc_pipeline/
 !outputs/lesion_loc_pipeline/**
 !outputs/lesion_localization_segdet/

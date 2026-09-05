@@ -19,7 +19,10 @@ adoption and the 4 Sep param re-count (`docs/session-memory/2026-09-05-readme-ma
 5 Sep — Tufts end-to-end FDI improvement options councilled, added to §3
 (`docs/session-memory/2026-09-05b-tufts-fdi-improvement-council.md`); 6 Sep — council Option B
 run, positional-feature-shift falsified as a lever, §3 updated
-(`docs/session-memory/2026-09-06-tufts-fdi-option-b-diagnostic.md`, `RESULTS_LOG` 2026-09-06).
+(`docs/session-memory/2026-09-06-tufts-fdi-option-b-diagnostic.md`, `RESULTS_LOG` 2026-09-06);
+6 Sep — Option A pre-registration drafted as "Lever C"
+(`outputs/lever_C_fdi_structural_postproc/PRE_REGISTRATION.md`,
+`docs/session-memory/2026-09-06b-lever-c-preregistration-council.md`) — DRAFT, awaiting go/no-go.
 
 **Maintenance rule (CLAUDE.md rule 5): before any substantial session ends, update this file.**
 A stale snapshot has cost this project real time more than once — see the pattern note in §4.
@@ -286,10 +289,15 @@ options A–F are councilled in `docs/session-memory/2026-09-05b-tufts-fdi-impro
 falsified as a lever (+0.1 pp).** The Tufts gap is the **image-derived position digit** — 73.5%
 vs DENTEX 91.9% on GT-box crops, concentrated in the crowded anterior; SIDE and quadrant are
 nearly matched. **Option A** — an ATGI-style anatomical sequence / arch-order post-processor on
-the head output — is now the confirmed lever; if the story is to be strengthened pre-submission,
-the next step is to pre-register it (`outputs/lever_C_fdi_structural_postproc/PRE_REGISTRATION.md`,
-Lever B template) with a frozen bar (Tufts FDI-exact-of-detected Δ ≥ +2 pp lower bound) and a
-DENTEX end-to-end no-regression guard. **Option D is weakened** (more same-difficulty data is
+the head output — is the confirmed lever, and its **pre-registration is drafted 6 Sep as
+"Lever C"** (`outputs/lever_C_fdi_structural_postproc/PRE_REGISTRATION.md`,
+`docs/session-memory/2026-09-06b-lever-c-preregistration-council.md`): two arms (C-sort / C-dp),
+primary bar = Tufts FDI-exact-of-detected Δ 95%-CI lower bound ≥ +2 pp (paired bootstrap over the
+149 test images), DENTEX FDI-exact no-regression guard (both of-detected and e2e, lower bound
+≥ −1 pp), anterior stratified check, τ frozen to the codebase's existing `LOW_CONFIDENCE` = 0.30,
+zero GPU, **3-working-day hard box**. **It is a DRAFT — freezes on commit-with-go-ahead; awaiting
+one review round (three open questions in the council file: the +2 pp bar, whether the anterior
+check is a hard bar, adopt-as-default vs always-retained-flag).** **Option D is weakened** (more same-difficulty data is
 unlikely to move an image-pathway limit); **Option E** — a better image-pathway position encoder
 (higher-res crops / a spatial-prior transformer) — is the post-submission lever that attacks the
 73.5% directly, and needs its own pre-registration. Nothing here is queued or approved — Deepak's

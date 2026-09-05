@@ -1683,7 +1683,13 @@ without needing the head to tell position 4 from 5 by appearance — and *weaken
 multi-corpus head retrain (more data of the same anterior-crowding difficulty is unlikely to
 move an image-pathway limit). A better image-pathway position encoder (higher-resolution crops,
 wider context, or a spatial-prior transformer) is the post-submission lever that would attack
-the 73.5% directly. **For the manuscript, lead the Tufts numbering discussion with of-detected
+the 73.5% directly. **The pre-registration for the post-processor ("Lever C") is drafted 6 Sep**
+(`outputs/lever_C_fdi_structural_postproc/PRE_REGISTRATION.md`,
+`docs/session-memory/2026-09-06b`): two arms (a simple monotonic re-sort and an anchored
+max-log-prob DP), primary bar = Tufts FDI-exact-of-detected Δ 95%-CI lower bound ≥ +2 pp, a
+DENTEX no-regression guard, one frozen threshold (τ = the existing `LOW_CONFIDENCE` 0.30), zero
+GPU, a 3-day box. It is a draft — freezes and runs only on a go-ahead; a null result would be
+reported as one, strengthening this paragraph's framing rather than contradicting it. **For the manuscript, lead the Tufts numbering discussion with of-detected
 78.6%** (detector-independent, and the number directly comparable to prior work's pre-cropped
 accuracies) **and present 64.8% end-to-end as detection-bound**, with the `models/06` bbox
 detector's 71.5% as the same-domain operating-point reference.
