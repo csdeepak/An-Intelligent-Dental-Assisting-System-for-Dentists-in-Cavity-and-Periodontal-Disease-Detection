@@ -6963,3 +6963,62 @@ measured effect on this statistic is $-0.15$ points against a $\pm$3.5-point CI 
   radiographs needed to redo it properly were searched for directly and confirmed absent, not
   assumed absent. Closing it needs either those source files or a decision to leave the 0.923
   macro-F1 figure without an interval, stated as such.
+
+## 2026-09-06 — Option B: the Tufts-FDI positional-feature-shift hypothesis is falsified; the gap is the image-derived position digit
+
+- **What was done:** Ran Option B from the 5 Sep Tufts-FDI council
+  (`docs/session-memory/2026-09-05b-tufts-fdi-improvement-council.md`) — a zero-GPU direction
+  check, no pre-registration (produces no paper number). New script
+  `scripts/eval/tufts_pos_feat_diagnostic.py` scores the deployed head (`models/10`, DENTEX+Tufts
+  v2.0) on **GT-box crops** (detector removed as a confound) under positional-feature
+  interventions, on Tufts test (3,786 crops) and DENTEX val (2,729, the control). This is
+  `ablate_head_inputs.py` pointed at the deployed head + both corpora + a cross-geometry
+  condition.
+- **Dataset / config:** `data/{dentex,tufts}/enumeration_v1` non-jittered crops, `models/10`
+  head, argmax (no Hungarian — crop-level). Conditions: `full`; `no_position` (pos-feats → that
+  corpus's train mean); `shuffled_pos` (pos-feats from a random other tooth); `dentex_geom`
+  (Tufts only — each Tufts feat standardised to its test distribution then rescaled to the
+  DENTEX-train distribution, `f' = (f−μ_t)/σ_t·σ_d + μ_d`).
+- **Metrics** (crop-level FDI-exact / position-digit / SIDE / quadrant, GT boxes, argmax):
+
+  | condition | DENTEX val FDI-exact | Tufts test FDI-exact | Tufts position digit |
+  |---|---|---|---|
+  | full | 91.0% | **71.5%** | **73.5%** |
+  | no_position | 77.5% (Δ −13.4) | 58.0% (Δ −13.5) | 72.2% (Δ −1.2) |
+  | shuffled_pos | 52.9% (Δ −38.1) | 39.1% (Δ −32.4) | 72.3% (Δ −1.1) |
+  | **dentex_geom** | — | **71.6% (Δ +0.1)** | **73.6% (Δ +0.1)** |
+
+  Full-condition digit-level: DENTEX position 91.9% / SIDE 99.1% / quadrant 99.0%;
+  Tufts position **73.5%** / SIDE 97.8% / quadrant 97.4%. Positional-feature distributions
+  (non-jittered): DENTEX-train `bh` 0.233 vs Tufts-test `bh` 0.175 (−25%), `bw` 0.045 vs 0.039,
+  `cy` 0.546 vs 0.577; `cx` matched. The crop-level Tufts FDI-exact **71.5% reproduces
+  `crop_eval.py`'s published v2.0 Tufts-test number exactly** (`model_metrics.md`), so the
+  harness is validated.
+- **Key decision or insight:** **the positional-feature covariate shift is NOT a lever for the
+  Tufts numbering gap.** Rescaling every Tufts positional feature to the DENTEX-train
+  distribution (`dentex_geom`) moves FDI-exact by **+0.1 pp** and the position digit by +0.1 pp —
+  i.e. a per-corpus positional-feature normalisation layer in a retrain would buy nothing. The
+  hypothesis is cleanly falsified. **What the diagnostic localises instead:** the Tufts gap is
+  the **position digit derived from the image** — 73.5% on Tufts vs 91.9% on DENTEX (an 18.4 pp
+  gap), while SIDE (97.8 vs 99.1) and quadrant (97.4 vs 99.0) are nearly matched. The positional
+  features do the *same* job on both corpora (they carry quadrant/laterality — Δ no_position
+  −13.4/−13.5, Δ shuffled −38/−32 — and ~nothing for the position digit, Δ −1.0/−1.2 on both).
+  This matches §8.16's taxonomy (74% of Tufts numbering errors are `off_by_one`) at the crop
+  level. **Consequence for the council's option ranking:** Option A (an anatomical
+  sequence/arch-order post-processor) is confirmed as the right lever — it corrects exactly the
+  position-digit / off-by-one error class without needing the head to tell position 4 from 5 by
+  appearance. Option D (retrain with more FDI corpora) is *weakened* — more data of the same
+  anterior-crowding difficulty is unlikely to move an image-pathway position-digit limit. The
+  end-to-end (detector-box) re-run is unnecessary: `dentex_geom` at +0.1 pp crop-level would not
+  become a material gain end-to-end.
+- **Source:** `scripts/eval/tufts_pos_feat_diagnostic.py` (new);
+  `outputs/tufts_fdi_pos_diagnostic/pos_feat_diagnostic.json`;
+  `docs/session-memory/2026-09-06-tufts-fdi-option-b-diagnostic.md`;
+  `PAPER_MATERIAL.md` §8.16; `transfer.md` §3.
+- **Follow-ups:** if the Tufts numbering story is to be strengthened before submission, the next
+  step is to **pre-register Option A** (`outputs/lever_C_fdi_structural_postproc/PRE_REGISTRATION.md`,
+  Lever B template) with a frozen bar (Tufts FDI-exact-of-detected Δ ≥ +2 pp lower bound, paired
+  cluster bootstrap over the 149 test images) and a DENTEX end-to-end no-regression guard —
+  Deepak's go/no-go, Track A still wins any time conflict. Option E (a better image-pathway
+  position encoder — higher-res crops, wider context, or a spatial-prior transformer) is the
+  post-submission lever that would attack the 73.5% directly.

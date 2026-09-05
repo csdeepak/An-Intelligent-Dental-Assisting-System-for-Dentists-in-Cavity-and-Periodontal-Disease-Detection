@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/assets/hero.svg" width="100%" alt="Dental AI Pipeline — six-stage OPG analysis. Detection mAP@0.5 0.810, FDI exact 58.3% end-to-end, bone-loss macro F1 0.9233, four external hospitals plus a second public benchmark, 83.6 M parameters across six models.">
+<img src="docs/assets/hero.svg" width="100%" alt="Dental AI Pipeline — six-stage OPG analysis. Detection mAP@0.5 0.810, FDI exact 58.3% end-to-end, bone-loss macro F1 0.9233, four external hospitals plus a second public benchmark, 97.7 M parameters across six models.">
 
 <br>
 
@@ -33,7 +33,7 @@ Detect every tooth · number it in FDI notation · classify two pathologies per 
 > |---|---|
 > | What are the current numbers? | [`docs/results/model_metrics.md`](docs/results/model_metrics.md) |
 > | Full technical story + honest limitations (the paper is written from this) | [`docs/results/PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) |
-> | Why is it like this? What happened when? | [`docs/results/RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) — 115 dated entries, append-only |
+> | Why is it like this? What happened when? | [`docs/results/RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) — 128 dated entries, append-only |
 > | What should I work on? | [`docs/research/PUBLICATION_TODO.md`](docs/research/PUBLICATION_TODO.md), sequenced by [`MASTER_PLAN_2026H2.md`](docs/research/MASTER_PLAN_2026H2.md) |
 > | How is the documentation laid out? | [`docs/README.md`](docs/README.md) |
 > | What does the code do? | [`src/README.md`](src/README.md), [`scripts/README.md`](scripts/README.md) |
@@ -138,8 +138,9 @@ pipeline, and it follows directly from anatomy — see
 |---|-------|-------|--------|---------------------------|
 | 1 | **Tooth detection** — YOLOv11l-seg | Full OPG, 1024 px | Tooth boxes (`nc=1`) | ✅ Test box **mAP@0.5 0.810**. Pipeline default frozen as `tooth-detector-seg-tufts-1024-v1.0`. Adopted for a **+2.76-point box gain** over the superseded bbox detector (0.7824). **Masks scored 0.638 against a pre-registered 0.65 bar — the bar was NOT met**; used for its **boxes only**, and mask-aware cropping stays unwired. |
 | 2 | **FDI enumeration** — ResNet18 + 4 positional features | Tooth box + 1.5× crop | FDI-keyed tooth list | ✅ **58.3% exact end-to-end** [53.9, 62.8]; **82.6% of detected teeth** [79.1, 85.8]; quadrant 97.6%. Hungarian one-to-one over the 32 codes → **0 duplicate codes**. Pipeline default is head **v2.0** (DENTEX+Tufts), adopted for cross-domain robustness. |
-| 3a | **Caries gate** — ResNet18 | Tight 1.0× crop | caries / healthy | ✅ `caries-gate-resnet18-v3.0`. Held-out **P 0.398 / R 0.740**, **AP 0.550** against a 0.147 chance line (3.7× chance). Rebuilt on a real negative class of 5,366 healthy teeth; in-pipeline caries rate **84.9% → 19.1%**. Improved, not solved. |
-| 3b | **Caries depth** — ResNet18 | Tight 1.0× crop | caries / deep_caries | ✅ acc **0.81**, macro F1 **0.77** (133 val crops). Validation only — no held-out test split exists for this head yet. |
+| 3a | **Caries lesion detector** — YOLOv11l *(default since 4 Sep 2026, Lever B)* | Full OPG | lesion boxes → tooth | ✅ `caries-lesion-detector-yolo11l-leverb-bpooled-v1.0`. Tooth-level lesion agreement beats both the caries gate **and** an image-blind molar constant on **2 of 3** external cohorts (CariesXrays 68.4%, Ningxia 50.0%; DENTEX a statistical **tie**, 45.5%). First mechanism in this project to beat that constant anywhere. |
+| 3a′ | **Caries gate** — ResNet18 *(retained variant, `--caries-method gate`)* | Tight 1.0× crop | caries / healthy | ✅ `caries-gate-resnet18-v3.0`. Held-out **P 0.398 / R 0.740**, **AP 0.550** against a 0.147 chance line (3.7× chance). Rebuilt on 5,366 real healthy teeth; in-pipeline caries rate **84.9% → 19.1%**. Every pre-4-Sep caries number was measured on it. |
+| 3b | **Caries depth** — ResNet18 | Tight 1.0× crop | caries / deep_caries | ✅ acc **0.81**, macro F1 **0.77** (133 val crops). Validation only — no held-out test split exists for this head yet. Unchanged by Lever B — runs on teeth the lesion detector or gate flags. |
 | 4a | **Bone-loss gate** — ResNet18 + focal loss | Expanded 1.5×W / 2.0×H crop | Present / Absent | ✅ macro F1 **0.9233**, sens 83.05%, spec 99.53% (1,558 val crops at real 4% prevalence). **Collapses out of domain** — see [C2](#c2--external-validation-on-four-hospitals). |
 | 4b | **Bone-loss severity** — ResNet18 + focal loss | Same expanded crop | Mild / Moderate / Severe | ✅ macro F1 **0.7208** — but on **52 val crops**. Provisional. |
 | — | *CEJ bone-level estimation (classical CV)* | Expanded crop | bone loss % | 🔬 **Negative result.** 15.1% exact agreement, 61.6% within ±1 class. **Not in the pipeline**, reported as a negative result. |
@@ -147,10 +148,11 @@ pipeline, and it follows directly from anatomy — see
 | 6 | **Report** | Fused findings | Per-tooth JSON + overlay | ✅ **2.39 s/image on CPU.** Grad-CAM remains design-only. |
 
 > **"Complete" means trained and running end to end — not validated to clinical standard.** What is
-> honestly still weak, and is written into every generated report under `["limitations"]`: caries
-> precision is **0.40**; the bone-loss branch **collapses outside Tufts** (fires on 0.7% of DENTEX
-> teeth, 2.4% affected-tooth sensitivity on Ningxia); detector recall **70.6%** caps Stage 2
-> end-to-end at 58.3%.
+> honestly still weak, and is written into every generated report under `["limitations"]`: the
+> adopted caries lesion detector has **no calibrated confidence and no abstention curve** (the
+> retained gate's precision is **0.40**); the bone-loss branch **collapses outside Tufts** (fires
+> on 0.7% of DENTEX teeth, 2.4% affected-tooth sensitivity on Ningxia); detector recall **70.6%**
+> caps Stage 2 end-to-end at 58.3%.
 
 ---
 
@@ -159,15 +161,16 @@ pipeline, and it follows directly from anatomy — see
 Full tables and provenance: [`docs/results/model_metrics.md`](docs/results/model_metrics.md).
 Every number below traces to a saved artefact under `outputs/`, a
 `models/<NN>_<name>/*summary*.txt`, or a run `results.csv`.
-[`scripts/verify_paper_numbers.py`](scripts/verify_paper_numbers.py) asserts 90 manuscript numbers
+[`scripts/verify_paper_numbers.py`](scripts/verify_paper_numbers.py) asserts 127 manuscript numbers
 against those artefacts, so numeric drift fails loudly.
 
 | Model | Dataset | Split | Headline metric |
 |---|---|---|---|
 | YOLOv11l-**seg** detection (**pipeline default**) | Tufts | **test** | mAP@0.5 box **0.810** / mask 0.638 |
 | YOLOv11l bbox detection — superseded, retained + hash-pinned | Tufts | val / **test** | 0.834 / **0.7824** |
-| FDI enumeration head v2.0 | DENTEX / Tufts | 164 leak-free / held-out | **58.3%** end-to-end; **82.6%** of detected; **71.5%** Tufts crop-level |
-| Caries gate v3.0 | DENTEX | held-out test (863 crops) | P **0.398** / R **0.740**, AP **0.550**, ECE 0.136 |
+| FDI enumeration head v2.0 | DENTEX / Tufts | 164 / 149 held-out | DENTEX **58.3%** e2e / **82.6%** of detected; Tufts **64.8%** e2e / **78.6%** of detected (3,760 teeth, 4 Sep) |
+| **Caries lesion detector (Stage-3a default, Lever B)** | DENTEX / CariesXrays / Ningxia | frozen, tooth-level lesion agreement | DENTEX **45.5%** (tie), CariesXrays **68.4%** (win), Ningxia **50.0%** (win) — beats both the gate and the image-blind constant on 2 of 3 |
+| Caries gate v3.0 *(retained variant)* | DENTEX | held-out test (863 crops) | P **0.398** / R **0.740**, AP **0.550**, ECE 0.136 |
 | Caries depth (caries vs deep) | DENTEX | val (133) | acc **0.81**, macro F1 **0.77** |
 | Bone-loss binary | Tufts | val (1,558, real prevalence) | macro F1 **0.9233** |
 | Bone-loss severity (3-class) | Tufts | val (52) | macro F1 **0.7208** |
@@ -194,7 +197,8 @@ What survives:
 - **Both models hand a confident dental answer to a random-noise image.** The 7B returns `26,36`
   for blank *and* noise input; the 32B returns `NONE` for blank and the full molar list for noise.
 - **The efficiency claim holds regardless**: 33.45 B parameters and 70.1 GB of H100 VRAM lose to
-  **61.2 M** parameters on a CPU — roughly **550×**, in the VLM's disfavour.
+  **61.2 M** parameters on a CPU — roughly **550×**, in the VLM's disfavour. *(This C1 run used
+  the retained gate path; the shipped lesion-detector default is 75.3 M, ~444×.)*
 
 ### Where the 936 teeth go — Stage-2 failure taxonomy
 
@@ -226,6 +230,21 @@ The errors that remain are overwhelmingly benign: **89 of 115 wrong codes (77.4%
 right quadrant, adjacent position, usually the same tooth type. Only **16 of 661 detected teeth
 (2.4%)** are category errors. The off-by-one drift splits 53 mesial / 36 distal, which is *not* the
 one-sided lean an indexing bug would produce — a check worth reporting as having been made.
+
+**The same taxonomy on Tufts** (3,760 teeth, 4 Sep 2026): correct **64.8%**, never detected
+18.2%, off-by-one 12.6%, category errors 3.2%. Quadrant is 96.3% right on detected teeth — the
+failure is purely the position digit, and 74% of Tufts numbering errors are benign off-by-one.
+Improvement options were councilled 5 Sep 2026 — literature (SADP-Net on Tufts, anchor-and-extend
+post-processing, spatial-prior transformers, unused public FDI corpora), a clean error
+decomposition, a recommendation — in
+[`docs/session-memory/2026-09-05b-tufts-fdi-improvement-council.md`](docs/session-memory/2026-09-05b-tufts-fdi-improvement-council.md).
+The zero-GPU **positional-feature-shift diagnostic was run 6 Sep and ruled that hypothesis out**
+(+0.1 pp): the Tufts gap is the **image-derived position digit** (73.5% on GT-box crops vs
+DENTEX 91.9%), so an **anatomical sequence / arch-order post-processor** on the head output is
+the confirmed lever — pre-registerable as a zero-GPU ablation with a DENTEX no-regression guard.
+Data and architecture levers are post-submission. Nothing is queued — Track A wins any time
+conflict. Detail in [`RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) 2026-09-06,
+[`PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) §8.16, [`transfer.md`](transfer.md) §3.
 
 Difficulty is also not where intuition puts it: molars are the **easiest** positions (13.0–14.9%
 wrong-code rate on the largest support), because they are large, distinctive and terminal, so they
@@ -293,27 +312,35 @@ as measured, and no further touch on locked external data is spent.
 
 ## Model zoo
 
-Six trained models, **83,564,140 parameters total**, counted with `torch.load` over the
-checkpoints. Every one is version-tagged and SHA-256 pinned, and
+The six default models total **97,649,753 learnable parameters**
+([`scripts/count_model_params.py`](scripts/count_model_params.py), one counting rule across every
+checkpoint — re-derived 4 Sep 2026; the earlier 83.6 M figure mixed two conventions *and*
+predated the Lever B adoption). Every one is version-tagged and SHA-256 pinned, and
 [`scripts/eval/verify_invariants.py`](scripts/eval/verify_invariants.py) re-checks the hashes.
 
 | Stage | Model | Directory | Params | Version tag | In git? |
 |---|---|---|---|---|---|
 | 1 | YOLOv11l-seg | [`models/11_yolo_seg_tufts_r1/`](models/11_yolo_seg_tufts_r1/) | 27,617,459 | `tooth-detector-seg-tufts-1024-v1.0` | ✅ *(committed 3 Sep, 53 MB)* |
 | 1 | YOLOv11l bbox *(superseded)* | [`models/06_yolo_detection_a100_run/`](models/06_yolo_detection_a100_run/) | 25.3 M | `tooth-detector-a100-1024-v1.0` | ❌ Drive |
-| 2 | ResNet18 + 4 positional feats | [`models/10_fdi_head_dentex_tufts_v2/`](models/10_fdi_head_dentex_tufts_v2/) | 11,197,536 | `fdi-enumeration-head-resnet18-v2.0` | ✅ |
+| 2 | ResNet18 + 4 positional feats | [`models/10_fdi_head_dentex_tufts_v2/`](models/10_fdi_head_dentex_tufts_v2/) | 11,187,916 | `fdi-enumeration-head-resnet18-v2.0` | ✅ |
 | 2 | FDI head v1.0 *(superseded)* | [`models/08_fdi_enumeration_head/`](models/08_fdi_enumeration_head/) | 11.2 M | `fdi-enumeration-head-resnet18-v1.0` | ✅ |
-| 3a | ResNet18 caries gate | [`models/09_caries_gate_v3/`](models/09_caries_gate_v3/) | 11,187,158 | `caries-gate-resnet18-v3.0` | ✅ *(committed 3 Sep, 43 MB)* |
-| 3b | ResNet18 caries severity | [`models/07_caries_cascade/`](models/07_caries_cascade/) | 11,187,158 | `caries-cascade-resnet18-v1.0` | ✅ |
-| 4a | ResNet18 bone-loss gate | [`models/03_bone_loss_model_training_notebook_models/`](models/03_bone_loss_model_training_notebook_models/) | 11,187,158 | `bone-loss-binary-resnet18-v1.0` | ✅ |
-| 4b | ResNet18 bone-loss severity | [`models/04_bone_loss_severity_notebook_models/`](models/04_bone_loss_severity_notebook_models/) | 11,187,671 | `bone-loss-severity-resnet18-v1.0` | ✅ |
-| | **Total, all six pipeline models** | | **83,564,140** | | |
-| | **Caries path only** (stages 1, 2, 3a, 3b) | | **61,189,311** | | |
+| 3a | YOLOv11l caries lesion detector **(default, Lever B, 4 Sep)** | [`models/16_lever_b_pooled/`](models/16_lever_b_pooled/) | 25,311,251 | `caries-lesion-detector-yolo11l-leverb-bpooled-v1.0` | ✅ *(committed 4 Sep, 51 MB)* |
+| 3a′ | ResNet18 caries gate *(retained variant, `--caries-method gate`)* | [`models/09_caries_gate_v3/`](models/09_caries_gate_v3/) | 11,177,538 | `caries-gate-resnet18-v3.0` | ✅ *(committed 3 Sep, 43 MB)* |
+| 3b | ResNet18 caries severity | [`models/07_caries_cascade/`](models/07_caries_cascade/) | 11,177,538 | `caries-cascade-resnet18-v1.0` | ✅ |
+| 4a | ResNet18 bone-loss gate | [`models/03_bone_loss_model_training_notebook_models/`](models/03_bone_loss_model_training_notebook_models/) | 11,177,538 | `bone-loss-binary-resnet18-v1.0` | ✅ |
+| 4b | ResNet18 bone-loss severity | [`models/04_bone_loss_severity_notebook_models/`](models/04_bone_loss_severity_notebook_models/) | 11,178,051 | `bone-loss-severity-resnet18-v1.0` | ✅ |
+| | **Total, six default models** (3a = lesion detector) | | **97,649,753** | | |
+| | Total with the `--caries-method gate` variant instead | | 83,516,040 | | |
+| | **Caries path only** (stages 1, 2, 3a-default, 3b) | | **75,294,164** | | |
+| | Caries path, `--caries-method gate` (1, 2, 3a-gate, 3b) | | 61,160,451 | | |
 
-> ⚠️ **Do not quote "~25 M" for this pipeline.** That figure is the *superseded bbox detector
-> alone*. It had propagated into nine places across six files before anyone counted it
+> ⚠️ **Do not quote "~25 M" for this pipeline.** That is the *superseded bbox detector alone* —
+> and, coincidentally, also the new Stage-3a lesion detector's own count (25.3 M); the two are
+> different models and must not be conflated. The "~25 M" figure had propagated into nine places
+> across six files before anyone counted it
 > ([`RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) 2026-08-28). The efficiency comparison against
-> Qwen2.5-VL-32B-Instruct is **33.45 B vs 61.2 M**.
+> Qwen2.5-VL-32B-Instruct is **33.45 B vs 75.3 M** (current default; the retained gate path is
+> 61.2 M) — roughly **444×**.
 
 **Also present, not pipeline defaults:** [`models/12_fdi_head_v3_3corpus/`](models/12_fdi_head_v3_3corpus/)
 (three-corpus head — an **ablation**: +1.14 pp on DENTEX val, significant; +0.74 pp on Tufts, not
@@ -330,16 +357,18 @@ bidirectional and quantified);
 [`models/14_cariesxrays_lever2/`](models/14_cariesxrays_lever2/) (Lever 2 — a standalone
 caries-**lesion** detector on the CariesXrays benchmark, **benchmark row only, not in the
 pipeline**: YOLOv11l reaches COCO **AP 0.482 / AP50 0.845** on this project's own seed-42 split —
-level with the task-specific FPCL method, ~8 AP over the generic baselines; the official FPCL
-split is not public so the comparison is *indicative*, `RESULTS_LOG` 2026-09-02b; **also Lever
-B's B-single arm**) and
-[`models/16_lever_b_pooled/`](models/16_lever_b_pooled/) (**Lever B's B-pooled arm**, 4 Sep — adds
-DENTEX-domain caries-box training data to `14`'s recipe: recovers DENTEX from a decisive loss
-(8.6%) to a statistical tie (45.5%) on tooth-level lesion agreement, at ~1pp cost to the still-
-decisive CariesXrays win (68.4%); **ablation**, Sec 6 not yet met — needs Ningxia, `RESULTS_LOG`
-2026-09-04f / 04g);
+level with the task-specific FPCL method, ~6 AP over the strongest of their ten baselines; the
+official FPCL split is not public so the comparison is *indicative*, `RESULTS_LOG` 2026-09-02b;
+it is also **Lever B's single-corpus arm**, which wins CariesXrays outright but collapses to
+**8.6%** tooth-level lesion agreement on DENTEX — a strong benchmark number and a failure to
+transfer in one model);
 plus [`models/05_cej_estimation_v2_models/`](models/05_cej_estimation_v2_models/)
 (the exploratory CEJ negative result).
+
+[`models/16_lever_b_pooled/`](models/16_lever_b_pooled/) is **no longer an ablation** — it was
+**adopted 4 Sep 2026 as the Stage-3a caries default** once Ningxia was scored and the
+pre-registered Sec 6 rule was met on 2 of 3 cohorts (`RESULTS_LOG` 2026-09-04h). It is in the
+default table above; `models/14` is its retained single-corpus arm.
 
 ### Architecture specifications
 
@@ -461,7 +490,7 @@ Each of those four rows is a bug that was found the hard way. See
 │
 ├── scripts/
 │   ├── run_inference.py         ← ★ CLI: all six stages, OPG in → JSON + overlay out
-│   ├── verify_paper_numbers.py  ← asserts 90 manuscript numbers against artefacts
+│   ├── verify_paper_numbers.py  ← asserts 127 manuscript numbers against artefacts
 │   ├── verify_citations_crossref.py  ← dereferences every DOI against the registry (22 fixed, 2 Sep)
 │   ├── audit_citations.py · check_text_reuse.py · build_handbook.py
 │   ├── eval/                    ← 21 evaluation + invariant scripts (+ README)
@@ -485,7 +514,7 @@ Each of those four rows is a bug that was found the hard way. See
     ├── architecture/            ← pipeline diagrams (+ drawio source)
     ├── results/
     │   ├── PAPER_MATERIAL.md    ← ★ master paper-writing document
-    │   ├── RESULTS_LOG.md       ← append-only journal, 115 entries
+    │   ├── RESULTS_LOG.md       ← append-only journal, 128 entries
     │   ├── model_metrics.md     ← one-page scoreboard
     │   ├── METHODOLOGY_CHANGELOG.md
     │   └── figures/paper/       ← 17 paper/review figures
@@ -631,9 +660,9 @@ python scripts/train_model.py   --config configs/dataset_config.yaml   # Stage 4
 | **C2b** — CariesXrays sixth cohort (frozen pipeline) | `scripts/eval/cariesxrays_external.py` | `outputs/cariesxrays_external*/` |
 | **Lever 1 / A** — multi-corpus detector (ablations) | `scripts/yolo/build_multicorpus_detector{,_v2}_dataset.py`, `train_multicorpus_detector{,_v2}.py`, `scripts/eval/score_lever{1,A}_arm.py` | `models/13_detector_multicorpus_lever1/`, `models/15_detector_multicorpus_leverA/` (+ `repro/` + `repro/diagnostics/`), `outputs/lever_A_multicorpus_detector_v2/` (+ `TUFTS_GUARD2_DIAGNOSIS.md`) |
 | **Lever 2** — CariesXrays lesion detector (trained; benchmark row) | `scripts/yolo/build_cariesxrays_detector_dataset.py`, `scripts/yolo/train_cariesxrays_detector.py` | `models/14_cariesxrays_lever2/`, `outputs/lever2_cariesxrays/` |
-| **Lever B** — lesion-detection caries path (both arms trained/evaluated 4 Sep; Sec 6 pending Ningxia) | `scripts/dentex/build_dentex_caries_boxes.py`, `scripts/yolo/{build_lever_b_pooled_dataset,train_lever_b_pooled_detector}.py`, `scripts/eval/{lesion_localization,ningxia_external,cariesxrays_external}.py` (`--decision lesion-detector`), `scripts/eval/lever_b_bootstrap.py` | `models/{14,16}_*` (B-single / B-pooled), `outputs/lever_b_eval/`, `outputs/lever_B_lesion_caries_path/PRE_REGISTRATION.md` (frozen) |
+| **Lever B** — lesion-detection caries path (both arms trained/evaluated 4 Sep; Sec 6 met on 2/3 cohorts → `models/16` adopted as Stage-3a default) | `scripts/dentex/build_dentex_caries_boxes.py`, `scripts/yolo/{build_lever_b_pooled_dataset,train_lever_b_pooled_detector}.py`, `scripts/eval/{lesion_localization,ningxia_external,cariesxrays_external}.py` (`--decision lesion-detector`), `scripts/eval/lever_b_bootstrap.py` | `models/{14,16}_*` (B-single / B-pooled), `outputs/lever_b_eval/`, `outputs/lever_B_lesion_caries_path/PRE_REGISTRATION.md` (frozen) |
 | DOI integrity of every citation | `scripts/verify_citations_crossref.py` | `outputs/citation_audit/` |
-| The 90 manuscript numbers | `scripts/verify_paper_numbers.py` | `paper/main.tex` |
+| The 127 manuscript numbers | `scripts/verify_paper_numbers.py` | `paper/main.tex` |
 
 Paper figures regenerate from **saved run artefacts only, never re-measured**:
 `scripts/figures/make_paper_figures.py`, `make_baseline_figure.py`,
@@ -687,7 +716,7 @@ and treating the gap as *a defect to explain* rather than a disappointing number
 Geometry is now verified against an independent annotation source **before** training, in code that
 exits non-zero rather than in a doc that can go stale.
 
-**Numbers are pinned to artefacts.** `verify_paper_numbers.py` asserts 90 manuscript numbers
+**Numbers are pinned to artefacts.** `verify_paper_numbers.py` asserts 127 manuscript numbers
 against their JSONs; `verify_invariants.py` asserts frozen weight hashes and dataset hygiene;
 159 unit tests cover the coordinate conversions, the FDI table, the crop contracts and the
 orientation contract (both directions — including the `rot_box` inverse added for the Lever 1

@@ -14,6 +14,13 @@ council transcripts, since-corrected claims) has been moved out of this file int
 carries superseded text next to its correction. GPU balance **₹1,148.78, nothing running, nothing
 paused.**
 
+**Targeted updates since:** 5 Sep — root `README.md` + `main.tex` reconciled with the Lever B
+adoption and the 4 Sep param re-count (`docs/session-memory/2026-09-05-readme-maintex-stale-number-reconciliation.md`);
+5 Sep — Tufts end-to-end FDI improvement options councilled, added to §3
+(`docs/session-memory/2026-09-05b-tufts-fdi-improvement-council.md`); 6 Sep — council Option B
+run, positional-feature-shift falsified as a lever, §3 updated
+(`docs/session-memory/2026-09-06-tufts-fdi-option-b-diagnostic.md`, `RESULTS_LOG` 2026-09-06).
+
 **Maintenance rule (CLAUDE.md rule 5): before any substantial session ends, update this file.**
 A stale snapshot has cost this project real time more than once — see the pattern note in §4.
 
@@ -271,6 +278,24 @@ periodontitis-CI work into any downstream summary docs that quote the old number
 whether to actually *measure* (not just scope in writing) calibration/abstention for the new
 caries detector — needs its own pre-registration since the 0.30 threshold was frozen against the
 gate's curve, not this one.
+
+**Tufts end-to-end FDI (64.8% e2e / 78.6% of detected, `RESULTS_LOG` 2026-09-04d).** Improvement
+options A–F are councilled in `docs/session-memory/2026-09-05b-tufts-fdi-improvement-council.md`
+(literature via firecrawl). **Option B (positional-feature-shift diagnostic) was run 6 Sep
+(`RESULTS_LOG` 2026-09-06, `scripts/eval/tufts_pos_feat_diagnostic.py`) — the pos-feat shift is
+falsified as a lever (+0.1 pp).** The Tufts gap is the **image-derived position digit** — 73.5%
+vs DENTEX 91.9% on GT-box crops, concentrated in the crowded anterior; SIDE and quadrant are
+nearly matched. **Option A** — an ATGI-style anatomical sequence / arch-order post-processor on
+the head output — is now the confirmed lever; if the story is to be strengthened pre-submission,
+the next step is to pre-register it (`outputs/lever_C_fdi_structural_postproc/PRE_REGISTRATION.md`,
+Lever B template) with a frozen bar (Tufts FDI-exact-of-detected Δ ≥ +2 pp lower bound) and a
+DENTEX end-to-end no-regression guard. **Option D is weakened** (more same-difficulty data is
+unlikely to move an image-pathway limit); **Option E** — a better image-pathway position encoder
+(higher-res crops / a spatial-prior transformer) — is the post-submission lever that attacks the
+73.5% directly, and needs its own pre-registration. Nothing here is queued or approved — Deepak's
+go/no-go, and Track A wins any time conflict. Zero-effort regardless: the manuscript should lead
+the Tufts numbering discussion with **of-detected 78.6%** and present 64.8% e2e as
+detection-bound.
 
 ---
 

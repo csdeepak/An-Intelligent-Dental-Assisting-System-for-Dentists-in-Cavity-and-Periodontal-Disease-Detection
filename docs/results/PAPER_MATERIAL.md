@@ -1656,6 +1656,38 @@ the matching threshold the pipeline actually uses is about 6 points on Tufts, no
 headline box-mAP drop (0.585 vs 0.810 deployed) implies** — while it gains 29–34 points on DENTEX
 end-to-end and 6–19 on every external cohort. `models/15_detector_multicorpus_leverA/repro/diagnostics/gt_scale_probe.py`.
 
+**Improvement options for the Tufts numbering result — analysed 5 Sep 2026, none started**
+(`docs/session-memory/2026-09-05b-tufts-fdi-improvement-council.md`). The 64.8% end-to-end /
+78.6%-of-detected decomposes cleanly: quadrant is already 96.3% correct on detected teeth, so the
+failure is the position digit — `off_by_one` + `same_quadrant_far` are 14.6 pp and **74% of all
+Tufts numbering errors**, and the Hungarian assignment in `assign_fdi_head` enforces uniqueness
+but not anatomical sequence consistency. A literature pass (firecrawl) found the field's
+consistent answer is an explicit structural prior — a sequence-repair pass, a graph over teeth,
+or a spatial-prior transformer — plus a first-class missing-tooth stage: **Zhang et al.,
+*A Reliable Multi-Stage System*, IEEE JBHI 2025** (the `zhang2025reliable` we already cite —
+evaluated *on Tufts*, with a symmetry-aware segmentor + a dedicated missing-tooth detector and
+post-hoc FDI index completion; code at github.com/qklee-lz/SADP-Net); **Lin et al.,
+*Structure-Guided Tooth Numbering*, J Imaging 2026** (an anchor-and-extend post-processor,
+weighted F1 0.687 → 0.813); **Li et al., *Spatial Prior-Guided Bi-Directional Cross-Attention
+Transformers*, IEEE TMI 2024**; **van Nistelrooij et al., BMC Oral Health 2024** (numbering
+costs ~0 mAP given a large FDI corpus — and OdontoAI, 2,000 FDI+mask panoramics, plus MICCAI STS
+2024, 2,380 OPGs, are unused public corpora). **The positional-feature-shift diagnostic was run 6 Sep 2026** (`RESULTS_LOG` 2026-09-06,
+`scripts/eval/tufts_pos_feat_diagnostic.py`) and **falsified that hypothesis**: rescaling every
+Tufts positional feature to the DENTEX-train distribution (the `bh` 0.175 vs 0.233 shift and the
+rest) moves crop-level FDI-exact by **+0.1 pp**. The Tufts weakness is the **image-derived
+position digit** — 73.5% on GT-box crops vs DENTEX's 91.9%, while SIDE (97.8 vs 99.1) and
+quadrant (97.4 vs 99.0) nearly match — concentrated in the crowded anterior region Tufts scores
+and DENTEX mostly does not. This *confirms* an anatomical sequence / arch-order post-processor
+(the "Option A" above) as the right lever — it corrects the off-by-one / position-digit class
+without needing the head to tell position 4 from 5 by appearance — and *weakens* a plain
+multi-corpus head retrain (more data of the same anterior-crowding difficulty is unlikely to
+move an image-pathway limit). A better image-pathway position encoder (higher-resolution crops,
+wider context, or a spatial-prior transformer) is the post-submission lever that would attack
+the 73.5% directly. **For the manuscript, lead the Tufts numbering discussion with of-detected
+78.6%** (detector-independent, and the number directly comparable to prior work's pre-cropped
+accuracies) **and present 64.8% end-to-end as detection-bound**, with the `models/06` bbox
+detector's 71.5% as the same-domain operating-point reference.
+
 ---
 
 ### 8.17 Caries failure panel — what the 0.40 precision is actually made of
@@ -2404,6 +2436,14 @@ For whoever drafts the actual paper. Tick items off here as they land.
       corrupt `bounding box` fields in the source data) as a short data-quality paragraph —
       it is both an honest limitation of our Stage-1 numbers and a reusable finding about
       the public dataset.
+- [ ] Decide whether the Tufts end-to-end FDI number (64.8% e2e / 78.6% of detected) needs
+      strengthening before submission, or ships as an honestly-decomposed detection-bound
+      number. Improvement options A–F are councilled in
+      `docs/session-memory/2026-09-05b-tufts-fdi-improvement-council.md` and summarised at the
+      end of §8.16. Recommended first step is a zero-GPU positional-feature diagnostic, then an
+      anatomical sequence post-processor as a pre-registered ablation (data / architecture
+      levers are post-submission). Whichever way it goes, write §8.16's Tufts paragraph
+      leading with **of-detected 78.6%**, not the end-to-end figure.
 - [x] Related Work section — **comparison table DONE 27 Aug 2026** (§2.1): 117 reviewed papers,
       49 task-relevant after de-duplication, head-to-head table on Tufts/DENTEX with our result
       beside each, plus the validation-landscape count (**only 2 of 49 validate externally**) that
