@@ -108,6 +108,38 @@ than the check itself; the first draft of that docstring claimed it "would have 
 2026-09-06c", which was false, and this repo's whole failure history is confident claims nobody
 tested.
 
+### The audit that followed — the bone-loss crops are clean
+
+Asked to check the bone-loss crops too, so I checked everything Tufts-derived rather than that one
+corpus. **The bone-loss crops are in the correct frame**, established two independent ways: their
+stored `val_cw` crops differ from a re-cut out of `Radiographs_upright_fixed` by mean|diff| 0.39
+(JPEG noise) against 47.99 for the wrong frame, and scoring the frozen Stage-4a model over the
+three stored variants reproduces `RESULTS_LOG` 2026-08-27u's table **exactly**, confusion matrices
+included (0.4869 / 0.5371 / 0.7145).
+
+So the 0.40-vs-0.83 sensitivity gap is not orientation. I also excluded one fresh candidate: the
+source notebook reads radiographs as `IMREAD_GRAYSCALE` while the rebuild uses `IMREAD_COLOR`, and
+rebuilding both ways gives *identical* predictions — these radiographs are true greyscale. What
+remains is what 27 Aug already said: a different population (785 reproducible rows vs the reported
+1,558, half of which carry unsaved jitter) and the source-image provenance. One new datum on how
+fragile the subset is: re-cutting from a re-encoded frame instead of rotating in memory moves
+sensitivity 0.4000 → 0.3714, one borderline positive flipping on JPEG noise. At 35 positives that
+subset cannot settle the question either way — an argument for leaving 0.923 flagged rather than
+approximating it.
+
+`dataset_seg_v2` (what `models/11` trained on) is aligned and byte-identical to
+`Radiographs_rotated_fixed` — a third, independent corroboration of today's frame conclusion.
+`severity_dataset` / `resampled_dataset` are metadata-only. The audit is now one command,
+`scripts/eval/tufts_corpus_audit.py`, with each directory's expected verdict recorded so a future
+change fails loudly.
+
+**The thing actually worth acting on** is not a corpus at all: three misaligned artefacts still sit
+on disk under the *shorter, more inviting* name next to their corrected counterparts —
+`Radiographs_rotated`, `Radiographs_upright`, `dataset_seg`. That naming is precisely how the
+enumeration corpus came to be built from the wrong one. I did not rename them in this session
+because moving `dataset_seg` touches paths other scripts may reference, and that deserves its own
+pass rather than being tacked onto this one.
+
 ## Decisions made
 
 - **Freeze before code, verdict from the rule.** The pre-registration was committed with the

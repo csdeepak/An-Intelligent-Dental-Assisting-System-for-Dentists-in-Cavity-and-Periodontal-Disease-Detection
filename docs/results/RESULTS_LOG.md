@@ -7209,3 +7209,67 @@ measured effect on this statistic is $-0.15$ points against a $\pm$3.5-point CI 
   (2026-08-27u/28c). Worth checking whether that anomaly and this defect are the same bug.
   (2) `data/tufts/ZIP/Radiographs_upright/` is still the wrong frame and still the default many
   scripts would reach for; consider retiring or renaming it on this machine.
+
+## 2026-09-06e — audit of every Tufts-derived corpus on this machine: the bone-loss crops are NOT affected, and the 0.40-vs-0.83 gap is not orientation
+
+- **What was done:** after 2026-09-06c/d found the enumeration crop corpus cut from the wrong
+  frame, audited every other Tufts-derived corpus on the Windows clone rather than assuming the
+  defect stopped there. Two instruments, both already in the repo: the pixel/model check
+  (`tufts_crop_frame_check.py`, and a direct re-cut comparison for corpora with a different crop
+  contract) and the repo's own `_tufts_align.image_orientation_score`, now wrapped as
+  `scripts/eval/tufts_corpus_audit.py` so the whole surface is one command instead of shell history.
+- **Bone-loss crops — clean, verified two independent ways.**
+  1. **Pixel:** the stored `bone_loss_crops_rebuilt/val_cw` crops re-cut from
+     `Radiographs_upright_fixed` (the corrected frame, 1.5×W/2.0×H expansion) differ by
+     **mean|diff| 0.39** — JPEG noise — against **47.99** for the wrong frame. They are in the
+     correct frame.
+  2. **Model:** scoring the frozen Stage-4a classifier over the three stored variants reproduces
+     `RESULTS_LOG` 2026-08-27u's table **exactly**, confusion matrices included:
+
+     | variant | macro-F1 | sensitivity | confusion |
+     |---|---|---|---|
+     | `val` (portrait, teeth sideways) | 0.4869 | 0.0000 | TN=745 FP=5 FN=35 TP=0 |
+     | `val_ccw` | 0.5371 | 0.0857 | TN=732 FP=18 FN=32 TP=3 |
+     | `val_cw` (the correct upright frame) | **0.7145** | **0.4000** | TN=737 FP=13 FN=21 TP=14 |
+     | *documented (full 1,558, incl. jittered)* | *0.9233* | *0.8305* | *TN=1492 FP=7 FN=10 TP=49* |
+
+- **So the bone-loss gap is not the frame defect**, and one candidate cause is now also excluded:
+  the source notebook reads radiographs with `cv2.IMREAD_GRAYSCALE` while
+  `rebuild_bone_loss_crops.py` uses `IMREAD_COLOR` — rebuilding both ways gives **identical**
+  predictions (macro-F1 0.7015 / sensitivity 0.3714 either way), because these radiographs are
+  true greyscale. What remains is what 2026-08-27u already named: the 785 reproducible rows are a
+  **different population** from the reported 1,558 (which include 773 crops whose jitter offsets
+  were never saved), plus the source-image provenance (the notebook cut from the original
+  un-rotated `Radiographs/`, absent here; ours is a rotate-and-re-encode round trip of it).
+- **One new datum on how fragile that measurement is:** re-cutting from the re-encoded
+  `Radiographs_upright_fixed` instead of rotating in memory moves sensitivity **0.4000 → 0.3714**
+  — a single borderline positive flipping on JPEG noise. At 35 positives the subset cannot settle
+  a 0.40-vs-0.83 question either way, which is an argument for leaving the 0.923 flagged as
+  irreproducible rather than trying to approximate it.
+- **Audit of the image directories** (`tufts_corpus_audit.py`, orientation score >1 = aligned):
+
+  | directory | score | verdict |
+  |---|---|---|
+  | `ZIP/Radiographs_rotated` | 0.967 | **MISALIGNED** — the known pre-22-Aug copy |
+  | `ZIP/Radiographs_rotated_fixed` | 1.030 | ALIGNED |
+  | `dataset_seg/images/{train,val}` | 0.976 / 0.959 | **MISALIGNED** — expected: this is the withdrawn v1 (2026-08-27a) |
+  | `dataset_seg_v2/images/{train,val}` | 1.039 / 1.074 | ALIGNED — and `models/11`'s own run_summary records 0.837 median IoU / 99.4% agreement for its labels |
+
+  `dataset_seg_v2`'s images are **byte-identical** to `Radiographs_rotated_fixed` (mean|diff| 0.00),
+  which independently corroborates today's frame conclusion from a third direction: the detector
+  that reproduces its published Tufts recall was trained on that frame.
+  `severity_dataset` and `resampled_dataset` hold **metadata only, no pixels** — nothing to check.
+- **Key decision or insight:** the wrong-frame defect is contained to `Radiographs_upright/` and
+  the corpus built from it (now rebuilt). Everything else on this machine is either correct or
+  already-known-bad-and-superseded. **What is worth acting on is that three misaligned artefacts
+  still sit on disk under inviting names** — `Radiographs_rotated`, `Radiographs_upright`, and
+  `dataset_seg` — and each is the *shorter, more obvious* name next to its corrected counterpart.
+  That is how the enumeration corpus got built from the wrong one in the first place.
+- **Source:** `scripts/eval/tufts_corpus_audit.py` (new), `scripts/eval/tufts_crop_frame_check.py`,
+  `scripts/yolo/_tufts_align.py::image_orientation_score`,
+  `models/11_yolo_seg_tufts_r1/run_summary.txt`, `RESULTS_LOG` 2026-08-27a / 2026-08-27u / 2026-09-06c/d.
+- **Follow-ups:** (1) rename or archive the three misaligned artefacts so the inviting name is the
+  correct one — the single highest-value follow-up here, and not done in this session because
+  moving `dataset_seg` touches a path other scripts may still reference. (2) The bone-loss
+  reproduction gap stays open and stays flagged; nothing measured here changes what the paper says
+  about it.

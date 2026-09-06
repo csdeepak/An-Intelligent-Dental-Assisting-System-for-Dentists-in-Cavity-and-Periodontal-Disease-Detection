@@ -39,9 +39,15 @@ superseded banners (§3 item 7 closed).
 > the crops now score 73.2%, and Option B re-run on it reproduces the published result on both
 > cohorts (`RESULTS_LOG` 2026-09-06c — diagnosis, 2026-09-06d — rebuild + reproduction). The
 > defective build is archived, not deleted (`_repo_archive/tufts_enumeration_v1_wrongframe_2026-09-06/`).
-> **Still unchecked on this clone: `bone_loss_crops_rebuilt`, `severity_dataset`, `dataset_seg*`**
-> — same era, same likely cause, and the bone-loss branch is where the project's strongest
-> in-domain number lives. Use `scripts/eval/tufts_crop_frame_check.py` before trusting any of them.
+> **Everything else on this clone was then audited (`RESULTS_LOG` 2026-09-06e,
+> `scripts/eval/tufts_corpus_audit.py`) and is fine:** the bone-loss crops are in the correct
+> frame (verified by pixels *and* by reproducing 2026-08-27u's table exactly), `dataset_seg_v2`
+> (what `models/11` trained on) is aligned and byte-identical to `Radiographs_rotated_fixed`, and
+> `severity_dataset` / `resampled_dataset` hold metadata only. **But three misaligned artefacts
+> still sit on disk under the shorter, more inviting name** — `Radiographs_rotated`,
+> `Radiographs_upright` and `dataset_seg` (the withdrawn v1) — each next to its corrected
+> counterpart. That naming is exactly how the enumeration corpus got built from the wrong one.
+> Renaming or archiving them is the open follow-up.
 
 **Maintenance rule (CLAUDE.md rule 5): before any substantial session ends, update this file.**
 A stale snapshot has cost this project real time more than once — see the pattern note in §4.
