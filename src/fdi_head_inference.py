@@ -23,6 +23,15 @@ tooth 17. A mouth has at most one tooth per code, so treating this as a linear a
 problem is the faithful model: maximise the total joint log-probability over a one-to-one
 matching of detections to codes (Hungarian algorithm). `--no-one-to-one` falls back to plain
 argmax, which is what makes the duplicate rate measurable rather than assumed.
+
+STRUCTURAL POST-PROCESSING (Lever C, `assignment="structural-dp"` / `"structural-sort"`)
+----------------------------------------------------------------------------------------
+The Hungarian pass enforces uniqueness but not anatomical *sequence* consistency, which is the
+off-by-one error class. `assignment=` selects an optional post-pass over its output --
+`src/fdi_structural_repair.py`, pre-registered in
+`outputs/lever_C_fdi_structural_postproc/PRE_REGISTRATION.md`. The default is and stays
+`"hungarian"`: the post-pass ships behind the flag until the pre-registered acceptance rule is
+met, so every number measured before it is untouched.
 """
 
 import sys
@@ -53,6 +62,9 @@ LOW_CONFIDENCE = 0.30
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
 FDI_CODES = [(q + 1) * 10 + (p + 1) for q in range(4) for p in range(8)]
+
+# Selectable assignment strategies. "hungarian" is the deployed default and must stay first.
+ASSIGNMENTS = ("hungarian", "structural-sort", "structural-dp")
 
 
 def load_head(weights, device):
@@ -107,25 +119,50 @@ def _batch(img_bgr, boxes):
     return torch.stack(crops), torch.tensor(feats, dtype=torch.float32)
 
 
-def assign_fdi_head(model, img_bgr, boxes, device, one_to_one=True):
+def head_joint_scores(model, img_bgr, boxes, device):
     """
-    Returns a list aligned with `boxes`:
-        {index, fdi, quadrant, position, confidence, flags}
+    One forward pass -> (lq, lp, joint) as numpy arrays, all in box order.
 
-    `confidence` is exp() of the joint quadrant+position log-probability of the chosen code,
-    so it is comparable across teeth and usable by Stage-5 filtering.
+    Separated from the assignment so that several assignment strategies can be scored against
+    the *same* forward pass -- which is what makes the Lever C arms exactly paired, and what
+    keeps a three-arm evaluation the cost of a one-arm one.
     """
     import torch
-    if len(boxes) == 0:
-        return []
     imgs, feats = _batch(img_bgr, boxes)
     with torch.no_grad():
         oq, op = model(imgs.to(device), feats.to(device))
         lq = torch.log_softmax(oq, dim=1)          # (N,4)
         lp = torch.log_softmax(op, dim=1)          # (N,8)
         # joint log-prob of every (quadrant, position) pair -> (N,32), column order FDI_CODES
-        joint = (lq.unsqueeze(2) + lp.unsqueeze(1)).reshape(len(boxes), 32).cpu().numpy()
+        joint = (lq.unsqueeze(2) + lp.unsqueeze(1)).reshape(len(boxes), 32)
+    return lq.cpu().numpy(), lp.cpu().numpy(), joint.cpu().numpy()
 
+
+def assign_fdi_head(model, img_bgr, boxes, device, one_to_one=True, assignment="hungarian"):
+    """
+    Returns a list aligned with `boxes`:
+        {index, fdi, quadrant, position, confidence, flags}
+
+    `confidence` is exp() of the joint quadrant+position log-probability of the chosen code,
+    so it is comparable across teeth and usable by Stage-5 filtering.
+
+    `assignment` selects the optional Lever C post-pass; see the module docstring.
+    """
+    if len(boxes) == 0:
+        return []
+    lq, lp, joint = head_joint_scores(model, img_bgr, boxes, device)
+    h, w = img_bgr.shape[:2]
+    return assign_from_scores(joint, lq, lp, boxes, w, h,
+                              one_to_one=one_to_one, assignment=assignment)
+
+
+def assign_from_scores(joint, lq, lp, boxes, img_w, img_h,
+                       one_to_one=True, assignment="hungarian"):
+    """The assignment itself, on saved scores. `assign_fdi_head` is this plus a forward pass."""
+    if assignment not in ASSIGNMENTS:
+        raise ValueError(f"unknown assignment {assignment!r}; expected one of {ASSIGNMENTS}")
+    if len(boxes) == 0:
+        return []
     if one_to_one and len(boxes) > 0:
         from scipy.optimize import linear_sum_assignment
         rows, cols = linear_sum_assignment(-joint)     # maximise total joint log-prob
@@ -150,4 +187,12 @@ def assign_fdi_head(model, img_bgr, boxes, device, one_to_one=True):
             flags.append("reassigned_by_one_to_one")
         out.append({"index": i, "fdi": fdi, "quadrant": fdi // 10, "position": fdi % 10,
                     "confidence": round(conf, 4), "flags": flags})
+
+    if assignment != "hungarian":
+        if not one_to_one:
+            raise ValueError("structural assignment post-processes the one-to-one result; "
+                             "it is not defined on plain argmax")
+        from src.fdi_structural_repair import structural_repair
+        out = structural_repair(out, boxes, lq, lp, img_w, img_h,
+                                arm="sort" if assignment == "structural-sort" else "dp")
     return out

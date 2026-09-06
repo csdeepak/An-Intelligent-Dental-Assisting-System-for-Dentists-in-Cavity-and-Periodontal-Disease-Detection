@@ -1,0 +1,27 @@
+{
+  "n_gt_teeth": 3725,
+  "n_images": 145,
+  "recall": 0.7959731543624161,
+  "fdi_exact_of_detected": 0.7780775716694772,
+  "fdi_exact_of_all": 0.6193288590604027,
+  "quadrant_correct_of_detected": 0.9699831365935919,
+  "mean_detections_per_image": 22.510344827586206,
+  "duplicate_fdi_codes": 0,
+  "flag_counts": {
+    "low_confidence": 451,
+    "reassigned_by_one_to_one": 265,
+    "structural_infeasible": 979,
+    "unassigned_no_code_left": 15,
+    "structural_repaired": 64,
+    "structural_collision": 6
+  },
+  "detector": "C:\\Users\\csdee\\PESU\\capstone\\An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection\\models\\11_yolo_seg_tufts_r1\\best.pt",
+  "head": "C:\\Users\\csdee\\PESU\\capstone\\An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection\\models\\10_fdi_head_dentex_tufts_v2\\enumeration_head_best.pth",
+  "assignment": "structural-sort",
+  "conf": 0.25,
+  "det_nms_iou": 0.5,
+  "imgsz": 1024,
+  "min_iou": 0.3,
+  "one_to_one": true,
+  "excluded_leaked": []
+}

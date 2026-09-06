@@ -168,6 +168,30 @@ def inv_crop_contracts():
     return "caries 1.0x, bone-loss 1.5x/2.0x, FDI head 1.5x — all distinct"
 
 
+# ---------------------------------------------------------------- Lever C
+def inv_lever_c_defaults():
+    """
+    Lever C must stay OFF by default and must not introduce a tunable of its own.
+
+    Both halves have bitten this project before: a default that drifted (the Stage-3a swap was
+    only safe because the old path stayed selectable) and a threshold that acquired a second,
+    quietly different value. The repair's TAU is the head's existing LOW_CONFIDENCE and its
+    GAP_FACTOR is `assign_fdi`'s existing default -- if either is edited on its own, the
+    pre-registration's "the only free hyperparameter is tau, frozen to 0.30" stops being true.
+    """
+    import inspect
+    sys.path.insert(0, str(REPO_ROOT))
+    from src.fdi_assignment import assign_fdi
+    from src.fdi_head_inference import ASSIGNMENTS, LOW_CONFIDENCE
+    from src.fdi_structural_repair import GAP_FACTOR, TAU
+    assert ASSIGNMENTS[0] == "hungarian", f"the deployed default moved: {ASSIGNMENTS}"
+    assert TAU == LOW_CONFIDENCE, f"Lever C tau {TAU} != head LOW_CONFIDENCE {LOW_CONFIDENCE}"
+    gap_default = inspect.signature(assign_fdi).parameters["gap_factor"].default
+    assert GAP_FACTOR == gap_default, f"gap_factor drifted: {GAP_FACTOR} != {gap_default}"
+    return (f"default={ASSIGNMENTS[0]}, tau={TAU} (== LOW_CONFIDENCE), "
+            f"gap_factor={GAP_FACTOR} (== assign_fdi default)")
+
+
 # ---------------------------------------------------------------- Stage-2 numbers
 def inv_stage2_reproduces():
     """The headline Stage-2 figures must still fall out of the saved per-tooth rows."""
@@ -284,6 +308,7 @@ check("frozen weight hashes", inv_weight_hashes)
 check("checkpoint class orders", inv_class_orders)
 check("crop contracts distinct", inv_crop_contracts)
 check("Stage-2 numbers reproduce", inv_stage2_reproduces)
+check("Lever C off by default", inv_lever_c_defaults)
 check("caries v3 dataset hygiene", inv_v3_dataset)
 check("leakage exclusion list", inv_leakage_list, slow=True)
 check("caries v3 MD5 join", inv_v3_join, slow=True)

@@ -362,7 +362,7 @@ def load_models(detector=DEF_DETECTOR, fdi_head=DEF_FDI_HEAD, caries_gate=DEF_CA
 
 def run_pipeline(img_bgr, models, device, paths, image_label="image", imgsz=1024, conf=0.25,
                  det_iou=0.50, one_to_one=True, verbose=True, caries_method="lesion-detector",
-                 caries_lesion_conf=CARIES_LESION_CONF):
+                 caries_lesion_conf=CARIES_LESION_CONF, assignment="hungarian"):
     """
     Stages 1-6 on an already-loaded image, using already-loaded models. This is the function
     both `main()` and the Streamlit app call -- one code path, so a fix or a limitation update
@@ -389,7 +389,8 @@ def run_pipeline(img_bgr, models, device, paths, image_label="image", imgsz=1024
         log("  no teeth detected — writing an empty report")
 
     log("stage 2 — FDI enumeration …")
-    fdi_assign = assign_fdi_head(models["head"], img_bgr, boxes, device, one_to_one=one_to_one)
+    fdi_assign = assign_fdi_head(models["head"], img_bgr, boxes, device,
+                                 one_to_one=one_to_one, assignment=assignment)
 
     if caries_method == "gate":
         log("stage 3 — caries GATE (tight crops, retained pre-4-Sep default) …")
@@ -429,7 +430,8 @@ def run_pipeline(img_bgr, models, device, paths, image_label="image", imgsz=1024
                      "imgsz": imgsz, "conf": conf, "nms_iou": det_iou,
                      "input_rotation": "90 deg counter-clockwise (src/orientation.py)"},
         "fdi_head": {"weights": str(paths["fdi_head"]), "tag": "fdi-enumeration-head-resnet18-v1.0",
-                     "one_to_one": one_to_one, "crop_expand": [1.5, 1.5]},
+                     "one_to_one": one_to_one, "assignment": assignment,
+                     "crop_expand": [1.5, 1.5]},
         "caries": caries_meta,
         "bone_loss": {"binary": str(paths["bone_loss"]), "severity": str(paths["bone_severity"]),
                       "crop_expand": [1.5, 2.0], "severity_classes": BONE_LOSS_SEVERITY_CLASSES,
@@ -449,6 +451,9 @@ def run_pipeline(img_bgr, models, device, paths, image_label="image", imgsz=1024
     return build_report(image_label, img_bgr, boxes, confs, fdi_assign, caries, bone, meta)
 
 
+from src.fdi_head_inference import ASSIGNMENTS  # noqa: E402
+
+
 def main():
     ap = argparse.ArgumentParser(description="Run the full OPG pipeline on one radiograph")
     ap.add_argument("--image", type=Path, required=True)
@@ -466,6 +471,11 @@ def main():
                          "pre-4-Sep per-crop classifier, for reproducing older numbers.")
     ap.add_argument("--caries-lesion-conf", type=float, default=CARIES_LESION_CONF,
                     help="frozen per the pre-registration -- not tuned on any cohort")
+    ap.add_argument("--assignment", choices=list(ASSIGNMENTS), default="hungarian",
+                    help="Stage-2 assignment. hungarian = the deployed default; structural-dp / "
+                         "structural-sort = the Lever C arch-order post-processor "
+                         "(outputs/lever_C_fdi_structural_postproc/PRE_REGISTRATION.md). The "
+                         "default moves only if that pre-registration's acceptance rule is met.")
     ap.add_argument("--bone-loss", type=Path, default=DEF_BONE_LOSS)
     ap.add_argument("--bone-severity", type=Path, default=DEF_BONE_SEVERITY)
     ap.add_argument("--conf", type=float, default=0.25, help="detector confidence threshold")
@@ -491,7 +501,8 @@ def main():
     report = run_pipeline(img, models, device, paths, image_label=str(args.image),
                           imgsz=args.imgsz, conf=args.conf, det_iou=args.det_iou,
                           one_to_one=not args.no_one_to_one, caries_method=args.caries_method,
-                          caries_lesion_conf=args.caries_lesion_conf)
+                          caries_lesion_conf=args.caries_lesion_conf,
+                          assignment=args.assignment)
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2) + "\n")

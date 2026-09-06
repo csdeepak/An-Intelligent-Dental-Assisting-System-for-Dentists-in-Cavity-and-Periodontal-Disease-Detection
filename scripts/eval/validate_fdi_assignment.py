@@ -57,7 +57,9 @@ import numpy as np
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 from src.fdi_assignment import arch_summary, assign_fdi  # noqa: E402
-from src.fdi_head_inference import assign_fdi_head, load_head  # noqa: E402
+from src.fdi_head_inference import (ASSIGNMENTS, assign_from_scores,  # noqa: E402
+                                    head_joint_scores, load_head)
+from src.fdi_structural_repair import has_detected_gap  # noqa: E402
 from src.orientation import detect_upright  # noqa: E402
 
 DEF_DISEASE_DIR = Path.home() / "Downloads/Capstone/DENTEX/disease"
@@ -198,6 +200,12 @@ def main():
                          "head = the learned per-tooth enumeration classifier")
     ap.add_argument("--head-weights", type=Path,
                     default=REPO_ROOT / "models/08_fdi_enumeration_head/enumeration_head_best.pth")
+    ap.add_argument("--assignment", default="hungarian",
+                    help="head only: comma-separated assignment strategies to score, e.g. "
+                         "'hungarian,structural-sort,structural-dp'. Every arm scores the SAME "
+                         "detector boxes and the SAME head forward pass, so the deltas are "
+                         "exactly paired (Lever C, "
+                         "outputs/lever_C_fdi_structural_postproc/PRE_REGISTRATION.md).")
     ap.add_argument("--no-one-to-one", action="store_true",
                     help="head only: plain argmax instead of Hungarian one-to-one assignment. "
                          "Use it to MEASURE the duplicate-FDI rate rather than assume it.")
@@ -227,7 +235,16 @@ def main():
     print(f"images: {len(labels)}  ({len(LEAKED)} excluded as training duplicates — "
           f"see data/dentex/disease_leaked_images.json)")
 
-    rows, per_image, n_viz = [], [], 0
+    arms = [a.strip() for a in args.assignment.split(",") if a.strip()]
+    for a in arms:
+        if a not in ASSIGNMENTS:
+            raise SystemExit(f"unknown --assignment {a!r}; choose from {ASSIGNMENTS}")
+    if args.method == "positional":
+        arms = ["hungarian"]              # the flag is a head-assignment choice; nothing to vary
+    print(f"assignment arms: {', '.join(arms)}")
+    rows = {a: [] for a in arms}
+    per_image = {a: [] for a in arms}
+    n_viz = 0
     for i, lp in enumerate(labels, 1):
         stem = lp.stem
         ip = args.disease_dir / "input" / f"{stem}.png"
@@ -244,96 +261,110 @@ def main():
         boxes, confs = detect_upright(model, img, imgsz=args.imgsz, conf=args.conf,
                                       iou=args.det_iou, verbose=False)
         dets = [{"bbox": b, "conf": c} for b, c in zip(boxes, confs)]
-        if args.method == "head":
-            assigns = assign_fdi_head(head, img, boxes, dev,
-                                      one_to_one=not args.no_one_to_one)
-        else:
-            assigns = assign_fdi(boxes, img.shape[1], img.shape[0])
         matches = match_gt_to_detections(gt, dets, args.min_iou)
+        # ONE forward pass, shared by every arm -- that is what makes the arms exactly paired.
+        lq = lp = joint = None
+        gap_img = False
+        if args.method == "head" and len(boxes):
+            lq, lp, joint = head_joint_scores(head, img, boxes, dev)
+            gap_img = bool(has_detected_gap(boxes, lq, img.shape[1], img.shape[0]))
 
-        for gi, g in enumerate(gt):
-            hit = gi in matches
-            a = assigns[matches[gi][0]] if hit else None
-            rows.append({
-                "image": stem, "gt_fdi": g["fdi"], "findings": g["findings"],
-                "detected": hit,
-                "pred_fdi": a["fdi"] if a else None,
-                "iou": round(matches[gi][1], 3) if hit else 0.0,
-                "flags": a["flags"] if a else [],
-                "confidence": a["confidence"] if a else 0.0,
-            })
-        codes = [a["fdi"] for a in assigns if a.get("fdi")]
-        summary = (arch_summary(assigns) if args.method == "positional"
-                   else {"n_teeth": len(assigns),
-                         "per_quadrant": {q: sum(1 for c in codes if c // 10 == q)
-                                          for q in (1, 2, 3, 4)},
-                         "n_flagged": sum(1 for a in assigns if a["flags"]),
-                         "mean_confidence": round(
-                             sum(a["confidence"] for a in assigns) / max(len(assigns), 1), 3)})
-        per_image.append({"image": stem, "n_gt": len(gt), "n_det": len(dets),
-                          "n_duplicate_fdi": len(codes) - len(set(codes)), **summary})
+        for arm in arms:
+            if args.method == "head":
+                assigns = (assign_from_scores(joint, lq, lp, boxes, img.shape[1], img.shape[0],
+                                              one_to_one=not args.no_one_to_one,
+                                              assignment=arm) if len(boxes) else [])
+            else:
+                assigns = assign_fdi(boxes, img.shape[1], img.shape[0])
 
-        if args.save_viz and n_viz < args.viz_n:
-            draw_viz(img, gt, dets, assigns, matches, viz_dir, stem)
-            n_viz += 1
+            for gi, g in enumerate(gt):
+                hit = gi in matches
+                a = assigns[matches[gi][0]] if hit else None
+                rows[arm].append({
+                    "image": stem, "gt_fdi": g["fdi"], "findings": g["findings"],
+                    "detected": hit,
+                    "pred_fdi": a["fdi"] if a else None,
+                    "iou": round(matches[gi][1], 3) if hit else 0.0,
+                    "flags": a["flags"] if a else [],
+                    "confidence": a["confidence"] if a else 0.0,
+                    "image_has_gap": gap_img,
+                })
+            codes = [a["fdi"] for a in assigns if a.get("fdi")]
+            summary = (arch_summary(assigns) if args.method == "positional"
+                       else {"n_teeth": len(assigns),
+                             "per_quadrant": {q: sum(1 for c in codes if c // 10 == q)
+                                              for q in (1, 2, 3, 4)},
+                             "n_flagged": sum(1 for a in assigns if a["flags"]),
+                             "mean_confidence": round(
+                                 sum(a["confidence"] for a in assigns) / max(len(assigns), 1), 3)})
+            per_image[arm].append({"image": stem, "n_gt": len(gt), "n_det": len(dets),
+                                   "n_duplicate_fdi": len(codes) - len(set(codes)),
+                                   "image_has_gap": gap_img, **summary})
+
+            if args.save_viz and arm == arms[0] and n_viz < args.viz_n:
+                draw_viz(img, gt, dets, assigns, matches, viz_dir, stem)
+                n_viz += 1
         if i % 25 == 0:
             print(f"  {i}/{len(labels)} …", flush=True)
 
-    # ---------------- report ----------------
-    n = len(rows)
-    det = [r for r in rows if r["detected"]]
-    exact = [r for r in det if r["pred_fdi"] == r["gt_fdi"]]
-    quad = [r for r in det if r["pred_fdi"] and r["pred_fdi"] // 10 == r["gt_fdi"] // 10]
-    off_by_one = [r for r in det if r["pred_fdi"] and r["pred_fdi"] // 10 == r["gt_fdi"] // 10
-                  and abs(r["pred_fdi"] % 10 - r["gt_fdi"] % 10) == 1]
+    for arm in arms:
+        suffix = "" if arm == "hungarian" else f"__{arm}"
+    # ---------------- report, one block per arm ----------------
+        n = len(rows[arm])
+        det = [r for r in rows[arm] if r["detected"]]
+        exact = [r for r in det if r["pred_fdi"] == r["gt_fdi"]]
+        quad = [r for r in det if r["pred_fdi"] and r["pred_fdi"] // 10 == r["gt_fdi"] // 10]
+        off_by_one = [r for r in det if r["pred_fdi"] and r["pred_fdi"] // 10 == r["gt_fdi"] // 10
+                      and abs(r["pred_fdi"] % 10 - r["gt_fdi"] % 10) == 1]
 
-    print("\n" + "=" * 74)
-    print(f"STAGE-2 VALIDATION — detector + {args.method.upper()} FDI assignment vs DENTEX GT")
-    print("=" * 74)
-    print(f"  GT teeth evaluated            : {n}  across {len(per_image)} images")
-    print(f"  detected (recall)             : {len(det)}  ({len(det)/n:.1%})")
-    if det:
-        print(f"  FDI exact (of detected)       : {len(exact)}  ({len(exact)/len(det):.1%})")
-        print(f"  quadrant correct              : {len(quad)}  ({len(quad)/len(det):.1%})")
-        print(f"  right quadrant, off-by-one    : {len(off_by_one)}  ({len(off_by_one)/len(det):.1%})")
-        print(f"  FDI exact (of ALL GT teeth)   : {len(exact)}  ({len(exact)/n:.1%})  <- end-to-end")
+        print("\n" + "=" * 74)
+        print(f"STAGE-2 VALIDATION — detector + {args.method.upper()} FDI assignment "
+              f"vs DENTEX GT   [assignment={arm}]")
+        print("=" * 74)
+        print(f"  GT teeth evaluated            : {n}  across {len(per_image[arm])} images")
+        print(f"  detected (recall)             : {len(det)}  ({len(det)/n:.1%})")
+        if det:
+            print(f"  FDI exact (of detected)       : {len(exact)}  ({len(exact)/len(det):.1%})")
+            print(f"  quadrant correct              : {len(quad)}  ({len(quad)/len(det):.1%})")
+            print(f"  right quadrant, off-by-one    : {len(off_by_one)}  ({len(off_by_one)/len(det):.1%})")
+            print(f"  FDI exact (of ALL GT teeth)   : {len(exact)}  ({len(exact)/n:.1%})  <- end-to-end")
 
-        clean = [r for r in det if not r["flags"]]
-        flagged = [r for r in det if r["flags"]]
-        if clean:
-            print(f"\n  unflagged assignments         : {len(clean)}  exact "
-                  f"{sum(1 for r in clean if r['pred_fdi']==r['gt_fdi'])/len(clean):.1%}")
-        if flagged:
-            print(f"  flagged assignments           : {len(flagged)}  exact "
-                  f"{sum(1 for r in flagged if r['pred_fdi']==r['gt_fdi'])/len(flagged):.1%}"
-                  "   <- does flagging predict error?")
-        fc = Counter(f for r in det for f in r["flags"])
-        if fc:
-            print(f"  flag frequency                : {dict(fc)}")
+            clean = [r for r in det if not r["flags"]]
+            flagged = [r for r in det if r["flags"]]
+            if clean:
+                print(f"\n  unflagged assignments         : {len(clean)}  exact "
+                      f"{sum(1 for r in clean if r['pred_fdi']==r['gt_fdi'])/len(clean):.1%}")
+            if flagged:
+                print(f"  flagged assignments           : {len(flagged)}  exact "
+                      f"{sum(1 for r in flagged if r['pred_fdi']==r['gt_fdi'])/len(flagged):.1%}"
+                      "   <- does flagging predict error?")
+            fc = Counter(f for r in det for f in r["flags"])
+            if fc:
+                print(f"  flag frequency                : {dict(fc)}")
 
-    dup = sum(p.get("n_duplicate_fdi", 0) for p in per_image)
-    print(f"\n  duplicate FDI codes emitted   : {dup}   "
-          f"({'impossible by construction' if args.method == 'positional' else 'a real risk for a per-tooth classifier'})")
-    mean_det = np.mean([p["n_det"] for p in per_image]) if per_image else 0
-    print(f"\n  mean detections per image     : {mean_det:.1f}  (a full dentition is 28-32)")
-    print(f"  mean GT teeth per image       : {np.mean([p['n_gt'] for p in per_image]):.1f}")
+        dup = sum(p.get("n_duplicate_fdi", 0) for p in per_image[arm])
+        print(f"\n  duplicate FDI codes emitted   : {dup}   "
+              f"({'impossible by construction' if args.method == 'positional' else 'a real risk for a per-tooth classifier'})")
+        mean_det = np.mean([p["n_det"] for p in per_image[arm]]) if per_image[arm] else 0
+        print(f"\n  mean detections per image     : {mean_det:.1f}  (a full dentition is 28-32)")
+        print(f"  mean GT teeth per image       : {np.mean([p['n_gt'] for p in per_image[arm]]):.1f}")
 
-    (args.out / f"stage2_rows_{args.method}.json").write_text(json.dumps(rows, indent=1) + "\n")
-    (args.out / f"stage2_per_image_{args.method}.json").write_text(json.dumps(per_image, indent=1) + "\n")
-    summary = {"n_gt_teeth": n, "n_images": len(per_image), "recall": len(det)/n if n else 0,
-               "fdi_exact_of_detected": len(exact)/len(det) if det else 0,
-               "fdi_exact_of_all": len(exact)/n if n else 0,
-               "quadrant_correct_of_detected": len(quad)/len(det) if det else 0,
-               "mean_detections_per_image": float(mean_det),
-               "method": args.method, "one_to_one": not args.no_one_to_one,
-               "duplicate_fdi_codes": dup,
-               "conf": args.conf, "imgsz": args.imgsz, "min_iou": args.min_iou,
-               "det_nms_iou": args.det_iou,
-               "excluded": sorted(LEAKED)}
-    (args.out / f"stage2_summary_{args.method}.json").write_text(json.dumps(summary, indent=2) + "\n")
-    print(f"\n  wrote {args.out}/stage2_*_{args.method}.json")
-    if args.save_viz:
-        print(f"  wrote {n_viz} overlays to {viz_dir}/")
+        (args.out / f"stage2_rows_{args.method}{suffix}.json").write_text(json.dumps(rows[arm], indent=1) + "\n")
+        (args.out / f"stage2_per_image_{args.method}{suffix}.json").write_text(json.dumps(per_image[arm], indent=1) + "\n")
+        summary = {"n_gt_teeth": n, "n_images": len(per_image[arm]), "recall": len(det)/n if n else 0,
+                   "fdi_exact_of_detected": len(exact)/len(det) if det else 0,
+                   "fdi_exact_of_all": len(exact)/n if n else 0,
+                   "quadrant_correct_of_detected": len(quad)/len(det) if det else 0,
+                   "mean_detections_per_image": float(mean_det),
+                   "method": args.method, "assignment": arm, "one_to_one": not args.no_one_to_one,
+                   "duplicate_fdi_codes": dup,
+                   "conf": args.conf, "imgsz": args.imgsz, "min_iou": args.min_iou,
+                   "det_nms_iou": args.det_iou,
+                   "excluded": sorted(LEAKED)}
+        (args.out / f"stage2_summary_{args.method}{suffix}.json").write_text(json.dumps(summary, indent=2) + "\n")
+        print(f"\n  wrote {args.out}/stage2_*_{args.method}{suffix}.json")
+        if args.save_viz:
+            print(f"  wrote {n_viz} overlays to {viz_dir}/")
 
 
 if __name__ == "__main__":

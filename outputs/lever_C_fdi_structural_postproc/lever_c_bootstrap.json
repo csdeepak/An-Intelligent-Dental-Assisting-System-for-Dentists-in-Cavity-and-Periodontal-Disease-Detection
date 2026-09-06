@@ -1,0 +1,143 @@
+{
+  "n_boot": 10000,
+  "seed": 42,
+  "bars": {
+    "primary_lower_bound_pp": 2.0,
+    "guard_lower_bound_pp": -1.0,
+    "anterior_point_pp": -2.0
+  },
+  "arms": {
+    "structural-sort": {
+      "tufts_of_detected": {
+        "control": 0.781882428525538,
+        "arm": 0.7834885962094442,
+        "delta_pp": 0.1606167683906201,
+        "lo_pp": -0.2213841300389882,
+        "hi_pp": 0.5793369810106141,
+        "frac_resamples_le_0": 0.2318
+      },
+      "tufts_end_to_end": {
+        "control": 0.642385853787279,
+        "arm": 0.6437054631828979,
+        "delta_pp": 0.1319609395618926,
+        "lo_pp": -0.1838368429410317,
+        "hi_pp": 0.4726921797087612,
+        "frac_resamples_le_0": 0.2318
+      },
+      "dentex_of_detected": {
+        "control": 0.8260211800302572,
+        "arm": 0.8184568835098336,
+        "delta_pp": -0.7564296520423563,
+        "lo_pp": -1.8598163489370274,
+        "hi_pp": 0.2915451895043719,
+        "frac_resamples_le_0": 0.9424
+      },
+      "dentex_end_to_end": {
+        "control": 0.5833333333333334,
+        "arm": 0.5779914529914529,
+        "delta_pp": -0.5341880341880434,
+        "lo_pp": -1.30434782608696,
+        "hi_pp": 0.21008403361344463,
+        "frac_resamples_le_0": 0.9424
+      },
+      "strata": {
+        "tufts_anterior_pos_1_3": {
+          "control": 0.7250936329588015,
+          "arm": 0.7303370786516854,
+          "delta_pp": 0.524344569288393,
+          "n_teeth": 1335
+        },
+        "tufts_posterior_pos_4_8": {
+          "control": 0.8245219347581553,
+          "arm": 0.8233970753655793,
+          "delta_pp": -0.11248593925760053,
+          "n_teeth": 1778
+        },
+        "tufts_images_with_gap": {
+          "control": 0.7880724174653887,
+          "arm": 0.787362442314519,
+          "delta_pp": -0.07099751508696794,
+          "n_teeth": 2817
+        },
+        "tufts_images_contiguous": {
+          "control": 0.722972972972973,
+          "arm": 0.7466216216216216,
+          "delta_pp": 2.3648648648648574,
+          "n_teeth": 296
+        }
+      },
+      "verdict": {
+        "primary": false,
+        "guard": false,
+        "stratified": true,
+        "adopt": false
+      }
+    },
+    "structural-dp": {
+      "tufts_of_detected": {
+        "control": 0.781882428525538,
+        "arm": 0.7847735303565693,
+        "delta_pp": 0.2891101831031251,
+        "lo_pp": -0.06538351944608778,
+        "hi_pp": 0.6919358066111446,
+        "frac_resamples_le_0": 0.0693
+      },
+      "tufts_end_to_end": {
+        "control": 0.642385853787279,
+        "arm": 0.644761150699393,
+        "delta_pp": 0.23752969121140222,
+        "lo_pp": -0.05334791518933652,
+        "hi_pp": 0.560762652796614,
+        "frac_resamples_le_0": 0.0693
+      },
+      "dentex_of_detected": {
+        "control": 0.8260211800302572,
+        "arm": 0.8229954614220878,
+        "delta_pp": -0.3025718608169359,
+        "lo_pp": -1.2748667288146278,
+        "hi_pp": 0.6097793706944703,
+        "frac_resamples_le_0": 0.7822
+      },
+      "dentex_end_to_end": {
+        "control": 0.5833333333333334,
+        "arm": 0.5811965811965812,
+        "delta_pp": -0.21367521367521292,
+        "lo_pp": -0.8958929482548937,
+        "hi_pp": 0.4291960741830132,
+        "frac_resamples_le_0": 0.7822
+      },
+      "strata": {
+        "tufts_anterior_pos_1_3": {
+          "control": 0.7250936329588015,
+          "arm": 0.7303370786516854,
+          "delta_pp": 0.524344569288393,
+          "n_teeth": 1335
+        },
+        "tufts_posterior_pos_4_8": {
+          "control": 0.8245219347581553,
+          "arm": 0.8256467941507312,
+          "delta_pp": 0.11248593925758943,
+          "n_teeth": 1778
+        },
+        "tufts_images_with_gap": {
+          "control": 0.7880724174653887,
+          "arm": 0.7887823926162584,
+          "delta_pp": 0.07099751508696794,
+          "n_teeth": 2817
+        },
+        "tufts_images_contiguous": {
+          "control": 0.722972972972973,
+          "arm": 0.7466216216216216,
+          "delta_pp": 2.3648648648648574,
+          "n_teeth": 296
+        }
+      },
+      "verdict": {
+        "primary": false,
+        "guard": false,
+        "stratified": true,
+        "adopt": false
+      }
+    }
+  }
+}
