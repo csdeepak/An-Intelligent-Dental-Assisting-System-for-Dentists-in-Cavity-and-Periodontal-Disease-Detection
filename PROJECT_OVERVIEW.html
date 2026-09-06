@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panoramic Dental Screening Pipeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* ============================================================= tokens
+   Dark-first, but the bare :root carries the complete LIGHT palette so
+   the un-stamped (system) document always resolves. Three themes:
+   light (:root / [data-theme=light]), dark (media + [data-theme=dark]),
+   high-contrast ([data-theme=hc], for print & projection).            */
+:root{
+  --bg:#f2f5f6; --surface:#ffffff; --surface-2:#e9eef0; --raise:#ffffff;
+  --text:#15201e; --muted:#586a6d; --faint:#7c8b8d;
+  --line:#d8e0e2; --line-strong:#c2ccce;
+  --accent:#137e88; --accent-soft:#d3ecee; --accent-ink:#0c5a62;
+  --caution:#9a6410; --caution-soft:#f6e7cf;
+  --good:#256d47; --good-soft:#d6ebdf;
+  --bad:#a8452f; --bad-soft:#f2ddd7;
+  --shadow:0 1px 2px rgba(20,40,40,.06), 0 8px 24px -12px rgba(20,40,40,.14);
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]):not([data-theme="hc"]){
+    --bg:#0a0e10; --surface:#121a1c; --surface-2:#182123; --raise:#1a2427;
+    --text:#e3ecec; --muted:#93a4a6; --faint:#748587;
+    --line:#243033; --line-strong:#324145;
+    --accent:#46bcc6; --accent-soft:#123236; --accent-ink:#8fdbe1;
+    --caution:#e2a648; --caution-soft:#33280f;
+    --good:#5bb387; --good-soft:#123023;
+    --bad:#dd7b68; --bad-soft:#331d18;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 32px -14px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0a0e10; --surface:#121a1c; --surface-2:#182123; --raise:#1a2427;
+  --text:#e3ecec; --muted:#93a4a6; --faint:#748587;
+  --line:#243033; --line-strong:#324145;
+  --accent:#46bcc6; --accent-soft:#123236; --accent-ink:#8fdbe1;
+  --caution:#e2a648; --caution-soft:#33280f;
+  --good:#5bb387; --good-soft:#123023;
+  --bad:#dd7b68; --bad-soft:#331d18;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 32px -14px rgba(0,0,0,.6);
+}
+:root[data-theme="light"]{
+  --bg:#f2f5f6; --surface:#ffffff; --surface-2:#e9eef0; --raise:#ffffff;
+  --text:#15201e; --muted:#586a6d; --faint:#7c8b8d;
+  --line:#d8e0e2; --line-strong:#c2ccce;
+  --accent:#137e88; --accent-soft:#d3ecee; --accent-ink:#0c5a62;
+  --caution:#9a6410; --caution-soft:#f6e7cf;
+  --good:#256d47; --good-soft:#d6ebdf;
+  --bad:#a8452f; --bad-soft:#f2ddd7;
+}
+:root[data-theme="hc"]{
+  --bg:#000000; --surface:#0b0b0b; --surface-2:#151515; --raise:#0b0b0b;
+  --text:#ffffff; --muted:#d2d2d2; --faint:#b0b0b0;
+  --line:#5a5a5a; --line-strong:#7a7a7a;
+  --accent:#54d4df; --accent-soft:#08343a; --accent-ink:#8fe6ee;
+  --caution:#ffcc45; --caution-soft:#2e2506;
+  --good:#5fe3a3; --good-soft:#08301f;
+  --bad:#ff9078; --bad-soft:#33160f;
+  --shadow:none;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:var(--sans); font-size:16px; line-height:1.62;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+}
+[data-theme="hc"] body{font-weight:400}
+
+/* --------------------------------------------------------------- layout */
+.wrap{max-width:960px; margin:0 auto; padding:0 28px}
+.prose{max-width:66ch}
+section{padding:52px 0; border-top:1px solid var(--line)}
+section:first-of-type{border-top:0}
+
+a{color:var(--accent-ink); text-decoration-thickness:1px; text-underline-offset:2px}
+a:focus-visible, button:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:3px}
+
+/* --------------------------------------------------------------- topbar */
+.topbar{
+  position:sticky; top:0; z-index:20; background:color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+}
+.topbar .wrap{display:flex; align-items:center; justify-content:space-between; height:54px}
+.brand{font-family:var(--mono); font-size:12.5px; letter-spacing:.02em; color:var(--muted)}
+.brand b{color:var(--text); font-weight:500}
+.themeswitch{display:flex; gap:2px; background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:3px}
+.themeswitch button{
+  font-family:var(--mono); font-size:11px; letter-spacing:.04em; text-transform:uppercase;
+  color:var(--muted); background:transparent; border:0; padding:5px 9px; border-radius:6px; cursor:pointer;
+}
+.themeswitch button[aria-pressed="true"]{background:var(--raise); color:var(--text); box-shadow:var(--shadow)}
+[data-theme="hc"] .themeswitch button[aria-pressed="true"]{border:1px solid var(--accent)}
+
+/* --------------------------------------------------------------- header */
+.masthead{padding:56px 0 44px}
+.kicker{
+  font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--accent); margin:0 0 18px
+}
+h1{
+  font-size:clamp(30px,5vw,44px); line-height:1.08; font-weight:600; letter-spacing:-.015em;
+  margin:0 0 18px; text-wrap:balance; max-width:20ch;
+}
+.dek{font-size:19px; line-height:1.5; color:var(--text); max-width:60ch; margin:0 0 8px}
+.dek em{color:var(--accent-ink); font-style:normal; font-weight:500}
+.sourceline{font-family:var(--mono); font-size:12.5px; color:var(--faint); margin-top:22px; max-width:72ch; line-height:1.6}
+.sourceline code{color:var(--muted)}
+.sourceline b{color:var(--muted); font-weight:600}
+
+.glance{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:12px; overflow:hidden; margin-top:34px}
+.glance div{background:var(--surface); padding:16px 16px 15px}
+.glance .n{font-family:var(--mono); font-size:21px; font-weight:500; color:var(--text); font-variant-numeric:tabular-nums; letter-spacing:-.01em}
+.glance .l{font-size:12.5px; color:var(--muted); margin-top:3px; line-height:1.35}
+@media (max-width:720px){.glance{grid-template-columns:repeat(2,1fr)}}
+
+/* --------------------------------------------------------------- headings */
+.eyebrow{
+  font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--accent); display:flex; align-items:center; gap:12px; margin:0 0 8px;
+}
+.eyebrow::after{content:""; flex:1; height:1px; background:var(--line)}
+h2{font-size:26px; line-height:1.15; font-weight:600; letter-spacing:-.012em; margin:0 0 18px; text-wrap:balance}
+h3{font-size:16px; font-weight:600; margin:26px 0 8px; letter-spacing:-.005em}
+p{margin:0 0 15px}
+p + h3{margin-top:26px}
+.lead{font-size:17.5px; line-height:1.55}
+
+/* --------------------------------------------------------------- callout */
+.finding{
+  border-left:3px solid var(--accent); background:var(--accent-soft);
+  padding:20px 22px; border-radius:0 10px 10px 0; margin:6px 0 4px;
+}
+.finding p{margin:0; font-size:16.5px; line-height:1.58}
+.finding p + p{margin-top:12px}
+.finding strong{color:var(--accent-ink)}
+
+/* --------------------------------------------------------------- tables */
+.tablewrap{overflow-x:auto; margin:20px 0 8px; border:1px solid var(--line); border-radius:10px}
+table{border-collapse:collapse; width:100%; font-size:14px}
+caption{
+  text-align:left; font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--muted); padding:12px 14px 0;
+}
+th,td{padding:9px 14px; text-align:left; border-bottom:1px solid var(--line); white-space:nowrap}
+thead th{
+  font-family:var(--mono); font-size:11px; letter-spacing:.05em; text-transform:uppercase;
+  color:var(--muted); font-weight:500; background:var(--surface-2);
+}
+tbody tr:last-child td{border-bottom:0}
+td.num, th.num{text-align:right; font-family:var(--mono); font-variant-numeric:tabular-nums}
+td.strong{font-weight:600}
+tr.hl td{background:var(--accent-soft)}
+.win{color:var(--good); font-weight:600}
+.lose{color:var(--bad); font-weight:600}
+.tie{color:var(--caution); font-weight:600}
+.code-list{font-family:var(--mono); font-size:12.5px; color:var(--muted); background:var(--surface-2); padding:2px 6px; border-radius:5px}
+
+/* --------------------------------------------------------------- timeline */
+.timeline{margin:8px 0 0; padding:0; list-style:none; position:relative}
+.timeline::before{content:""; position:absolute; left:74px; top:6px; bottom:6px; width:1px; background:var(--line)}
+.timeline li{display:grid; grid-template-columns:74px 1fr; gap:20px; padding:11px 0}
+.timeline .when{font-family:var(--mono); font-size:12px; color:var(--faint); text-align:right; padding-top:2px; position:relative}
+.timeline .when::after{content:""; position:absolute; right:-24px; top:7px; width:7px; height:7px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 3px var(--bg)}
+.timeline .what{font-size:14.5px; line-height:1.5}
+.timeline .what b{font-weight:600}
+.timeline .phase{grid-column:1/-1; font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--accent); padding:18px 0 4px}
+
+/* --------------------------------------------------------------- charts */
+.chart{margin:22px 0 4px; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:18px 18px 12px}
+.chart h4{margin:0 0 2px; font-size:14px; font-weight:600}
+.chart .sub{font-size:12.5px; color:var(--muted); margin:0 0 14px}
+.chart svg{display:block; width:100%; height:auto; overflow:visible}
+.chart .legend{display:flex; gap:16px; flex-wrap:wrap; margin-top:10px; font-size:12px; color:var(--muted)}
+.chart .legend span{display:inline-flex; align-items:center; gap:6px}
+.chart .legend i{width:10px; height:10px; border-radius:2px; display:inline-block}
+
+/* --------------------------------------------------------------- limitations */
+.ledger{border-left:3px solid var(--caution); margin:8px 0 0}
+.ledger .row{
+  display:grid; grid-template-columns:1fr auto; gap:16px; align-items:start;
+  padding:13px 0 13px 18px; border-bottom:1px solid var(--line);
+}
+.ledger .row:last-child{border-bottom:0}
+.ledger .claim{font-size:14.5px; line-height:1.5}
+.ledger .claim b{font-weight:600}
+.tag{
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.05em; text-transform:uppercase;
+  padding:3px 8px; border-radius:5px; white-space:nowrap; align-self:center;
+}
+.tag.reported{background:var(--surface-2); color:var(--muted)}
+.tag.open{background:var(--caution-soft); color:var(--caution)}
+.tag.blocked{background:var(--bad-soft); color:var(--bad)}
+.tag.cleared{background:var(--good-soft); color:var(--good)}
+.tag.breach{background:var(--bad); color:#fff}
+[data-theme="hc"] .tag.breach{color:#000}
+
+/* --------------------------------------------------------------- further work */
+.tier{margin:22px 0; border:1px solid var(--line); border-radius:12px; overflow:hidden}
+.tier > header{display:flex; align-items:baseline; gap:12px; padding:14px 18px; background:var(--surface-2); border-bottom:1px solid var(--line)}
+.tier > header .t{font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--accent)}
+.tier > header .h{font-weight:600; font-size:15px}
+.tier > header .meta{margin-left:auto; font-size:12px; color:var(--muted); font-family:var(--mono)}
+.tier ul{margin:0; padding:6px 0; list-style:none}
+.tier li{padding:11px 18px 11px 40px; font-size:14.5px; line-height:1.5; border-bottom:1px solid var(--line); position:relative}
+.tier li:last-child{border-bottom:0}
+.tier li::before{content:"›"; position:absolute; left:18px; top:10px; color:var(--accent); font-family:var(--mono)}
+.tier li b{font-weight:600}
+.chip{font-family:var(--mono); font-size:10px; letter-spacing:.04em; text-transform:uppercase; padding:2px 6px; border-radius:4px; background:var(--bad-soft); color:var(--bad); margin-left:6px}
+.chip.opt{background:var(--surface-2); color:var(--muted)}
+
+/* --------------------------------------------------------------- footer */
+footer{border-top:1px solid var(--line); padding:36px 0 60px; font-size:13px; color:var(--muted)}
+footer p{margin:0 0 10px; max-width:72ch}
+footer code{font-family:var(--mono); color:var(--text)}
+.disclaimer{border:1px solid var(--caution); background:var(--caution-soft); color:var(--text); border-radius:10px; padding:14px 16px; margin-bottom:22px; font-size:13px}
+
+.small{font-size:13px; color:var(--muted)}
+strong.k{font-weight:600; color:var(--text)}
+hr.soft{border:0; border-top:1px solid var(--line); margin:30px 0}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <span class="brand"><b>OPG&nbsp;screening&nbsp;pipeline</b> &nbsp;·&nbsp; project snapshot, 6&nbsp;Sep&nbsp;2026</span>
+    <div class="themeswitch" role="group" aria-label="Colour theme">
+      <button data-set="light" aria-pressed="false">Light</button>
+      <button data-set="dark" aria-pressed="false">Dark</button>
+      <button data-set="hc" aria-pressed="false">Contrast</button>
+    </div>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <p class="kicker">Capstone project &nbsp;·&nbsp; snapshot 6 September 2026</p>
+    <h1>An Intelligent Dental Assisting System for Cavity &amp; Periodontal Disease Detection</h1>
+    <p class="dek">A six-stage pipeline reads a panoramic dental X-ray and reports caries and
+      periodontal bone loss per tooth. The finding the project is built around is <em>methodological</em>:
+      on the score this field usually reports, a program that never looks at the image ties or beats
+      the full pipeline &mdash; so the paper is about how such systems should be measured, not about a
+      leaderboard number.</p>
+    <p class="sourceline"><b>Snapshot, not a living document</b> &mdash; generated 6&nbsp;September&nbsp;2026
+      and not kept in sync. The authoritative record is <code>transfer.md</code> (state),
+      <code>docs/results/RESULTS_LOG.md</code> (append-only history, 128 entries), and
+      <code>docs/results/model_metrics.md</code> (current-best numbers). Where this page and those
+      disagree, those win. Regenerate or delete this file when it goes stale.</p>
+
+    <div class="glance">
+      <div><div class="n">6 / 6</div><div class="l">pipeline stages run end&#8209;to&#8209;end, 2.39&nbsp;s/image on CPU</div></div>
+      <div><div class="n">6</div><div class="l">independent cohorts: 1 dev, 4 hospitals, 1 public benchmark</div></div>
+      <div><div class="n">2 of 49</div><div class="l">surveyed papers that validate externally &mdash; the gap this fills</div></div>
+      <div><div class="n">97.7 M</div><div class="l">parameters, all six models &mdash; vs 33.45 B for the VLM baseline</div></div>
+    </div>
+  </div>
+</header>
+
+<!-- =============================================================== FINDING -->
+<section id="finding">
+  <div class="wrap prose">
+    <p class="eyebrow">The finding</p>
+    <h2>A tooth-level score cannot tell you whether a system read the radiograph</h2>
+    <p class="lead">Caries is anatomically concentrated &mdash; molars carry most of the disease.
+      A tooth-level agreement score asks which members of a fixed 32-tooth vocabulary are affected,
+      a question population statistics answer partially without seeing any particular patient.</p>
+    <div class="finding">
+      <p>An <strong>image-blind constant</strong> &mdash; always name the same eight molars,
+        <span class="code-list">16 17 26 27 36 37 46 47</span>, fitted on held-out images and frozen
+        &mdash; scores <strong>F1&nbsp;0.320</strong> on tooth-level caries. The six-stage pipeline
+        scores <strong>0.294</strong>; two vision&ndash;language models score <strong>0.246</strong>
+        and <strong>0.149</strong>. The best entry never reads a pixel.</p>
+      <p>The project&rsquo;s response was twofold: build the evaluation protocol that exposes this
+        (external validation on four hospitals plus a second public benchmark, calibration,
+        abstention, a VLM control), and separately find a <strong>reformulation</strong> of the
+        caries task &mdash; lesion localisation instead of tooth classification &mdash; that an
+        image-blind constant genuinely cannot do. That reformulation now decisively beats the
+        constant on 2 of 3 external cohorts.</p>
+    </div>
+    <p class="small" style="margin-top:16px">Every number on this page traces to a saved artefact.
+      <code>scripts/verify_paper_numbers.py</code> asserts 127 manuscript claims against those
+      artefacts; <code>pytest</code> is 159/159; the manuscript compiles clean at 14 pages.</p>
+  </div>
+</section>
+
+<!-- =============================================================== PIPELINE -->
+<section id="pipeline">
+  <div class="wrap">
+    <p class="eyebrow">The system</p>
+    <h2>Six stages, joined on the FDI tooth key</h2>
+    <div class="prose">
+      <p>No single public dataset annotates teeth, caries and bone loss together, so each stage
+        trains on the dataset that carries its label (Tufts for detection and bone loss, DENTEX for
+        caries) and the stages are joined at inference on the <strong class="k">FDI two-digit
+        code</strong> &mdash; first digit the quadrant of the mouth (1&ndash;4), second the position
+        counting out from the midline (1&nbsp;=&nbsp;central incisor &hellip; 8&nbsp;=&nbsp;wisdom
+        tooth). Tooth 16 is the upper-right first molar.</p>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <caption>Pipeline stages &mdash; current defaults, learnable parameters</caption>
+        <thead><tr><th>Stage</th><th>Model</th><th class="num">Params</th><th>Headline</th></tr></thead>
+        <tbody>
+          <tr><td class="strong">1 &nbsp;Detect</td><td>YOLOv11l-seg</td><td class="num">27.62 M</td><td>Tufts test box mAP@0.5 <b>0.810</b>; mask 0.638 (bar missed &rarr; boxes only)</td></tr>
+          <tr><td class="strong">2 &nbsp;Number</td><td>ResNet18 + 4 positional feats, Hungarian one-to-one</td><td class="num">11.19 M</td><td>DENTEX <b>58.3%</b> end-to-end / <b>82.6%</b> of detected; 0 duplicate codes</td></tr>
+          <tr class="hl"><td class="strong">3a Caries</td><td>YOLOv11l lesion detector <span class="small">(default since 4 Sep, Lever B)</span></td><td class="num">25.31 M</td><td>Beats the gate <i>and</i> the constant on 2 of 3 external cohorts</td></tr>
+          <tr><td class="strong">3a&prime; Caries</td><td>ResNet18 gate <span class="small">(retained variant, <code>--caries-method gate</code>)</span></td><td class="num">11.18 M</td><td>Held-out P 0.398 / R 0.740; every pre-4-Sep caries number is on this</td></tr>
+          <tr><td class="strong">3b Severity</td><td>ResNet18 (caries vs deep)</td><td class="num">11.18 M</td><td>acc 0.81 / macro-F1 0.77 (133 val crops, provisional)</td></tr>
+          <tr><td class="strong">4a Bone loss</td><td>ResNet18 + focal loss (present / absent)</td><td class="num">11.18 M</td><td>Tufts <b>0.923</b> macro-F1 in domain &mdash; <b class="lose">collapses</b> out of domain</td></tr>
+          <tr><td class="strong">4b Severity</td><td>ResNet18 + focal loss (3-class)</td><td class="num">11.18 M</td><td>macro-F1 0.721 on 52 val crops &mdash; provisional</td></tr>
+          <tr><td class="strong" style="border-top:2px solid var(--line-strong)">Total</td><td style="border-top:2px solid var(--line-strong)">six default models</td><td class="num" style="border-top:2px solid var(--line-strong)"><b>97.65 M</b></td><td style="border-top:2px solid var(--line-strong)">2.39 s/image, CPU, no GPU &mdash; vs Qwen2.5-VL-32B at 33.45 B / 70.1 GB (&asymp;444&times;)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="small">Stages 5&ndash;6 fuse the per-stage outputs on the FDI key, apply a confidence
+      gate (abstain below 0.30 &rarr; 90.8% coverage), and emit per-tooth JSON + an overlay.
+      <code>scripts/run_inference.py</code> runs all six; <code>app.py</code> + a CPU-only Docker
+      image wrap it for a browser demo.</p>
+  </div>
+</section>
+
+<!-- =============================================================== TIMELINE -->
+<section id="done">
+  <div class="wrap">
+    <p class="eyebrow">What was done</p>
+    <h2>From four trained models to a measured system</h2>
+    <p class="prose">The models existed by April 2026. The work since August has been composition,
+      external validation, and the discipline of correcting the project&rsquo;s own numbers in
+      writing &mdash; several milestones below are corrections of earlier ones.</p>
+    <ol class="timeline">
+      <li class="phase">Jan &ndash; Apr 2026 &nbsp; models</li>
+      <li><span class="when">Jan&nbsp;31</span><span class="what"><b>Literature review &amp; survey</b> &mdash; the reviewed corpus that later yields the &ldquo;2 of 49 validate externally&rdquo; count.</span></li>
+      <li><span class="when">Apr&nbsp;6</span><span class="what"><b>Bone-loss classifiers trained</b> (Tufts, ResNet18 + focal loss) &mdash; binary at 0.923 macro-F1, the project&rsquo;s strongest in-domain result.</span></li>
+      <li><span class="when">Apr&nbsp;21</span><span class="what"><b>Caries cascade</b> (DENTEX, ResNet18) &mdash; gate + severity head.</span></li>
+      <li><span class="when">Apr&nbsp;23</span><span class="what"><b>YOLOv11l tooth detector</b>, A100, 1024&nbsp;px, 150 epochs &mdash; val mAP@0.5 0.834.</span></li>
+
+      <li class="phase">Aug 12 &ndash; 22 &nbsp; Stage 2 measured for the first time</li>
+      <li><span class="when">Aug&nbsp;15</span><span class="what">Universal&rarr;FDI lower-arch mapping bug fixed; caries augmentation discrepancy resolved.</span></li>
+      <li><span class="when">Aug&nbsp;22</span><span class="what"><b>Stage 2 validated &mdash; and positional FDI assignment does not work</b> (22.9% end-to-end). A learned enumeration head clears the rank-order ceiling: <b>46.5%</b>.</span></li>
+      <li><span class="when">Aug&nbsp;22</span><span class="what">Correction: 34% of the Stage-2 test set was in the head&rsquo;s training data. Re-measured on the leak-free 164 &mdash; the 52.2% figure was withdrawn.</span></li>
+
+      <li class="phase">Aug 24 &ndash; 28 &nbsp; the finding lands</li>
+      <li><span class="when">Aug&nbsp;24</span><span class="what"><b>Pipeline composed end-to-end</b> (all six stages), immediately exposing two out-of-domain failures.</span></li>
+      <li><span class="when">Aug&nbsp;25</span><span class="what">Caries gate rebuilt with a real healthy-tooth negative class: in-pipeline caries rate <b>84.9% &rarr; 19.1%</b>. First external validation: Ningxia, four hospitals, zero leakage.</span></li>
+      <li><span class="when">Aug&nbsp;27</span><span class="what">Seg detector <b>adopted</b> as Stage-1 default (box gain, mask bar missed) &mdash; Stage-2 end-to-end <b>46.3% &rarr; 58.3%</b>. First confidence intervals in the project; two same-day claims did not survive them.</span></li>
+      <li><span class="when">Aug&nbsp;27&ndash;28</span><span class="what"><b>C1: the VLM baseline does not beat a constant guess.</b> Then hardened &mdash; scale helps, prompting hurts, and an <b>image-blind eight-molar constant beats the pipeline and both VLMs</b>. A second metric (lesion localisation) gives the same ordering.</span></li>
+      <li><span class="when">Aug&nbsp;28</span><span class="what">Manuscript rebuilt from the artefacts; five numeric/factual defects corrected.</span></li>
+
+      <li class="phase">Sep 1 &ndash; 4 &nbsp; sixth cohort, six levers, one adoption</li>
+      <li><span class="when">Sep&nbsp;1</span><span class="what"><b>Sixth cohort &mdash; CariesXrays (AAAI 2024), 3,421 lesions.</b> The constant beats the pipeline by <b>25 points</b>. DOI audit: 22 of 63 checkable citations broken &mdash; all real papers, wrong identifiers, all fixed.</span></li>
+      <li><span class="when">Sep&nbsp;1&ndash;4</span><span class="what"><b>Levers 1, A, A2</b> (multi-corpus detector, three ways) &mdash; all <b>ablations</b>: +34 pp end-to-end FDI on DENTEX, but each fails the pre-registered Tufts guard. The tradeoff is real, bidirectional and quantified. <b>Lever 2</b>: a stock YOLOv11l matches the task-specific FPCL method on the CariesXrays benchmark.</span></li>
+      <li><span class="when">Sep&nbsp;4</span><span class="what"><b>Lever B adopted.</b> Reformulating Stage 3a as lesion detection, trained on pooled CariesXrays + DENTEX-caries, meets its pre-registered bar (2 of 3 cohorts) and becomes the Stage-3 default &mdash; the first mechanism in the project to beat the constant. Tufts end-to-end FDI measured for the first time (64.8%). Two remaining CI gaps closed.</span></li>
+
+      <li class="phase">Sep 5 &ndash; 6 &nbsp; reconciliation &amp; the next lever</li>
+      <li><span class="when">Sep&nbsp;5</span><span class="what">Root README and <code>main.tex</code> reconciled with the Lever B adoption and the re-counted parameters.</span></li>
+      <li><span class="when">Sep&nbsp;6</span><span class="what"><b>Tufts-FDI council + Option B diagnostic:</b> the positional-feature-shift hypothesis is <b>falsified</b> (+0.1 pp). The gap is the image-derived position digit (73.5% vs 91.9%). <b>Lever C</b> &mdash; a structural post-processor &mdash; pre-registration drafted, awaiting go/no-go.</span></li>
+    </ol>
+  </div>
+</section>
+
+<!-- =============================================================== RESULTS -->
+<section id="results">
+  <div class="wrap">
+    <p class="eyebrow">Results</p>
+    <h2>What the numbers say</h2>
+
+    <h3>The central comparison &mdash; tooth-level caries, 164 development images</h3>
+    <div class="tablewrap">
+      <table>
+        <caption>C1 &mdash; FDI-set F1, micro-averaged, 477 annotated carious teeth, one scorer for all arms</caption>
+        <thead><tr><th>System</th><th class="num">Precision</th><th class="num">Recall</th><th class="num">F1</th><th class="num">Params</th></tr></thead>
+        <tbody>
+          <tr class="hl"><td class="strong">Constant &mdash; image never read</td><td class="num">0.218</td><td class="num">0.600</td><td class="num strong">0.320</td><td class="num">0</td></tr>
+          <tr><td>Our six-stage pipeline</td><td class="num">0.235</td><td class="num">0.390</td><td class="num">0.294</td><td class="num">61.2 M&dagger;</td></tr>
+          <tr><td>Qwen2.5-VL-32B-Instruct, 0-shot</td><td class="num">0.250</td><td class="num">0.243</td><td class="num">0.246</td><td class="num">33.45 B</td></tr>
+          <tr><td>Qwen2.5-VL-7B-Instruct, 0-shot</td><td class="num">0.248</td><td class="num">0.107</td><td class="num">0.149</td><td class="num">8.29 B</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="small">&dagger; the caries path as scored here uses the retained gate variant. Both
+      vision&ndash;language models return a confident, correctly formatted tooth list for an image
+      of pure random noise &mdash; the 32B model answers with <span class="code-list">16 17 26 27 36 37 46 47</span>,
+      exactly the constant&rsquo;s set.</p>
+
+    <div class="chart">
+      <h4>C1 &mdash; tooth-level caries F1</h4>
+      <p class="sub">The ordering is inverted with respect to the information each system receives.</p>
+      <svg viewBox="0 0 640 190" role="img" aria-label="Bar chart: constant 0.320, pipeline 0.294, VLM-32B 0.246, VLM-7B 0.149.">
+        <g font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--muted)">
+          <line x1="150" y1="12" x2="150" y2="164" stroke="var(--line)"/>
+          <line x1="265" y1="12" x2="265" y2="164" stroke="var(--line)" stroke-dasharray="2 3"/>
+          <line x1="380" y1="12" x2="380" y2="164" stroke="var(--line)" stroke-dasharray="2 3"/>
+          <line x1="495" y1="12" x2="495" y2="164" stroke="var(--line)" stroke-dasharray="2 3"/>
+          <line x1="610" y1="12" x2="610" y2="164" stroke="var(--line)"/>
+          <text x="150" y="180" text-anchor="middle">0</text>
+          <text x="265" y="180" text-anchor="middle">0.10</text>
+          <text x="380" y="180" text-anchor="middle">0.20</text>
+          <text x="495" y="180" text-anchor="middle">0.30</text>
+          <text x="610" y="180" text-anchor="middle">0.40</text>
+        </g>
+        <g font-family="IBM Plex Sans, sans-serif" font-size="12">
+          <text x="142" y="30" text-anchor="end" fill="var(--text)">Constant</text>
+          <rect x="150" y="19" width="368" height="16" rx="2" fill="var(--bad)"/>
+          <text x="524" y="31" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--text)">0.320</text>
+
+          <text x="142" y="65" text-anchor="end" fill="var(--text)">Pipeline</text>
+          <rect x="150" y="54" width="338" height="16" rx="2" fill="var(--accent)"/>
+          <text x="494" y="66" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--text)">0.294</text>
+
+          <text x="142" y="100" text-anchor="end" fill="var(--text)">VLM&nbsp;32B</text>
+          <rect x="150" y="89" width="283" height="16" rx="2" fill="var(--muted)"/>
+          <text x="439" y="101" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--text)">0.246</text>
+
+          <text x="142" y="135" text-anchor="end" fill="var(--text)">VLM&nbsp;7B</text>
+          <rect x="150" y="124" width="171" height="16" rx="2" fill="var(--muted)"/>
+          <text x="327" y="136" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--text)">0.149</text>
+        </g>
+      </svg>
+    </div>
+
+    <h3>External validation &mdash; the same comparison, three caries cohorts</h3>
+    <p class="prose">Lesion-localisation agreement asks, of every annotated lesion, whether a
+      flagged tooth overlaps it in space &mdash; a check set membership cannot pass. The frozen
+      pipeline is scored against the constant on all three.</p>
+    <div class="tablewrap">
+      <table>
+        <caption>Lesion agreement &mdash; paired cluster bootstrap over images, 10,000 resamples</caption>
+        <thead><tr><th>Cohort</th><th class="num">Lesions</th><th class="num">Pipeline</th><th class="num">Constant</th><th class="num">&Delta; (const &minus; pipe)</th><th>Verdict</th></tr></thead>
+        <tbody>
+          <tr><td>DENTEX <span class="small">(development)</span></td><td class="num">479</td><td class="num">0.443</td><td class="num">0.489</td><td class="num">+4.6 pp [+0.6, +8.9]</td><td class="lose">constant wins</td></tr>
+          <tr><td>Ningxia <span class="small">(4 hospitals, external)</span></td><td class="num">1,013</td><td class="num">0.408</td><td class="num">0.399</td><td class="num">&minus;0.9 pp [&minus;4.9, +3.0]</td><td class="tie">indistinguishable</td></tr>
+          <tr><td>CariesXrays <span class="small">(AAAI 2024, external)</span></td><td class="num">3,421</td><td class="num">0.309</td><td class="num">0.561</td><td class="num strong">+25.2 pp [+23.2, +27.3]</td><td class="lose">constant wins outright</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="small">Across four Ningxia hospitals the pipeline&minus;constant difference swings from
+      &minus;15.8 pp at one site to +10.6 pp at another &mdash; a <strong class="k">26-point range</strong>
+      that the pooled figure erases. A single external number carries very little information at this
+      variance.</p>
+
+    <div class="chart">
+      <h4>Constant vs pipeline &mdash; lesion agreement by cohort</h4>
+      <p class="sub">Bars share a zero baseline; longer is better. The constant (never reads the image) leads on two of three.</p>
+      <svg viewBox="0 0 640 210" role="img" aria-label="Grouped bars: DENTEX pipeline 0.443 constant 0.489; Ningxia 0.408 vs 0.399; CariesXrays 0.309 vs 0.561.">
+        <g font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--muted)">
+          <line x1="150" y1="10" x2="150" y2="176" stroke="var(--line)"/>
+          <line x1="303" y1="10" x2="303" y2="176" stroke="var(--line)" stroke-dasharray="2 3"/>
+          <line x1="456" y1="10" x2="456" y2="176" stroke="var(--line)" stroke-dasharray="2 3"/>
+          <line x1="610" y1="10" x2="610" y2="176" stroke="var(--line)"/>
+          <text x="150" y="192" text-anchor="middle">0</text>
+          <text x="303" y="192" text-anchor="middle">0.20</text>
+          <text x="456" y="192" text-anchor="middle">0.40</text>
+          <text x="610" y="192" text-anchor="middle">0.60</text>
+        </g>
+        <g font-family="IBM Plex Sans, sans-serif" font-size="12" fill="var(--text)">
+          <text x="142" y="30" text-anchor="end">DENTEX</text>
+          <rect x="150" y="18" width="340" height="13" rx="2" fill="var(--accent)"/>
+          <rect x="150" y="34" width="375" height="13" rx="2" fill="var(--bad)"/>
+
+          <text x="142" y="82" text-anchor="end">Ningxia</text>
+          <rect x="150" y="70" width="313" height="13" rx="2" fill="var(--accent)"/>
+          <rect x="150" y="86" width="306" height="13" rx="2" fill="var(--bad)"/>
+
+          <text x="142" y="134" text-anchor="end">CariesXrays</text>
+          <rect x="150" y="122" width="237" height="13" rx="2" fill="var(--accent)"/>
+          <rect x="150" y="138" width="430" height="13" rx="2" fill="var(--bad)"/>
+        </g>
+      </svg>
+      <div class="legend">
+        <span><i style="background:var(--accent)"></i> pipeline</span>
+        <span><i style="background:var(--bad)"></i> image-blind constant</span>
+      </div>
+    </div>
+
+    <h3>Lever B &mdash; changing the task, not the architecture</h3>
+    <p class="prose">Five direct repairs to the caries gate (contrast equalisation, crop expansion,
+      position-balanced sampling, a retrain, threshold tuning) all returned intervals spanning zero.
+      Lever B changed the <em>question</em>: a whole-image lesion detector, which naming the molars
+      cannot answer. Its acceptance rule was frozen before any arm trained.</p>
+    <div class="tablewrap">
+      <table>
+        <caption>Tooth-level lesion agreement &mdash; adopted lesion detector vs the gate and the constant</caption>
+        <thead><tr><th>Cohort</th><th class="num">Gate v3.0</th><th class="num">Constant</th><th class="num">Lesion detector</th><th>Outcome</th></tr></thead>
+        <tbody>
+          <tr><td>DENTEX <span class="small">(dev)</span></td><td class="num">0.443</td><td class="num">0.489</td><td class="num">0.455 [40.9, 50.1]</td><td class="tie">tie (CI includes 0)</td></tr>
+          <tr class="hl"><td>CariesXrays <span class="small">(dev)</span></td><td class="num">0.317</td><td class="num">0.562</td><td class="num strong">0.684 [66.4, 70.4]</td><td class="win">win &nbsp;+12.2 pp vs constant</td></tr>
+          <tr class="hl"><td>Ningxia <span class="small">(external)</span></td><td class="num">0.408</td><td class="num">0.399</td><td class="num strong">0.500 [46.3, 53.9]</td><td class="win">win &nbsp;+10.2 pp vs constant</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="small"><strong class="k">2 of 3 &rarr; rule met &rarr; adopted 4 Sep 2026</strong> as
+      the Stage-3a default. Not a volume effect &mdash; it flags fewer teeth than either comparator
+      on every cohort. DENTEX is a tie, reported as a tie everywhere. A CariesXrays-only variant
+      scores marginally higher on CariesXrays and collapses to 0.086 on DENTEX &mdash; the training
+      <em>mixture</em>, not the architecture, is what transfers.</p>
+
+    <h3>Tooth numbering &mdash; what a constant cannot do</h3>
+    <div class="tablewrap">
+      <table>
+        <caption>Stage 2 FDI numbering, deployed detector + head, Hungarian one-to-one</caption>
+        <thead><tr><th>Cohort</th><th class="num">Detection recall</th><th class="num">FDI exact, of detected</th><th class="num">FDI exact, end-to-end</th></tr></thead>
+        <tbody>
+          <tr><td>DENTEX <span class="small">(164 leak-free, 936 teeth)</span></td><td class="num">70.6% [66.5, 74.6]</td><td class="num strong">82.6% [79.1, 85.8]</td><td class="num">58.3% [53.9, 62.8]</td></tr>
+          <tr><td>Tufts <span class="small">(149 test, 3,760 teeth, in-domain detector)</span></td><td class="num">82.4%</td><td class="num strong">78.6%</td><td class="num">64.8%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="prose">End-to-end is <strong class="k">detection-bound</strong>: on DENTEX, 29.4% of
+      teeth are never detected and cannot be numbered; of the teeth Stage 1 does find, Stage 2
+      numbers 82.6% correctly. Of the wrong codes, 77% name an adjacent tooth in the correct
+      quadrant &mdash; benign off-by-one, not a wrong corner of the mouth. The 6&nbsp;Sep diagnostic
+      isolated the residual weakness to the <strong class="k">image-derived position digit</strong>
+      (73.5% on Tufts crops vs 91.9% on DENTEX); quadrant and side are near-matched, and a
+      positional-feature fix was ruled out.</p>
+
+    <div class="chart">
+      <h4>Stage-2 failure taxonomy</h4>
+      <p class="sub">Where the ground-truth teeth go. &ldquo;Never detected&rdquo; is the largest single bucket on both cohorts &mdash; no numbering model can recover it.</p>
+      <svg viewBox="0 0 640 150" role="img" aria-label="Stacked bars. DENTEX: 58.3 correct, 29.4 not detected, 9.5 off-by-one, 2.8 other. Tufts: 64.8 correct, 18.2 not detected, 12.6 off-by-one, 4.4 other.">
+        <g font-family="IBM Plex Sans, sans-serif" font-size="12" fill="var(--text)">
+          <text x="88" y="40" text-anchor="end">DENTEX</text>
+          <rect x="96" y="26" width="301.7" height="24" fill="var(--good)"/>
+          <rect x="397.7" y="26" width="152.1" height="24" fill="var(--bad)"/>
+          <rect x="549.8" y="26" width="49.1" height="24" fill="var(--caution)"/>
+          <rect x="598.9" y="26" width="15.1" height="24" fill="var(--muted)"/>
+
+          <text x="88" y="98" text-anchor="end">Tufts</text>
+          <rect x="96" y="84" width="335.4" height="24" fill="var(--good)"/>
+          <rect x="431.4" y="84" width="94.2" height="24" fill="var(--bad)"/>
+          <rect x="525.6" y="84" width="65.2" height="24" fill="var(--caution)"/>
+          <rect x="590.8" y="84" width="23.2" height="24" fill="var(--muted)"/>
+        </g>
+        <g font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--muted)">
+          <text x="96" y="132">0%</text>
+          <text x="355" y="132" text-anchor="middle">50%</text>
+          <text x="614" y="132" text-anchor="end">100%</text>
+        </g>
+      </svg>
+      <div class="legend">
+        <span><i style="background:var(--good)"></i> correct</span>
+        <span><i style="background:var(--bad)"></i> never detected</span>
+        <span><i style="background:var(--caution)"></i> off-by-one (right quadrant)</span>
+        <span><i style="background:var(--muted)"></i> category error</span>
+      </div>
+    </div>
+
+    <h3>Calibration, abstention &amp; the periodontal negative</h3>
+    <div class="prose">
+      <p><strong class="k">Calibration (gate variant).</strong> The caries gate is systematically
+        overconfident &mdash; ECE 0.136, every reliability bin below the diagonal. Temperature
+        scaling made it worse (0.152); isotonic regression fixed it to 0.043, applied to the
+        reported confidence only so no published verdict changes.</p>
+      <p><strong class="k">Abstention.</strong> Declining the least-confident quarter of cases
+        raises numbering accuracy 0.826&nbsp;&rarr;&nbsp;0.885 and caries-gate accuracy
+        0.797&nbsp;&rarr;&nbsp;0.940. A shuffle control collapses both gains to zero &mdash; the
+        improvement is real ranking, not arithmetic. The pre-registered 0.30 threshold lands at
+        90.8% coverage.</p>
+      <p><strong class="k">Periodontal bone loss &mdash; an honest negative.</strong> The branch
+        scores <strong class="k">0.923 macro-F1</strong> on Tufts and
+        <strong class="k">2.4% affected-tooth sensitivity</strong> pooled across four Ningxia
+        hospitals (0.7% firing rate on DENTEX). Two independent external datasets agree it
+        collapses. The cause is isolated to the Stage-4a classifier &mdash; a detector swap that
+        moved numbering +12 pp and caries +7.7 pp moved this branch by nothing. It is reported as
+        a measured limitation, not patched: DENTEX carries no bone-loss labels, so the
+        multi-corpus lever that fixed numbering does not exist here.</p>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================================== LIMITATIONS -->
+<section id="limits">
+  <div class="wrap">
+    <p class="eyebrow">Limitations</p>
+    <h2>Stated plainly &mdash; a screening aid that oversells is worse than none</h2>
+    <p class="prose">The full treatment is <code>docs/results/PAPER_MATERIAL.md</code> &sect;8
+      (25 items). The headline ones, with their disposition:</p>
+    <div class="ledger">
+      <div class="row"><div class="claim"><b>The periodontal branch does not generalise</b> &mdash; 0.923 in domain to 2.4% external sensitivity. The shared-root-cause hypothesis was tested and falsified.</div><span class="tag reported">reported, not fixed</span></div>
+      <div class="row"><div class="claim"><b>Tooth-level scores are base-rate dominated</b> &mdash; an image-blind molar constant beats the pipeline on the metric this field reports. This is the paper&rsquo;s subject, not a footnote.</div><span class="tag reported">the finding</span></div>
+      <div class="row"><div class="claim"><b>Caries (gate) precision is 0.40</b> &mdash; roughly six of ten positives are wrong; 96.5% of false positives are healthy teeth, several visibly carrying restorations.</div><span class="tag reported">reported</span></div>
+      <div class="row"><div class="claim"><b>Detector recall 70.6% caps Stage 2</b> at 58.3% end-to-end. Detection mAP@0.5 0.810 sits below the 0.90&ndash;0.97 reported for similar tasks.</div><span class="tag reported">measured</span></div>
+      <div class="row"><div class="claim"><b>The adopted caries lesion detector has no calibrator and no abstention curve</b> &mdash; it emits a detection score, not a posterior. The pre-registered 0.30 threshold was located on the gate&rsquo;s curve.</div><span class="tag open">open</span></div>
+      <div class="row"><div class="claim"><b>The in-domain bone-loss 0.923 is a selected maximum on an irreproducible subset</b> &mdash; half the validation crops carry unsaved jitter; the source radiographs are confirmed absent from every machine checked.</div><span class="tag blocked">blocked</span></div>
+      <div class="row"><div class="claim"><b>Severity heads rest on tiny validation sets</b> &mdash; 52 crops (bone loss), 133 (caries depth). The 0.72 target was met by 0.0008 on 52 samples.</div><span class="tag reported">provisional</span></div>
+      <div class="row"><div class="claim"><b>The negative class rests on presumed-negative labelling</b> &mdash; DENTEX &ldquo;healthy&rdquo; means no disease annotation, not verified healthy.</div><span class="tag reported">flagged</span></div>
+      <div class="row"><div class="claim"><b>Stage-4a overfits</b> &mdash; a ~25&times; train/val loss gap. Training curves are published, not hidden.</div><span class="tag reported">reported</span></div>
+      <div class="row"><div class="claim"><b>Internal and external caries figures are not comparable to each other</b> &mdash; different lesion matchers, forced by a 200&times; lesion-to-tooth area ratio. No internal&rarr;external degradation number should be read off the tables.</div><span class="tag reported">reported</span></div>
+      <div class="row"><div class="claim"><b>Patient-level separation is unverifiable on DENTEX</b> &mdash; no patient identifiers ship with it. Byte-level and image-level separation is established.</div><span class="tag reported">reported</span></div>
+      <div class="row"><div class="claim"><b>All data is retrospective and public</b> &mdash; no prospective evaluation, no clinician reader study, no comparison against a dentist. This is the single largest gap.</div><span class="tag open">open</span></div>
+      <div class="row"><div class="claim"><b>Two dataset-governance items are live breaches.</b> A Tufts release folder was found browsable without sign-in (the licence forbids it); a clinic dataset&rsquo;s re-identification map sits beside its images on two copies. No clinic-derived number appears anywhere in the project.</div><span class="tag breach">live &mdash; blocking</span></div>
+      <div class="row"><div class="claim">CEJ bone-level estimation (classical CV) &mdash; 15.1% agreement, a documented negative result, not integrated.</div><span class="tag reported">negative result</span></div>
+      <div class="row"><div class="claim">22 of 63 checkable citation DOIs were broken &mdash; all real papers with wrong identifiers, all fixed and re-verified against the registry.</div><span class="tag cleared">cleared 2 Sep</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================================== FURTHER WORK -->
+<section id="next">
+  <div class="wrap">
+    <p class="eyebrow">What further can be done</p>
+    <h2>The manuscript is feature-complete &mdash; the critical path is not engineering</h2>
+    <p class="prose">The manuscript compiles clean, every number is asserted against an artefact,
+      and the spine (the evaluation-protocol contribution plus Lever B as a positive result) is
+      written. What stands between here and submission is a short list of decisions and
+      account-owner actions.</p>
+
+    <div class="tier">
+      <header><span class="t">Tier 1</span><span class="h">Submission-blocking &mdash; decisions &amp; governance</span><span class="meta">not code</span></header>
+      <ul>
+        <li><b>Restrict the Tufts Drive folder</b> and move the clinic dataset&rsquo;s re-identification map off the shared tree. <span class="chip">live breach &mdash; P0</span></li>
+        <li><b>Commit the venue.</b> Journal primary &mdash; IEEE JBHI or Computers in Biology and Medicine (both S-grade, no page limit); re-verify Scopus indexing first. Decided in principle 2&nbsp;Sep, not yet acted. <span class="chip">gates everything</span></li>
+        <li><b>Authors and affiliations</b> &mdash; currently <code>Unknown</code> in the manuscript.</li>
+        <li>Title / thesis &mdash; whether the abstract&rsquo;s &ldquo;four things a constant cannot do&rdquo; becomes five, now that lesion localisation is demonstrated. <span class="chip opt">soft</span></li>
+        <li>IRB paperwork &mdash; only if clinic data ever enters a result (it does not today). Longest lead time of anything open.</li>
+      </ul>
+    </div>
+
+    <div class="tier">
+      <header><span class="t">Tier 2</span><span class="h">Optional &mdash; cheap, pre-registered or housekeeping</span><span class="meta">no GPU</span></header>
+      <ul>
+        <li><b>Lever C</b> &mdash; a structural arch-order post-processor for the Stage-2 position digit. Pre-registration drafted 6&nbsp;Sep (two arms, primary bar +2 pp lower bound on Tufts of-detected, DENTEX no-regression guard, one frozen threshold, 3-day box). The manuscript does not currently claim the weak Tufts number, so this is polish, not a fix. <span class="chip opt">awaiting go/no-go</span></li>
+        <li>Retire or mark-superseded <code>docs/paper/{manuscript.md, draft_spine.md}</code> &mdash; they still describe the pre-Lever-B pipeline with the old 0.488 figure, a trap for the next reader. ~20 minutes.</li>
+        <li>Rebuild the Docker image &mdash; it predates the Lever B caries wiring.</li>
+        <li>A 5-minute IEEE Xplore read: is the Tufts mirror-numbering finding novel? (Panetta et&nbsp;al. 2022 is paywalled and unread.)</li>
+        <li>Commission a mock adversarial review before submission; pre-draft the rebuttal notes.</li>
+      </ul>
+    </div>
+
+    <div class="tier">
+      <header><span class="t">Tier 3</span><span class="h">Post-submission &mdash; needs a fresh pre-registration each</span><span class="meta">GPU, go-ahead required</span></header>
+      <ul>
+        <li><b>Option E &mdash; a better image-pathway position encoder.</b> Higher-resolution crops, wider context, or a spatial-prior transformer (Li et&nbsp;al., IEEE TMI 2024); or adapt SADP-Net (Zhang et&nbsp;al., IEEE JBHI 2025 &mdash; evaluated on Tufts, code released, with a dedicated missing-tooth stage). This is the lever that attacks the 73.5% position digit directly.</li>
+        <li><b>Option D &mdash; retrain the FDI head</b> with OdontoAI (2,000 FDI + mask panoramics) and MICCAI STS 2024 (2,380 OPGs) for population diversity. Weakened by the 6&nbsp;Sep diagnostic: more data of the same anterior-crowding difficulty is unlikely to move an image-pathway limit.</li>
+        <li>A bone-loss second corpus (BRAR, openly released) &mdash; the only route to a generalising periodontal branch. Opt-in, not started.</li>
+        <li>A multi-corpus <em>segmentation</em> detector (Tufts masks + box-prompted pseudo-masks) &mdash; the one untried detector lever, deferred after the Lever&nbsp;1&rarr;A&rarr;A2 arc closed.</li>
+        <li>Clinic (SDH) data &mdash; blocked on IRB and the de-identification fix; contributes to no result today.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="disclaimer"><strong>Internal, pre-submission.</strong> This report summarises
+      findings from an unpublished manuscript and records two open dataset-governance items. Like
+      the rest of this private repository, it is for the project team and academic reviewers &mdash;
+      not for public circulation, and it must be reviewed before this repo or any fork is ever made
+      public.</div>
+    <p><strong>Authoritative sources</strong> (this page is a 6&nbsp;Sep&nbsp;2026 snapshot and will
+      drift): <code>transfer.md</code> &sect;1&ndash;&sect;5 for current state;
+      <code>docs/results/RESULTS_LOG.md</code> for the append-only history (128 entries);
+      <code>docs/results/model_metrics.md</code> for the current-best numbers;
+      <code>docs/results/PAPER_MATERIAL.md</code> for the full technical story and the complete
+      limitations section; <code>paper/main.tex</code> for the manuscript.</p>
+    <p>Datasets: Tufts Dental Database (Panetta et&nbsp;al., IEEE JBHI 2022) &middot; DENTEX
+      (MICCAI 2023, CC-BY-NC-SA-4.0) &middot; Ningxia multi-centre release (Li et&nbsp;al., 2024)
+      &middot; CariesXrays (Chen et&nbsp;al., AAAI 2024). Backbones: Ultralytics YOLOv11,
+      PyTorch / torchvision. VLM baseline: Qwen2.5-VL.</p>
+    <p class="small">Capstone project 2026 &middot; research prototype, not a medical device, not for clinical use.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var KEY="opg-report-theme";
+  var root=document.documentElement;
+  var btns=Array.prototype.slice.call(document.querySelectorAll(".themeswitch button"));
+  function paint(v){
+    btns.forEach(function(b){ b.setAttribute("aria-pressed", String(b.dataset.set===v)); });
+  }
+  function apply(v){
+    if(v==="light"||v==="dark"||v==="hc"){ root.setAttribute("data-theme",v); }
+    else { root.removeAttribute("data-theme"); v="system"; }
+    paint(v);
+  }
+  var saved="system";
+  try{ saved=localStorage.getItem(KEY)||"system"; }catch(e){}
+  apply(saved);
+  btns.forEach(function(b){
+    b.addEventListener("click",function(){
+      var cur;
+      try{ cur=localStorage.getItem(KEY); }catch(e){}
+      var next=(cur===b.dataset.set)?"system":b.dataset.set;   // click active button -> back to system
+      try{ localStorage.setItem(KEY,next); }catch(e){}
+      apply(next);
+    });
+  });
+})();
+</script>
+</body>
+</html>

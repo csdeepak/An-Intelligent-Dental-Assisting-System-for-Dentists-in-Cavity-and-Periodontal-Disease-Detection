@@ -22,7 +22,11 @@ run, positional-feature-shift falsified as a lever, §3 updated
 (`docs/session-memory/2026-09-06-tufts-fdi-option-b-diagnostic.md`, `RESULTS_LOG` 2026-09-06);
 6 Sep — Option A pre-registration drafted as "Lever C"
 (`outputs/lever_C_fdi_structural_postproc/PRE_REGISTRATION.md`,
-`docs/session-memory/2026-09-06b-lever-c-preregistration-council.md`) — DRAFT, awaiting go/no-go.
+`docs/session-memory/2026-09-06b-lever-c-preregistration-council.md`) — DRAFT, awaiting go/no-go;
+6 Sep — next-steps council (`docs/session-memory/2026-09-06c-next-steps-council.md`): manuscript
+declared feature-complete, §3 lead added; 6 Sep — `PROJECT_OVERVIEW.html` (a readable project
+snapshot) placed at the repo root, reversing `2026-09-06d`'s "keep it out of git" — the repo is
+private, so it is no more exposed than any other doc (`docs/session-memory/2026-09-06e`).
 
 **Maintenance rule (CLAUDE.md rule 5): before any substantial session ends, update this file.**
 A stale snapshot has cost this project real time more than once — see the pattern note in §4.
@@ -37,6 +41,10 @@ A stale snapshot has cost this project real time more than once — see the patt
 4. `docs/results/model_metrics.md` — current-best numbers, one table per model.
 5. `docs/results/PAPER_MATERIAL.md` — the full technical story and honest limitations.
 6. `paper/main.tex` (or `paper/main.pdf`) — the manuscript itself.
+
+*For a readable one-page overview (what was done, results, limitations, what's next), open
+`PROJECT_OVERVIEW.html` in a browser — but it is a **6 Sep 2026 snapshot, not kept in sync**;
+the files above win where they disagree. Internal / pre-submission.*
 
 **One-paragraph elevator pitch:** this is an OPG (panoramic dental X-ray) analysis pipeline —
 YOLOv11l detects teeth, a ResNet18 head numbers them in FDI notation, and two more branches
@@ -264,6 +272,13 @@ undefined refs.
 **Track A (manuscript + compliance) is the critical path and wins any time conflict.** Nothing
 in Track B (further levers) is queued or approved — do not start GPU work without a fresh
 pre-registration and explicit go-ahead.
+
+**The manuscript is feature-complete (next-steps council, `docs/session-memory/2026-09-06c`).**
+No new experiments or sections before submission. What stands between here and submitting is
+**not engineering** — it is items 1–4 below, and the single highest-leverage action is a
+**one-hour mentor meeting**: commit the venue (re-verify Scopus first), fill authors/affiliations,
+delegate the two live compliance breaches (§4). The binding risk to an S-grade outcome is the
+Tufts Drive licence breach (§4), not any remaining number.
 
 | # | Item | Owner | Status |
 |---|---|---|---|

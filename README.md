@@ -31,6 +31,7 @@ Detect every tooth · number it in FDI notation · classify two pathologies per 
 >
 > | Question | File |
 > |---|---|
+> | A readable one-page overview — what was done, results, limitations, what's next | [`PROJECT_OVERVIEW.html`](PROJECT_OVERVIEW.html) — a **6 Sep 2026 snapshot**, not kept in sync; open in a browser (3-theme toggle). Internal / pre-submission. |
 > | What are the current numbers? | [`docs/results/model_metrics.md`](docs/results/model_metrics.md) |
 > | Full technical story + honest limitations (the paper is written from this) | [`docs/results/PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) |
 > | Why is it like this? What happened when? | [`docs/results/RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) — 128 dated entries, append-only |
@@ -473,6 +474,7 @@ Each of those four rows is a bug that was found the hard way. See
 ```
 ├── README.md                    ← you are here
 ├── transfer.md                  ← ★ START HERE cold — living state snapshot
+├── PROJECT_OVERVIEW.html        ← readable one-page project snapshot (6 Sep 2026, not maintained)
 ├── CLAUDE.md                    ← standing rules for AI/automation sessions
 ├── app.py · Dockerfile          ← Streamlit demo, CPU-only container
 ├── requirements.txt · setup.py · LICENSE

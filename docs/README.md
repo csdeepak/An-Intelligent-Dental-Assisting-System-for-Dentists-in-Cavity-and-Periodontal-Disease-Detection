@@ -27,6 +27,7 @@ plan supersedes the older schedules elsewhere for sequencing.
 | Path | What lives there |
 |------|------------------|
 | `README.md` | This index. |
+| `../PROJECT_OVERVIEW.html` | A readable one-page project snapshot (what was done, results, limitations, further work) at the **repo root** — open in a browser, 3-theme toggle. A **6 Sep 2026 snapshot, not maintained**; `../transfer.md` / `results/RESULTS_LOG.md` / `results/model_metrics.md` are authoritative. Internal / pre-submission (`session-memory/2026-09-06e`). |
 | `architecture/` | System diagrams. `corrected_opg_pipeline_architecture.svg` is authoritative; `.drawio` is the editable source. See `architecture/README.md`. |
 | `assets/` | The seven animated SVGs embedded in the **root `README.md`** (hero, pipeline, error propagation, C1 baselines, C2 domain shift, C4 abstention, repository structure). Hand-authored, self-contained, no external fonts or scripts. **Every number they carry is duplicated from `results/model_metrics.md`** — when a headline number changes, the matching SVG must be edited too, or the front page will drift. Not the same thing as `architecture/`, which holds the authoritative technical diagram. |
 | `results/PAPER_MATERIAL.md` | **The master paper-writing document.** Problem statement, datasets, architecture, per-stage methods, the five key engineering decisions, all result tables, known limitations, and a checklist of what still has to be written. |
