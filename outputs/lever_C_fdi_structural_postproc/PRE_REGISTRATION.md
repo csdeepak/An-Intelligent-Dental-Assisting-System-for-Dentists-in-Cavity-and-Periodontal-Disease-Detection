@@ -1,14 +1,18 @@
 # Pre-registration — Lever C: a structural post-processor for the Stage-2 FDI position digit
 
-**DRAFT written 6 September 2026** as the output of the Tufts-FDI improvement council
+**Drafted 6 September 2026** as the output of the Tufts-FDI improvement council
 (`docs/session-memory/2026-09-05b-tufts-fdi-improvement-council.md`) and its Option B diagnostic
 (`docs/session-memory/2026-09-06-tufts-fdi-option-b-diagnostic.md`, `RESULTS_LOG` 2026-09-06).
 The council session for this pre-registration itself is
 `docs/session-memory/2026-09-06b-lever-c-preregistration-council.md`.
 
-**Bars and method below are open to one round of user / mentor review. They FREEZE the moment
-this file is committed with Deepak's go-ahead — same discipline as Levers 1, 2, A, A2 and B.
-Zero GPU is involved; the pre-registration is a document, and drafting it commits nothing.**
+**FROZEN 6 September 2026, before any Lever C code was written.** Deepak gave the go-ahead in
+the 6 Sep session and chose "freeze as written": the review round's three open questions are
+resolved as drafted — the primary bar stays **+2.0 pp** (not loosened to +1.0), the anterior
+stratified condition stays a **hard bar** (not report-only), and the outcome is
+**adopt-as-default iff all three bars hold** (not always-a-flag). Method, τ, the two arms and the
+three bars below are now fixed; nothing here moves after a number is seen. Same discipline as
+Levers 1, 2, A, A2 and B. The frozen commit hash is recorded in §9.
 
 **Track A (manuscript + the four compliance blockers, `transfer.md` §3/§4) remains the critical
 path and wins any time conflict. If pursued, Lever C is time-boxed to THREE working days — if the
@@ -199,3 +203,16 @@ if a current-best number moves, `PAPER_MATERIAL.md` §8.16, a session-memory fil
 `outputs/lever_C_fdi_structural_postproc/{c_sort,c_dp}/run_summary.txt` + the JSON artefacts, and
 this file annotated with the frozen commit hash and the verdict. `docs/research/` is **not**
 touched by this workstream.
+
+---
+
+## 9. Freeze record & verdict
+
+| stage | when | commit |
+|---|---|---|
+| Drafted (council output) | 6 Sep 2026 | `9492abe` |
+| **FROZEN — bars, method, τ, arms; before any Lever C code existed** | 6 Sep 2026 | *(this commit)* |
+| Implementation + local gate, committed before the first frozen-set run | | *pending* |
+| Evaluation complete, verdict recorded | | *pending* |
+
+**Verdict:** *pending — to be written here verbatim from §5's rule, whatever it says.*
