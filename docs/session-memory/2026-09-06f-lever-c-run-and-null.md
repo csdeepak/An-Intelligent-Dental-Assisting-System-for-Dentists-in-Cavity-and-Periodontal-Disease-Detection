@@ -133,12 +133,41 @@ approximating it.
 `scripts/eval/tufts_corpus_audit.py`, with each directory's expected verdict recorded so a future
 change fails loudly.
 
-**The thing actually worth acting on** is not a corpus at all: three misaligned artefacts still sit
-on disk under the *shorter, more inviting* name next to their corrected counterparts —
+**The thing actually worth acting on** was not a corpus at all: three misaligned artefacts sitting
+under the *shorter, more inviting* name next to their corrected counterparts —
 `Radiographs_rotated`, `Radiographs_upright`, `dataset_seg`. That naming is precisely how the
-enumeration corpus came to be built from the wrong one. I did not rename them in this session
-because moving `dataset_seg` touches paths other scripts may reference, and that deserves its own
-pass rather than being tacked onto this one.
+enumeration corpus came to be built from the wrong one. Done in the pass below, after checking
+every reference first.
+
+### Closing the loop: the misaligned copies are gone from the working tree
+
+The audit's own follow-up, done rather than filed. `Radiographs_rotated`, `Radiographs_upright`
+and `dataset_seg` — 717 MB, all 180° out, each sitting under the *shorter* name beside its
+corrected twin — moved to `_repo_archive/misaligned_tufts_frames_2026-09-06/` with a manifest
+entry. **Archived, not renamed:** a rename only makes some other path the inviting one, and it
+would falsify provenance that `meta.json` and `run_summary.txt` files record truthfully
+(`models/11` really was trained on `dataset_seg_v2`). With the name gone, a stale reference raises
+`FileNotFoundError` instead of quietly reading wrong pixels.
+
+Two live pointers fixed. The important one: `build_enumeration_crops.py`'s **geometry-guard error
+message** named `Radiographs_upright` — the wrong copy — and that message fires *precisely* when
+someone already has a frame problem. It is the most plausible proximate cause of the whole
+episode, and it had been sitting in the guard that was supposed to prevent it. The other,
+`regenerate_split_v1.py`'s default source, never produced a wrong split (it only reads the file
+inventory) but is now resolved by a helper that prefers a `_fixed` copy where one exists —
+machine-agnostic, so macOS and Windows both land on the correct directory unaided.
+
+One fix went into the tool rather than the data: the audit initially scored
+`Radiographs_upright_fixed` as MISALIGNED (0.791), because `image_orientation_score` compares
+against *portrait* boxes and simply does not apply to an upright directory — it returns a low
+number instead of raising. I marked that entry skip-with-reason rather than loosening a threshold
+to make the table green. An audit that cries wolf gets ignored, which would cost more than the
+check is worth.
+
+Verified after the move rather than assumed: `pick_image_dir` still measures its way to
+`Radiographs_rotated_fixed` (1.040); `tufts_crop_frame_check.py` keeps its negative control by
+resolving the archived copy (9.5% vs 75.5% — still discriminating); invariants, 174 tests and
+127/127 paper numbers all hold.
 
 ## Decisions made
 

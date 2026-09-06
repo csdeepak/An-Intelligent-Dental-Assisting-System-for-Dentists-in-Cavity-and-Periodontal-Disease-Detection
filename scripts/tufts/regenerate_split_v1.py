@@ -77,7 +77,22 @@ import pandas as pd
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 TUFTS_ZIP = Path(os.environ.get("TUFTS_ZIP", REPO_ROOT / "data" / "tufts" / "ZIP"))
-IMG_DIR = Path(os.environ.get("TUFTS_IMG_DIR", TUFTS_ZIP / "Radiographs_rotated"))
+
+
+def _default_img_dir(zip_root):
+    """Prefer an orientation-corrected copy when one exists beside the canonical name.
+
+    This script only needs the FILE INVENTORY (which stems exist), not the pixels, so a
+    misaligned copy would still produce a correct split -- but defaulting to the directory this
+    machine knows is 180 degrees out is how a wrong frame spreads. The macOS copy is correct
+    under the canonical name and has no `_fixed` beside it, so this resolves correctly on both
+    machines without anyone having to remember which is which. RESULTS_LOG 2026-08-27a, 2026-09-06c.
+    """
+    fixed = zip_root / "Radiographs_rotated_fixed"
+    return fixed if fixed.exists() else zip_root / "Radiographs_rotated"
+
+
+IMG_DIR = Path(os.environ.get("TUFTS_IMG_DIR") or _default_img_dir(TUFTS_ZIP))
 BBOX_JSON = Path(
     os.environ.get("TUFTS_BBOX_JSON", TUFTS_ZIP / "Segmentation" / "Segmentation" / "teeth_bbox.json")
 )

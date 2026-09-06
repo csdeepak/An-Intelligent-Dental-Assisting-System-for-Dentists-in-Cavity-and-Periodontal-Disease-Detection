@@ -51,8 +51,13 @@ from src.fdi_head_inference import (CROP, EXPAND, IMAGENET_MEAN,  # noqa: E402
 
 DEF_CORPUS = REPO / "data/tufts/enumeration_v1"
 DEF_HEAD = REPO / "models/10_fdi_head_dentex_tufts_v2/enumeration_head_best.pth"
-DEF_CANDIDATES = [REPO / "data/tufts/ZIP/Radiographs_upright",
-                  REPO / "data/tufts/ZIP/Radiographs_upright_fixed"]
+# The corrected frame, plus the 180-degree copy as a NEGATIVE CONTROL -- having a candidate that
+# should NOT match is what made the 2026-09-06c diagnosis unambiguous. That copy was archived on
+# 6 Sep (RESULTS_LOG 2026-09-06f) so it could not be reached for by accident, so look for it
+# there; the check still works without it, with one candidate instead of two.
+_ARCHIVE = REPO.parent / "_repo_archive/misaligned_tufts_frames_2026-09-06"
+DEF_CANDIDATES = [p for p in (REPO / "data/tufts/ZIP/Radiographs_upright_fixed",
+                              _ARCHIVE / "Radiographs_upright") if p.exists()]
 DEF_OUT = REPO / "outputs/tufts_fdi_pos_diagnostic/crop_frame_check.json"
 
 

@@ -4,22 +4,22 @@
   "head": "C:\\Users\\csdee\\PESU\\capstone\\An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection\\models\\10_fdi_head_dentex_tufts_v2\\enumeration_head_best.pth",
   "results": {
     "stored_crops": {
-      "n": 400,
-      "quadrant": 0.33,
-      "position": 0.3675,
-      "fdi_exact": 0.115
-    },
-    "Radiographs_upright": {
-      "n": 400,
-      "quadrant": 0.33,
-      "position": 0.36,
-      "fdi_exact": 0.115
+      "n": 200,
+      "quadrant": 0.965,
+      "position": 0.76,
+      "fdi_exact": 0.745
     },
     "Radiographs_upright_fixed": {
-      "n": 400,
-      "quadrant": 0.9725,
-      "position": 0.7525,
-      "fdi_exact": 0.735
+      "n": 200,
+      "quadrant": 0.97,
+      "position": 0.765,
+      "fdi_exact": 0.755
+    },
+    "Radiographs_upright": {
+      "n": 200,
+      "quadrant": 0.315,
+      "position": 0.355,
+      "fdi_exact": 0.095
     }
   }
 }

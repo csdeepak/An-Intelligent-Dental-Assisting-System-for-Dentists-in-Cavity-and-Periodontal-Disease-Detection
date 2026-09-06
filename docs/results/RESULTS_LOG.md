@@ -7273,3 +7273,49 @@ measured effect on this statistic is $-0.15$ points against a $\pm$3.5-point CI 
   moving `dataset_seg` touches a path other scripts may still reference. (2) The bone-loss
   reproduction gap stays open and stays flagged; nothing measured here changes what the paper says
   about it.
+
+## 2026-09-06f — the three misaligned Tufts copies are archived, and the two pointers that sent people to them are fixed
+
+- **What was done:** acted on 2026-09-06e's follow-up. Three **180°-out** directories sat on this
+  machine under the *shorter, more inviting* name beside their corrected counterpart —
+  `Radiographs_rotated` (vs `_fixed`), `Radiographs_upright` (vs `_fixed`), and `dataset_seg`
+  (vs `dataset_seg_v2`). That naming has now caused **two** silent failures: a 90-epoch GPU run
+  trained on misaligned masks and discarded (2026-08-27a) and an entire enumeration crop corpus
+  built from the wrong frame (2026-09-06c). All three were **moved to
+  `_repo_archive/misaligned_tufts_frames_2026-09-06/`** (717 MB total, `mv` per rule 3, recorded
+  in `ARCHIVE_MANIFEST.md`), so a stale reference now raises `FileNotFoundError` instead of
+  silently reading wrong pixels.
+- **Why archive rather than rename.** A rename only moves the problem: some *other* path becomes
+  the inviting one, and it would falsify provenance that `meta.json` and `run_summary.txt` files
+  record truthfully (`models/11` really was trained on `dataset_seg_v2`). Removing the name
+  entirely is the version that fails loudly.
+- **The two live pointers, both fixed:**
+  1. `scripts/tufts/build_enumeration_crops.py` — its **geometry-guard error message** named
+     `data/tufts/ZIP/Radiographs_upright`, the wrong copy. That message fires *precisely* when
+     someone already has a frame problem, and then sends them to the bad directory. This is the
+     most plausible proximate cause of 2026-09-06c. It now names `Radiographs_upright_fixed`,
+     states the 11.5%-vs-71.5% consequence, and points at `tufts_crop_frame_check.py`.
+  2. `scripts/tufts/regenerate_split_v1.py` — defaulted `IMG_DIR` to `Radiographs_rotated`.
+     It only needs the file inventory, so no split was ever wrong because of it, but the default
+     is now resolved by a helper that prefers a `_fixed` copy when one exists. Machine-agnostic:
+     on macOS the canonical name is the correct one and no `_fixed` sits beside it, so both
+     machines resolve correctly without anyone remembering which is which — the same convention
+     `convert_tufts_to_yolo_seg.py` and `_tufts_align.pick_image_dir` already use.
+- **Everything still resolves, verified rather than assumed:** `pick_image_dir` still selects
+  `Radiographs_rotated_fixed` by measurement (alignment 1.040) with the archived candidate gone;
+  `tufts_crop_frame_check.py` keeps its **negative control** by resolving the archived
+  `Radiographs_upright` (stored crops 74.5%, correct frame 75.5%, wrong frame **9.5%** — the
+  control still discriminates); `verify_invariants` "crop source frames" OK; `pytest` **174**;
+  `verify_paper_numbers` **127/127**.
+- **Key decision or insight:** an audit that cries wolf gets ignored, so one thing was fixed in
+  the tool rather than the data. `tufts_corpus_audit.py` initially scored
+  `Radiographs_upright_fixed` as MISALIGNED (0.791) — but `image_orientation_score` compares
+  against **portrait** boxes and simply does not apply to an upright directory, returning a low
+  number rather than raising. The entry is now explicitly skipped with the reason printed,
+  instead of a threshold being loosened to hide it. The audit's expected state for all three
+  archived copies is **ABSENT**, and it exits non-zero if any reappears.
+- **Source:** `_repo_archive/ARCHIVE_MANIFEST.md` (2026-09-06b entry),
+  `scripts/eval/tufts_corpus_audit.py`, `scripts/eval/tufts_crop_frame_check.py`,
+  `scripts/tufts/{build_enumeration_crops,regenerate_split_v1}.py`.
+- **Follow-ups:** none open on this thread. The frame defect is diagnosed (2026-09-06c), repaired
+  (2026-09-06d), bounded (2026-09-06e) and now guarded at the point where it entered.

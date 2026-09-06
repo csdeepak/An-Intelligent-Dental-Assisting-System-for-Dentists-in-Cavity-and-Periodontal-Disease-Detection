@@ -43,11 +43,15 @@ superseded banners (§3 item 7 closed).
 > `scripts/eval/tufts_corpus_audit.py`) and is fine:** the bone-loss crops are in the correct
 > frame (verified by pixels *and* by reproducing 2026-08-27u's table exactly), `dataset_seg_v2`
 > (what `models/11` trained on) is aligned and byte-identical to `Radiographs_rotated_fixed`, and
-> `severity_dataset` / `resampled_dataset` hold metadata only. **But three misaligned artefacts
-> still sit on disk under the shorter, more inviting name** — `Radiographs_rotated`,
-> `Radiographs_upright` and `dataset_seg` (the withdrawn v1) — each next to its corrected
-> counterpart. That naming is exactly how the enumeration corpus got built from the wrong one.
-> Renaming or archiving them is the open follow-up.
+> `severity_dataset` / `resampled_dataset` hold metadata only. **The three misaligned copies were then ARCHIVED**
+> (`RESULTS_LOG` 2026-09-06f) — `Radiographs_rotated`, `Radiographs_upright` and `dataset_seg`
+> now live under `_repo_archive/misaligned_tufts_frames_2026-09-06/`, so only correct data
+> answers to those names and a stale reference fails loudly instead of reading wrong pixels.
+> The two scripts that pointed at them are fixed — including `build_enumeration_crops.py`'s
+> geometry-guard message, which named the *wrong* upright copy and fired exactly when someone
+> already had a frame problem. **This thread is closed:** diagnosed (09-06c), repaired (09-06d),
+> bounded (09-06e), guarded (09-06f). `scripts/eval/tufts_corpus_audit.py` re-checks the whole
+> surface in one command.
 
 **Maintenance rule (CLAUDE.md rule 5): before any substantial session ends, update this file.**
 A stale snapshot has cost this project real time more than once — see the pattern note in §4.

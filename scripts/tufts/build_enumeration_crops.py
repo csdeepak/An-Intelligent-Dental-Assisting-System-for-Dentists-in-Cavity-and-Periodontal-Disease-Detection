@@ -321,8 +321,11 @@ def main():
             f"(limit {MAX_DEGENERATE_RATE:.0%}).\n"
             f"The images in --images are almost certainly not in the coordinate frame "
             f"teeth_bbox.json uses.\n"
-            f"On this machine the upright copy is data/tufts/ZIP/Radiographs_upright "
-            f"(1615x840, rotated CCW from the shipped 840x1615 copies).\n"
+            f"Pass the UPRIGHT copy (1615x840) that matches teeth_bbox.json. On this clone "
+            f"that is data/tufts/ZIP/Radiographs_upright_fixed -- NOT Radiographs_upright, "
+            f"which is 180 degrees out and produced a corpus scoring 11.5% FDI-exact where the "
+            f"published figure is 71.5% (RESULTS_LOG 2026-09-06c). Verify with "
+            f"scripts/eval/tufts_crop_frame_check.py after building.\n"
             f"Nothing written here should be trained on. See RESULTS_LOG.md 2026-08-28c.")
 
 
