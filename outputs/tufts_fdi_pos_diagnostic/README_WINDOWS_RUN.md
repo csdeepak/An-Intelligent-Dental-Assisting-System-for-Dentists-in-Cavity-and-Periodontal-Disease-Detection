@@ -1,7 +1,11 @@
 # Option B artefacts — read this before quoting `pos_feat_diagnostic.json`
 
-**`pos_feat_diagnostic.json` in this directory is a 6 Sep 2026 Windows re-run. Its DENTEX half
-reproduces the published numbers. Its Tufts half does NOT, and must not be quoted.**
+**Status: RESOLVED the same day.** `pos_feat_diagnostic.json` in this directory is now a valid
+6 Sep 2026 Windows re-run against a **rebuilt** crop corpus, and it reproduces the published
+result on both cohorts (DENTEX 91.1% vs 91.0%; Tufts 70.8% vs 71.5%; `dentex_geom` +0.0 pp vs
++0.1 pp). The account below is kept because it is the diagnosis — the first attempt at this file
+was invalid, and why it was invalid is the useful part. See `RESULTS_LOG` 2026-09-06d for the
+rebuild and the side-by-side reproduction.
 
 ## Why the re-run happened
 
@@ -54,10 +58,11 @@ box. **The Mac's copy is the valid one; the published Option B numbers stand.**
 - **Does not affect Lever C** (`RESULTS_LOG` 2026-09-06b). That evaluation runs on radiographs
   through the detector, not on this crop corpus, and its control arm reproduces the published
   Stage-2 numbers on both cohorts (DENTEX to the digit).
-- **Does affect anything crop-level run on this machine** — a diagnostic, an ablation, a head
-  retrain — until `data/tufts/enumeration_v1` is rebuilt from
-  `data/tufts/ZIP/Radiographs_upright_fixed/`. It fails silently: the labels look right, the
-  images look like teeth, and the accuracy is simply wrong.
+- **Did affect anything crop-level run on this machine** — a diagnostic, an ablation, a head
+  retrain. **The corpus was rebuilt from `data/tufts/ZIP/Radiographs_upright_fixed/` on 6 Sep**
+  (`RESULTS_LOG` 2026-09-06d): manifest byte-identical, crops now scoring 73.2%, defective build
+  archived to `_repo_archive/`. Note the failure mode for next time — it was silent: the labels
+  looked right, the images looked like teeth, and the accuracy was simply wrong.
 - **Untested and worth testing before use:** the other Tufts-derived crop corpora on this clone
   (`data/tufts/bone_loss_crops_rebuilt`, `severity_dataset`, `dataset_seg*`) may have been built
   in the same session from the same frame. `tufts_crop_frame_check.py` generalises to any corpus

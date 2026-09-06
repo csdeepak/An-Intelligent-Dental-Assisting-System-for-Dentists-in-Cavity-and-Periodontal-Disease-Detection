@@ -168,6 +168,97 @@ def inv_crop_contracts():
     return "caries 1.0x, bone-loss 1.5x/2.0x, FDI head 1.5x — all distinct"
 
 
+# ---------------------------------------------------------------- crop source frames
+def inv_crop_frames():
+    """
+    Every enumeration crop must actually be a cut of the source image its manifest names.
+
+    A few manifest rows are re-cut from the source directory `meta.json` names, using the head's
+    own crop contract, and compared pixel-wise against the stored crop. No model is loaded.
+
+    WHAT THIS CATCHES, AND WHAT IT DOES NOT -- stated plainly, because the temptation is to file
+    this under "2026-09-06c can't happen again" and it does not close that hole on its own.
+
+      CATCHES  a corpus that has drifted from the source it claims: rebuilt from a different
+               frame while meta.json still names the old one, half-rebuilt, swapped in from
+               another machine, or silently re-cropped with different geometry.
+      MISSES   a corpus that is internally consistent but built from the WRONG frame -- exactly
+               2026-09-06c. Those crops matched their (wrong) source exactly; the manifest's
+               labels and coordinates were correct and self-consistent too, and the builder's
+               own geometry guard only fires on 90-degree errors, which produce degenerate
+               boxes, not on a 180-degree one, which does not.
+
+    Detecting THAT needs the labels and the pixels compared through something that knows what a
+    tooth looks like: `scripts/eval/tufts_crop_frame_check.py`, which re-cuts the same boxes from
+    each candidate frame and scores the head on them (11.5% vs 73.5% -- unmissable). Run that
+    after building or moving a crop corpus; this invariant is the cheap daily guard that the
+    corpus still matches what it says it is.
+    """
+    sys.path.insert(0, str(REPO_ROOT))
+    import numpy as np
+    try:
+        import cv2
+    except ImportError:
+        return "SKIP (cv2 not installed)"
+    from src.crop_generator import compute_expanded_bbox
+    from src.fdi_head_inference import CROP, EXPAND
+
+    out = []
+    for corpus in ("tufts", "dentex"):
+        base = REPO_ROOT / f"data/{corpus}/enumeration_v1"
+        meta_p, man_p = base / "meta.json", base / "enumeration_manifest.csv"
+        if not (meta_p.exists() and man_p.exists()):
+            out.append(f"{corpus} SKIP (corpus absent)")
+            continue
+        meta = json.loads(meta_p.read_text(encoding="utf-8"))
+        # the two builders name the field differently, and DENTEX's points at the dataset root
+        src = Path(meta.get("source_images") or meta.get("source", ""))
+        if not src.is_absolute():
+            src = REPO_ROOT / src
+        rows = [r for r in csv.DictReader(open(man_p, encoding="utf-8"))
+                if r["jittered"] == "0"]
+        rows = [r for r in rows if r["split"] == "test"] or rows
+        rows = rows[:8]
+        if rows:
+            name = rows[0]["source_image"]
+            for cand in (src, src / "xrays", src / "input"):
+                if (cand / name).exists():
+                    src = cand
+                    break
+        if not rows or not (src / rows[0]["source_image"]).exists():
+            out.append(f"{corpus} SKIP (source images not on this machine)")
+            continue
+        diffs = []
+        for r in rows:
+            stored = cv2.imread(str(base / r["split"] / r["fdi"] / r["crop"]))
+            img = cv2.imread(str(src / r["source_image"]))
+            if stored is None or img is None:
+                continue
+            H, W = img.shape[:2]
+            cx, cy, bw, bh = (float(r[k]) for k in ("cx", "cy", "bw", "bh"))
+            x, y, w, h = (cx - bw / 2) * W, (cy - bh / 2) * H, bw * W, bh * H
+            x1, y1, x2, y2 = (int(v) for v in
+                              compute_expanded_bbox(x, y, w, h, W, H, fw=EXPAND, fh=EXPAND))
+            patch = img[y1:max(y2, y1 + 1), x1:max(x2, x1 + 1)]
+            if patch.size == 0:
+                continue
+            diffs.append(float(np.abs(cv2.resize(patch, (CROP, CROP)).astype(int)
+                                      - stored.astype(int)).mean()))
+        if not diffs:
+            out.append(f"{corpus} SKIP (no readable pairs)")
+            continue
+        worst = max(diffs)
+        # Re-encode noise sits in the low single digits; a frame error crops a different tooth
+        # and lands in the tens. 12 separates them with room on both sides.
+        if worst > 12:
+            raise AssertionError(
+                f"{corpus} crops do not match {src.name}: mean|diff| up to {worst:.1f} over "
+                f"{len(diffs)} rows -- the corpus is cut from a different frame than its "
+                f"meta.json names (see RESULTS_LOG 2026-09-06c)")
+        out.append(f"{corpus} ok vs {src.name} (max mean|diff| {worst:.1f})")
+    return "; ".join(out)
+
+
 # ---------------------------------------------------------------- Lever C
 def inv_lever_c_defaults():
     """
@@ -309,6 +400,7 @@ check("checkpoint class orders", inv_class_orders)
 check("crop contracts distinct", inv_crop_contracts)
 check("Stage-2 numbers reproduce", inv_stage2_reproduces)
 check("Lever C off by default", inv_lever_c_defaults)
+check("crop source frames", inv_crop_frames)
 check("caries v3 dataset hygiene", inv_v3_dataset)
 check("leakage exclusion list", inv_leakage_list, slow=True)
 check("caries v3 MD5 join", inv_v3_join, slow=True)

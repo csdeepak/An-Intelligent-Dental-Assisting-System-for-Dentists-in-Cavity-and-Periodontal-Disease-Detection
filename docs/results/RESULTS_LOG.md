@@ -7150,3 +7150,62 @@ measured effect on this statistic is $-0.15$ points against a $\pm$3.5-point CI 
   untested; `tufts_crop_frame_check.py` generalises to any manifest of normalised boxes.
   (3) Consider making the frame check a `verify_invariants` entry so a wrong-frame corpus fails
   loudly on a fresh machine instead of producing a plausible-looking number.
+
+## 2026-09-06d — Tufts crop corpus rebuilt on the Windows clone; Option B independently reproduces
+
+- **What was done:** rebuilt `data/tufts/enumeration_v1` from the corrected frame
+  (`data/tufts/ZIP/Radiographs_upright_fixed/`, the 180°-rotated set, now generated for all 1,000
+  images), replacing the wrong-frame build diagnosed in 2026-09-06c. The defective corpus was
+  **archived, not deleted** — `_repo_archive/tufts_enumeration_v1_wrongframe_2026-09-06/`, recorded
+  in `ARCHIVE_MANIFEST.md` with the command that restores it — because it is the evidence for that
+  entry. Then re-ran the Option B diagnostic against the rebuilt corpus.
+- **Dataset / config:** `scripts/tufts/build_enumeration_crops.py --images
+  data/tufts/ZIP/Radiographs_upright_fixed --split outputs/eda_tufts/split_v1.csv`, seed 42,
+  expand 1.5, jitter-copies 1 — every parameter as the original build.
+- **Metrics — the rebuild is label-identical and pixel-corrected:**
+  - The new `enumeration_manifest.csv` is **byte-identical to the old one after sorting**: same
+    42,755 rows, same labels, same coordinates, same split assignment, same duplicate resolution
+    (1008→1007, 591→590). Only the pixels changed — which is exactly the claim 2026-09-06c made
+    about where the defect was.
+  - Same write stats (train 35,248 / val 3,721 / test 3,786 / 17 degenerate) and the same geometry
+    guard reading (0.04% degenerate).
+  - `tufts_crop_frame_check.py` on the rebuilt corpus: stored crops **73.2%** FDI-exact
+    (400 test rows) against the wrong-frame build's **11.5%**, matching the 73.5% reference of
+    boxes re-cut directly from the corrected frame.
+- **Option B re-run on the rebuilt corpus — it reproduces the published result independently:**
+
+  | condition (GT-box crops, argmax) | published (Mac, 2026-09-06) | this rebuild (Windows) |
+  |---|---|---|
+  | DENTEX val FDI-exact, full | 91.0% | **91.1%** |
+  | Tufts test FDI-exact, full | 71.5% | **70.8%** |
+  | Tufts position digit | 73.5% | 72.7% |
+  | Tufts SIDE / quadrant | 97.8% / 97.4% | **97.8% / 97.5%** |
+  | Tufts `no_position` | 58.0% | 57.6% |
+  | Tufts `shuffled_pos` | 39.1% | 39.3% |
+  | **Tufts `dentex_geom`** | **71.6% (Δ +0.1)** | **70.8% (Δ +0.0)** |
+
+  Everything lands within 0.7 pp, consistent with the corrected frame being a second-generation
+  JPEG (the source was re-encoded at q95 when rotated). **The conclusion reproduces exactly:
+  mapping Tufts positional features onto the DENTEX-train distribution moves FDI-exact by
+  +0.0 pp here against +0.1 pp there — the positional-feature covariate shift is not a lever, on
+  two independent machines and two independently built crop corpora.**
+- **Key decision or insight:** the traceability gap that started this is now closed properly
+  rather than papered over. `outputs/tufts_fdi_pos_diagnostic/` is tracked, its JSON is a genuine
+  reproduction rather than a re-run of a broken corpus, and the machine-local defect that made the
+  first attempt fail is documented, archived and guarded. New `verify_invariants` entry
+  **"crop source frames"** re-cuts a few manifest rows from the source `meta.json` names and
+  compares pixel-wise (tufts max mean|diff| 3.6 = re-encode noise, dentex 0.0). Its docstring is
+  explicit about what it does **not** catch: a corpus that is internally consistent but built from
+  the wrong frame looks perfect to it — that needs `tufts_crop_frame_check.py`, which scores the
+  head on candidate frames. Recorded so nobody files this as "cannot happen again".
+- **Source:** `scripts/tufts/build_enumeration_crops.py` (unchanged, re-run),
+  `outputs/tufts_fdi_pos_diagnostic/{pos_feat_diagnostic.json,crop_frame_check.json,crop_frame_check_rebuilt.json,README_WINDOWS_RUN.md}`,
+  `_repo_archive/ARCHIVE_MANIFEST.md` (2026-09-06 entry),
+  `scripts/eval/verify_invariants.py::inv_crop_frames`.
+- **Follow-ups:** (1) the other Tufts-derived corpora on this clone
+  (`bone_loss_crops_rebuilt`, `severity_dataset`, `dataset_seg*`) were built in the same era and
+  are **still untested** — the bone-loss ones matter most, since that branch's 0.923 is the
+  project's strongest in-domain number and its rebuild attempt already scored anomalously low
+  (2026-08-27u/28c). Worth checking whether that anomaly and this defect are the same bug.
+  (2) `data/tufts/ZIP/Radiographs_upright/` is still the wrong frame and still the default many
+  scripts would reach for; consider retiring or renaming it on this machine.

@@ -1,0 +1,25 @@
+{
+  "corpus": "data\\tufts\\enumeration_v1_fixed",
+  "split": "test",
+  "head": "C:\\Users\\csdee\\PESU\\capstone\\An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection\\models\\10_fdi_head_dentex_tufts_v2\\enumeration_head_best.pth",
+  "results": {
+    "stored_crops": {
+      "n": 400,
+      "quadrant": 0.97,
+      "position": 0.7525,
+      "fdi_exact": 0.7325
+    },
+    "Radiographs_upright": {
+      "n": 400,
+      "quadrant": 0.33,
+      "position": 0.36,
+      "fdi_exact": 0.115
+    },
+    "Radiographs_upright_fixed": {
+      "n": 400,
+      "quadrant": 0.9725,
+      "position": 0.7525,
+      "fdi_exact": 0.735
+    }
+  }
+}

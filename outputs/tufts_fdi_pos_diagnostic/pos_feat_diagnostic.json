@@ -55,28 +55,28 @@
       "n_crops": 3786,
       "conditions": {
         "full": {
-          "quadrant": 0.4540412044374009,
-          "side_laterality": 0.9698890649762282,
-          "position": 0.38853671421024827,
-          "fdi_exact": 0.1814580031695721
+          "quadrant": 0.9746434231378764,
+          "side_laterality": 0.9775488642366614,
+          "position": 0.7274167987321711,
+          "fdi_exact": 0.7078711040676176
         },
         "no_position": {
-          "quadrant": 0.21658742736397252,
-          "side_laterality": 0.6053882725832013,
-          "position": 0.3652931854199683,
-          "fdi_exact": 0.08505018489170629
+          "quadrant": 0.780771262546223,
+          "side_laterality": 0.7855256207078711,
+          "position": 0.7231907025884838,
+          "fdi_exact": 0.5758055995773904
         },
         "shuffled_pos": {
-          "quadrant": 0.19783412572636028,
-          "side_laterality": 0.5129424194400423,
-          "position": 0.3681986265187533,
-          "fdi_exact": 0.07237189646064449
+          "quadrant": 0.5433174854727945,
+          "side_laterality": 0.5464870575805599,
+          "position": 0.7234548335974643,
+          "fdi_exact": 0.3932910723718965
         },
         "dentex_geom": {
-          "quadrant": 0.46275752773375595,
-          "side_laterality": 0.971473851030111,
-          "position": 0.3898573692551506,
-          "fdi_exact": 0.18911780243000528
+          "quadrant": 0.9741151611199155,
+          "side_laterality": 0.977284733227681,
+          "position": 0.7279450607501321,
+          "fdi_exact": 0.708135235076598
         }
       }
     }

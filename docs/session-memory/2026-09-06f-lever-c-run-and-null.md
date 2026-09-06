@@ -84,6 +84,30 @@ false. Written up in `RESULTS_LOG` 2026-09-06c, `transfer.md`'s opening warning,
 **Lever C is unaffected** — it runs on radiographs through the detector, and its control arm
 reproduces the published Stage-2 numbers on both cohorts (DENTEX to the digit).
 
+### …and the data finding turned into a repair (same session, after the merge)
+
+The user asked to merge and rebuild, so: `data/tufts/enumeration_v1` was rebuilt from the
+corrected frame with every original build parameter, and the result is **label-identical** —
+the new manifest sorts byte-identical to the old, same 42,755 rows, same duplicate resolution —
+which is itself the proof that only the pixels were ever wrong. Crops now score **73.2%** where
+they scored 11.5%. The defective build was **archived, not deleted**
+(`_repo_archive/tufts_enumeration_v1_wrongframe_2026-09-06/`, with an `ARCHIVE_MANIFEST.md` entry
+and a restore command) because it is the evidence for `RESULTS_LOG` 2026-09-06c.
+
+Option B was then re-run on the rebuilt corpus and **reproduces the published result on both
+cohorts** — DENTEX 91.1% vs 91.0%, Tufts 70.8% vs 71.5%, and the headline `dentex_geom` effect
++0.0 pp vs +0.1 pp. So the positional-feature hypothesis is now falsified on two machines and two
+independently built corpora, and the traceability gap that started all this is closed with a real
+reproduction rather than a committed file.
+
+A `verify_invariants` entry ("crop source frames") now re-cuts a few manifest rows from the source
+`meta.json` names and compares pixel-wise. Its docstring says plainly what it does **not** catch:
+a corpus that is internally consistent but built from the wrong frame — precisely this bug — looks
+perfect to it. That needs `tufts_crop_frame_check.py`. Writing the limitation down mattered more
+than the check itself; the first draft of that docstring claimed it "would have caught
+2026-09-06c", which was false, and this repo's whole failure history is confident claims nobody
+tested.
+
 ## Decisions made
 
 - **Freeze before code, verdict from the rule.** The pre-registration was committed with the
@@ -127,10 +151,12 @@ reproduces the published Stage-2 numbers on both cohorts (DENTEX to the digit).
 
 1. **User:** Tier 1 — the Tufts Drive folder and the SDH `index.csv` are still live breaches; the
    venue and author block still gate submission. Nothing in this session moved them.
-2. **Before any crop-level work on the Windows box:** rebuild `data/tufts/enumeration_v1` from
-   `data/tufts/ZIP/Radiographs_upright_fixed/`, and run `tufts_crop_frame_check.py` against the
-   other Tufts-derived corpora (`bone_loss_crops_rebuilt`, `severity_dataset`, `dataset_seg*`),
-   which may share the defect and are untested.
+2. **Done in this session:** the Tufts enumeration corpus is rebuilt and verified. **Still open:**
+   run `tufts_crop_frame_check.py` against the other Tufts-derived corpora
+   (`bone_loss_crops_rebuilt`, `severity_dataset`, `dataset_seg*`) — same era, same likely cause,
+   untested. The bone-loss ones matter most: that branch holds the project's strongest in-domain
+   number (0.923), and its 2026-08-27u/28c rebuild attempt already scored anomalously low. Worth
+   asking whether that anomaly and this defect are the same bug.
 3. Remaining Tier 2, unclaimed: rebuild the Docker image (it predates the Lever B caries wiring;
    Docker 28.5.2 and every checkpoint including `models/16` are present on this box, so it is
    runnable here), and the 5-minute Panetta et al. 2022 novelty read.
