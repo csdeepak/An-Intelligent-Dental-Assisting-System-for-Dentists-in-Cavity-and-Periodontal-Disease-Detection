@@ -32,6 +32,17 @@ private, so it is no more exposed than any other doc (`docs/session-memory/2026-
 is unchanged and no current-best number moved; the two stale `docs/paper/` drafts now carry
 superseded banners (§3 item 7 closed).
 
+> **Windows clone, 6 Sep 2026 — do not run crop-level work on it yet.**
+> `data/tufts/enumeration_v1` on the Windows machine is cut from the wrong source frame: the
+> labels are correct, the pixels are not, and it fails silently (Tufts crop-level FDI-exact 18.1%
+> where the published number is 71.5%). Re-cutting the same boxes from
+> `data/tufts/ZIP/Radiographs_upright_fixed/` scores 73.5% and reproduces the published result.
+> Same root cause as that clone's `Radiographs_upright/` being 180° from the annotation frame.
+> Diagnosis, evidence and the reusable check: `RESULTS_LOG` 2026-09-06c,
+> `scripts/eval/tufts_crop_frame_check.py`, `outputs/tufts_fdi_pos_diagnostic/README_WINDOWS_RUN.md`.
+> **The Mac's copies are valid and every published number stands.** Rebuild the corpus there
+> before any diagnostic, ablation or retrain that reads crops.
+
 **Maintenance rule (CLAUDE.md rule 5): before any substantial session ends, update this file.**
 A stale snapshot has cost this project real time more than once — see the pattern note in §4.
 

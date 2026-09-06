@@ -245,7 +245,7 @@ hr.soft{border:0; border-top:1px solid var(--line); margin:30px 0}
 
 <header class="masthead">
   <div class="wrap">
-    <p class="kicker">Capstone project &nbsp;·&nbsp; snapshot 6 September 2026</p>
+    <p class="kicker">Capstone project &nbsp;·&nbsp; snapshot 6 September 2026, amended same day (Lever C)</p>
     <h1>An Intelligent Dental Assisting System for Cavity &amp; Periodontal Disease Detection</h1>
     <p class="dek">A six-stage pipeline reads a panoramic dental X-ray and reports caries and
       periodontal bone loss per tooth. The finding the project is built around is <em>methodological</em>:
@@ -254,7 +254,7 @@ hr.soft{border:0; border-top:1px solid var(--line); margin:30px 0}
       leaderboard number.</p>
     <p class="sourceline"><b>Snapshot, not a living document</b> &mdash; generated 6&nbsp;September&nbsp;2026
       and not kept in sync. The authoritative record is <code>transfer.md</code> (state),
-      <code>docs/results/RESULTS_LOG.md</code> (append-only history, 128 entries), and
+      <code>docs/results/RESULTS_LOG.md</code> (append-only history, 131 entries), and
       <code>docs/results/model_metrics.md</code> (current-best numbers). Where this page and those
       disagree, those win. Regenerate or delete this file when it goes stale.</p>
 
@@ -364,7 +364,8 @@ hr.soft{border:0; border-top:1px solid var(--line); margin:30px 0}
 
       <li class="phase">Sep 5 &ndash; 6 &nbsp; reconciliation &amp; the next lever</li>
       <li><span class="when">Sep&nbsp;5</span><span class="what">Root README and <code>main.tex</code> reconciled with the Lever B adoption and the re-counted parameters.</span></li>
-      <li><span class="when">Sep&nbsp;6</span><span class="what"><b>Tufts-FDI council + Option B diagnostic:</b> the positional-feature-shift hypothesis is <b>falsified</b> (+0.1 pp). The gap is the image-derived position digit (73.5% vs 91.9%). <b>Lever C</b> &mdash; a structural post-processor &mdash; pre-registration drafted, awaiting go/no-go.</span></li>
+      <li><span class="when">Sep&nbsp;6</span><span class="what"><b>Tufts-FDI council + Option B diagnostic:</b> the positional-feature-shift hypothesis is <b>falsified</b> (+0.1 pp). The gap is the image-derived position digit (73.5% vs 91.9%). <b>Lever C</b> &mdash; a structural post-processor &mdash; pre-registered, frozen before any code.</span></li>
+      <li><span class="when">Sep&nbsp;6</span><span class="what"><b>Lever C ran &mdash; and is a null.</b> An arch-order constraint on the position digit gains <b>+0.29 pp [&minus;0.07, +0.69]</b> on Tufts against a pre-registered <b>+2.0 pp</b> lower-bound bar; the default is unchanged. Measured reason: only <b>13.9%</b> of detections are movable by the method at all. Two eliminations now bound the Tufts gap &mdash; not the positional features, not the assignment.</span></li>
     </ol>
   </div>
 </section>
@@ -523,6 +524,17 @@ hr.soft{border:0; border-top:1px solid var(--line); margin:30px 0}
       isolated the residual weakness to the <strong class="k">image-derived position digit</strong>
       (73.5% on Tufts crops vs 91.9% on DENTEX); quadrant and side are near-matched, and a
       positional-feature fix was ruled out.</p>
+    <p class="prose">The obvious repair was then <em>tried and pre-registered rather than
+      assumed</em>. Lever C &mdash; an arch-order monotonicity constraint on the position digit,
+      the fix the literature converges on &mdash; gains <strong class="k">+0.29 pp
+      [&minus;0.07, +0.69]</strong> on Tufts FDI-exact-of-detected against a bar of +2.0 pp,
+      frozen before the code was written. It is reported as a null. The mechanism was measured,
+      not guessed: of 3,489 detections, 72.6% are anchors the method cannot move and 13.4% sit in
+      quadrant groups holding more than eight boxes, leaving <strong class="k">13.9%</strong>
+      movable &mdash; and on the contiguous-arch subset where the constraint's assumption holds it
+      does gain <strong class="k">+2.36 pp</strong>. With the positional features and the
+      assignment both eliminated, the image-derived position digit is what remains, by
+      elimination rather than assertion.</p>
 
     <div class="chart">
       <h4>Stage-2 failure taxonomy</h4>
@@ -629,10 +641,10 @@ hr.soft{border:0; border-top:1px solid var(--line); margin:30px 0}
     <div class="tier">
       <header><span class="t">Tier 2</span><span class="h">Optional &mdash; cheap, pre-registered or housekeeping</span><span class="meta">no GPU</span></header>
       <ul>
-        <li><b>Lever C</b> &mdash; a structural arch-order post-processor for the Stage-2 position digit. Pre-registration drafted 6&nbsp;Sep (two arms, primary bar +2 pp lower bound on Tufts of-detected, DENTEX no-regression guard, one frozen threshold, 3-day box). The manuscript does not currently claim the weak Tufts number, so this is polish, not a fix. <span class="chip opt">awaiting go/no-go</span></li>
-        <li>Retire or mark-superseded <code>docs/paper/{manuscript.md, draft_spine.md}</code> &mdash; they still describe the pre-Lever-B pipeline with the old 0.488 figure, a trap for the next reader. ~20 minutes.</li>
-        <li>Rebuild the Docker image &mdash; it predates the Lever B caries wiring.</li>
-        <li>A 5-minute IEEE Xplore read: is the Tufts mirror-numbering finding novel? (Panetta et&nbsp;al. 2022 is paywalled and unread.)</li>
+        <li><b>Lever C</b> &mdash; the structural arch-order post-processor. Frozen 6&nbsp;Sep before any code, implemented, run on Tufts test and the DENTEX guard, and reported as an <b>honest null</b>: +0.29&nbsp;pp [&minus;0.07,&nbsp;+0.69] against a +2.0&nbsp;pp lower-bound bar. Default unchanged, both arms retained behind <code>--assignment</code>, 15 new tests. It gains +2.36&nbsp;pp on the contiguous-arch stratum &mdash; where its assumption actually holds &mdash; which is 9.5% of the cohort. <span class="chip opt">done &mdash; null, reported</span></li>
+        <li><s>Retire or mark-superseded <code>docs/paper/{manuscript.md, draft_spine.md}</code></s> &mdash; done 6&nbsp;Sep: both now open with a banner naming their stale figures (gate-only Stage&nbsp;3a, 0.488, 61.2&nbsp;M) and pointing at <code>main.tex</code>. Nothing deleted. <span class="chip opt">done</span></li>
+        <li>Rebuild the Docker image &mdash; it predates the Lever B caries wiring. Everything needed is now on the Windows box (Docker 28.5.2, and every checkpoint including <code>models/16</code>), so it is one <code>docker build -t opg-demo .</code> once the Docker daemon is started; budget ~4&nbsp;GB of disk for the image.</li>
+        <li>Is the Tufts mirror-numbering finding novel? <b>Partly checked 6&nbsp;Sep:</b> the dataset's own site documents no numbering convention at all, so nothing there anticipates it. Still needs the paywalled Panetta et&nbsp;al. 2022 tables, plus a look at arXiv:2210.11404, which claims to &ldquo;augment and correct&rdquo; a panoramic dataset without saying what it corrected. <span class="chip">needs Xplore access</span></li>
         <li>Commission a mock adversarial review before submission; pre-draft the rebuttal notes.</li>
       </ul>
     </div>
@@ -659,7 +671,7 @@ hr.soft{border:0; border-top:1px solid var(--line); margin:30px 0}
       public.</div>
     <p><strong>Authoritative sources</strong> (this page is a 6&nbsp;Sep&nbsp;2026 snapshot and will
       drift): <code>transfer.md</code> &sect;1&ndash;&sect;5 for current state;
-      <code>docs/results/RESULTS_LOG.md</code> for the append-only history (128 entries);
+      <code>docs/results/RESULTS_LOG.md</code> for the append-only history (131 entries);
       <code>docs/results/model_metrics.md</code> for the current-best numbers;
       <code>docs/results/PAPER_MATERIAL.md</code> for the full technical story and the complete
       limitations section; <code>paper/main.tex</code> for the manuscript.</p>

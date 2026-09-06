@@ -1,0 +1,84 @@
+{
+  "head": "C:\\Users\\csdee\\PESU\\capstone\\An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection\\models\\10_fdi_head_dentex_tufts_v2\\enumeration_head_best.pth",
+  "device": "cpu",
+  "pos_feat_dist": {
+    "dentex_train_mean": [
+      0.5028784275054932,
+      0.5461276769638062,
+      0.04503948241472244,
+      0.23300397396087646
+    ],
+    "tufts_test_mean": [
+      0.4969637393951416,
+      0.5770612955093384,
+      0.039151255041360855,
+      0.17451933026313782
+    ],
+    "dentex_train_std": [
+      0.12324008345603943,
+      0.13555657863616943,
+      0.020011505112051964,
+      0.04050416126847267
+    ],
+    "tufts_test_std": [
+      0.12475943565368652,
+      0.11423499882221222,
+      0.015747418627142906,
+      0.03554487228393555
+    ]
+  },
+  "results": {
+    "DENTEX_val": {
+      "n_crops": 2729,
+      "conditions": {
+        "full": {
+          "quadrant": 0.9897398314400879,
+          "side_laterality": 0.9912055698057897,
+          "position": 0.9197508244778307,
+          "fdi_exact": 0.9105899596921949
+        },
+        "no_position": {
+          "quadrant": 0.8468303407841701,
+          "side_laterality": 0.8475632099670208,
+          "position": 0.9091242213264932,
+          "fdi_exact": 0.7757420300476365
+        },
+        "shuffled_pos": {
+          "quadrant": 0.5822645657750092,
+          "side_laterality": 0.5826310003664346,
+          "position": 0.9116892634664713,
+          "fdi_exact": 0.5291315500183217
+        }
+      }
+    },
+    "Tufts_test": {
+      "n_crops": 3786,
+      "conditions": {
+        "full": {
+          "quadrant": 0.4540412044374009,
+          "side_laterality": 0.9698890649762282,
+          "position": 0.38853671421024827,
+          "fdi_exact": 0.1814580031695721
+        },
+        "no_position": {
+          "quadrant": 0.21658742736397252,
+          "side_laterality": 0.6053882725832013,
+          "position": 0.3652931854199683,
+          "fdi_exact": 0.08505018489170629
+        },
+        "shuffled_pos": {
+          "quadrant": 0.19783412572636028,
+          "side_laterality": 0.5129424194400423,
+          "position": 0.3681986265187533,
+          "fdi_exact": 0.07237189646064449
+        },
+        "dentex_geom": {
+          "quadrant": 0.46275752773375595,
+          "side_laterality": 0.971473851030111,
+          "position": 0.3898573692551506,
+          "fdi_exact": 0.18911780243000528
+        }
+      }
+    }
+  }
+}

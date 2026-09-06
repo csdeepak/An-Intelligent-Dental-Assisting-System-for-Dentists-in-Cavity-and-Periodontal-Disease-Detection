@@ -153,6 +153,11 @@ outputs/lever_B_lesion_caries_path/**/*.pt
 !outputs/lever_A2_detector_finetune/
 !outputs/lever_A2_detector_finetune/**
 outputs/lever_A2_detector_finetune/**/*.pt
+# Option B (positional-feature diagnostic) -- the artefacts RESULTS_LOG 2026-09-06 and
+# 2026-09-06c trace to. Small JSON + a README; tracked so the numbers are checkable on any clone,
+# which is the gap that re-running it exposed.
+!outputs/tufts_fdi_pos_diagnostic/
+!outputs/tufts_fdi_pos_diagnostic/**
 # Lever C (structural FDI post-processor) -- Tufts-FDI council 2026-09-05b. Pre-registration +
 # JSON results tracked; no weights (zero-training lever).
 !outputs/lever_C_fdi_structural_postproc/

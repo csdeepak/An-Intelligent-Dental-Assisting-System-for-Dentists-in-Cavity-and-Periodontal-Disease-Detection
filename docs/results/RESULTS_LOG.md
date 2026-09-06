@@ -7102,3 +7102,51 @@ measured effect on this statistic is $-0.15$ points against a $\pm$3.5-point CI 
   are τ (an anchor threshold chosen for the *flag* semantics, not for anchoring) and the
   over-full-group case — but both are new pre-registrations, not edits to this one.
   (4) Option E remains the lever that attacks 73.5% directly.
+
+## 2026-09-06c — the Windows clone's Tufts crop corpus is cut from the wrong source frame (labels fine, pixels wrong)
+
+- **What was done:** re-ran `scripts/eval/tufts_pos_feat_diagnostic.py` on the Windows box to
+  close a traceability gap — `RESULTS_LOG` 2026-09-06 cites
+  `outputs/tufts_fdi_pos_diagnostic/pos_feat_diagnostic.json`, which `.gitignore`'s `outputs/*`
+  rule had kept untracked, so the numbers were uncheckable anywhere else. The re-run reproduced
+  DENTEX and did **not** reproduce Tufts, and the cause was then isolated.
+- **Dataset / config:** `data/{dentex,tufts}/enumeration_v1` non-jittered GT-box crops,
+  `models/10` head, argmax, CPU. New `scripts/eval/tufts_crop_frame_check.py` re-cuts the same
+  manifest boxes from candidate source directories and scores each.
+- **Metrics:** DENTEX val reproduces to a tenth of a point (full **91.1%** vs published 91.0%,
+  `no_position` 77.6% vs 77.5%, `shuffled_pos` 52.9% vs 52.9%). **Tufts test does not: 18.1%
+  FDI-exact against a published 71.5%.** On 400 Tufts test rows:
+
+  | crops scored | quadrant | position | FDI exact |
+  |---|---|---|---|
+  | as stored in `data/tufts/enumeration_v1` | 33.0% | 36.8% | **11.5%** |
+  | re-cut from `Radiographs_upright/` (this clone's) | 33.0% | 36.0% | 11.5% |
+  | **re-cut from `Radiographs_upright_fixed/` (180°)** | **97.2%** | **75.2%** | **73.5%** |
+
+- **Key decision or insight:** **the crop corpus on this machine is cut from the wrong source
+  frame — the labels are correct and the pixels are not.** Established by elimination:
+  (1) the manifest is internally consistent and matches DENTEX's conventions exactly (Q1/Q4
+  image-left, Q1/Q2 upper, |cx−0.5| rising 0.015→0.236 across positions 1→8), so the labels are
+  not mirrored; (2) all **eight** dihedral transforms of the stored crops were scored and the
+  best reached 37.2%, so it is not a rotated crop — each crop shows a *different tooth* than its
+  label, which no transform of the crop can undo; (3) re-cutting the same boxes from the 180°
+  frame reproduces the published number. `data/tufts/enumeration_v1/meta.json` records the corpus
+  was built from a now-deleted scratchpad directory on this machine, and the same clone's
+  `data/tufts/ZIP/Radiographs_upright/` is likewise 180° from the frame `upright_box()` maps
+  annotations into — one root cause, an un-rotation applied in the wrong direction here.
+  **The Mac's copy is valid and the published Option B numbers stand.** This is a machine-local
+  data defect, and it fails **silently**: labels look right, crops look like teeth, accuracy is
+  simply wrong. **It does not touch Lever C** (2026-09-06b), which runs on radiographs through
+  the detector and whose control arm reproduces the published Stage-2 numbers on both cohorts.
+- **Source:** `scripts/eval/tufts_crop_frame_check.py` (new),
+  `outputs/tufts_fdi_pos_diagnostic/{crop_frame_check.json,pos_feat_diagnostic.json,README_WINDOWS_RUN.md}`
+  — all three now tracked via a `.gitignore` exception, which closes the original gap for the
+  DENTEX half. Also fixed: the diagnostic crashed on a Windows console (cp1252 vs the Greek
+  deltas it prints) **after** the scoring work and **before** writing its JSON.
+- **Follow-ups:** (1) rebuild `data/tufts/enumeration_v1` on this machine from
+  `data/tufts/ZIP/Radiographs_upright_fixed/` before ANY crop-level work is done here — until
+  then it is silently wrong. (2) The other Tufts-derived corpora on this clone
+  (`bone_loss_crops_rebuilt`, `severity_dataset`, `dataset_seg*`) may share the defect and are
+  untested; `tufts_crop_frame_check.py` generalises to any manifest of normalised boxes.
+  (3) Consider making the frame check a `verify_invariants` entry so a wrong-frame corpus fails
+  loudly on a fresh machine instead of producing a plausible-looking number.
