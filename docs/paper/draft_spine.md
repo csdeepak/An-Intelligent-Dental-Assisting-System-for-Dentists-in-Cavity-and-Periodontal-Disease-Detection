@@ -1,3 +1,11 @@
+> **SUPERSEDED — 6 September 2026. Do not quote a number from this file.** This is the
+> 28 Aug 2026 spine. The argument it redrafted did land, and `paper/main.tex` carries it;
+> this file's numbers predate the 4 Sep Lever B adoption. Specifically stale: Stage 3a is
+> described as the **caries gate** (a lesion detector is the default since 4 Sep,
+> `RESULTS_LOG` 2026-09-04h); **0.488** is the pre-Lever-B constant-vs-pipeline lesion
+> agreement; **61.2 M** parameters is the gate path, not the shipped default (75.29 M;
+> 97.65 M across all six models, re-counted 4 Sep). Kept per `CLAUDE.md` rule 3.
+
 # Paper spine — redrafted 28 Aug 2026
 
 **Supersedes the framing in `draft_methods_results.md`.** That draft's Methods survive almost

@@ -9,7 +9,7 @@
 [![Ultralytics](https://img.shields.io/badge/YOLOv11l--seg-Ultralytics-0B0B0B?logo=yolo&logoColor=white)](https://docs.ultralytics.com/)
 [![Streamlit](https://img.shields.io/badge/Demo-Streamlit-FF4B4B?logo=streamlit&logoColor=white)](app.py)
 [![Docker](https://img.shields.io/badge/Container-CPU--only-2496ED?logo=docker&logoColor=white)](Dockerfile)
-[![Tests](https://img.shields.io/badge/tests-159%20passing-2ea043)](tests/)
+[![Tests](https://img.shields.io/badge/tests-174%20passing-2ea043)](tests/)
 [![Invariants](https://img.shields.io/badge/invariants-all%20hold-2ea043)](scripts/eval/verify_invariants.py)
 [![External validation](https://img.shields.io/badge/external%20validation-4%20hospitals%20%2B%201%20benchmark-1f6feb)](#c2--external-validation-on-four-hospitals)
 [![Stages](https://img.shields.io/badge/pipeline-6%2F6%20stages%20running-2ea043)](#system-architecture)
@@ -34,7 +34,7 @@ Detect every tooth · number it in FDI notation · classify two pathologies per 
 > | A readable one-page overview — what was done, results, limitations, what's next | [`PROJECT_OVERVIEW.html`](PROJECT_OVERVIEW.html) — a **6 Sep 2026 snapshot**, not kept in sync; open in a browser (3-theme toggle). Internal / pre-submission. |
 > | What are the current numbers? | [`docs/results/model_metrics.md`](docs/results/model_metrics.md) |
 > | Full technical story + honest limitations (the paper is written from this) | [`docs/results/PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) |
-> | Why is it like this? What happened when? | [`docs/results/RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) — 128 dated entries, append-only |
+> | Why is it like this? What happened when? | [`docs/results/RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) — 130 dated entries, append-only |
 > | What should I work on? | [`docs/research/PUBLICATION_TODO.md`](docs/research/PUBLICATION_TODO.md), sequenced by [`MASTER_PLAN_2026H2.md`](docs/research/MASTER_PLAN_2026H2.md) |
 > | How is the documentation laid out? | [`docs/README.md`](docs/README.md) |
 > | What does the code do? | [`src/README.md`](src/README.md), [`scripts/README.md`](scripts/README.md) |
@@ -239,13 +239,22 @@ Improvement options were councilled 5 Sep 2026 — literature (SADP-Net on Tufts
 post-processing, spatial-prior transformers, unused public FDI corpora), a clean error
 decomposition, a recommendation — in
 [`docs/session-memory/2026-09-05b-tufts-fdi-improvement-council.md`](docs/session-memory/2026-09-05b-tufts-fdi-improvement-council.md).
-The zero-GPU **positional-feature-shift diagnostic was run 6 Sep and ruled that hypothesis out**
-(+0.1 pp): the Tufts gap is the **image-derived position digit** (73.5% on GT-box crops vs
-DENTEX 91.9%), so an **anatomical sequence / arch-order post-processor** on the head output is
-the confirmed lever — pre-registerable as a zero-GPU ablation with a DENTEX no-regression guard.
-Data and architecture levers are post-submission. Nothing is queued — Track A wins any time
-conflict. Detail in [`RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) 2026-09-06,
-[`PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) §8.16, [`transfer.md`](transfer.md) §3.
+**Both zero-GPU levers have now been run, and both are negative — which is what makes the
+remaining explanation credible.** The positional-feature-shift diagnostic (6 Sep) moved
+FDI-exact by **+0.1 pp**, so the Tufts↔DENTEX geometry difference is not the cause. **Lever C**,
+the anatomical arch-order post-processor — pre-registered and frozen *before* any code, then run
+— is a **null**: Tufts FDI-exact-of-detected **+0.29 pp [−0.07, +0.69]** against a +2.0 pp
+lower-bound bar, DENTEX slightly down, so the default assignment is unchanged and both arms ship
+behind `--assignment`. Its mechanism was measured rather than assumed: 72.6% of detections are
+anchors the method cannot move, 13.4% sit in over-full quadrant groups, **13.9% are movable at
+all** — and on the contiguous-arch stratum where its assumption holds it gains **+2.36 pp**.
+What survives both eliminations is the **image-derived position digit** (73.5% on GT-box crops
+vs DENTEX 91.9%); attacking it needs a better image pathway, which is post-submission and needs
+its own pre-registration. Nothing is queued — Track A wins any time conflict. Detail in
+[`RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) 2026-09-06 and 2026-09-06b,
+[`PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) §8.16,
+[`outputs/lever_C_fdi_structural_postproc/`](outputs/lever_C_fdi_structural_postproc/),
+[`transfer.md`](transfer.md) §3.
 
 Difficulty is also not where intuition puts it: molars are the **easiest** positions (13.0–14.9%
 wrong-code rate on the largest support), because they are large, distinctive and terminal, so they
@@ -509,14 +518,14 @@ Each of those four rows is a bug that was found the hard way. See
 ├── data/                        ← tufts · dentex · ningxia · kaggle_dual · ufba425 · detector_multicorpus{,_v2} · cariesxrays_det (large files gitignored)
 ├── outputs/                     ← saved run directories — every number traces here
 ├── paper/                       ← main.tex · main.pdf · source.bib · figures
-├── tests/                       ← 159 tests
+├── tests/                       ← 174 tests
 │
 └── docs/                        ← ★ start at docs/README.md
     ├── assets/                  ← the animated SVG diagrams in this README
     ├── architecture/            ← pipeline diagrams (+ drawio source)
     ├── results/
     │   ├── PAPER_MATERIAL.md    ← ★ master paper-writing document
-    │   ├── RESULTS_LOG.md       ← append-only journal, 128 entries
+    │   ├── RESULTS_LOG.md       ← append-only journal, 130 entries
     │   ├── model_metrics.md     ← one-page scoreboard
     │   ├── METHODOLOGY_CHANGELOG.md
     │   └── figures/paper/       ← 17 paper/review figures
@@ -582,7 +591,7 @@ python -m pytest tests/ -q
 python scripts/eval/verify_invariants.py
 ```
 
-The first should report `159 passed`. The second should print `all invariants hold` — it re-checks
+The first should report `174 passed`. The second should print `all invariants hold` — it re-checks
 frozen weight hashes, checkpoint class orders, crop-contract distinctness, caries dataset hygiene,
 the leakage exclusion list, and the MD5 join behind the v3 negative class.
 
@@ -720,7 +729,7 @@ exits non-zero rather than in a doc that can go stale.
 
 **Numbers are pinned to artefacts.** `verify_paper_numbers.py` asserts 127 manuscript numbers
 against their JSONs; `verify_invariants.py` asserts frozen weight hashes and dataset hygiene;
-159 unit tests cover the coordinate conversions, the FDI table, the crop contracts and the
+174 unit tests cover the coordinate conversions, the FDI table, the crop contracts and the
 orientation contract (both directions — including the `rot_box` inverse added for the Lever 1
 detector retrain). A wrong parameter count once propagated into nine places across six files
 before it was caught — these checks exist so that class of drift fails loudly next time.
@@ -932,7 +941,7 @@ tie, and the report says so on every run.** The gate is retained, unchanged, via
 [`run_inference.py`](scripts/run_inference.py) defaults to the lesion detector now;
 [`src/classifiers.py`](src/classifiers.py) gained `run_caries_lesion_detector`. Pipeline
 parameter count recomputed: caries path 61.2M → **75.3M**, whole pipeline 83.6M → **97.7M**
-([`model_metrics.md`](docs/results/model_metrics.md)). 159/159 tests pass. `main.tex` itself is
+([`model_metrics.md`](docs/results/model_metrics.md)). 174/174 tests pass. `main.tex` itself is
 not yet updated — [`PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) §8.26 stages the
 resolution. Full detail: [`RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) 2026-09-04f through 04h,
 [`docs/session-memory/2026-09-04a-lever-b-build-and-both-arms.md`](docs/session-memory/2026-09-04a-lever-b-build-and-both-arms.md)

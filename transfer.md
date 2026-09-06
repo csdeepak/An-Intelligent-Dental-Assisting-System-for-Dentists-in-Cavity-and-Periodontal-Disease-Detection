@@ -26,7 +26,11 @@ run, positional-feature-shift falsified as a lever, §3 updated
 6 Sep — next-steps council (`docs/session-memory/2026-09-06c-next-steps-council.md`): manuscript
 declared feature-complete, §3 lead added; 6 Sep — `PROJECT_OVERVIEW.html` (a readable project
 snapshot) placed at the repo root, reversing `2026-09-06d`'s "keep it out of git" — the repo is
-private, so it is no more exposed than any other doc (`docs/session-memory/2026-09-06e`).
+private, so it is no more exposed than any other doc (`docs/session-memory/2026-09-06e`);
+**6 Sep — Lever C was frozen (`e9270a3`), implemented, evaluated and is a NULL** (`RESULTS_LOG`
+2026-09-06b, `docs/session-memory/2026-09-06f-lever-c-run-and-null.md`) — the default assignment
+is unchanged and no current-best number moved; the two stale `docs/paper/` drafts now carry
+superseded banners (§3 item 7 closed).
 
 **Maintenance rule (CLAUDE.md rule 5): before any substantial session ends, update this file.**
 A stale snapshot has cost this project real time more than once — see the pattern note in §4.
@@ -66,7 +70,7 @@ The six-stage pipeline runs end to end on CPU alone (2.39 s/image), is deployed 
 Docker demo, and has been evaluated on **six independent cohorts**: DENTEX (development), four
 Ningxia hospitals, and the CariesXrays benchmark. Every reported number traces to a saved
 artefact — `scripts/verify_paper_numbers.py` asserts **127 manuscript claims** against those
-artefacts and all pass; `pytest` is **159/159**; `verify_invariants.py` all hold. The manuscript
+artefacts and all pass; `pytest` is **174/174**; `verify_invariants.py` all hold. The manuscript
 (`paper/main.tex`) compiles clean: **14 pages, 0 errors, 0 undefined references**, two small
 pre-existing overfull hboxes (cosmetic, not content). Its core finding — a tooth-level score
 cannot distinguish a real detector from an anatomical prior — held up under six cohorts, two
@@ -261,7 +265,7 @@ Full detail: `RESULTS_LOG.md` 2026-09-04{i,j,k,l}; `docs/session-memory/2026-09-
    this machine is flagged `DIVERGENT — do not use` by its own creator, and the original Tufts
    radiographs needed to redo it properly were searched for directly and confirmed absent.
 
-Checks after all of the above: `verify_paper_numbers.py` **127/127**, `pytest` **159/159**,
+Checks after all of the above: `verify_paper_numbers.py` **127/127**, `pytest` **174/174**,
 `audit_citations.py` 30 commands / 27 keys all resolve, manuscript **14 pages**, 0 errors, 0
 undefined refs.
 
@@ -288,7 +292,7 @@ Tufts Drive licence breach (§4), not any remaining number.
 | 4 | Four compliance blockers (§4) | Account owner | **Open**, two are live breaches |
 | 5 | Bone-loss classifiers' CI gap | Whoever has/finds the original Tufts radiographs | **Blocked** on missing source files, not on decision |
 | 6 | Docker rebuild (image predates the Lever B caries-method wiring) | Anyone | **Not attempted** — Docker Desktop is installed on this machine but its daemon wasn't running when checked |
-| 7 | Retire or mark-superseded `docs/paper/{manuscript.md,draft_spine.md}` | Anyone | Still describe the pre-Lever-B, gate-only pipeline with the old 0.488 figure — a trap for the next reader |
+| 7 | Retire or mark-superseded `docs/paper/{manuscript.md,draft_spine.md}` | Anyone | **Done 6 Sep 2026** — both now open with a banner naming their stale numbers (gate-only Stage 3a, 0.488, 61.2 M) and pointing at `paper/main.tex`; kept per rule 3. `docs/README.md` says quote `main.tex`, never these |
 | 8 | `docs/research/{PUBLICATION_TODO.md,MASTER_PLAN_2026H2.md}` | Anyone | Not re-synced with this file's current state — their own status blocks predate Lever B entirely; treat this file as authoritative until they're refreshed |
 
 **Engineering follow-ups, all small, none blocking:** fold the (now-closed) bibliography and
@@ -297,28 +301,33 @@ whether to actually *measure* (not just scope in writing) calibration/abstention
 caries detector — needs its own pre-registration since the 0.30 threshold was frozen against the
 gate's curve, not this one.
 
-**Tufts end-to-end FDI (64.8% e2e / 78.6% of detected, `RESULTS_LOG` 2026-09-04d).** Improvement
-options A–F are councilled in `docs/session-memory/2026-09-05b-tufts-fdi-improvement-council.md`
-(literature via firecrawl). **Option B (positional-feature-shift diagnostic) was run 6 Sep
-(`RESULTS_LOG` 2026-09-06, `scripts/eval/tufts_pos_feat_diagnostic.py`) — the pos-feat shift is
-falsified as a lever (+0.1 pp).** The Tufts gap is the **image-derived position digit** — 73.5%
-vs DENTEX 91.9% on GT-box crops, concentrated in the crowded anterior; SIDE and quadrant are
-nearly matched. **Option A** — an ATGI-style anatomical sequence / arch-order post-processor on
-the head output — is the confirmed lever, and its **pre-registration is drafted 6 Sep as
-"Lever C"** (`outputs/lever_C_fdi_structural_postproc/PRE_REGISTRATION.md`,
-`docs/session-memory/2026-09-06b-lever-c-preregistration-council.md`): two arms (C-sort / C-dp),
-primary bar = Tufts FDI-exact-of-detected Δ 95%-CI lower bound ≥ +2 pp (paired bootstrap over the
-149 test images), DENTEX FDI-exact no-regression guard (both of-detected and e2e, lower bound
-≥ −1 pp), anterior stratified check, τ frozen to the codebase's existing `LOW_CONFIDENCE` = 0.30,
-zero GPU, **3-working-day hard box**. **It is a DRAFT — freezes on commit-with-go-ahead; awaiting
-one review round (three open questions in the council file: the +2 pp bar, whether the anterior
-check is a hard bar, adopt-as-default vs always-retained-flag).** **Option D is weakened** (more same-difficulty data is
-unlikely to move an image-pathway limit); **Option E** — a better image-pathway position encoder
-(higher-res crops / a spatial-prior transformer) — is the post-submission lever that attacks the
-73.5% directly, and needs its own pre-registration. Nothing here is queued or approved — Deepak's
-go/no-go, and Track A wins any time conflict. Zero-effort regardless: the manuscript should lead
-the Tufts numbering discussion with **of-detected 78.6%** and present 64.8% e2e as
-detection-bound.
+**Tufts end-to-end FDI (64.8% e2e / 78.6% of detected, `RESULTS_LOG` 2026-09-04d) — CLOSED for
+this submission.** Two pre-registered, zero-GPU attempts were run and both came back negative,
+which between them bound the problem:
+
+- **Option B** (6 Sep, `RESULTS_LOG` 2026-09-06) falsified the positional-feature covariate
+  shift: mapping every Tufts positional feature onto the DENTEX-train distribution moves
+  crop-level FDI-exact by **+0.1 pp**.
+- **Lever C** (6 Sep, `RESULTS_LOG` 2026-09-06b,
+  `outputs/lever_C_fdi_structural_postproc/`) — the ATGI-style arch-order post-processor,
+  frozen at `e9270a3` *before* any code, run at `801d12e` — is a **null**: Tufts
+  FDI-exact-of-detected **+0.29 pp [−0.07, +0.69]** (C-dp) against a **+2.0 pp lower-bound**
+  bar, DENTEX slightly down. **Verdict: do not adopt.** The default stays `hungarian`; both arms
+  are retained behind `--assignment` and reported as an ablation. The control arm reproduces the
+  published Stage-2 numbers, which validates the harness. Measured reason it is small: 72.6% of
+  detections are anchors and immovable (τ = 0.30, inherited so the lever adds no tunable, is
+  permissive enough to anchor teeth the head is confidently *wrong* about), 13.4% sit in
+  over-full quadrant groups, 13.9% are movable at all — and where the assumption does hold, the
+  contiguous-arch stratum, it gains **+2.36 pp** on 9.5% of the cohort.
+
+**What that leaves:** the **image-derived position digit** (73.5% on Tufts GT crops vs DENTEX
+91.9%) — now the remaining explanation by elimination rather than by assertion. Attacking it is
+**Option E** (higher-resolution crops, wider context, or a spatial-prior transformer;
+post-submission, needs its own pre-registration and go-ahead). **Option D** (more FDI corpora)
+stays weakened. Nothing here is queued. Zero-effort and unchanged: lead the Tufts numbering
+discussion with **of-detected 78.6%** and present 64.8% e2e as detection-bound — and note that
+`main.tex` does not currently state the Tufts number at all, so nothing in the manuscript
+depends on this.
 
 ---
 
@@ -426,7 +435,7 @@ says otherwise.
 1. `git clone`, `pip install -r requirements.txt` (venv recommended; Python 3.13 confirmed
    working with numpy 2.x — see the numpy note below).
 2. Fetch the Drive-only checkpoints per `docs/EXTERNAL_DRIVE.md` (see table below for which).
-3. `python -m pytest tests/ -q` → should read **159 passed**.
+3. `python -m pytest tests/ -q` → should read **174 passed**.
 4. `python scripts/eval/verify_invariants.py` → should read **all invariants hold**.
 5. `python scripts/run_inference.py --image <any_opg.png> --output report.json` → should
    complete and name `models/16_lever_b_pooled` (Stage 3a default) and

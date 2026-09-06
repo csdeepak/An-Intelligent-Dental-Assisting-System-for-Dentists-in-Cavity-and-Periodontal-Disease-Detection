@@ -211,8 +211,29 @@ touched by this workstream.
 | stage | when | commit |
 |---|---|---|
 | Drafted (council output) | 6 Sep 2026 | `9492abe` |
-| **FROZEN — bars, method, τ, arms; before any Lever C code existed** | 6 Sep 2026 | *(this commit)* |
-| Implementation + local gate, committed before the first frozen-set run | | *pending* |
-| Evaluation complete, verdict recorded | | *pending* |
+| **FROZEN — bars, method, τ, arms; before any Lever C code existed** | 6 Sep 2026 | `e9270a3` |
+| Implementation, local gate, and the four evaluation runs | 6 Sep 2026 | `801d12e` |
+| Verdict recorded | 6 Sep 2026 | this file |
 
-**Verdict:** *pending — to be written here verbatim from §5's rule, whatever it says.*
+**VERDICT — NULL. DO NOT ADOPT, both arms.** Read off §5's rule without amendment:
+
+| condition | bar | C-sort | C-dp | |
+|---|---|---|---|---|
+| PRIMARY — Tufts FDI-exact-of-detected Δ, 95% CI lower bound | ≥ +2.0 pp | +0.16 pp [−0.22, +0.58] | +0.29 pp [−0.07, +0.69] | **FAIL** |
+| GUARD — DENTEX of-detected Δ, lower bound | ≥ −1.0 pp | −0.76 pp [−1.86, +0.29] | −0.30 pp [−1.27, +0.61] | **FAIL** |
+| GUARD — DENTEX end-to-end Δ, lower bound | ≥ −1.0 pp | −0.53 pp [−1.30, +0.21] | −0.21 pp [−0.90, +0.43] | **FAIL** (C-sort), PASS (C-dp) |
+| STRATIFIED — Tufts anterior Δ, point | ≥ −2.0 pp | +0.52 pp | +0.52 pp | PASS |
+
+Per §5's outcome table this is the third row — *"primary not met"* — so it is reported as an
+**honest null** beside the caries-repair and detector-lever ablations. The `run_inference.py`
+default stays `hungarian`; both arms are retained behind `--assignment` and reported as an
+ablation, not deleted. Full numbers, the harness validation, and the measured reason the effect
+is small (72.6% of detections are anchors and immovable; 13.4% sit in over-full quadrant groups;
+13.9% are movable at all) are in `run_summary.txt` and `RESULTS_LOG` 2026-09-06b.
+
+**No bar was moved, before or after the numbers were seen.** The three review-round questions
+were answered at freeze time (bar stays +2.0, anterior stays a hard bar, adopt-as-default iff all
+three) and are unchanged here. τ stayed 0.30 throughout; nothing was swept on any cohort.
+
+**Time box:** §8 allowed three working days. Implementation, gate, four evaluation runs, the
+bootstrap and this write-up took one.

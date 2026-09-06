@@ -1,3 +1,14 @@
+> **SUPERSEDED — 6 September 2026. Do not quote a number from this file.** This is the
+> 28 Aug 2026 prose draft. The manuscript is now `paper/main.tex` (compiles clean,
+> `scripts/verify_paper_numbers.py` asserts 127 of its numbers against saved artefacts).
+> Specifically stale here: the pipeline is described as **gate-only at Stage 3a** —
+> a caries lesion detector was adopted as the Stage-3a default on 4 Sep 2026 (Lever B,
+> `RESULTS_LOG` 2026-09-04h) and beats the image-blind constant on 2 of 3 cohorts; the
+> **0.488 vs 0.443** lesion-agreement line is the pre-Lever-B comparison; **83.6 M /
+> 61.2 M** parameters were re-counted under one rule on 4 Sep to **97.65 M / 75.29 M**
+> (the 61.2 M figure remains correct for the retained gate path, which is what the C1
+> experiment scored). Kept per `CLAUDE.md` rule 3 as the record of what was written when.
+
 # Manuscript draft
 
 **Working title:** *Anatomical priors dominate tooth-level caries metrics on panoramic

@@ -1688,8 +1688,23 @@ the 73.5% directly. **The pre-registration for the post-processor ("Lever C") is
 `docs/session-memory/2026-09-06b`): two arms (a simple monotonic re-sort and an anchored
 max-log-prob DP), primary bar = Tufts FDI-exact-of-detected Δ 95%-CI lower bound ≥ +2 pp, a
 DENTEX no-regression guard, one frozen threshold (τ = the existing `LOW_CONFIDENCE` 0.30), zero
-GPU, a 3-day box. It is a draft — freezes and runs only on a go-ahead; a null result would be
-reported as one, strengthening this paragraph's framing rather than contradicting it. **For the manuscript, lead the Tufts numbering discussion with of-detected
+GPU, a 3-day box. **It ran on 6 Sep and it is a null** (`RESULTS_LOG` 2026-09-06b,
+`outputs/lever_C_fdi_structural_postproc/run_summary.txt`): Tufts FDI-exact-of-detected
+**+0.29 pp [−0.07, +0.69]** for the DP arm and +0.16 pp [−0.22, +0.58] for the cheap
+sort arm, against a pre-registered +2.0 pp lower-bound bar, with DENTEX slightly down
+(−0.30 pp [−1.27, +0.61] of-detected). Both arms are retained behind `--assignment`; the
+default stays the Hungarian assignment and no current-best number moves. The mechanism was
+measured rather than assumed: of 3,489 Tufts test detections, **72.6% are anchors** (immovable
+by construction, because τ = 0.30 — frozen to the codebase's existing `LOW_CONFIDENCE` so the
+lever would add no tunable — is permissive enough that the head clears it on most teeth,
+*including* teeth it is confidently wrong about), **13.4% sit in over-full quadrant groups**
+(more than 8 detections, where no strictly increasing labelling of 1..8 exists), and only
+**13.9% are movable at all**. The one stratum where the constraint does what it was designed
+for is the contiguous-arch subset: **+2.36 pp on 296 detected teeth**, 9.5% of the cohort.
+**Two levers are now excluded from opposite directions** — the positional features (Option B,
++0.1 pp) and the assignment's missing sequence constraint (Lever C, +0.29 pp) — which leaves
+the image-derived position digit itself (73.5% vs DENTEX 91.9%) as the only remaining
+explanation, and makes the case for it by elimination rather than by assertion. **For the manuscript, lead the Tufts numbering discussion with of-detected
 78.6%** (detector-independent, and the number directly comparable to prior work's pre-cropped
 accuracies) **and present 64.8% end-to-end as detection-bound**, with the `models/06` bbox
 detector's 71.5% as the same-domain operating-point reference.
@@ -2442,9 +2457,12 @@ For whoever drafts the actual paper. Tick items off here as they land.
       corrupt `bounding box` fields in the source data) as a short data-quality paragraph —
       it is both an honest limitation of our Stage-1 numbers and a reusable finding about
       the public dataset.
-- [ ] Decide whether the Tufts end-to-end FDI number (64.8% e2e / 78.6% of detected) needs
+- [x] Decide whether the Tufts end-to-end FDI number (64.8% e2e / 78.6% of detected) needs
       strengthening before submission, or ships as an honestly-decomposed detection-bound
-      number. Improvement options A–F are councilled in
+      number. **Settled 6 Sep 2026: it ships as it stands.** Option B falsified the
+      positional-feature hypothesis (+0.1 pp) and Lever C — pre-registered, run, and reported
+      as a null (+0.29 pp against a +2.0 pp bar, `RESULTS_LOG` 2026-09-06b) — excluded the
+      assignment. Nothing in `main.tex` changes; it never claimed the Tufts end-to-end number. Improvement options A–F are councilled in
       `docs/session-memory/2026-09-05b-tufts-fdi-improvement-council.md` and summarised at the
       end of §8.16. Recommended first step is a zero-GPU positional-feature diagnostic, then an
       anatomical sequence post-processor as a pre-registered ablation (data / architecture

@@ -33,9 +33,19 @@ import argparse
 import csv
 import json
 import random
+import sys
 from pathlib import Path
 
 import numpy as np
+
+# The report prints Greek deltas; a Windows console defaults to cp1252 and raises on them, which
+# killed a run AFTER the scoring work was done and BEFORE the JSON was written -- losing the
+# artefact every number in RESULTS_LOG 2026-09-06 is traced to. Reconfigure rather than
+# de-Unicode the report.
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except (AttributeError, ValueError):        # non-reconfigurable stream (a pipe on some hosts)
+    pass
 
 REPO = Path(__file__).resolve().parents[2]
 DENTEX = REPO / "data/dentex/enumeration_v1"
