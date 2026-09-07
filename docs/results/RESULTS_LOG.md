@@ -7373,3 +7373,55 @@ measured effect on this statistic is $-0.15$ points against a $\pm$3.5-point CI 
   `PAPER_MATERIAL.md` §8, `SUBMISSION_TODO.md`, `transfer.md` and `PROJECT_OVERVIEW.html` — with a
   new log entry, never by editing this one or 2026-08-27u. (4) Pin down why the rebuild's geometry
   differs, so `rebuild_bone_loss_crops.py` is either fixed or retired rather than left as a trap.
+
+## 2026-09-07b — root cause of the bone-loss rebuild divergence: a box-convention mismatch (and a circular check of mine, retracted)
+
+Extends 2026-09-07 (which recovered the original crops and reproduced sensitivity 49/59 exactly).
+Nothing here changes that result.
+
+- **What was done:** with 99 of the original `Radiographs/` downloaded, re-cut the non-jittered
+  val crops **the way the source notebook does** — reading `teeth_bbox.json`'s `bounding box` as
+  `[y1, x1, y2, x2]` against the **landscape** `Radiographs/` — and compared against the stored
+  original crops and the frozen Stage-4a model.
+- **Metrics:**
+
+  | | result |
+  |---|---|
+  | teeth re-cut (non-jittered, radiograph available) | 187 |
+  | **bit-for-bit identical to the stored original crop** | **187 / 187** |
+  | accuracy vs stored labels | **0.9947** |
+
+- **Root cause, confirmed:** `scripts/tufts/rebuild_bone_loss_crops.py` reads the same field as
+  `[x1, y1, x2, y2]` in the **portrait** frame and rotates it CW; the notebook that actually built
+  the training data reads `[y1, x1, y2, x2]` landscape. The two differ by a horizontal mirror, so
+  the rebuild cut a *different region* for every tooth — which is why it scored 0.400 sensitivity
+  against the original crops' 0.829 on the same 35 teeth, and why the two crop sets correlate only
+  ~0.50. **This closes follow-up (4) of 2026-09-07.** It is a defect in the rebuild script's
+  premise, not in the reported 0.9233.
+- **A claim of mine, retracted before it spread.** On first seeing this I measured where each
+  Universal title lands under both readings, found the notebook's reading puts Universal 1–8 on
+  the image-left, and concluded that §8.8b's "Tufts numbering is mirrored" finding was an
+  artefact of the wrong field order. **That was circular.** The test assumes Tufts titles are
+  true Universal numbers, which is precisely the premise §8.8b disputes: "boxes mirrored + true
+  labels" and "boxes correct + mirrored labels" are geometrically indistinguishable, and §8.8b
+  says so in as many words ("not anatomy — the jaw is symmetric"). The mirror finding rests on
+  two checks my test does not touch and does not weaken: the physical **L side-marker**, and a
+  **DENTEX-trained arbiter** at 91.7% mirrored vs 6.1% direct over 1,188 matched teeth with a
+  98.6% DENTEX control. **§8.8b stands; treat the retraction, not the claim, as the record.**
+- **One genuine loose thread, recorded not resolved:** §8.8's supporting IoU comparison
+  (portrait 0.611 vs landscape 0.489, measured "against detector boxes") is **partly circular** —
+  the detector was trained on data built with the portrait reading, so it should agree with it.
+  That does not overturn anything, because the L-marker and arbiter evidence are independent of
+  the detector, but the IoU line is weaker support than it reads as. Worth a footnote if §8.8 is
+  ever cited as the reason for the convention.
+- **Source:** `data/tufts/ZIP/Radiographs/Radiographs/` (99 of 1,000 originals; Drive throttled
+  the rest), `data/tufts/resampled_dataset/val/`, `notebooks/bone_loss/02_bone_loss_dataset_construction.ipynb`,
+  `scripts/tufts/rebuild_bone_loss_crops.py`, `PAPER_MATERIAL.md` §8.8/§8.8b.
+- **Follow-ups:** (1) `rebuild_bone_loss_crops.py` now carries a warning naming the mismatch and
+  pointing at the original crops; it is no longer the way to obtain them. (2) The question that
+  *is* still open and is NOT settled by any of this: the Stage-2 head trains on DENTEX and Tufts
+  crops that are horizontal mirrors of each other in image content (labels flipped to match).
+  That is self-consistent for quadrant and side, but a tooth's crown/root asymmetry is not
+  mirror-invariant — which is a plausible, untested contributor to the Tufts position-digit
+  weakness (73.5% vs DENTEX 91.9%, `RESULTS_LOG` 2026-09-06). Testing it needs its own
+  pre-registration; it is not claimed here.

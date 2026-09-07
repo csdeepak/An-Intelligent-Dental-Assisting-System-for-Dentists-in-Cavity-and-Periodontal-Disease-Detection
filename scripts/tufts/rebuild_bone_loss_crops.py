@@ -2,6 +2,18 @@
 """
 Regenerate the bone-loss VALIDATION crops from Tufts source, with the geometry verified.
 
+!! SUPERSEDED, 7 Sep 2026 -- DO NOT USE THIS TO OBTAIN THE BONE-LOSS CROPS !!
+    The original crops were recovered from the project Drive (`data/tufts/resampled_dataset/`)
+    and reproduce the reported numbers exactly (sensitivity 49/59 = 0.8305, RESULTS_LOG
+    2026-09-07). This script does NOT reconstruct them: it reads teeth_bbox.json as
+    [x1,y1,x2,y2] in the portrait frame and rotates CW, while the notebook that built the
+    training data reads [y1,x1,y2,x2] against the landscape Radiographs/. Those differ by a
+    horizontal mirror, so this script cuts a different region for every tooth -- measured at
+    0.400 sensitivity against the originals' 0.829 on the same 35 teeth, and 187/187 bit-exact
+    once the notebook's convention is used instead (RESULTS_LOG 2026-09-07b).
+    Kept for the record and for its geometry-guard machinery. Nothing measured with it should
+    be reported.
+
 WHY THIS EXISTS
 ---------------
 `models/03_bone_loss_model_training_notebook_models/` ships a model but this machine has only
