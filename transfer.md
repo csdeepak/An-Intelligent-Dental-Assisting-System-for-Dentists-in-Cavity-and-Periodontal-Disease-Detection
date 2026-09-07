@@ -53,6 +53,17 @@ superseded banners (§3 item 7 closed).
 > bounded (09-06e), guarded (09-06f). `scripts/eval/tufts_corpus_audit.py` re-checks the whole
 > surface in one command.
 
+> **7 Sep 2026 — the bone-loss crops were never lost, and the 0.923 reproduces.** The project
+> Drive holds `resampled_dataset/{train,val}` — the original crops **including the 773 jittered
+> ones** documented since 27 Aug as irreproducible. On the complete positive class the frozen
+> model scores **49/59 = 0.8305 sensitivity, matching the documented figure to the digit**; the
+> same 35 clean teeth score 0.829 on the original crops against 0.400 on August's rebuild, so the
+> **rebuild** was defective, not the reported number. `RESULTS_LOG` 2026-09-07. Consequences:
+> the three §9 items blocked on these crops (calibration, PR sweep, CIs) are **unblocked**, and
+> the "irreproducible subset / selected maximum" limitation in `PAPER_MATERIAL.md` §8,
+> `SUBMISSION_TODO.md` and the overview **must be corrected**. The branch's *generalisation*
+> failure (2.4% external sensitivity) is a separate finding and is untouched.
+
 **Maintenance rule (CLAUDE.md rule 5): before any substantial session ends, update this file.**
 A stale snapshot has cost this project real time more than once — see the pattern note in §4.
 
