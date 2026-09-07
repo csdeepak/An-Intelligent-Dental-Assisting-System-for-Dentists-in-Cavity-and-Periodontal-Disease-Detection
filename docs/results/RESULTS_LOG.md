@@ -7425,3 +7425,32 @@ Nothing here changes that result.
   mirror-invariant — which is a plausible, untested contributor to the Tufts position-digit
   weakness (73.5% vs DENTEX 91.9%, `RESULTS_LOG` 2026-09-06). Testing it needs its own
   pre-registration; it is not claimed here.
+
+## 2026-09-07c — Docker image rebuilt: the deployment artefact now ships the Lever B caries path
+
+- **What was done:** rebuilt `opg-demo` (the image predated the 4 Sep Lever B adoption, so the
+  demo still ran the retired caries gate as Stage 3a) and verified it rather than assuming.
+- **Build-time assertions all passed** — the Dockerfile fails the build on each: `torch 2.2.0+cpu`
+  (pinned and CPU-only, not a CUDA wheel), `numpy 1.26.4` (<2, so `scipy.optimize`'s Hungarian
+  assignment still imports), `linear_sum_assignment` executes, no jupyter stack leaked, and
+  Streamlit 1.63.0 still accepts `width="stretch"`.
+- **Contents verified inside the running image**, which was the point of the rebuild:
+
+  | | |
+  |---|---|
+  | `DEF_CARIES_LESION_MODEL` (`models/16`) | **PRESENT** |
+  | `DEF_DETECTOR` (`models/11`), `DEF_FDI_HEAD` (`models/10`) | PRESENT |
+  | `DEF_CARIES_GATE` (`models/09`), `DEF_BONE_LOSS` (`models/03`) | PRESENT |
+  | `run_pipeline` defaults | `caries_method=lesion-detector`, `assignment=hungarian` |
+
+- **End-to-end smoke run inside the container** on a DENTEX `disease/` image: 28 teeth detected,
+  28 distinct FDI codes, **0 duplicates**, 24 assessable, 3 caries-positive, 0 bone-loss-positive,
+  and the `limitations` block emitted as designed. Stage 3 logged "caries LESION DETECTOR (whole
+  image, adopted 4 Sep 2026)" — the wiring the rebuild existed to pick up.
+- **Image:** 5.03 GB (the stale one was 4.4 GB, 11 days old). Note `data/` is deliberately not
+  copied, so the demo needs an image mounted or uploaded; the two Drive-only checkpoints are
+  baked in here because they are present on this machine.
+- **Key decision or insight:** none — this is an artefact refresh, and it closes the last Tier-2
+  engineering item. It changes no metric.
+- **Source:** `Dockerfile`, build log; `scripts/run_inference.py`.
+- **Follow-ups:** none. Re-run `docker build -t opg-demo .` after any change to a `DEF_*` default.
