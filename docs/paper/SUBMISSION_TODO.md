@@ -12,7 +12,15 @@ Legend: **DONE** · **PARTIAL** — some of it exists, the gap is named · **OPE
 
 ## 🔴 Technical / Scientific
 
-### Reproduce the periodontal experiment — **BLOCKED, and the fallback is already taken**
+### Reproduce the periodontal experiment — **UNBLOCKED 7 Sep 2026 (was BLOCKED)**
+
+> The crops were recovered from the project Drive, jittered ones included, and the frozen
+> checkpoint reproduces the reported diseased-class figure **exactly: 49/59, sensitivity 0.8305**
+> (`RESULTS_LOG` 2026-09-07). The table below is the 27 Aug state and its "cannot be rebuilt"
+> reasoning was about *regenerating* the crops from source, which remains true and is now beside
+> the point. The 0.40 rebuild was a defective reconstruction (wrong box convention — 187/187
+> crops match bit-for-bit once corrected, `RESULTS_LOG` 2026-09-07b). Full macro-F1 verification
+> awaits the remaining 565 negative crops. The *selected-maximum* caveat is unaffected and stands.
 
 | sub-item | status |
 |---|---|

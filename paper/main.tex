@@ -1140,11 +1140,14 @@ surprising rather than more. First, 0.923 is the \emph{maximum of a noisy
 selection curve}: the diseased-class validation F1 oscillates between roughly
 0.40 and 0.85 across training epochs over only 59 validation positives, so
 selecting the best of 32 epochs is optimistically biased and a repeated-split
-estimate would very likely sit lower. Second, \textbf{the figure is not currently
-reproducible.} Half the validation crops were built with a coordinate jitter
-whose random offsets were never saved, and the source radiographs the crops were
-cut from are not on the machine that would rebuild them; a reconstruction attempt
-was rejected by its own geometry check rather than published.
+estimate would very likely sit lower. Second, the crops it was measured on \textbf{cannot be
+regenerated}, only retained: half were built with a coordinate jitter whose random
+offsets were never saved, so an independent party starting from the source
+radiographs cannot recreate this exact validation set. The crops themselves were
+subsequently recovered from the project's own archive, and scoring the frozen
+checkpoint over the complete diseased class reproduces the reported figure
+exactly---49 of 59 positives, sensitivity $0.831$---so the number is verified even
+though the set that produced it is not reconstructible.
 
 We localised the cause. A detector change that moved numbering by $+12.0$ points
 and caries agreement by $+7.7$ moved bone loss by \emph{nothing}---the branch
@@ -1365,9 +1368,12 @@ Each item states what it prevents us from concluding.
   \item \textbf{Detection bounds Stage 2.} At 0.810 box mAP@0.5, 29.4\,\% of
         teeth are never presented to the numbering head, and all coverage figures
         are fractions of the 70.6\,\% detected.
-  \item \textbf{The in-domain bone-loss figure is a selected maximum and is not
-        currently reproducible} (Section~\ref{sec:results}). It should be read as
-        an upper bound on that branch's in-domain performance, not an estimate.
+  \item \textbf{The in-domain bone-loss figure is a selected maximum}
+        (Section~\ref{sec:results}): it is the best of 32 epochs on a diseased
+        class of 59, so it should be read as an upper bound on that branch's
+        in-domain performance, not an estimate. The validation set it was measured
+        on is retained and the figure verified against it, but it cannot be
+        regenerated from source, since the jitter offsets were never saved.
   \item \textbf{Bone-loss labels are weak supervision}, derived by intersecting a
         per-image expert mask with per-tooth boxes, from a single institution and
         one annotation protocol, with only 711 real positive training teeth.

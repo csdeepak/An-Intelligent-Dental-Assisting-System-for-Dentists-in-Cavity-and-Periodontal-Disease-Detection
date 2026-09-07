@@ -2553,6 +2553,21 @@ For whoever drafts the actual paper. Tick items off here as they land.
       val crops carry unsaved jitter offsets and are irreproducible by anyone**, so the reported
       0.9233 can never be recomputed — any future bone-loss number is on a 785-crop subset and
       must say so.
+
+      > **CORRECTED 7 Sep 2026 — the paragraph above is wrong about availability**
+      > (`RESULTS_LOG` 2026-09-07, 2026-09-07b). The reasoning is sound about *regeneration* and
+      > was read as being about *access*: the original crops, **including all 773 jittered ones**,
+      > were sitting in the project Drive the whole time, and nobody looked. Recovered, they
+      > reproduce the reported figure **exactly on the complete diseased class — TP 49 / FN 10,
+      > sensitivity 0.8305** (clean 29/35, jittered 20/24). The 27 Aug rebuild's 0.40 was a
+      > **defect in the rebuild**, not evidence against the number: it reads `teeth_bbox.json` as
+      > `[x1,y1,x2,y2]` portrait-then-rotate while the source notebook reads `[y1,x1,y2,x2]`
+      > landscape — a horizontal mirror, so it cut a different region per tooth. Using the
+      > notebook's convention, 187/187 crops regenerate **bit-for-bit**.
+      > **Still outstanding:** the full macro-F1 0.9233 needs all 1,499 negatives (934 recovered;
+      > Drive throttles the rest), so the whole-set figure is verified for sensitivity only so far.
+      > What survives unchanged is the *selection-bias* limitation — best of 32 epochs on 59
+      > positives — which is a separate point and is not touched by any of this.
 - [x] Threshold sweep **for the caries gate**, reported as a PR curve — **Done 27 Aug 2026**,
       §8.15. argmax/0.50 confirmed near F1-optimal; precision 0.40 → 0.69 purchasable at
       recall 0.74 → 0.35.

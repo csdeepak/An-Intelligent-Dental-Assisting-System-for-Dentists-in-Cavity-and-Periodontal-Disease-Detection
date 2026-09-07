@@ -254,7 +254,7 @@ hr.soft{border:0; border-top:1px solid var(--line); margin:30px 0}
       leaderboard number.</p>
     <p class="sourceline"><b>Snapshot, not a living document</b> &mdash; generated 6&nbsp;September&nbsp;2026
       and not kept in sync. The authoritative record is <code>transfer.md</code> (state),
-      <code>docs/results/RESULTS_LOG.md</code> (append-only history, 137 entries), and
+      <code>docs/results/RESULTS_LOG.md</code> (append-only history, 138 entries), and
       <code>docs/results/model_metrics.md</code> (current-best numbers). Where this page and those
       disagree, those win. Regenerate or delete this file when it goes stale.</p>
 
@@ -603,7 +603,7 @@ hr.soft{border:0; border-top:1px solid var(--line); margin:30px 0}
       <div class="row"><div class="claim"><b>Caries (gate) precision is 0.40</b> &mdash; roughly six of ten positives are wrong; 96.5% of false positives are healthy teeth, several visibly carrying restorations.</div><span class="tag reported">reported</span></div>
       <div class="row"><div class="claim"><b>Detector recall 70.6% caps Stage 2</b> at 58.3% end-to-end. Detection mAP@0.5 0.810 sits below the 0.90&ndash;0.97 reported for similar tasks.</div><span class="tag reported">measured</span></div>
       <div class="row"><div class="claim"><b>The adopted caries lesion detector has no calibrator and no abstention curve</b> &mdash; it emits a detection score, not a posterior. The pre-registered 0.30 threshold was located on the gate&rsquo;s curve.</div><span class="tag open">open</span></div>
-      <div class="row"><div class="claim"><b>The in-domain bone-loss 0.923 is a selected maximum on an irreproducible subset</b> &mdash; half the validation crops carry unsaved jitter; the source radiographs are confirmed absent from every machine checked.</div><span class="tag blocked">blocked</span></div>
+      <div class="row"><div class="claim"><b>The in-domain bone-loss 0.923 is a selected maximum</b> &mdash; best of 32 epochs on a diseased class of 59, so read it as an upper bound. <b>The &ldquo;irreproducible&rdquo; half of this claim was corrected 7&nbsp;Sep 2026:</b> the original crops (jittered ones included) were recovered from the project Drive and reproduce the reported diseased-class figure <b>exactly &mdash; 49/59, sensitivity 0.8305</b>. They cannot be <i>regenerated</i> from source (the jitter offsets were never saved), which is a different and much smaller claim.</div><span class="tag reported">corrected</span></div>
       <div class="row"><div class="claim"><b>Severity heads rest on tiny validation sets</b> &mdash; 52 crops (bone loss), 133 (caries depth). The 0.72 target was met by 0.0008 on 52 samples.</div><span class="tag reported">provisional</span></div>
       <div class="row"><div class="claim"><b>The negative class rests on presumed-negative labelling</b> &mdash; DENTEX &ldquo;healthy&rdquo; means no disease annotation, not verified healthy.</div><span class="tag reported">flagged</span></div>
       <div class="row"><div class="claim"><b>Stage-4a overfits</b> &mdash; a ~25&times; train/val loss gap. Training curves are published, not hidden.</div><span class="tag reported">reported</span></div>
@@ -671,7 +671,7 @@ hr.soft{border:0; border-top:1px solid var(--line); margin:30px 0}
       public.</div>
     <p><strong>Authoritative sources</strong> (this page is a 6&nbsp;Sep&nbsp;2026 snapshot and will
       drift): <code>transfer.md</code> &sect;1&ndash;&sect;5 for current state;
-      <code>docs/results/RESULTS_LOG.md</code> for the append-only history (137 entries);
+      <code>docs/results/RESULTS_LOG.md</code> for the append-only history (138 entries);
       <code>docs/results/model_metrics.md</code> for the current-best numbers;
       <code>docs/results/PAPER_MATERIAL.md</code> for the full technical story and the complete
       limitations section; <code>paper/main.tex</code> for the manuscript.</p>

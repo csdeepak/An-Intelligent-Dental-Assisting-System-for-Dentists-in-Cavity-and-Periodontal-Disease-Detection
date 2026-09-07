@@ -7454,3 +7454,38 @@ Nothing here changes that result.
   engineering item. It changes no metric.
 - **Source:** `Dockerfile`, build log; `scripts/run_inference.py`.
 - **Follow-ups:** none. Re-run `docker build -t opg-demo .` after any change to a `DEF_*` default.
+
+## 2026-09-07d — the "not reproducible" limitation is corrected in the manuscript and the four documents that carried it
+
+- **What was done:** acted on 2026-09-07's follow-up (3). The claim that the in-domain bone-loss
+  figure "is not currently reproducible" is **false** and was stated in `paper/main.tex` twice,
+  plus `PAPER_MATERIAL.md` §9, `docs/paper/SUBMISSION_TODO.md` and `PROJECT_OVERVIEW.html`.
+  Corrected all five to **exactly the evidence that exists**, no further.
+- **The distinction the correction turns on.** Two separate claims had been bundled into one
+  sentence, and only one of them is wrong:
+  1. **"a selected maximum"** — best of 32 epochs, diseased-class F1 oscillating 0.40–0.85 over
+     59 validation positives, so the figure is optimistically biased. **Untouched by any of this
+     and still true.** It survives in every document, with its reasoning intact.
+  2. **"not currently reproducible"** — rested on the crops being unavailable. **They were in the
+     project Drive the whole time.** Corrected.
+- **What is now claimed, and what is not.** Claimed: the crops are **retained**, and scoring the
+  frozen checkpoint over the **complete diseased class** reproduces the reported figure exactly
+  (**TP 49 / FN 10, sensitivity 0.8305**). Explicitly **not** claimed anywhere: the full macro-F1
+  0.9233, which needs all 1,499 negatives — 934 recovered, Drive throttling the remaining 565. The
+  manuscript wording says the number is *verified* while the set remains *not reconstructible*,
+  which is the honest shape of it: the jitter offsets were never saved, so an independent party
+  starting from source cannot recreate this exact validation set, and that limitation is kept.
+- **Verification after editing:** `verify_paper_numbers.py` **127/127, no drift**; `pytest`
+  **174 passed**; manuscript recompiled.
+- **Key decision or insight:** the failure that produced this was not the 27 Aug analysis — that
+  reasoning was correct about regeneration. It was the **compression of "cannot be regenerated"
+  into "cannot be reproduced"** as the claim propagated across five documents, where it hardened
+  into a blocker nobody re-tested. Rule 4's failure mode with a one-word hinge. The corrected
+  wording deliberately keeps the two claims apart in every location so the same collapse cannot
+  recur.
+- **Source:** `paper/main.tex` (§Results, §Limitations), `docs/results/PAPER_MATERIAL.md` §9,
+  `docs/paper/SUBMISSION_TODO.md`, `PROJECT_OVERVIEW.html`; evidence in `RESULTS_LOG` 2026-09-07
+  and 2026-09-07b.
+- **Follow-ups:** when the remaining 565 negative crops arrive, report the full macro-F1 against
+  the documented 0.9233 / TN 1492 FP 7 and, if it holds, run the three §9 items this unblocks
+  (calibration, PR/threshold sweep, bootstrap CIs) — each as a new entry, never by editing this one.
