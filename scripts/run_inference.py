@@ -29,7 +29,7 @@ them produces confident, plausible, wrong output with no error. See src/classifi
 WHAT THIS REPORT IS NOT
 -----------------------
 Composing four independently-trained stages does not produce a clinically validated system,
-and the numbers here are not a performance claim. Two limitations are structural and are
+and the numbers here are not a performance claim. Three limitations are structural and are
 written into every report rather than left to a footnote:
 
   * ERROR PROPAGATION. Detector recall is 70.6% and Stage-2 FDI accuracy is 58.3% end-to-end
@@ -49,6 +49,13 @@ written into every report rather than left to a footnote:
     retained gate path (`--caries-method gate`) still calls 19.1% of detected teeth carious
     against an 11.7% annotated floor at 0.40 held-out precision; pass it for reproducibility of
     every pre-4-Sep number.
+  * THE "BONE LOSS" FIELD IS AN ABNORMALITY-PROXIMITY FLAG, NOT A PERIODONTAL FINDING (found
+    10 Oct 2026, RESULTS_LOG 2026-10-10). Stage 4 was trained to flag tooth crops that overlap
+    a Tufts expert ABNORMALITY mask, and the radiographs behind its positive class are described
+    as apical lesions, sclerosis and cysts -- none as periodontal bone loss. Its in-domain score
+    (macro-F1 0.923) is not a held-out estimate either: validation and training crops came from
+    the same radiographs. The field names are unchanged so consumers do not break; the report's
+    `limitations` block says what they mean.
 
 Neither branch is fixable-to-perfect at this layer, and neither field is a diagnosis. They are
 surfaced so the report cannot be quoted as more than it is.
@@ -66,7 +73,11 @@ sys.path.insert(0, str(REPO_ROOT))
 # 1.1 (27 Aug 2026): per-tooth caries records gained `gate_confidence_calibrated` and the
 # `caries_confidence_isotonic` flag. Additive only -- `gate_confidence` and every verdict
 # are unchanged, so 1.0 consumers keep working. RESULTS_LOG 2026-08-27s.
-SCHEMA_VERSION = "opg-report/1.1"
+# 1.2 (11 Oct 2026): `limitations` gained `bone_loss_label_and_validation`, the text of
+# `bone_loss_domain_shift` was corrected, and `models.bone_loss` gained `label_definition` and
+# `validation_split`. Additive only -- nothing was renamed or removed and every per-tooth record
+# is unchanged, so 1.1 consumers keep working. RESULTS_LOG 2026-10-10 (the finding), 2026-10-11b.
+SCHEMA_VERSION = "opg-report/1.2"
 
 # Measured Stage-1/Stage-2 performance, stamped into every report's "limitations" block so a
 # report always carries the accuracy of the pipeline that produced it.
@@ -265,12 +276,23 @@ def build_report(image_path, img_bgr, boxes, confs, fdi_assign, caries, bone, me
             "caries_presumed_negative_assumption": (
                 CARIES_NEGATIVE_ASSUMPTION["lesion-detector"] if meta["caries"].get("method") ==
                 "lesion-detector" else CARIES_NEGATIVE_ASSUMPTION["gate"]),
+            "bone_loss_label_and_validation": (
+                "Read every 'bone_loss' field in this report as an ABNORMALITY-PROXIMITY FLAG, "
+                "not as a periodontal finding. Stage 4 was trained to flag tooth crops that "
+                "overlap a Tufts expert abnormality mask, and the radiographs behind its "
+                "positive class are described by that expert as apical lesions, sclerosis and "
+                "cysts -- none as periodontal bone loss. Its reported in-domain score (macro-F1 "
+                "0.923) is not a held-out estimate: the validation crops came from the same "
+                "radiographs as the training crops. The field names are kept so existing "
+                "consumers do not break. RESULTS_LOG 2026-10-10."),
             "bone_loss_domain_shift": (
-                "The bone-loss models were trained on TUFTS radiographs and are applied here to "
+                "The Stage-4 models were trained on TUFTS radiographs and are applied here to "
                 "whatever image is supplied; on DENTEX they fire on 0.7% of teeth (2/299) with "
-                "0.93-0.999 confidence in 'normal'. The branch is close to inert out of its "
-                "training domain -- the opposite failure to the caries gate. A 'normal' "
-                "bone-loss field is therefore weak evidence, not a negative finding."),
+                "0.93-0.999 confidence in 'normal', and against the Ningxia periodontitis masks "
+                "they reach 2.4% affected-tooth sensitivity. That was first read as domain "
+                "shift. It is at least partly a label mismatch -- see "
+                "bone_loss_label_and_validation -- so a 'normal' field is weak evidence, not a "
+                "negative finding, and says nothing about periodontal status."),
             "not_clinically_validated": True,
         },
     }
@@ -294,7 +316,8 @@ def draw_overlay(img_bgr, report, out_path):
         if t["caries"]["finding"] != "no_caries":
             bits.append(t["caries"]["finding"][:4].upper())
         if t["bone_loss"]["finding"] == "bone_loss":
-            bits.append("BL-" + (t["bone_loss"]["severity"] or "?")[:3])
+            # "ABN", not "BL": Stage 4 flags proximity to an abnormality, not bone loss.
+            bits.append("ABN-" + (t["bone_loss"]["severity"] or "?")[:3])
         cv2.putText(viz, " ".join(bits), (x1, max(14, y1 - 5)),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, colour, 1, cv2.LINE_AA)
     cv2.imwrite(str(out_path), viz)
@@ -437,6 +460,14 @@ def run_pipeline(img_bgr, models, device, paths, image_label="image", imgsz=1024
                       "crop_expand": [1.5, 2.0], "severity_classes": BONE_LOSS_SEVERITY_CLASSES,
                       "tag_binary": "bone-loss-binary-resnet18-v1.0",
                       "tag_severity": "bone-loss-severity-resnet18-v1.0",
+                      "label_definition": (
+                          "positive = the tooth crop overlaps a Tufts expert ABNORMALITY mask "
+                          "(overlap > 0.01). Not a periodontal bone-loss label; the tags above "
+                          "are historical names. RESULTS_LOG 2026-10-10."),
+                      "validation_split": (
+                          "binary: crop-level 20% split, all 143 validation radiographs also "
+                          "supply training crops, so 0.9233 is not a held-out estimate. "
+                          "severity: image-level, 32 training / 9 validation radiographs."),
                       "class_order_note": (
                           "binary class order [normal, bone_loss] confirmed two independent "
                           "ways (27 Aug 2026): FocalLoss alpha ratio 2.258/0.642 = 3.5171 "
@@ -510,7 +541,8 @@ def main():
     s = report["summary"]
     print(f"\n  teeth detected {s['teeth_detected']}   assessable {s['teeth_assessable']}"
           f"   distinct FDI {s['distinct_fdi_codes']}   duplicates {s['duplicate_fdi_codes']}")
-    print(f"  caries-positive {s['caries_positive']}   bone-loss-positive {s['bone_loss_positive']}")
+    print(f"  caries-positive {s['caries_positive']}   "
+          f"stage-4 abnormality flags {s['bone_loss_positive']} (not a periodontal finding)")
     print(f"  -> {args.output}")
     if args.overlay:
         draw_overlay(img, report, args.overlay)

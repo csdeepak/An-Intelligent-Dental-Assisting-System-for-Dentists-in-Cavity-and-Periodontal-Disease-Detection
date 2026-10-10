@@ -34,7 +34,7 @@ Detect every tooth · number it in FDI notation · classify two pathologies per 
 > | A readable one-page overview — what was done, results, limitations, what's next | [`PROJECT_OVERVIEW.html`](PROJECT_OVERVIEW.html) — a **6 Sep 2026 snapshot**, not kept in sync; open in a browser (3-theme toggle). Internal / pre-submission. |
 > | What are the current numbers? | [`docs/results/model_metrics.md`](docs/results/model_metrics.md) |
 > | Full technical story + honest limitations (the paper is written from this) | [`docs/results/PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) |
-> | Why is it like this? What happened when? | [`docs/results/RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) — 140 dated entries, append-only |
+> | Why is it like this? What happened when? | [`docs/results/RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) — 141 dated entries, append-only |
 > | What should I work on? | [`docs/research/PUBLICATION_TODO.md`](docs/research/PUBLICATION_TODO.md), sequenced by [`MASTER_PLAN_2026H2.md`](docs/research/MASTER_PLAN_2026H2.md) |
 > | How is the documentation laid out? | [`docs/README.md`](docs/README.md) |
 > | What does the code do? | [`src/README.md`](src/README.md), [`scripts/README.md`](scripts/README.md) |
@@ -152,8 +152,9 @@ pipeline, and it follows directly from anatomy — see
 > honestly still weak, and is written into every generated report under `["limitations"]`: the
 > adopted caries lesion detector has **no calibrated confidence and no abstention curve** (the
 > retained gate's precision is **0.40**); the bone-loss branch **collapses outside Tufts** (fires
-> on 0.7% of DENTEX teeth, 2.4% affected-tooth sensitivity on Ningxia); detector recall **70.6%**
-> caps Stage 2 end-to-end at 58.3%.
+> on 0.7% of DENTEX teeth, 2.4% affected-tooth sensitivity on Ningxia) and, since report schema
+> 1.2 (11 Oct 2026), is labelled for what it is — **a flag for teeth near an abnormality, not a
+> periodontal finding**; detector recall **70.6%** caps Stage 2 end-to-end at 58.3%.
 
 ---
 
@@ -533,7 +534,7 @@ Each of those four rows is a bug that was found the hard way. See
     ├── architecture/            ← pipeline diagrams (+ drawio source)
     ├── results/
     │   ├── PAPER_MATERIAL.md    ← ★ master paper-writing document
-    │   ├── RESULTS_LOG.md       ← append-only journal, 140 entries
+    │   ├── RESULTS_LOG.md       ← append-only journal, 141 entries
     │   ├── model_metrics.md     ← one-page scoreboard
     │   ├── METHODOLOGY_CHANGELOG.md
     │   └── figures/paper/       ← 17 paper/review figures

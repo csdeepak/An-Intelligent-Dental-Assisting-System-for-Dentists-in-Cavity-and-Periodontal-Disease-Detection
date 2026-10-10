@@ -17,7 +17,8 @@ WHY THE LIMITATIONS ARE RENDERED, NOT LINKED
 ---------------------------------------------
 `report["limitations"]` already carries the honest caveats (detector recall 70.6%, Stage-2
 58.3% end-to-end -- both re-measured 27 Aug on the seg detector, RESULTS_LOG 2026-08-27e --
-caries gate uncalibrated at 0.40 precision, bone-loss domain shift). This
+the caries caveat for whichever method ran, and that Stage 4 flags proximity to an abnormality
+rather than periodontal bone loss). This
 page puts that block directly under the results, same size as everything else, so it cannot
 be screenshotted away from the numbers it qualifies.
 """
@@ -91,7 +92,8 @@ def main():
     c2.metric("Assessable", s["teeth_assessable"])
     c3.metric("Distinct FDI codes", s["distinct_fdi_codes"])
     c4.metric("Caries-positive", s["caries_positive"])
-    c5.metric("Bone-loss-positive", s["bone_loss_positive"])
+    c5.metric("Stage-4 flags", s["bone_loss_positive"],
+              help="Teeth near an abnormality. Not a periodontal finding — see Limitations.")
     if s["duplicate_fdi_codes"]:
         st.warning(f"{s['duplicate_fdi_codes']} duplicate FDI codes emitted — should be 0.")
 
@@ -137,7 +139,8 @@ def main():
                 "Caries conf (cal.)": (round(t["caries"]["gate_confidence_calibrated"], 3)
                                        if t["caries"].get("gate_confidence_calibrated") is not None
                                        else "—"),
-                "Bone loss": t["bone_loss"]["finding"],
+                # Not "Bone loss": Stage 4 flags proximity to an abnormality (Limitations below).
+                "Stage 4 flag": "flagged" if t["bone_loss"]["finding"] == "bone_loss" else "—",
                 "Assessable": "✅" if t["assessable"] else "❌",
             })
         # width="stretch" -- see the note on st.image above; use_container_width is deprecated.
@@ -150,6 +153,8 @@ def main():
   {lim['stage2_fdi_exact_end_to_end']:.1%} end-to-end** — {lim['interpretation']}
 - **Caries**: {lim['caries_method_caveat']}
 - **Caries labelling**: {lim['caries_presumed_negative_assumption']}
+- **Stage 4 is not a periodontal finding**: {lim['bone_loss_label_and_validation']}
+- **Stage 4 outside Tufts**: {lim['bone_loss_domain_shift']}
 """)
     st.warning(
         "This pipeline is **not clinically validated**. It composes four independently "

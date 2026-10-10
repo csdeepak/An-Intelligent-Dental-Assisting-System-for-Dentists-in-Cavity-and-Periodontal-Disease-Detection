@@ -573,7 +573,7 @@ claim C3). Image in, per-tooth JSON + overlay out, through all six stages.
 | | |
 |---|---|
 | Caries-positive (pipeline default, v3 gate) | 57 (19.1%), was 254 (84.9%) pre-fix |
-| Bone-loss-positive | 2 (0.7%) — near-inert off-Tufts, domain shift |
+| Bone-loss-positive (Stage-4 flags) | 2 (0.7%) — near-inert off-Tufts. Recorded here as domain shift; since 10 Oct 2026 read as at least partly a label mismatch (`RESULTS_LOG` 2026-10-10). From report schema 1.2 (11 Oct) the report and the app label this an abnormality-proximity flag, not a periodontal finding |
 | Duplicate FDI codes | 0 / 299 |
 
 **Lesion-localisation agreement — 25 Aug 2026** (`scripts/eval/lesion_localization.py`,

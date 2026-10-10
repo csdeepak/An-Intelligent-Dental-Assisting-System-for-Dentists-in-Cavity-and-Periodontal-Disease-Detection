@@ -2425,6 +2425,12 @@ radiographs that supplied no training crop. The masks, the boxes and all 1,000 o
 radiographs are on the macOS clone; that run needs its own pre-registration. What is not
 defensible is the current text. The same crops feed Stage 4b, whose split was not audited.
 
+*Update, 11 Oct 2026.* Stage 4b's split was audited that evening and **is** image-level: 32
+training radiographs, 9 validation, none shared. Its label source is the same abnormality masks.
+The pipeline's own output was corrected the same day (`RESULTS_LOG` 2026-10-11b): from report
+schema 1.2 every report and the demo app describe the Stage-4 field as an abnormality-proximity
+flag, not a periodontal finding, and the overlay prints `ABN` where it printed `BL`.
+
 Source: `RESULTS_LOG.md` 2026-10-10; `data/tufts/resampled_dataset/metadata/`;
 `notebooks/bone_loss/{02_bone_loss_dataset_construction,03_bone_loss_model_training}.ipynb`;
 `docs/session-memory/2026-10-10-state-review-council.md`.

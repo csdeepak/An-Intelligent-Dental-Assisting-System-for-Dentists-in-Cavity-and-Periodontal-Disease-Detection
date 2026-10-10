@@ -377,6 +377,11 @@ def run_bone_loss(binary, severity, img_bgr, boxes, device):
     """
     Bone-loss cascade on 1.5xW / 2.0xH crops. Binary first; severity only on positives, which
     is how it was trained (all three of its classes are degrees of bone loss).
+
+    "Bone loss" is the historical name. The binary model's positive class is "the crop overlaps
+    a Tufts expert ABNORMALITY mask" -- mostly apical lesions, sclerosis and cysts -- so treat a
+    positive as an abnormality-proximity flag, not a periodontal finding (RESULTS_LOG
+    2026-10-10). The returned keys keep their names; callers depend on them.
     """
     if len(boxes) == 0:
         return []

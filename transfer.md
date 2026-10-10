@@ -42,6 +42,9 @@ list of what is left to implement before writing, and what was deferred or refus
 `docs/session-memory/2026-10-11b-caries-interval-measurements.md`): three pre-registered
 measurements for the caries tables. Results are in §3; §2.2 and §2.4 below still give the
 published point values and should be read with them.
+**11 Oct — item 6 done, implementation phase complete** (`RESULTS_LOG` 2026-10-11b,
+`docs/session-memory/2026-10-11c-stage4-report-wording.md`): the report and the demo no longer
+call Stage 4 a periodontal finding; report schema 1.2.
 
 > **Windows clone, 6 Sep 2026 — the Tufts crop corpus was cut from the wrong frame, and is now
 > rebuilt.** It scored 11.5% crop-level FDI-exact where the published number is 71.5%, with correct
@@ -382,7 +385,10 @@ the macOS clone, then write.** Nothing here needs a GPU, the Windows machine or 
 | 3 | Interval on the headline F1 gap, constant vs gate pipeline, 164 images | **Done 11 Oct.** +2.61 pp [−0.64, +5.99]: **not separable**. "The constant scored highest" must be reworded |
 | 4 | Per-hospital intervals on Ningxia, lesion detector vs constant. Estimation, no bar | **Done 11 Oct.** Separated at test2, test3, test4; **not at test1** (+1.58 pp [−4.43, +7.74]). "Replicates" is a pooled statement |
 | 5 | The adopted lesion detector's own score on the headline FDI-set F1, run once | **Done 11 Oct.** F1 **0.376** vs the constant's 0.320: **+5.64 pp [+1.74, +9.47]**. Development data, one run, measured on macOS |
-| 6 | Stage-4 wording in the report, the overlay and the app: an abnormality-proximity flag, not a periodontal finding. Additive, schema 1.2, field names unchanged. The app currently shows a "Bone loss" column and renders no Stage-4 caveat at all | **Open — next.** Does not block writing; it makes the capstone defensible |
+| 6 | Stage-4 wording in the report, the overlay and the app: an abnormality-proximity flag, not a periodontal finding. Additive, schema 1.2, field names unchanged | **Done 11 Oct** (`RESULTS_LOG` 2026-10-11b). Predictions identical before and after; app checked through an upload. **The Docker image from 7 Sep still carries the old wording — rebuild it on the machine with Docker; a stale container emits `opg-report/1.1`** |
+
+**The implementation phase is complete as of 11 Oct.** What is left is writing and decisions:
+items 1–5 and 9–10 of the table above, and the six-page caries-only cut (§5).
 
 **What items 3–5 found (`RESULTS_LOG` 2026-10-11, `PAPER_MATERIAL.md` §8.29).** The constant
 and the *gate* pipeline cannot be told apart on F1. The *adopted* lesion detector beats the

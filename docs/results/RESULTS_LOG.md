@@ -7670,3 +7670,46 @@ Nothing was trained or tuned and no default changed. Items 2–5 of the implemen
   restates both pipeline rows from one machine. (4) Until this session a bare
   `c1_vlm_baseline.py --arm pipeline` would have run the lesion detector and overwritten the
   published `arm_pipeline.json`; that default is fixed.
+
+## 2026-10-11b — the report and the demo stop calling Stage 4 a periodontal finding (report schema 1.2)
+
+Item 6 of the implementation phase (`transfer.md` §3). It acts on 2026-10-10: the pipeline's own
+output was still repeating the reading that entry withdrew.
+
+- **What was done:** changed what the shipped system *says* about Stage 4, and nothing about
+  what it computes. In `scripts/run_inference.py`: every report's `limitations` block gains
+  `bone_loss_label_and_validation` (the field is an abnormality-proximity flag, not a
+  periodontal finding; the in-domain score is not held out); the text of the existing
+  `bone_loss_domain_shift` key no longer asserts domain shift as the cause; `models.bone_loss`
+  gains `label_definition` and `validation_split`; the overlay prints `ABN-…` where it printed
+  `BL-…`; the console summary says "stage-4 abnormality flags". In `app.py`: the metric and the
+  table column are relabelled, and the Limitations panel renders the two Stage-4 caveats — it
+  rendered none before, beside a column headed "Bone loss". Report schema `opg-report/1.1` →
+  **1.2**, additive.
+- **Dataset / config:** no model, weight, threshold or default changed. Field names
+  (`bone_loss`, `bone_loss_positive`, the `"bone_loss"` finding value) are deliberately kept: a
+  rename breaks `tests/test_classifiers.py` and `scripts/eval/ningxia_external.py`.
+- **Metrics — verification, not a result.** The previous commit's code and the changed code
+  were run on the same Tufts radiograph (196): the `teeth` list and the `summary` are identical;
+  one `limitations` key added, none removed; two `models.bone_loss` keys added. The app was
+  driven headlessly through an upload (Streamlit `AppTest`): no exception before or after; the
+  metric reads "Stage-4 flags 5"; the table column reads "Stage 4 flag" (5 flagged, 26 not);
+  both caveats render. `pytest` 174 passed; `verify_paper_numbers.py` 127 of 127;
+  `verify_invariants.py` holds, including one new invariant.
+- **Key decision or insight:** on that radiograph the five flagged teeth are 17, 18, 27, 28 and
+  48 — second and third molars. The Tufts expert's description of the same radiograph is a
+  widened follicular space at three third molars (hyperplastic follicle or dentigerous cyst).
+  That is the label audit of 2026-10-10 seen in one image: the flags sit on and beside teeth the
+  expert marked for a follicular abnormality, not along the bone ridge. Radiograph 196 is one of
+  Stage 4a's own training images, so this shows what the label is and says nothing about
+  generalisation. A new invariant, "Stage-4 report wording", asserts that the caveat is in
+  every report and is rendered by the app; it fails on the previous commit, as intended.
+- **Source:** `scripts/run_inference.py`, `app.py`, `src/classifiers.py` (docstring only),
+  `scripts/eval/verify_invariants.py`.
+- **Follow-ups:** (1) **The Docker image built on 7 Sep carries the old wording** and must be
+  rebuilt on the machine that has Docker running. A stale container is now detectable: it emits
+  `opg-report/1.1`. (2) Saved demo reports under `outputs/` from before today carry the old
+  caveat; they are history, not regenerated. (3) Noticed and left alone: the report's
+  `interpretation` text says "roughly half the codes" will be wrong where the measured figure is
+  42%; and the app's "Caries conf (cal.)" column is always empty under the default caries
+  method, because that confidence belongs to the retained gate.

@@ -283,6 +283,30 @@ def inv_lever_c_defaults():
             f"gap_factor={GAP_FACTOR} (== assign_fdi default)")
 
 
+def inv_stage4_report_wording():
+    """
+    The report must not present Stage 4 as a periodontal finding (RESULTS_LOG 2026-10-10).
+
+    Stage 4's positive class is "overlaps a Tufts expert abnormality mask" and its in-domain
+    score is not held out. The per-tooth field names stay `bone_loss` so consumers do not break,
+    which leaves the caveat as the only thing telling a reader what the field is. So it is
+    checked: present in every report, and rendered by the app rather than left in the JSON --
+    until 11 Oct 2026 the app showed a "Bone loss" column and no Stage-4 caveat at all.
+    """
+    import numpy as np
+    sys.path.insert(0, str(REPO_ROOT))
+    from scripts.run_inference import SCHEMA_VERSION, build_report
+    rep = build_report("x", np.zeros((8, 8, 3), np.uint8), [], [], [], [], [],
+                       {"caries": {"method": "lesion-detector"}})
+    assert float(SCHEMA_VERSION.split("/")[1]) >= 1.2, f"schema went backwards: {SCHEMA_VERSION}"
+    text = rep["limitations"]["bone_loss_label_and_validation"].lower()
+    for needle in ("abnormality", "not as a periodontal", "not a held-out"):
+        assert needle in text, f"the Stage-4 caveat lost its '{needle}' statement"
+    app = (REPO_ROOT / "app.py").read_text(encoding="utf-8")
+    assert "lim['bone_loss_label_and_validation']" in app, "app.py does not render the caveat"
+    return f"{SCHEMA_VERSION}; caveat in every report and rendered by app.py"
+
+
 # ---------------------------------------------------------------- Stage-2 numbers
 def inv_stage2_reproduces():
     """The headline Stage-2 figures must still fall out of the saved per-tooth rows."""
@@ -400,6 +424,7 @@ check("checkpoint class orders", inv_class_orders)
 check("crop contracts distinct", inv_crop_contracts)
 check("Stage-2 numbers reproduce", inv_stage2_reproduces)
 check("Lever C off by default", inv_lever_c_defaults)
+check("Stage-4 report wording", inv_stage4_report_wording)
 check("crop source frames", inv_crop_frames)
 check("caries v3 dataset hygiene", inv_v3_dataset)
 check("leakage exclusion list", inv_leakage_list, slow=True)
