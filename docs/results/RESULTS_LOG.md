@@ -7570,3 +7570,103 @@ by edit: this entry qualifies 2026-04-06's 0.9233 and everything that quotes it,
   supplied no training crop. The masks, the boxes and all 1,000 original radiographs are on the
   macOS clone. It needs its own pre-registration. (4) Untested: whether Stage 4a fires on DENTEX
   *periapical-lesion* teeth, which this audit predicts it should.
+
+## 2026-10-11 — three pre-registered measurements for the caries tables: the constant and the gate pipeline are not separable on F1; Lever B per hospital; and the adopted detector beats the constant on the headline metric
+
+Pre-registration `outputs/caries_intervals/PRE_REGISTRATION.md`, frozen at `1fd20b5` before any
+analysis code existed; Amendment 1 at `33c1340`, committed before M3's detector arm was run.
+Nothing was trained or tuned and no default changed. Items 2–5 of the implementation phase
+(`transfer.md` §3).
+
+- **What was done:** three measurements, each behind a harness gate that had to reproduce a
+  published number exactly before anything new was read. **M1** — an interval on the headline
+  FDI-set F1 gap between the image-blind constant and the pipeline. **M2** — Lever B against the
+  constant and against the gate, per Ningxia hospital, from the saved outputs. **M3** — the
+  FDI-set F1 of the adopted lesion detector, which Table I has never carried.
+- **Dataset / config:** paired cluster bootstrap over images, 10,000 resamples, seed 42, 95%
+  percentile interval, `bootstrap_ci.py` primitives. M1 and M3: the 164 leak-free DENTEX
+  `disease/` images, 477 carious teeth, micro FDI-set F1 as `c1_vlm_baseline.score` computes it.
+  M2: the three saved Ningxia files, 337 images, 1,013 lesions, paired on
+  (category, split, image); **no inference, Ningxia was not re-run**. M3: `run_inference.py`
+  defaults, CPU, macOS arm64, torch 2.2.0, ultralytics 8.4.127; detector confidence 0.25; the
+  detector arm run once.
+- **Metrics — M1, FDI-set F1 (164 images).** Gate: tp / fp / fn reproduced exactly for all four
+  arms.
+
+  | comparison | Δ F1 | 95% interval | |
+  |---|---|---|---|
+  | **constant − gate pipeline** (0.3197 vs 0.2936) | **+2.61 pp** | **[−0.64, +5.99]** | **includes 0** |
+  | constant − Qwen2.5-VL-32B | +7.32 pp | [+3.42, +11.23] | excludes 0 |
+  | constant − Qwen2.5-VL-7B | +17.04 pp | [+12.66, +21.22] | excludes 0 |
+  | gate pipeline − Qwen2.5-VL-32B | +4.71 pp | [−0.22, +9.44] | includes 0 |
+
+- **Metrics — M2, lesion agreement per Ningxia hospital.** Gate: the pooled rows reproduce the
+  published +10.17 [+6.27, +14.02] and +9.28 [+5.31, +13.29] exactly. Estimation only — the
+  point estimates were seen on 10 Oct, there is no bar, and the Sec 6 verdict is not reopened.
+
+  | hospital | images | detector | constant | gate | detector − constant | detector − gate |
+  |---|---|---|---|---|---|---|
+  | test1 | 134 | 0.462 | 0.446 | 0.288 | +1.58 pp [−4.43, +7.74] — **includes 0** | +17.41 pp [+10.51, +24.62] |
+  | test2 | 110 | 0.576 | 0.407 | 0.513 | +16.91 pp [+10.48, +23.35] | +6.30 pp [+0.28, +12.60] |
+  | test3 | 40 | 0.494 | 0.377 | 0.401 | +11.73 pp [+1.29, +21.58] | +9.26 pp [−1.08, +20.00] — includes 0 |
+  | test4 | 53 | 0.430 | 0.323 | 0.419 | +10.75 pp [+0.60, +20.18] | +1.08 pp [−10.50, +11.73] — includes 0 |
+  | pooled | 337 | 0.500 | 0.399 | 0.408 | +10.17 pp [+6.27, +14.02] | +9.28 pp [+5.31, +13.29] |
+
+- **Metrics — M3, the adopted lesion detector on the Table I metric (164 images, macOS).**
+
+  | system | P | R | F1 | tp / fp / fn |
+  |---|---|---|---|---|
+  | image-blind constant | 0.218 | 0.600 | 0.320 | 286 / 1026 / 191 |
+  | gate pipeline, same-day control on this machine | 0.242 | 0.396 | 0.300 | 189 / 593 / 288 |
+  | **lesion-detector pipeline (the default since 4 Sep)** | **0.353** | **0.403** | **0.376** | 192 / 352 / 285 |
+
+  **Detector − constant: +5.64 pp [+1.74, +9.47], excludes 0.** Detector − gate control:
+  +7.59 pp [+4.47, +10.70], excludes 0. The detector flags 544 teeth where the constant names
+  1,312; it wins on precision and loses on recall.
+- **The M3 control missed its tolerance, and what that turned out to be.** The pre-registration
+  gated the same-machine gate control at ±0.005 of the published F1 0.2936. It scored 0.3002
+  (189 / 593 / 288 against 186 / 604 / 291): 126 of 164 images identical, 52 codes different.
+  The run stopped there, before the detector arm, as §8 required. The pipeline code as of
+  `322f787` (30 Aug) was then run on the same machine and gave **identical predictions on all
+  164 images**. So no code change since August — the Lever B wiring and the Lever C refactor
+  included — moved the gate path, and the 0.0066 is a difference between the Windows machine
+  that produced the published file and this one. The tolerance had tested the wrong thing.
+  Amendment 1 replaced it with the same-machine identity check and recorded the drift; it was
+  approved and committed with only control numbers known.
+- **Leakage, re-checked for M3 rather than assumed.** None of the 164 images is byte-identical
+  to any of the 705 `quadrant-enumeration-disease` images the detector's DENTEX training set was
+  drawn from. On a 256-bit perceptual hash, each scored image's nearest training image is as far
+  away as training images are from each other (minimum 37, median 61 bits in both directions;
+  the one known duplicate, already excluded, scores 0). The two closest pairs were looked at and
+  are different patients.
+- **Key decision or insight:**
+  1. **"The constant scored highest" does not survive its interval against our own pipeline.**
+     By the rule fixed in advance, the manuscript must say the constant and the gate pipeline are
+     *not separable* on FDI-set F1. The constant does separate from both vision–language models.
+     The paper's argument — a system that an image-blind constant cannot be told apart from has
+     not shown it reads the image — is unchanged, and is arguably stated more exactly this way.
+  2. **Lever B's external result is real pooled, and uneven by hospital.** It is separated from
+     the constant at test2, test3 and test4 and not at test1, where the constant is strongest.
+     "It replicates on the one cohort that is genuinely external" is a pooled statement and has
+     to be written as one, beside this table. The manuscript recommends exactly this of others.
+  3. **The adopted detector beats the image-blind constant on the paper's own headline metric.**
+     No system in this project had done that on FDI-set F1. Three limits belong with it: DENTEX
+     is *development* data for this detector (a corpus it trained on, scored on held-out
+     images); it is one training run; and it is measured on one machine. It does not contradict
+     the tie on lesion agreement on the same images (0.455 vs 0.489) — that metric is
+     recall-shaped and F1 pays for precision — but the two must be reported together.
+  4. **A cross-machine difference of 0.0066 F1 exists in a published row.** Table I's gate row
+     is 0.2936 from one machine and 0.3002 from another, with identical code.
+- **Source:** `outputs/caries_intervals/caries_intervals.json` (every number above);
+  `arm_pipeline_gate_control.json`, `arm_pipeline_lesion_detector.json`,
+  `arm_pipeline_gate_code322f787.json` and `repro_old_code_gate_run.py` in the same directory;
+  `scripts/eval/caries_intervals.py`; `scripts/eval/c1_vlm_baseline.py` (the pipeline arm gained
+  `--caries-method`, defaulting to the gate, and now forces CPU).
+- **Follow-ups:** (1) Manuscript changes for the authors, not made here: reword "outscored" in
+  the abstract, Table I text and Conclusion; add the detector row to Table I, labelled as
+  development data and as measured on macOS; add the per-hospital table to the Lever B
+  subsection and qualify "replicates" as pooled. (2) A thesis-level call for the authors: with
+  M3, the paper's own system now clears the floor the paper is about. (3) Decide whether Table I
+  restates both pipeline rows from one machine. (4) Until this session a bare
+  `c1_vlm_baseline.py --arm pipeline` would have run the lesion detector and overwritten the
+  published `arm_pipeline.json`; that default is fixed.

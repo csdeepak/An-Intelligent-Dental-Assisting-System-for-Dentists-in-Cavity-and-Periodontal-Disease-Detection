@@ -179,14 +179,23 @@ def score(gt, pred, name):
             "per_image": per_image}
 
 
-def run_pipeline_arm(disease_dir, gt, out):
-    """OUR pipeline. CPU-only -- this arm costs nothing to run."""
+def run_pipeline_arm(disease_dir, gt, out, caries_method="gate", out_name="arm_pipeline.json"):
+    """OUR pipeline. CPU-only -- this arm costs nothing to run.
+
+    `caries_method` defaults to the GATE, not to run_pipeline's own default: the published
+    arm_pipeline.json (F1 0.2936) was measured with the gate, and since the lesion detector
+    became run_pipeline's default on 4 Sep 2026 a bare re-run of this arm would otherwise have
+    overwritten that file with a different system's predictions.
+    """
     import cv2
+    import torch
     from scripts.run_inference import load_models, run_pipeline
     # load_models returns (models, device, paths), and run_pipeline takes
     # (img, models, device, paths, image_label=...). Read from run_inference.main() rather
     # than assumed -- an assumed 2-tuple is what failed on the first run.
-    models, device, paths = load_models()
+    # The device is forced: pick_device() returns MPS on Apple silicon, and this arm has always
+    # been recorded as "cpu".
+    models, device, paths = load_models(device=torch.device("cpu"))
     pred, lat = {}, []
     for i, stem in enumerate(sorted(gt), 1):
         ip = disease_dir / "input" / f"{stem}.png"
@@ -194,15 +203,17 @@ def run_pipeline_arm(disease_dir, gt, out):
         if img is None:
             continue
         t = time.time()
-        rep = run_pipeline(img, models, device, paths, image_label=stem, verbose=False)
+        rep = run_pipeline(img, models, device, paths, image_label=stem, verbose=False,
+                           caries_method=caries_method)
         lat.append(time.time() - t)
         pred[stem] = {str(t_["fdi"]) for t_ in rep["teeth"]
                       if t_["fdi"] is not None and t_["caries"]["finding"] != "no_caries"}
         if i % 20 == 0:
             print(f"  {i}/{len(gt)}  ({sum(lat)/len(lat):.2f}s/image)", flush=True)
     out.mkdir(parents=True, exist_ok=True)
-    (out / "arm_pipeline.json").write_text(json.dumps(
-        {"arm": "pipeline", "mean_latency_s": round(sum(lat) / max(len(lat), 1), 3),
+    (out / out_name).write_text(json.dumps(
+        {"arm": "pipeline", "caries_method": caries_method,
+         "mean_latency_s": round(sum(lat) / max(len(lat), 1), 3),
          "device": "cpu", "predictions": {k: sorted(v) for k, v in pred.items()}}, indent=2) + "\n")
     return pred, sum(lat) / max(len(lat), 1)
 
@@ -364,6 +375,8 @@ def main():
                     help="cap vision tokens (needed for large models); record it, it is a confound")
     ap.add_argument("--out-name", default=None, help="output filename, to keep arms side by side")
     ap.add_argument("--score", action="store_true", help="score whatever arm files exist")
+    ap.add_argument("--caries-method", choices=["gate", "lesion-detector"], default="gate",
+                    help="pipeline arm only; the gate is what the published arm was measured with")
     args = ap.parse_args()
 
     gt = load_gt(args.disease_dir)
@@ -372,8 +385,10 @@ def main():
           f"{sum(1 for v in gt.values() if v)} images with >=1 caries")
 
     if args.arm == "pipeline":
-        pred, lat = run_pipeline_arm(args.disease_dir, gt, args.out)
-        print(f"\npipeline arm done, {lat:.2f}s/image")
+        name = args.out_name or ("arm_pipeline.json" if args.caries_method == "gate"
+                                 else "arm_pipeline_lesion_detector.json")
+        pred, lat = run_pipeline_arm(args.disease_dir, gt, args.out, args.caries_method, name)
+        print(f"\npipeline arm ({args.caries_method}) done, {lat:.2f}s/image -> {name}")
     elif args.arm == "vlm":
         name = args.out_name or (f"arm_vlm_{args.shots}shot.json" if args.shots
                                  else "arm_vlm.json")

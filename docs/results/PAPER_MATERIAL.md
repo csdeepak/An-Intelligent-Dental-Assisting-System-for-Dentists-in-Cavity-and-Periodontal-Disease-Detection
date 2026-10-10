@@ -2429,6 +2429,62 @@ Source: `RESULTS_LOG.md` 2026-10-10; `data/tufts/resampled_dataset/metadata/`;
 `notebooks/bone_loss/{02_bone_loss_dataset_construction,03_bone_loss_model_training}.ipynb`;
 `docs/session-memory/2026-10-10-state-review-council.md`.
 
+### 8.29 Three intervals — what the caries tables can and cannot say
+
+Measured 11 Oct 2026 under a pre-registration frozen before any code
+(`outputs/caries_intervals/PRE_REGISTRATION.md`, `RESULTS_LOG` 2026-10-11). Nothing was trained
+or tuned. Each measurement first reproduced a published number exactly.
+
+**1. The constant and the gate pipeline are not separable on FDI-set F1.** The gap the abstract
+leads with, 0.320 against 0.294, is **+2.61 pp [−0.64, +5.99]**. The constant does separate from
+both vision–language models (+7.32 pp [+3.42, +11.23] and +17.04 pp [+12.66, +21.22]); the gate
+pipeline does not separate from the larger one (+4.71 pp [−0.22, +9.44]). "Outscored" has to go.
+The argument does not: a system that cannot be told apart from an image-blind constant has not
+shown that it reads the image, and that is a sharper sentence than the one it replaces.
+
+**2. Lever B's external result is uneven by hospital.**
+
+| hospital | images | detector | constant | detector − constant |
+|---|---|---|---|---|
+| test1 | 134 | 0.462 | 0.446 | +1.58 pp [−4.43, +7.74] — includes 0 |
+| test2 | 110 | 0.576 | 0.407 | +16.91 pp [+10.48, +23.35] |
+| test3 | 40 | 0.494 | 0.377 | +11.73 pp [+1.29, +21.58] |
+| test4 | 53 | 0.430 | 0.323 | +10.75 pp [+0.60, +20.18] |
+| pooled | 337 | 0.500 | 0.399 | +10.17 pp [+6.27, +14.02] |
+
+The detector is separated from the constant at test2, test3 and test4 and not at test1 — the
+hospital where the constant is strongest and the old gate was weakest. This was estimation, not
+a test: the point estimates had been seen, so no bar was set and the 4 Sep verdict is not
+reopened. The manuscript asks others to report per institution; it now can.
+
+**3. The adopted detector beats the constant on the headline metric.** Table I has only ever
+scored the gate. Run once over the same 164 images, the lesion-detector pipeline scores
+**P 0.353 / R 0.403 / F1 0.376** against the constant's 0.218 / 0.600 / 0.320:
+**+5.64 pp [+1.74, +9.47]**. Against a same-day gate control it is +7.59 pp [+4.47, +10.70]. It
+flags 544 teeth where the constant names 1,312.
+
+**How to write this honestly.**
+
+- DENTEX is *development* data for the detector — a corpus it trained on, scored on images held
+  out from it. The hold-out was re-checked: no scored image is byte-identical to any of the 705
+  source images, and on a perceptual hash each one's nearest training image is no closer than
+  training images are to each other. Say "development", not "external".
+- It is one training run, on one machine. The gate control scored 0.300 here against the
+  published 0.294 from the Windows machine, with identical predictions from the August and the
+  current code — a cross-machine difference of 0.0066 that Table I should either state or
+  remove by restating both rows from one machine.
+- It does not overturn the tie on lesion agreement on these same images (0.455 against 0.489).
+  That metric is recall-shaped; F1 pays for precision, and precision is where the detector
+  wins. Both belong in the paper, side by side.
+- **The thesis shifts, and that is the authors' call, not an engineering one.** The paper's
+  claim was that a tooth-level score cannot show a system is reading the radiograph, because a
+  constant matches the system. That is still true of the gate and of both language models. It
+  is no longer true of the system the pipeline ships. The floor did its job: it is what the
+  detector's result is measured against.
+
+Source: `outputs/caries_intervals/caries_intervals.json`; `scripts/eval/caries_intervals.py`;
+`docs/session-memory/2026-10-11b-caries-interval-measurements.md`.
+
 ---
 
 ## 9. What's not yet written — checklist
@@ -2445,6 +2501,12 @@ For whoever drafts the actual paper. Tick items off here as they land.
       affiliations, ethics, data availability with licences, code availability, funding, conflict
       of interest, author contributions, and acknowledgments including the AI-use disclosure IEEE
       requires.
+- [ ] **Bring three statements in `main.tex` into line with their intervals** (§8.29, measured
+      11 Oct 2026): "the constant scored highest" → not separable from the gate pipeline on F1;
+      "it replicates on the one cohort that is genuinely external" → a pooled statement, printed
+      beside the per-hospital table; and Table I gains the adopted detector's row
+      (0.353 / 0.403 / 0.376), labelled as development data. Decide whether Table I restates
+      both pipeline rows from one machine.
 - [x] **Fold §8.27 (Lever B; §8.26 at the time this box was written) into `main.tex`.
       Done 4 Sep 2026** (RESULTS_LOG 2026-09-04i). Table I now
       reports both Stage-3a paths under one counting rule; §System gained

@@ -38,6 +38,10 @@ venues' own pages, and a bone-loss audit is logged (`RESULTS_LOG` 2026-10-10). �
 **11 Oct — implementation-phase council**
 (`docs/session-memory/2026-10-11-implementation-phase-council.md`): §3 now carries the ordered
 list of what is left to implement before writing, and what was deferred or refused.
+**11 Oct — items 2–5 of that list done** (`RESULTS_LOG` 2026-10-11,
+`docs/session-memory/2026-10-11b-caries-interval-measurements.md`): three pre-registered
+measurements for the caries tables. Results are in §3; §2.2 and §2.4 below still give the
+published point values and should be read with them.
 
 > **Windows clone, 6 Sep 2026 — the Tufts crop corpus was cut from the wrong frame, and is now
 > rebuilt.** It scored 11.5% crop-level FDI-exact where the published number is 71.5%, with correct
@@ -371,14 +375,23 @@ compliance breaches (§4). Nothing has been committed to this repository since 7
 (`docs/session-memory/2026-10-11-implementation-phase-council.md`). Time box: two working days on
 the macOS clone, then write.** Nothing here needs a GPU, the Windows machine or the mentor.
 
-| Order | Item | Blocks writing? |
+| Order | Item | Status |
 |---|---|---|
-| 1 | Commit the 10 Oct documentation edits | Yes |
-| 2 | One pre-registration covering items 3–5, committed before any of them runs | Yes |
-| 3 | Interval on the headline F1 gap (constant 0.320 vs pipeline 0.294, 164 images). Saved outputs only. If it includes zero, the abstract says "not separable on F1" | Yes |
-| 4 | Per-hospital intervals on Ningxia, lesion detector vs constant and vs gate. Saved outputs only. Estimation with no bar — the point estimates have been seen, and the pooled verdict is not reopened | Yes |
-| 5 | The adopted lesion detector's own score on the headline FDI-set F1. Table I still scores the retired gate. One CPU pass over the 164 images, run once, printed whichever way it falls | Yes |
-| 6 | Stage-4 wording in the report, the overlay and the app: an abnormality-proximity flag, not a periodontal finding. Additive, schema 1.2, field names unchanged. The app currently shows a "Bone loss" column and renders no Stage-4 caveat at all | No — it makes the capstone defensible |
+| 1 | Commit the 10 Oct documentation edits | **Done** (`f323aba`) |
+| 2 | One pre-registration covering items 3–5, committed before any of them runs | **Done** — `outputs/caries_intervals/PRE_REGISTRATION.md`, frozen `1fd20b5`, Amendment 1 `33c1340` |
+| 3 | Interval on the headline F1 gap, constant vs gate pipeline, 164 images | **Done 11 Oct.** +2.61 pp [−0.64, +5.99]: **not separable**. "The constant scored highest" must be reworded |
+| 4 | Per-hospital intervals on Ningxia, lesion detector vs constant. Estimation, no bar | **Done 11 Oct.** Separated at test2, test3, test4; **not at test1** (+1.58 pp [−4.43, +7.74]). "Replicates" is a pooled statement |
+| 5 | The adopted lesion detector's own score on the headline FDI-set F1, run once | **Done 11 Oct.** F1 **0.376** vs the constant's 0.320: **+5.64 pp [+1.74, +9.47]**. Development data, one run, measured on macOS |
+| 6 | Stage-4 wording in the report, the overlay and the app: an abnormality-proximity flag, not a periodontal finding. Additive, schema 1.2, field names unchanged. The app currently shows a "Bone loss" column and renders no Stage-4 caveat at all | **Open — next.** Does not block writing; it makes the capstone defensible |
+
+**What items 3–5 found (`RESULTS_LOG` 2026-10-11, `PAPER_MATERIAL.md` §8.29).** The constant
+and the *gate* pipeline cannot be told apart on F1. The *adopted* lesion detector beats the
+constant on that same metric, on DENTEX, and is separated from it at three of the four Ningxia
+hospitals on lesion agreement. So the floor the paper is about is one its own shipped system now
+clears — on development data and pooled external data, not everywhere. How the thesis is worded
+after that is the authors' decision. One more thing surfaced: the gate pipeline scores 0.294 on
+the Windows machine and 0.300 on macOS with identical code, so Table I's two pipeline rows
+should come from one machine.
 
 Put new artefacts under `outputs/lever_b_eval/` and `outputs/c1_vlm/`, which are already
 whitelisted in `.gitignore`; anything elsewhere under `outputs/` is ignored and the paper-number

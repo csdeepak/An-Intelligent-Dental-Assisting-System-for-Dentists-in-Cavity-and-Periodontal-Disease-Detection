@@ -34,7 +34,7 @@ Detect every tooth · number it in FDI notation · classify two pathologies per 
 > | A readable one-page overview — what was done, results, limitations, what's next | [`PROJECT_OVERVIEW.html`](PROJECT_OVERVIEW.html) — a **6 Sep 2026 snapshot**, not kept in sync; open in a browser (3-theme toggle). Internal / pre-submission. |
 > | What are the current numbers? | [`docs/results/model_metrics.md`](docs/results/model_metrics.md) |
 > | Full technical story + honest limitations (the paper is written from this) | [`docs/results/PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) |
-> | Why is it like this? What happened when? | [`docs/results/RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) — 139 dated entries, append-only |
+> | Why is it like this? What happened when? | [`docs/results/RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) — 140 dated entries, append-only |
 > | What should I work on? | [`docs/research/PUBLICATION_TODO.md`](docs/research/PUBLICATION_TODO.md), sequenced by [`MASTER_PLAN_2026H2.md`](docs/research/MASTER_PLAN_2026H2.md) |
 > | How is the documentation laid out? | [`docs/README.md`](docs/README.md) |
 > | What does the code do? | [`src/README.md`](src/README.md), [`scripts/README.md`](scripts/README.md) |
@@ -189,6 +189,14 @@ to write it that way. A fixed list of the eight first and second molars — `{16
 fitted on the 78 leakage-excluded images, frozen, then applied without ever reading a pixel —
 scores **F1 0.320**, above our pipeline's 0.294. Tooth-level FDI-set F1 is **base-rate dominated**,
 and that control must appear beside every arm or the benchmark says nothing.
+
+> **Measured 11 Oct 2026, pre-registered** ([`RESULTS_LOG.md`](docs/results/RESULTS_LOG.md)
+> 2026-10-11). That 0.294 is the retired caries *gate*, and its gap to the constant is
+> **+2.61 pp [−0.64, +5.99]** — the two are **not separable**, so "beats" in this section's title
+> overstates it for our own pipeline (it holds against both VLMs). The lesion detector the
+> pipeline has shipped since 4 Sep scores **F1 0.376** on the same 164 images and **does** beat
+> the constant: **+5.64 pp [+1.74, +9.47]**. DENTEX is development data for that detector, and
+> it is one run on one machine.
 
 What survives:
 
@@ -525,7 +533,7 @@ Each of those four rows is a bug that was found the hard way. See
     ├── architecture/            ← pipeline diagrams (+ drawio source)
     ├── results/
     │   ├── PAPER_MATERIAL.md    ← ★ master paper-writing document
-    │   ├── RESULTS_LOG.md       ← append-only journal, 139 entries
+    │   ├── RESULTS_LOG.md       ← append-only journal, 140 entries
     │   ├── model_metrics.md     ← one-page scoreboard
     │   ├── METHODOLOGY_CHANGELOG.md
     │   └── figures/paper/       ← 17 paper/review figures

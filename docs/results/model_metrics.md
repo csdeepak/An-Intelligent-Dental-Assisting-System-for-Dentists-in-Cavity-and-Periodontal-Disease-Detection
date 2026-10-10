@@ -391,6 +391,19 @@ run_summary.txt`); predictions mapped to the tooth box each overlaps most (argma
 `src.classifiers.lesion_preds_to_tooth_idx`); severity graded on flagged teeth by the **same**
 Phase-2 severity classifier the gate used (below) — severity was not part of what changed.
 
+**Ningxia per hospital — 11 Oct 2026, pre-registered estimation (`RESULTS_LOG` 2026-10-11).**
+
+| hospital | images | lesion detector | constant | detector − constant |
+|---|---|---|---|---|
+| test1 | 134 | 46.2% | 44.6% | +1.58 pp [−4.43, +7.74] — **not separated** |
+| test2 | 110 | 57.6% | 40.7% | +16.91 pp [+10.48, +23.35] |
+| test3 | 40 | 49.4% | 37.7% | +11.73 pp [+1.29, +21.58] |
+| test4 | 53 | 43.0% | 32.3% | +10.75 pp [+0.60, +20.18] |
+
+The Ningxia win in the cohort table above is a pooled statement. On the FDI-set F1 of the C1
+table the same detector scores 0.376 against the constant's 0.320 on DENTEX — see "C1 hardened"
+below.
+
 Weights: `models/16_lever_b_pooled/lever_b_pooled_yolo11l-2/weights/best.pt` (gitignored, 51 MB
 — ablation-arm rule, same as `models/13`/`15`), sha256 `029018db…`.
 
@@ -782,6 +795,30 @@ Accuracy on retained predictions as the least-confident are declined. Threshold 
 - Controls: 7B blank/noise both -> `26,36`; 32B blank -> `NONE`, noise -> full molar list.
 - transformers 5.16.1 for all 28 Aug arms; the 27 Aug 7B run (F1 0.143) did not record its version.
 - Source: `outputs/c1_vlm/`, `RESULTS_LOG.md` 2026-08-28b, `PAPER_MATERIAL.md` §8.22.
+
+**Intervals, and the adopted detector on this metric — 11 Oct 2026, pre-registered
+(`RESULTS_LOG` 2026-10-11, `outputs/caries_intervals/`).** Paired cluster bootstrap over the 164
+images, 10,000 resamples.
+
+| Comparison (Δ F1) | Δ | 95% interval |
+|---|---|---|
+| Constant − gate pipeline (the 0.294 row above) | +2.61 pp | [−0.64, +5.99] — **includes 0: not separable** |
+| Constant − Qwen2.5-VL-32B | +7.32 pp | [+3.42, +11.23] |
+| Constant − Qwen2.5-VL-7B | +17.04 pp | [+12.66, +21.22] |
+| Gate pipeline − Qwen2.5-VL-32B | +4.71 pp | [−0.22, +9.44] — includes 0 |
+
+| System, measured on macOS CPU | P | R | **F1** |
+|---|---|---|---|
+| Gate pipeline, same-day control | 0.242 | 0.396 | 0.300 |
+| **Lesion-detector pipeline — the default since 4 Sep** | 0.353 | 0.403 | **0.376** |
+
+- **The adopted detector beats the constant on this metric: +5.64 pp [+1.74, +9.47].** Against
+  the gate control: +7.59 pp [+4.47, +10.70]. DENTEX is development data for the detector; one
+  training run; one machine; the detector arm was run once.
+- The "Our six-stage pipeline" row above is the **gate**, measured on the Windows machine. The
+  same code gives 0.300 on macOS — a cross-machine difference of 0.0066, while the August code
+  and the current code give identical predictions on one machine. The first bullet's "beats the
+  pipeline" should now be read as "is not separable from it".
 
 ## Stage-2 head v3 — three corpora (28 Aug 2026, ABLATION not default)
 
