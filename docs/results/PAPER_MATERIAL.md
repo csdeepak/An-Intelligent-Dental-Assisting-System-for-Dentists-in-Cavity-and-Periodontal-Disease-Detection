@@ -417,6 +417,12 @@ copies** — are therefore kept in the same split, grouped by the source image s
 stratification applied at the image level. The same 70/15/15 image-level split is frozen
 and reused for detection.
 
+> **CORRECTED 10 Oct 2026 — this section describes the design, not what the bone-loss run did**
+> (`RESULTS_LOG` 2026-10-10, §8.28). The run that produced the shipped Stage-4a checkpoint found
+> no `val/` on disk and fell back to a crop-level `train_test_split(test_size=0.2)`, stratified by
+> label and not grouped by radiograph. All 143 validation radiographs also supply training crops.
+> The frozen 70/15/15 split is the detector's; the bone-loss models never used it.
+
 ### 6.4 Resampling for a 23.8× class imbalance
 
 The native bone-loss distribution is ~96% normal / ~4% diseased. Trained as-is, the model
@@ -2358,6 +2364,71 @@ parallel Mac-side session, which used `2026-09-04`/`04b`/`04c` first for its own
 PRE_REGISTRATION.md` (frozen, commit `ef3f453`); `outputs/lever_b_eval/acceptance_rule_B-pooled.json`;
 `models/16_lever_b_pooled/run_summary.txt`; `docs/session-memory/2026-09-04a-lever-b-build-and-both-arms.md`.
 
+### 8.28 The bone-loss branch, audited — a crop-level validation split, and a label that is not bone loss
+
+Found 10 Oct 2026 by a review council and recomputed by its chair; `RESULTS_LOG` 2026-10-10. No
+model was run. These are two facts about Stage 4a that §6.3, §8.13, §8.18 and the manuscript get
+wrong.
+
+**1. The validation set shares every radiograph with the training set.** §6.3 describes an
+image-level split. The run that produced the shipped checkpoint did not use one: the training
+notebook found no `val/` on disk and fell back to a label-stratified, crop-level
+`train_test_split(test_size=0.2)`. Its saved output says so in one line.
+
+| | |
+|---|---|
+| validation radiographs that also supply training crops | **143 of 143** |
+| validation crops whose tooth is also in training | 543 of 1,558 (34.9%) |
+| validation positives whose tooth is a training positive's tooth | **46 of 59** |
+| distinct diseased teeth in the whole build | 153 (145 in training, 54 in validation) |
+
+The shared teeth are not duplicate files. They are the clean crop and the ±15%-jittered crop of
+one tooth, on opposite sides of the split. So 0.9233, and the 83.05% / 99.53% beside it, is
+validation on the training radiographs. It reproduces (§9, 7 Sep) and it is not a held-out
+estimate. How far it exceeds one is unmeasured.
+
+**2. The positive class is "a tooth crop that overlaps a Tufts expert abnormality mask".** That
+is the rule in the construction notebook (`overlap > 0.01`), and §6.2 treats the overlap as a
+proxy for bone lost. The Tufts expert masks mark *abnormalities* of any kind. Every diseased crop
+comes from 41 radiographs, and their expert descriptions are apical rarefying osteitis and apical
+radiolucencies (26 mention "apical"), cysts (9), sclerosis and dense bone islands (9). Four
+contain a periodontal or alveolar word, and each is an apical finding ("apical periodontitis",
+"widening of apical PDL"). Across all 1,000 Tufts descriptions, three describe periodontal bone
+loss or periodontal disease outright — **and none of those three radiographs supplies a diseased
+crop.** This is a keyword reading of free text, per radiograph. It is not a clinician's reading,
+and it was not done per mask.
+
+**What this does to §8.13.** §8.13 reads 0.923 in-domain against 2.4% external sensitivity as a
+branch that "does not generalise", and places the failure inside the Stage-4a classifier. Both
+halves of that comparison change. The in-domain half is inflated by an amount nobody has
+measured. The external half scores the model against Ningxia's periodontitis masks — a continuous
+band along the bone ridge — which is a target it was never trained on. A label mismatch predicts
+near-zero sensitivity with no domain shift at all. The detector-swap experiment still shows what
+it showed: the cause is not upstream. It no longer shows that the cause is shift.
+
+**Statements that are now false and must not reach a reviewer:**
+
+- "Splits are image-level throughout" — `main.tex` Table I caption and §Data; §6.3 here
+  (corrected in place); the root `README.md` (corrected 10 Oct).
+- Tufts "700/150/150 frozen" given as the split for "Detection, bone loss" — it is the
+  detector's split only.
+- "The bone-loss branch under domain shift" (the bone-loss figure caption), "did not transfer"
+  (Conclusion), and the abstract's 0.923-against-1.4–5.6% sentence, as written.
+
+**How to write this honestly.** There are two defensible options, and the choice belongs to the
+authors and the mentor, because the capstone's title names periodontal disease. *Cut:* remove the
+branch from the manuscript and keep one Limitations sentence saying that a second branch exists,
+was trained on Tufts abnormality masks, and was not validated as a periodontal classifier.
+*Keep:* describe it as what it is — an abnormality-proximity classifier, validated at crop
+level, whose external result is a label mismatch — and, only if kept, measure it once on Tufts
+radiographs that supplied no training crop. The masks, the boxes and all 1,000 original
+radiographs are on the macOS clone; that run needs its own pre-registration. What is not
+defensible is the current text. The same crops feed Stage 4b, whose split was not audited.
+
+Source: `RESULTS_LOG.md` 2026-10-10; `data/tufts/resampled_dataset/metadata/`;
+`notebooks/bone_loss/{02_bone_loss_dataset_construction,03_bone_loss_model_training}.ipynb`;
+`docs/session-memory/2026-10-10-state-review-council.md`.
+
 ---
 
 ## 9. What's not yet written — checklist
@@ -2366,6 +2437,14 @@ For whoever drafts the actual paper. Tick items off here as they land.
 
 **Blocking — must be done before submission**
 
+- [ ] **Decide whether the bone-loss branch stays in the manuscript, then remove the three false
+      statements about it** (§8.28, found 10 Oct 2026): "splits are image-level throughout";
+      Tufts 700/150/150 given as the bone-loss split; and "domain shift" / "did not transfer" as
+      the reading of the external periodontitis result. Authors and mentor.
+- [ ] **Add the mandatory statements — none is in `main.tex`** (checked 10 Oct 2026): authors and
+      affiliations, ethics, data availability with licences, code availability, funding, conflict
+      of interest, author contributions, and acknowledgments including the AI-use disclosure IEEE
+      requires.
 - [x] **Fold §8.27 (Lever B; §8.26 at the time this box was written) into `main.tex`.
       Done 4 Sep 2026** (RESULTS_LOG 2026-09-04i). Table I now
       reports both Stage-3a paths under one counting rule; §System gained
@@ -2568,6 +2647,12 @@ For whoever drafts the actual paper. Tick items off here as they land.
       > Drive throttles the rest), so the whole-set figure is verified for sensitivity only so far.
       > What survives unchanged is the *selection-bias* limitation — best of 32 epochs on 59
       > positives — which is a separate point and is not touched by any of this.
+
+      > **SUPERSEDED 10 Oct 2026 — do not run this on the current validation set** (§8.28,
+      > `RESULTS_LOG` 2026-10-10). That set shares all 143 of its radiographs with training, so a
+      > reliability diagram, a PR sweep or an interval computed on it would describe a leaked
+      > split. The remaining 565-crop pull is not worth finishing for the same reason. If the
+      > branch stays in the paper, calibrate on radiographs that supplied no training crop.
 - [x] Threshold sweep **for the caries gate**, reported as a PR curve — **Done 27 Aug 2026**,
       §8.15. argmax/0.50 confirmed near F1-optimal; precision 0.40 → 0.69 purchasable at
       recall 0.74 → 0.35.

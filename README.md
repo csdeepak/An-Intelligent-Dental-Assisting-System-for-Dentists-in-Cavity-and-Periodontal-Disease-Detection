@@ -34,7 +34,7 @@ Detect every tooth · number it in FDI notation · classify two pathologies per 
 > | A readable one-page overview — what was done, results, limitations, what's next | [`PROJECT_OVERVIEW.html`](PROJECT_OVERVIEW.html) — a **6 Sep 2026 snapshot**, not kept in sync; open in a browser (3-theme toggle). Internal / pre-submission. |
 > | What are the current numbers? | [`docs/results/model_metrics.md`](docs/results/model_metrics.md) |
 > | Full technical story + honest limitations (the paper is written from this) | [`docs/results/PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) |
-> | Why is it like this? What happened when? | [`docs/results/RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) — 138 dated entries, append-only |
+> | Why is it like this? What happened when? | [`docs/results/RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) — 139 dated entries, append-only |
 > | What should I work on? | [`docs/research/PUBLICATION_TODO.md`](docs/research/PUBLICATION_TODO.md), sequenced by [`MASTER_PLAN_2026H2.md`](docs/research/MASTER_PLAN_2026H2.md) |
 > | How is the documentation laid out? | [`docs/README.md`](docs/README.md) |
 > | What does the code do? | [`src/README.md`](src/README.md), [`scripts/README.md`](scripts/README.md) |
@@ -525,7 +525,7 @@ Each of those four rows is a bug that was found the hard way. See
     ├── architecture/            ← pipeline diagrams (+ drawio source)
     ├── results/
     │   ├── PAPER_MATERIAL.md    ← ★ master paper-writing document
-    │   ├── RESULTS_LOG.md       ← append-only journal, 138 entries
+    │   ├── RESULTS_LOG.md       ← append-only journal, 139 entries
     │   ├── model_metrics.md     ← one-page scoreboard
     │   ├── METHODOLOGY_CHANGELOG.md
     │   └── figures/paper/       ← 17 paper/review figures
@@ -698,9 +698,13 @@ floor existed to protect it. Adoption ≠ the bar being met; both facts are on t
 **Leakage control, applied per corpus.** 86 of 250 DENTEX evaluation images were found to be
 byte-identical duplicates of training images and excluded; the inflated 52.2% figure they produced
 was withdrawn rather than quietly restated. Ningxia was hash-checked separately against Tufts and
-each of the five DENTEX subsets. Splits are **image-level (patient-level)** everywhere — all crops
+each of the five DENTEX subsets. Splits are **image-level (patient-level)** by design — all crops
 from one radiograph, including jittered copies, stay in the same split, because a crop-level split
-leaks patient-specific exposure and anatomy.
+leaks patient-specific exposure and anatomy. **One exception was found on 10 Oct 2026: the
+bone-loss models.** The run that produced the shipped Stage-4a checkpoint fell back to a
+crop-level 20% split, so all 143 of its validation radiographs also supply training crops and 46
+of its 59 validation positives share their tooth with a training positive. Its 0.9233 is therefore
+not a held-out estimate ([`RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) 2026-10-10).
 
 **Confidence intervals by cluster bootstrap over images**, 10,000 resamples, seed 42 — resampling
 *images* rather than *teeth*, because teeth within a radiograph are not independent and a
@@ -802,6 +806,7 @@ exist. The full 25-item treatment is [`PAPER_MATERIAL.md`](docs/results/PAPER_MA
 | 11 | **Mask-aware cropping is unwired** because the mask bar was missed. | Deliberate consequence of the pre-registered bar. |
 | 12 | **No clinical validation, no IRB, and four non-engineering compliance items are open.** | ⛔ **Blocking for publication.** See below. |
 | 13 | ~~22 of 63 checkable DOIs in `source.bib` are broken~~ **RESOLVED 2 Sep.** All 22 were real papers with wrong identifiers; fixed + re-verified against the registry, `source.bib` re-audits 62 clean / 1 cosmetic. | ✅ Cleared. `outputs/citation_audit/RESOLUTION_2026-09-02.md`. Minor leftovers: a `url`-field sweep and 19 genuinely DOI-less entries. |
+| 14 | **The bone-loss branch's in-domain score is not a held-out estimate, and its label is not periodontal bone loss** (found 10 Oct 2026). All 143 validation radiographs also supply training crops; 46 of the 59 validation positives share their tooth with a training positive. A crop is positive when it overlaps a Tufts *expert abnormality mask*, and the 41 radiographs supplying every positive are described by the expert as apical lesions, sclerosis and cysts — none as periodontal bone loss. | **Open — owner and mentor decide:** cut the branch from the paper, or keep it re-described. Read rows 1, 4, 8 and 9, and every 0.9233 in this README, with this. [`RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) 2026-10-10. |
 
 ### Compliance status — read before redistributing anything
 
@@ -882,6 +887,11 @@ compliance blockers clear.** ISBI is the 24th International Symposium on Biomedi
 (S-grade by edition count); submission **26 Oct 2026**, implementation freeze **14 Oct 2026**,
 **4 pages hard**. The journal route carries the full multi-cohort + lever-fix paper that the
 4-page cap cannot. See [`transfer.md`](transfer.md) §5.
+
+> **Superseded in part, 10 Oct 2026.** JBHI has a 14-page limit and charges past 8 pages;
+> ISBI 2027 is in person only and outside India; and the department's publication guidelines
+> prefer a Scopus/WoS-indexed conference in India. Current venue thinking — NCC 2027 or
+> IEEE CONECCT 2027 first, then a journal extension — is in [`transfer.md`](transfer.md) §5.
 
 A **complete manuscript exists and compiles clean** — 0 errors, 0 overfull boxes, 0 undefined
 references — rebuilt on 28 Aug 2026 from the artefacts after a full evidence audit

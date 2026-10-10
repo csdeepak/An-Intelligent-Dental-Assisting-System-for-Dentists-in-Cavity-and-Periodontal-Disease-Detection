@@ -31,6 +31,13 @@ private, so it is no more exposed than any other doc (`docs/session-memory/2026-
 2026-09-06b, `docs/session-memory/2026-09-06f-lever-c-run-and-null.md`) — the default assignment
 is unchanged and no current-best number moved; the two stale `docs/paper/` drafts now carry
 superseded banners (§3 item 7 closed).
+**10 Oct — state-review council** (`docs/session-memory/2026-10-10-state-review-council.md`):
+the 6 Sep "feature-complete" verdict is withdrawn, §5's venue premise is corrected against the
+venues' own pages, and a bone-loss audit is logged (`RESULTS_LOG` 2026-10-10). §1, §2.5, §2.7,
+§3, §4, §5 and §8 were edited in place. Read the 10 Oct note below first.
+**11 Oct — implementation-phase council**
+(`docs/session-memory/2026-10-11-implementation-phase-council.md`): §3 now carries the ordered
+list of what is left to implement before writing, and what was deferred or refused.
 
 > **Windows clone, 6 Sep 2026 — the Tufts crop corpus was cut from the wrong frame, and is now
 > rebuilt.** It scored 11.5% crop-level FDI-exact where the published number is 71.5%, with correct
@@ -63,6 +70,25 @@ superseded banners (§3 item 7 closed).
 > the "irreproducible subset / selected maximum" limitation in `PAPER_MATERIAL.md` §8,
 > `SUBMISSION_TODO.md` and the overview **must be corrected**. The branch's *generalisation*
 > failure (2.4% external sensitivity) is a separate finding and is untouched.
+> **Read this with the 10 Oct note below, which qualifies its last two sentences.**
+
+> **10 Oct 2026 — a review council changed three things this file said.**
+> **(1) The bone-loss in-domain figure is not a held-out estimate, and its label is not
+> periodontal bone loss.** The run behind the shipped Stage-4a checkpoint used a crop-level 20%
+> split: all 143 validation radiographs also supply training crops, and 46 of the 59 validation
+> positives share their tooth with a training positive. A crop is "diseased" when it overlaps a
+> Tufts expert *abnormality* mask; the 41 radiographs supplying every positive are described as
+> apical lesions, sclerosis and cysts, and the three Tufts radiographs that are described as
+> periodontal bone loss supply none. So 0.923 reproduces but is not an estimate, and the external
+> collapse is at least partly a label mismatch. `RESULTS_LOG` 2026-10-10, `PAPER_MATERIAL.md`
+> §8.28. **Do not finish the 565-crop pull or run calibration / PR / CIs on that set.**
+> **(2) The venue premise was wrong** — JBHI caps at 14 pages and charges past 8, Computers in
+> Biology and Medicine has lost Web of Science coverage, and ISBI 2027 is in-person only. The
+> **department's publication guidelines**, received the same day, prefer a Scopus/WoS-indexed
+> conference in India and require University approval before submitting to one abroad. §5.
+> **(3) The manuscript is not feature-complete.** §3.
+> Also checked on 10 Oct: the **Tufts Drive folder still opens without signing in**; nothing has
+> been committed since 7 Sep; and the macOS clone holds all 1,000 original Tufts radiographs.
 
 **Maintenance rule (CLAUDE.md rule 5): before any substantial session ends, update this file.**
 A stale snapshot has cost this project real time more than once — see the pattern note in §4.
@@ -107,8 +133,9 @@ artefacts and all pass; `pytest` is **174/174**; `verify_invariants.py` all hold
 pre-existing overfull hboxes (cosmetic, not content). Its core finding — a tooth-level score
 cannot distinguish a real detector from an anatomical prior — held up under six cohorts, two
 metric families, and a VLM control; the project's response to it (Lever B, below) is now folded
-into the paper as a positive, pre-registered result. **What remains is not experiments — it is a
-handful of account-owner compliance actions, a venue commit, and (optionally) a length cut.**
+into the paper as a positive, pre-registered result. **What remains is still not experiments, but it is
+more than paperwork (10 Oct): manuscript corrections, a decision on the bone-loss branch, a venue
+commit with a real length cut, and the account-owner compliance actions. See §3.**
 
 Full results ledger: **§2**. What's still open and who owns it: **§3–§4**. Publication target:
 **§5**. Where each fact in the codebase lives: **§7**. Machine/environment setup for a fresh
@@ -243,10 +270,13 @@ independent external datasets, different formats, agree it collapses. Cause isol
 swap that improved every other branch (+12.0 numbering, +7.7 caries) moved this branch by
 nothing — the failure is inside the Stage-4a classifier, not shared upstream. Not fixed: the
 lever that worked for numbering (train on a second corpus) doesn't exist here — DENTEX carries
-no bone-loss labels. The 0.923 figure is a **selected maximum on a currently-irreproducible
-subset** (half the validation crops carry unsaved jitter offsets; the raw source radiographs are
-confirmed absent from every machine checked, 4 Sep) — treat as an upper bound, not a stable
-estimate. See §3 for its still-open CI gap.
+no bone-loss labels. **The 0.923 figure is not a held-out estimate** (`RESULTS_LOG` 2026-10-10).
+It is a selected maximum — best of 32 epochs on 59 positives — measured on a crop-level split
+whose 143 radiographs all also supply training crops. It reproduces (49/59 on the recovered
+crops, 7 Sep), and that is all that can be said for it. The "diseased" class is "overlaps a
+Tufts expert abnormality mask" — apical lesions, sclerosis, cysts — not periodontal bone loss, so
+the external collapse in the table above is at least partly a label mismatch rather than a
+failure to transfer. Whether this branch stays in the paper is §3 item 5.
 
 ### 2.6 All levers attempted — outcomes
 
@@ -293,9 +323,10 @@ Full detail: `RESULTS_LOG.md` 2026-09-04{i,j,k,l}; `docs/session-memory/2026-09-
    recall at the deployed confidence, 69.1% [65.5, 72.6]**, n=150. This also resolved the
    long-standing `590.JPG`/`591.JPG` train-test leak question — its effect on this statistic is
    −0.15 pp, within noise, so "document, don't re-measure" is the closed decision.
-   **The bone-loss classifiers' CI remains genuinely blocked** — the only candidate dataset on
-   this machine is flagged `DIVERGENT — do not use` by its own creator, and the original Tufts
-   radiographs needed to redo it properly were searched for directly and confirmed absent.
+   **The bone-loss classifiers' CI was recorded here as blocked. It is not blocked, and it is no
+   longer worth computing:** the crops were recovered on 7 Sep, the original radiographs are on
+   the macOS clone, and the 10 Oct audit shows that validation set shares every radiograph with
+   training (header note, §2.5).
 
 Checks after all of the above: `verify_paper_numbers.py` **127/127**, `pytest` **174/174**,
 `audit_citations.py` 30 commands / 27 keys all resolve, manuscript **14 pages**, 0 errors, 0
@@ -309,23 +340,58 @@ undefined refs.
 in Track B (further levers) is queued or approved — do not start GPU work without a fresh
 pre-registration and explicit go-ahead.
 
-**The manuscript is feature-complete (next-steps council, `docs/session-memory/2026-09-06c`).**
-No new experiments or sections before submission. What stands between here and submitting is
-**not engineering** — it is items 1–4 below, and the single highest-leverage action is a
-**one-hour mentor meeting**: commit the venue (re-verify Scopus first), fill authors/affiliations,
-delegate the two live compliance breaches (§4). The binding risk to an S-grade outcome is the
-Tufts Drive licence breach (§4), not any remaining number.
+**The manuscript is not feature-complete.** A 10 Oct council
+(`docs/session-memory/2026-10-10-state-review-council.md`) withdrew the 6 Sep verdict that it
+was. The manuscript compiles and its 127 numbers check, but it states a split that one branch did
+not use, names that branch for a disease its labels do not contain, carries none of the mandatory
+statements, and is 14 pages against venues that cap or charge. **None of that needs a new
+experiment.** It needs decisions and edits — items 1–5 and 9–10 below. The single
+highest-leverage action is the one the 6 Sep council named and nobody has scheduled: a
+**one-hour mentor meeting** on the venue, the authors, the bone-loss branch and the two live
+compliance breaches (§4). Nothing has been committed to this repository since 7 Sep.
+
+*"You" in the table below is the repo owner; those rows were written on his machine.*
 
 | # | Item | Owner | Status |
 |---|---|---|---|
-| 1 | Venue commit (journal primary — IEEE JBHI / Computers in Biology and Medicine; ISBI 2027 as an optional 4-page cut if compliance closes by mid-Oct) | You / mentor | **Open** — gates whether any length cut is even needed |
+| 1 | Venue commit. Recommendation as of 10 Oct, after the department guidelines (§5): **a conference in India first** — IEEE CONECCT 2027 (15 Dec), or NCC 2027 (16 Oct) only if everyone commits by 12 Oct — **then the journal as its extended version**; ISBI 2027 dropped | You / mentor | **Open** — asked for on 6 Sep, still not done. Every venue checked needs a length cut; the conference route needs six pages |
 | 2 | Authors and affiliations, still `Unknown` in `main.tex` | You | **Open** |
 | 3 | Title / thesis / whether the abstract's "four things a constant cannot do" becomes five | You | **Open, deliberately untouched** — Lever B's localisation result arguably earns a fifth axis, but that's a thesis-scope call, not an engineering one |
 | 4 | Four compliance blockers (§4) | Account owner | **Open**, two are live breaches |
-| 5 | Bone-loss classifiers' CI gap | Whoever has/finds the original Tufts radiographs | **Blocked** on missing source files, not on decision |
-| 6 | Docker rebuild (image predates the Lever B caries-method wiring) | Anyone | **Not attempted** — Docker Desktop is installed on this machine but its daemon wasn't running when checked |
+| 5 | Bone-loss branch: cut it from the manuscript, or keep it re-described (§2.5, `PAPER_MATERIAL.md` §8.28) | You / mentor | **Open — a decision, 10 Oct.** The CI gap this row used to track is moot: that validation set shares every radiograph with training |
+| 6 | Docker rebuild (image predates the Lever B caries-method wiring) | Anyone | **Done 7 Sep 2026** on the Windows machine, built and smoke-tested (`RESULTS_LOG` 2026-09-07c) |
 | 7 | Retire or mark-superseded `docs/paper/{manuscript.md,draft_spine.md}` | Anyone | **Done 6 Sep 2026** — both now open with a banner naming their stale numbers (gate-only Stage 3a, 0.488, 61.2 M) and pointing at `paper/main.tex`; kept per rule 3. `docs/README.md` says quote `main.tex`, never these |
 | 8 | `docs/research/{PUBLICATION_TODO.md,MASTER_PLAN_2026H2.md}` | Anyone | Not re-synced with this file's current state — their own status blocks predate Lever B entirely; treat this file as authoritative until they're refreshed |
+| 9 | Correct `main.tex`: the three false bone-loss statements (image-level splits, 700/150/150 as the bone-loss split, "domain shift"); add the mandatory statements — ethics, data and code availability, funding, conflict of interest, contributions, acknowledgments with the AI-use disclosure IEEE requires | Owner — needs LaTeX, which the macOS clone does not have | **Open, blocking (10 Oct).** Line-by-line list in the 10 Oct session file |
+| 10 | Reviewer-risk edits that need no experiment: the Conclusion never mentions Lever B; "the radiograph is never read" is untrue of the localisation tables, where the constant's teeth are placed with the pipeline's own boxes and numbering; the claim that none of the 49 surveyed papers reports an image-blind baseline was never counted | Owner | **Open (10 Oct)** |
+| 11 | Two analyses from saved artefacts, no inference: per-hospital paired intervals for Lever B (point estimates beat the constant at all four hospitals; test1 by 1.6 pp), and an interval on the headline F1 gap (0.320 vs 0.294) | Anyone with the repo | **Open, small (10 Oct)** |
+| 12 | Refresh `docs/paper/SUBMISSION_TODO.md` — status date 28 Aug, stale in both directions | Anyone | **Open** — corrective banner added 10 Oct, list not rewritten |
+
+**Implementation phase — order set by an 11 Oct council
+(`docs/session-memory/2026-10-11-implementation-phase-council.md`). Time box: two working days on
+the macOS clone, then write.** Nothing here needs a GPU, the Windows machine or the mentor.
+
+| Order | Item | Blocks writing? |
+|---|---|---|
+| 1 | Commit the 10 Oct documentation edits | Yes |
+| 2 | One pre-registration covering items 3–5, committed before any of them runs | Yes |
+| 3 | Interval on the headline F1 gap (constant 0.320 vs pipeline 0.294, 164 images). Saved outputs only. If it includes zero, the abstract says "not separable on F1" | Yes |
+| 4 | Per-hospital intervals on Ningxia, lesion detector vs constant and vs gate. Saved outputs only. Estimation with no bar — the point estimates have been seen, and the pooled verdict is not reopened | Yes |
+| 5 | The adopted lesion detector's own score on the headline FDI-set F1. Table I still scores the retired gate. One CPU pass over the 164 images, run once, printed whichever way it falls | Yes |
+| 6 | Stage-4 wording in the report, the overlay and the app: an abnormality-proximity flag, not a periodontal finding. Additive, schema 1.2, field names unchanged. The app currently shows a "Bone loss" column and renders no Stage-4 caveat at all | No — it makes the capstone defensible |
+
+Put new artefacts under `outputs/lever_b_eval/` and `outputs/c1_vlm/`, which are already
+whitelisted in `.gitignore`; anything elsewhere under `outputs/` is ignored and the paper-number
+verifier would then fail on the other machine.
+
+**Deferred until after submission:** a leak-free in-domain score of the frozen Stage 4a on the
+roughly 290 never-used Tufts radiographs with a non-empty expert mask (journal and capstone value
+only); an invariant that training and validation manifests share no radiograph; the `--tag` /
+`--out` fix in `ningxia_external.py`, before the next Ningxia run. **Refused:** retraining
+Stage 4 on a clean split (it would validate the wrong label cleanly, and re-pin hashes, parameter
+counts and the Docker image); the DENTEX periapical test; a new periodontal corpus; a
+lesion-detector calibration curve on DENTEX (not well-defined there — unmatched flags are not
+known false positives); any numbering or detector work.
 
 **Engineering follow-ups, all small, none blocking:** fold the (now-closed) bibliography and
 periodontitis-CI work into any downstream summary docs that quote the old numbers; decide
@@ -367,7 +433,7 @@ depends on this.
 
 | Decision | Why it needs a human |
 |---|---|
-| **⚠️ Tufts licence breach, live.** A Drive folder holding the raw release was found browsable without signing in; the licence forbids exactly this. Restrict it; keep Tufts local-only; share the release *form*, not the files. | Account owner's action; real submission risk |
+| **⚠️ Tufts licence breach, live — re-checked 10 Oct 2026: the folder still opens without signing in.** A Drive folder holding the raw release was found browsable without signing in (first recorded 26 Aug); the licence forbids exactly this. Restrict it — do not delete it; keep Tufts local-only; share the release *form*, not the files. Anything still needed from it should be fetched by a signed-in, named account after it is restricted. | Account owner's action; real submission risk |
 | **⚠️ SDH clinic data de-identification is void, live, and confirmed present on two copies.** `metadata/index.csv` sits beside `images/` on both the shared Drive tree *and* the local `D:\SDH dataset\dataset\` copy on this machine (re-checked directly 4 Sep). No clinic-derived number appears anywhere in this project, and none should until this is fixed. | Drive/account owner — this is clinical data governance, not a file-move I should do unilaterally |
 | **IRB paperwork** | Not started. Longest lead time of anything open. Needed only if clinic data is ever used in a result. |
 | **Is the Tufts mirror-numbering finding novel?** Not established — the source paper (Panetta et al., IEEE JBHI 2022) is paywalled and unread. | Needs someone with IEEE Xplore access; a 5-minute read, not a research task |
@@ -377,7 +443,9 @@ depends on this.
 
 **Do NOT do:** train on or tune against Ningxia — it is this paper's single strongest piece of
 evidence specifically because it is untouched. No further GPU spend without a written
-pre-registration, same discipline as every lever above.
+pre-registration, same discipline as every lever above. Added 10 Oct: do not finish the 565-crop
+bone-loss pull through the public link, do not run calibration / PR / CIs on that validation set
+(§2.5), and do not write a 4-page ISBI draft "just in case" (§5).
 
 ---
 
@@ -390,19 +458,70 @@ pre-registration, same discipline as every lever above.
 | **B** | Newer/lower-tier conference, 1st–5th edition |
 | **C** | No publication secured |
 
+### Department publication guidelines — received 10 Oct 2026
+
+Sent to all capstone students at the direction of the Chairperson, CSE Department. Recorded here
+because they constrain the venue as much as the grade table does.
+
+1. **High-rated conferences.** Identify and publish in high-rated, reputed conferences relevant
+   to the area of research.
+2. **Conferences in India are preferred** — ones indexed in Scopus and/or Web of Science.
+3. **A conference outside India needs prior University approval** — before the paper is
+   submitted and before any financial commitment is made.
+4. **Reimbursement.** A publication presented at a conference that meets the criteria may be
+   reimbursed, subject to University rules, approval procedures and eligibility.
+5. **Verify the indexing.** Guides and students must check the proceedings' current Scopus / WoS
+   status before submitting; it can differ between editions of the same conference.
+
+Obtain the necessary approvals in advance.
+
+**What this changes.** The guidelines speak only of conferences. The grade table still lists a
+journal as S and nothing in the guidelines withdraws that — but whether a journal paper still
+counts, and whether it can be reimbursed, is a question for the mentor, not an assumption. A
+conference held in India, in its 10th edition or later, with indexed proceedings, satisfies both
+documents at once.
+
 **Current decision (2 Sep 2026 council, supersedes an earlier 1 Sep ISBI-primary framing):**
-**journal primary** — full paper to IEEE JBHI or Computers in Biology and Medicine (both S-grade,
-no page limit; re-verify Scopus indexing on the official source list before submitting, it
-moves). A cut ISBI 2027 short paper (protocol + Lever-B headline) runs in parallel **only if**
-the compliance blockers close by mid-October — ISBI's 4-page hard cap fights the paper's current
-14 pages of results. ISBI 2027 submission deadline **26 Oct 2026** if pursued.
+**journal primary. No venue has been committed since.** That council named IEEE JBHI or
+Computers in Biology and Medicine as "both S-grade, no page limit", with an ISBI 2027 short paper
+"in parallel". Checked on 10 Oct 2026 against the venues' own pages, those premises do not hold:
+
+| Venue | What is true (checked 10 Oct 2026) |
+|---|---|
+| IEEE JBHI | **14-page limit**, supplementary material included. Mandatory charges past 8 pages: $250 a page for pages 9–10, $350 a page from page 11. The current 14 pages would cost **$1,900**; 8 pages cost nothing. Needs the journal class — `main.tex` is in conference class. |
+| Computers in Biology and Medicine | On hold with Clarivate since April 2024; **Web of Science coverage discontinued 17 Nov 2025**. Reported still in Scopus by a third-party post of 6 Jan 2026 — Scopus's own source list was not checked. Usable only if the college accepts Scopus without SCI(E). |
+| ISBI 2027 | Deadline **26 Oct 2026**. All technical content in four pages; a fifth ($200) for ethics, acknowledgments and references only. **In person only, Lausanne, 25–28 May 2027 — a paper not presented in person is withdrawn from the proceedings.** It must not be substantially similar to anything published or accepted elsewhere, so it cannot run "in parallel" with the journal paper. **Outside India, so it also needs University approval before submission** (guideline 3). |
+| NCC 2027 — National Conference on Communications | **33rd edition. IISc Bengaluru, 17–20 Feb 2027.** Deadline **16 Oct 2026**; notification 24 Dec 2026; camera-ready 8 Jan 2027. Six pages, IEEE conference format, **double-blind**. Technical co-sponsors: IEEE ComSoc, IEEE SPS, IEEE Bangalore Section. Topics include image, biomedical and machine-learning signal processing, so the paper is in scope — but this is a communications conference. The page does not state where the proceedings are indexed: verify (guideline 5). |
+| IEEE CONECCT 2027 | **13th edition. Bengaluru, 29–31 Jul 2027.** The home-page timeline reads: paper deadline **15 Dec 2026**, notification 15 Feb 2027. The call-for-papers page was not live on 10 Oct, so confirm the dates and the page limit when it opens. The IEEE Bangalore Section's flagship conference. |
+
+**Recommendation as of 10 Oct, for the mentor to accept or overrule.** The council that morning
+said journal first. The department guidelines arrived afterwards, and this paragraph is the
+session chair's update to that advice; it was not put back to a council. Make a conference in
+India the first submission and the journal its extended version:
+
+1. **Conference paper, six pages, caries only** — the constant baseline, the ladder, the three
+   cohorts and Lever B. That cut also takes the bone-loss branch out of the paper, which would
+   settle §3 item 5 for this submission. **IEEE CONECCT 2027** (15 Dec) is the realistic target.
+   **NCC 2027** (16 Oct) decides two months sooner and is the older venue, but it is six days
+   away: attempt it only if the mentor and both authors commit by 12 Oct.
+2. **Journal afterwards** — the extended version, carrying what six pages leave out and
+   disclosed as an extension of the conference paper. About 8 pages at JBHI costs nothing.
+   *Oral Radiology* and *Dentomaxillofacial Radiology* were proposed as cheaper first choices;
+   their limits and indexing were **not verified**.
+3. **ISBI 2027: drop.** Outside India, in person only, and sixteen days from a deadline that now
+   needs University approval first.
+
+Four questions decide the rest and only the mentor can answer them: by what date must the
+publication be secured, and does that mean submitted or accepted; does a journal paper still
+count under the new guidelines; Scopus or SCI(E); and what the reimbursement procedure needs
+before anyone registers.
 
 **Why journal over ISBI-primary:** the manuscript's spine is the evaluation-protocol
 contribution (only 2 of 49 task-relevant papers this project surveyed validate externally) with
 the lever fixes folded in as positive systems results — not a pivot to a pure systems paper. A
-journal has no page-limit fight with that spine; ISBI's 4-page cap would force cutting exactly
-the results that make the paper's case. Honest grade expectation: journal accept → S. The
-binding risk to that outcome is the compliance blockers in §4 closing, not any remaining number.
+journal gives that spine more room than ISBI's four pages, though not unlimited room (table
+above). Honest grade expectation: journal accept → S. The binding risks to that outcome are the
+manuscript corrections in §3 and the compliance blockers in §4, not any remaining experiment.
 
 ---
 
@@ -490,7 +609,7 @@ different machine than the one searched.
 | Dataset | Location | Note |
 |---|---|---|
 | DENTEX (full release + the subsets this repo uses) | `~/Downloads/Capstone/DENTEX/` (macOS) / `data/tufts/ZIP/...`-equivalent path (Windows) | Complete on both machines; subset map in `data/README.md` |
-| Tufts raw + rotated radiographs, frozen split | `data/tufts/ZIP/`, `outputs/eda_tufts/split_v1.csv` | Split is code-derived (`scripts/tufts/regenerate_split_v1.py`), reproduces byte-for-byte. Contains one documented leak (`590.JPG`/`591.JPG`) — resolved, see §2.7. **Original un-rotated `Radiographs/Radiographs/` confirmed absent from every machine checked** — this is what blocks the bone-loss CI (§3 item 5). |
+| Tufts raw + rotated radiographs, frozen split | `data/tufts/ZIP/`, `outputs/eda_tufts/split_v1.csv` | Split is code-derived (`scripts/tufts/regenerate_split_v1.py`), reproduces byte-for-byte. Contains one documented leak (`590.JPG`/`591.JPG`) — resolved, see §2.7. **The original un-rotated radiographs are on the macOS clone** — all 1,000, 1615×840, at `_repo_archive/datasets_workspace/Radiographs/` (verified 10 Oct). This row used to say they were "confirmed absent from every machine checked"; the Mac had not been checked. |
 | **Ningxia** | `D:\nangxia_dataset` (Windows, found 4 Sep, used in place) / `~/Downloads/Capstone/ningxia_local/` (macOS) | Locked external test data. **Never train or tune against it.** |
 | CariesXrays (~2 GB) | `data/cariesxrays_det/`-adjacent raw source | AAAI 2024. No LICENSE file ships with it; used under citation, recorded in `main.tex`. |
 | Clinic (SDH) data, 3,219 images (3,213 usable) | `D:\SDH dataset\dataset\` | **Contributes to no result. De-identification is void for this copy** (§4) — do not use until fixed. |

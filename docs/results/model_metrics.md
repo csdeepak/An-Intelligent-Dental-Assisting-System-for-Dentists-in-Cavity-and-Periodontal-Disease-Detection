@@ -494,6 +494,16 @@ independent ways — `models/03_.../run_summary.txt`.
 
 Validation, 1,558 crops at real-world prevalence (1,499 normal / 59 diseased).
 
+> **⚠️ Not a held-out estimate — found 10 Oct 2026, `RESULTS_LOG` 2026-10-10.** This validation
+> set is a crop-level 20% split of the training crops, not the image-level split
+> `PAPER_MATERIAL.md` §6.3 describes. All 143 of its radiographs also supply training crops, and
+> 46 of the 59 diseased crops share their tooth with a training positive. The numbers below are
+> what was measured, and they reproduce (49/59, `RESULTS_LOG` 2026-09-07); how far they exceed a
+> leak-free estimate is unmeasured. **The diseased class is also not periodontal bone loss.** It
+> is "overlaps a Tufts expert abnormality mask", and the 41 radiographs supplying every diseased
+> crop are described by the expert as apical lesions, sclerosis and cysts — none as periodontal
+> bone loss. Stage 4b below is built from the same crops; its split has not been audited.
+
 | Metric | Value | Target | Status |
 |--------|-------|--------|--------|
 | Macro F1 | **0.9233** | ≥ 0.72 | PASS |

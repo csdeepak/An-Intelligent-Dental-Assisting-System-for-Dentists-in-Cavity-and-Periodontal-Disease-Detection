@@ -5,6 +5,21 @@ before being marked. Items already satisfied are marked **DONE** with the eviden
 to-do list that reopens closed work is how this project previously lost a week
 (`CLAUDE.md` rule 4).
 
+> **Re-checked against `paper/main.tex` on 10 Oct 2026 — this list is stale in both directions.**
+> It has not been rewritten; read it with these corrections
+> (`docs/session-memory/2026-10-10-state-review-council.md`).
+>
+> - **Already done, still listed as open below:** the dataset table (Table I); the clinical
+>   interpretation subsection; the DENTEX and Ningxia licences (recorded 4 Sep, `transfer.md`
+>   §2.7); the "22 broken DOIs" blocker (resolved 2 Sep).
+> - **Open and blocking, as listed:** authors and placeholders; ethics, funding, conflict of
+>   interest, contributions and acknowledgements; data and code availability; the claim that
+>   none of the 49 surveyed papers reports an image-blind baseline. Add the AI-use disclosure
+>   IEEE requires in the acknowledgments.
+> - **New blockers that are not on this list:** the bone-loss split and label
+>   (`RESULTS_LOG` 2026-10-10 — it also overturns this file's "UNBLOCKED" banner below, since the
+>   experiment is not worth reproducing further); and the venue facts in `transfer.md` §5.
+
 Legend: **DONE** · **PARTIAL** — some of it exists, the gap is named · **OPEN** — not started ·
 **BLOCKED** — cannot be done with the data on this machine.
 

@@ -7489,3 +7489,84 @@ Nothing here changes that result.
 - **Follow-ups:** when the remaining 565 negative crops arrive, report the full macro-F1 against
   the documented 0.9233 / TN 1492 FP 7 and, if it holds, run the three §9 items this unblocks
   (calibration, PR/threshold sweep, bootstrap CIs) — each as a new entry, never by editing this one.
+
+## 2026-10-10 — the bone-loss in-domain figure is not a held-out estimate (crop-level split, every radiograph shared with training), and its positive class is not periodontal bone loss
+
+Found by a state-review council and recomputed by its chair
+(`docs/session-memory/2026-10-10-state-review-council.md`). **No model was run and no number in
+this file is re-measured.** What changes is what two existing numbers mean. Nothing is superseded
+by edit: this entry qualifies 2026-04-06's 0.9233 and everything that quotes it, including
+2026-08-27u, 2026-09-07 and 2026-09-07d.
+
+- **What was done:** two read-only audits of the Stage-4a ("bone-loss binary") data, from files
+  already on disk. (1) **The split** — from the crop manifests and the training notebook's saved
+  output. (2) **The label** — from the Tufts expert's free-text description of every radiograph
+  that supplies a positive crop.
+- **Dataset / config:** the exact sets behind the reported figure. Validation 1,558 crops
+  (1,499 normal / 59 diseased); training 3,211 rows (2,500 normal; 237 diseased plus 474 augmented
+  copies of them). The counts match `model_metrics.md` Stage 4a and the 2,500 / 711 class ratio
+  pinned in `models/README.md`.
+- **Metrics — audit 1, the split:**
+
+  | | |
+  |---|---|
+  | radiographs in validation / in training | 143 / 145 |
+  | **validation radiographs that also supply training crops** | **143 of 143** |
+  | validation crops whose tooth (radiograph + tooth title) is also in training | 543 of 1,558 (34.9%) — 46 diseased, 497 normal |
+  | **validation positives whose tooth is a training positive's tooth** | **46 of 59** (78%) |
+  | distinct diseased teeth in the whole build | 153 — 145 in training, 54 in validation |
+  | byte-identical filenames shared | 0 |
+
+  The cause is in the training notebook's own saved output: *"No val split found on disk;
+  created a 20% validation split from train/."* `_ensure_train_val_metadata` found no `val/` and
+  fell through to `train_test_split(test_size=0.2, random_state=42, stratify=label)` over crop
+  rows. It is stratified by label and **not grouped by radiograph**. The shared teeth are not
+  duplicate files — they are the clean crop and the ±15%-jittered crop of one tooth, landing on
+  opposite sides.
+- **Metrics — audit 2, the label:** a crop is labelled diseased when more than 1% of its area
+  overlaps a Tufts **expert abnormality mask** (`label = 1 if overlap > OVERLAP_THRESHOLD`,
+  threshold 0.01). Every diseased crop, training and validation, comes from **41 radiographs**.
+  Counting words in those 41 expert descriptions (not exclusive): "apical" 26, "radiolucen" 14,
+  "cyst" 9, "sclero" 9, "radiopa" 9, "impact" 4. Four contain a periodontal or alveolar word, and
+  each is an apical finding: 149 (widened periodontal ligament space continuous with an apical
+  radiolucency), 174 and 431 ("apical periodontitis"), 192 ("disuse alveolar atrophy" beside
+  apical rarefying osteitis). One, 103, has no description. **Across all 1,000 Tufts expert
+  descriptions, three describe periodontal bone loss or periodontal disease outright (205, 408,
+  488) — and none of those three radiographs supplies a diseased crop.**
+- **Key decision or insight:** three things this project says are not supported.
+  1. **"All splits are image-level"** — `paper/main.tex` Table I caption and §Data,
+     `PAPER_MATERIAL.md` §6.3, root `README.md` — **is false for the bone-loss models.** §6.3
+     describes the design; the run that produced the shipped checkpoint took the fallback. The
+     frozen 700/150/150 split is the detector's. The bone-loss models never used it.
+  2. **0.9233 is not a held-out estimate.** It is validation on the training radiographs, with
+     46 of 59 positives a sibling crop of a training positive. The 7 Sep reproduction (49/59)
+     stands as a reproduction of the *measurement* and says nothing about its validity. How far
+     the figure exceeds a leak-free one is unmeasured.
+  3. **"Periodontal bone loss" is the wrong name for what Stage 4a was trained on.** It is a
+     classifier for teeth near an expert-marked abnormality, most of them periapical. So the
+     Ningxia periodontitis result (2.4% affected-tooth sensitivity) and the 0.7% DENTEX firing
+     rate are what a label mismatch predicts. "Domain shift" and "does not transfer" —
+     `PAPER_MATERIAL.md` §8.13, `main.tex` §Results, the bone-loss figure caption, the abstract —
+     over-read them: the model is being scored on a target it was never shown. The detector-swap
+     experiment (2026-08-27) still shows the cause is not upstream; it does not show the cause
+     is shift.
+
+  `verify_paper_numbers.py` passes 127 of 127 throughout. It checks that numbers match their
+  artefacts, not that a split is what the text says it is.
+- **Source:** `data/tufts/resampled_dataset/metadata/{train_resampled_metadata,val_metadata}.csv`;
+  `notebooks/bone_loss/03_bone_loss_model_training.ipynb` (saved output of the data-loading cell,
+  and `_ensure_train_val_metadata`); `notebooks/bone_loss/02_bone_loss_dataset_construction.ipynb`
+  (label assignment); `_repo_archive/datasets_workspace/Expert/expert.json` on the macOS clone.
+  Two council members reported the split independently; the chair recomputed every figure above.
+- **What this does not establish:** the label audit is a keyword reading of free text, per
+  radiograph, not a clinician's reading per mask. The size of the inflation is unknown. Stage 4b
+  (severity) is built from the same crops and its split was not audited.
+- **Follow-ups:** (1) **A decision for the authors and the mentor, not an engineering one:** cut
+  the periodontal branch from the manuscript, or keep it re-described truthfully. Either way the
+  three statements above must not reach a reviewer. (2) **Stop** the remaining 565-crop Drive
+  pull and the three items 2026-09-07 called unblocked (calibration, PR sweep, CIs): they would
+  characterise a validation set that shares every radiograph with training. (3) If the branch is
+  kept, the one measurement worth making is a leak-free in-domain score on Tufts radiographs that
+  supplied no training crop. The masks, the boxes and all 1,000 original radiographs are on the
+  macOS clone. It needs its own pre-registration. (4) Untested: whether Stage 4a fires on DENTEX
+  *periapical-lesion* teeth, which this audit predicts it should.

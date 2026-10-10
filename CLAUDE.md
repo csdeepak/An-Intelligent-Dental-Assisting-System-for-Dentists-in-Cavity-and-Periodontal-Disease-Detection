@@ -4,14 +4,15 @@ This file is read automatically by Claude Code / Cowork sessions working in this
 It applies to every session, human-assisted or autonomous.
 
 **What this repo is:** a capstone research project — an OPG (panoramic dental X-ray)
-analysis pipeline. YOLOv11l detects teeth, they are numbered in FDI notation, and two
-ResNet18 branches classify caries (DENTEX) and periodontal bone loss (Tufts) per tooth.
+analysis pipeline. YOLOv11l detects teeth, a ResNet18 head numbers them in FDI notation, a
+YOLOv11l lesion detector finds caries (the earlier ResNet18 caries gate is retained behind
+`--caries-method gate`), and a ResNet18 branch trained on Tufts expert masks covers bone loss.
 Start at **`docs/README.md`** — it is the entry point for the documentation layout.
 For current model numbers see `docs/results/model_metrics.md`; for the full technical
 picture and the honest limitations, `docs/results/PAPER_MATERIAL.md`.
 
 This is a research repo whose output is a paper. **Undocumented results are lost results.**
-The three rules below exist because the root `README.md` once spent three months claiming
+The rules below exist because the root `README.md` once spent three months claiming
 finished models were "in progress".
 
 ---
@@ -64,18 +65,24 @@ writes both.
 
 Notebooks, checkpoints, run directories, raw data, exploratory scripts and old diagrams are
 **never** deleted, and never `git rm`'d into oblivion. If something must leave the tracked
-repo, **relocate** it to `_repo_archive/`, which is a sibling of this repo:
+repo, **relocate** it to `_repo_archive/`, which sits at the root of this repo:
 
 ```
-Capstone/Deepak impleentation/
-├── An-Intelligent-Dental-Assisting-System-.../   <- this repo
-└── _repo_archive/                                <- outside git, never staged
-    └── ARCHIVE_MANIFEST.md
+An-Intelligent-Dental-Assisting-System-.../       <- this repo
+└── _repo_archive/
+    ├── ARCHIVE_MANIFEST.md                       <- tracked, with a few small files
+    └── datasets_workspace/, ...                  <- bulk: gitignored, never staged
 ```
 
 Record every relocation in `_repo_archive/ARCHIVE_MANIFEST.md`: original path, size, why it
-moved, and the `mv` command that restores it. Use `mv`, never `rm`. The archive is
-deliberately outside the working tree so it can never be picked up by `git add`.
+moved, and the `mv` command that restores it. Use `mv`, never `rm`.
+
+The archive is inside the working tree, so nothing protects it from `git add` except
+`.gitignore`. **When you add a subfolder to it, add that subfolder to the "Archive ignores"
+block of `.gitignore` in the same change, and confirm with `git status` that nothing new shows
+up.** *(Corrected 10 Oct 2026: this rule and the manifest header used to describe a sibling
+folder outside git. Git has tracked `_repo_archive/ARCHIVE_MANIFEST.md` at the repo root since
+`0fd5741`, 19 Aug 2026.)*
 
 ## 4. House conventions
 
@@ -90,11 +97,13 @@ deliberately outside the working tree so it can never be picked up by `git add`.
   next to large untracked data directories.
 - **No large binaries in commits.** Model weights above ~50 MB stay on local disk and in
   the archive, and are `.gitignore`d — record where they live in the relevant
-  `models/<NN>_<name>/run_summary.txt` instead. *(Exception, 3 Sep 2026: the three `DEF_*`
-  checkpoints `models/{09,10,11}` — 43/43/53 MB — are committed via `.gitignore` exceptions so
-  the Windows collaborator's clone runs the pipeline without a Drive round-trip. Private repo;
-  `transfer.md` §4 records it and how to undo. This does not open the door to committing other
-  weights — the lever weights, `models/06`, and anything new stay out.)*
+  `models/<NN>_<name>/run_summary.txt` instead. *(Exceptions, 3–4 Sep 2026: the `DEF_*`
+  checkpoints `models/{09,10,11}` and, once Lever B was adopted, `models/16` — plus `models/14`,
+  its single-corpus arm — are committed via `.gitignore` exceptions so a fresh clone runs the
+  pipeline without a Drive round-trip. Three of them are over the line: `models/11` at 56 MB,
+  `models/14` and `models/16` at 51 MB each. Private repo; `transfer.md` §4 records it and how
+  to undo. This does not open the door to committing other weights — `models/06`, the
+  `models/{13,15,17}` ablation weights, and anything new stay out.)*
 - **No new file paths containing spaces.** `notebooks/Bone Loss/` was renamed to
   `notebooks/bone_loss/` for exactly this reason.
 - **Do not "fix" a stale status table by guessing.** Verify against notebook outputs and
@@ -111,17 +120,18 @@ are `docs/results/RESULTS_LOG.md` (append-only, never edit an entry) and
 `docs/session-memory/` (one file per session, never edit a previous one). Do not duplicate
 their content here; `transfer.md` links to them.
 
-A stale snapshot is worse than no snapshot. It has already cost this project one wasted
-search — see `transfer.md` §6.
+A stale snapshot is worse than no snapshot. It has cost this project real time more than once:
+a wasted search for files that were never lost, and a month in which it called the manuscript
+feature-complete (`docs/session-memory/2026-10-10-state-review-council.md`).
 
 ## 6. Current state — pointer only
 
 **Do not maintain project status here.** This section goes stale faster than anything else in
 the repo, and has twice described a closed item as open. The authoritative snapshot is
 **`transfer.md`** (§1 "Where we are"); the authoritative history is
-`docs/results/RESULTS_LOG.md`; the authoritative work list is
-`docs/research/PUBLICATION_TODO.md` (status block at the top), sequenced by
-`docs/research/MASTER_PLAN_2026H2.md`, which supersedes the other planning docs for ordering.
+`docs/results/RESULTS_LOG.md`; the authoritative work list is `transfer.md` §3.
+`docs/research/PUBLICATION_TODO.md` and `docs/research/MASTER_PLAN_2026H2.md` are the original
+plan and have not been re-synced since before 4 Sep 2026 — read them for intent, not status.
 
 The only durable facts worth repeating here, because they shape almost every task:
 
@@ -131,12 +141,22 @@ The only durable facts worth repeating here, because they shape almost every tas
   the honest per-stage numbers, including the ones that collapse out-of-domain, are in
   `transfer.md` §1–§2.
 - **Model weights live under `models/<NN>_<name>/`, and which checkpoint is the pipeline
-  default changes** — as of 26 Aug the Stage-2 head is v2.0 (`models/10_fdi_head_dentex_tufts_v2/`),
-  with v1.0 retained and hash-pinned. Read `models/README.md` and the `DEF_*` defaults in
-  `run_inference.py` rather than assuming. Two checkpoints exceed 50 MB and are Drive-only —
-  `docs/EXTERNAL_DRIVE.md` says which and where.
+  default changes** — the Stage-2 head became v2.0 on 26 Aug and the Stage-3a caries default
+  became the lesion detector (`models/16_lever_b_pooled/`) on 4 Sep, each with its predecessor
+  retained and hash-pinned. Read `models/README.md` and the `DEF_*` defaults in
+  `run_inference.py` rather than assuming. Every `DEF_*` checkpoint is in git; the superseded
+  detector (`models/06`) and the ablation weights (`models/{13,15,17}`) are not —
+  `docs/EXTERNAL_DRIVE.md` and each `run_summary.txt` say where they live.
 - **Ningxia is external test data.** Never train on it, never tune on it
   (`MASTER_PLAN_2026H2.md` §4.1).
+- **Two documents constrain where this work can be published, and both are in `transfer.md`
+  §5.** The grade table: a journal, or a conference in its 10th edition or later, for an S. The
+  department guidelines of 10 Oct 2026: prefer a Scopus/WoS-indexed conference held in India; a
+  conference outside India needs University approval *before* submitting or paying anything;
+  and the indexing of the specific edition must be verified first. Check both before proposing
+  a venue.
+- **Several files here use CRLF line endings and the rest use LF** (`transfer.md` §7 lists
+  which). Edit in place and never run a blanket line-ending normaliser.
 - The Universal→FDI lower-arch bug is **fixed** (`f8b31f8`), regression-tested in
   `tests/test_fdi_converter.py`. It was described as open in five places long after it closed
   — rule 4's failure mode running in reverse. Verify before you write, in both directions.
