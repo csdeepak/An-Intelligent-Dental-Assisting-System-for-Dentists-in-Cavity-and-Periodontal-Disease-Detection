@@ -207,6 +207,10 @@ outputs/eda_tufts/*
 # bootstrap between arms reproducible, same reason as the cariesxrays_external_* rules.
 !outputs/lever_b_eval/
 !outputs/lever_b_eval/**
+# Interval analyses for the caries tables (11 Oct 2026): the pre-registration, the two
+# pipeline-arm prediction files and the bootstrap results. JSON/MD only, no weights.
+!outputs/caries_intervals/
+!outputs/caries_intervals/**
 !outputs/cariesxrays_external_lever_b_b_pooled/
 !outputs/cariesxrays_external_lever_b_b_pooled/**
 !outputs/cariesxrays_external_lever_b_b_single/
