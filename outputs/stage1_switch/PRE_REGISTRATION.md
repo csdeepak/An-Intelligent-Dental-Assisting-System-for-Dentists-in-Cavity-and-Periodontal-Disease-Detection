@@ -200,3 +200,61 @@ same teeth flagged more or less often.
 told and that rows F and G run regardless. §4 requires the results entry to say so.
 
 Nothing else in this file changes. S1 (§5) does not involve row G.
+
+---
+
+## Amendment 2 — five further rows, for rebuilding the manuscript (11 October 2026, 20:45 IST)
+
+**State when written.** Rows A–H have run, been read and been logged (`RESULTS_LOG` 2026-10-11g,
+-h, -i). The default has changed. The decision owner has chosen to rebuild the manuscript on the
+current front end (`docs/paper/SUBMISSION_TODO.md` §1, option A). **None of rows I–M has been
+run.** Committed before any of them starts.
+
+**What these rows are for.** `paper/main.tex` reports five things the matrix did not measure
+under the current front end. These rows measure them, under both detectors, on this machine, so
+that every table of the rebuilt manuscript comes from one front end and one machine. **They are
+not a test. Nothing here can change the default, the decision, or any earlier verdict.**
+
+**Already seen, and bearing on these rows.** Row B's totals for both detectors, so row I's
+"correct" and "not detected" buckets and row J's full-coverage accuracy are known. That on the 660
+DENTEX teeth both detectors find, arm3c's boxes give 41 wrong codes (2026-10-11c). Row G's pooled
+Stage-4 counts, of which row L is a breakdown. arm3c's Tufts test box mAP as measured on the
+training machine, 0.5852, which row M repeats. **Not seen:** how arm3c's wrong codes divide
+between buckets; any numbering-head confidence under arm3c; any Stage-4 output on DENTEX under
+either current detector; the per-hospital Stage-4 split under arm3c.
+
+| Row | What | How | The `models/11` control must give |
+|---|---|---|---|
+| I | Numbering failure taxonomy, DENTEX, 936 teeth | `stage2_failure_taxonomy.py` on the rows row B saved. No inference | 936 teeth, 547 correct, 273 not detected — exact (row B, this machine). Other machine: 546 / 275 / 89 off-by-one / 10 same-quadrant-far / 8 mirrored / 6 wrong arch / 2 other; a bucket more than 14 teeth (1.5% of 936) away stops the row |
+| J | Coverage–accuracy for numbering | `c4_coverage_accuracy.py --rows` on the same rows. No inference. Threshold 0.30, registered 28 Aug: located, never tuned | 663 teeth, 547 correct at full coverage — exact. Other machine: 0.826 at full coverage, 0.885 at 75% (+5.91 pp [+3.88, +7.68]), 90.8% coverage and 0.847 at the threshold; a difference above 1.5 pp stops the row |
+| K | Stage-4 flags on DENTEX, 164 images, through the pipeline as shipped, CPU | the driver in `run_matrix.sh` (`load_models`, `run_pipeline`) | 164 images. **No reference exists.** The manuscript's 0.7% (2 of 299 teeth) is a 12-image run of 24–25 Aug with the bbox detector, two front ends ago. It is printed beside the result, not gated on |
+| L | Stage-4 flag rate per Ningxia hospital | analysis of row G's saved files. **Ningxia is not scored again** | 320 / 297 / 50 / 69 images — exact. Other machine: 79 of 3,285, 34 of 2,462, 23 of 411, 29 of 633; a flag-rate difference above 1.5 pp stops the row |
+| M | Tufts test box mAP@0.5, 150 images, the detectors' own label frame | the call `train_multicorpus_detector_v2.py` made on 3 Sep, on CPU. Control B (Tufts-only, same recipe) first, then arm3c | Control B 0.7243 and arm3c 0.5852, both from the training machine; each must come within 1.5 pp here |
+
+Row M has no `models/11` run. That model is a segmentation model validated against polygon
+labels, and its 0.810 is on a different label set from the one both Lever A detectors were scored
+on. The like-for-like pair is Control B and arm3c, and the manuscript states the cost that way.
+
+**What is reported, fixed now.**
+
+- **Row I.** All seven buckets for both detectors; the share of wrong codes that are off by one;
+  the share of detected teeth placed in a wrong quadrant. In-domain for arm3c, and labelled so.
+- **Row J.** Accuracy at 100, 90, 75 and 50% coverage; the gain at 75% with its interval and its
+  shuffled control; coverage and accuracy at 0.30; and that coverage restated over teeth present
+  (coverage × detection recall). **The threshold stays at 0.30 whatever it gives.** If under
+  arm3c it retains nearly every tooth, or the gain's interval includes zero, that is what is
+  reported.
+- **Row K.** Flagged over detected teeth with a cluster interval for each detector, and the
+  paired difference. The 12 images of the earlier run are reported as a subset beside the 164.
+  It is a firing rate, not a sensitivity: DENTEX carries no periodontal ground truth.
+- **Row L.** Per hospital, each detector's rate with its interval, and the difference, over each
+  detector's own affected teeth (Amendment 1).
+- **Row M.** Both values and their distance from the training-machine figures. **Reproducing
+  0.585 does not touch Guard 2, which failed.**
+- **CariesXrays.** The manuscript's CariesXrays row becomes the 1,200 held-out images of row E.
+  The 1,500-image sample of 1 Sep is not re-run, and its figures, which are the previous front
+  end's, are not set beside current ones.
+
+**Forbidden,** in addition to §8: moving the 0.30 threshold; choosing between the 12-image and the
+164-image firing rate after seeing them — 164 is the figure; dropping a row because the
+manuscript reads better without it; any run on Ningxia.
