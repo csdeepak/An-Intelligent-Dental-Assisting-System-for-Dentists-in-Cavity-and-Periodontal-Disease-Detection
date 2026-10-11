@@ -6,7 +6,8 @@ obtained see `PAPER_MATERIAL.md`; for when and why it changed see `RESULTS_LOG.m
 **Last updated:** 2026-10-11 — **Stage 1 default changed** to the multi-corpus detector
 (arm3c); the re-measured numbers are in the first section below, and everything further down
 that says "pipeline" is the previous front end unless labelled. `RESULTS_LOG.md` 2026-10-11f
-(the decision) and 2026-10-11g (the measurement).
+(the decision), 2026-10-11g (the measurement), 2026-10-11h (three rounding corrections) and
+2026-10-11i (the gate pipeline against the constant under each front end).
 
 **Before that:** 2026-09-04 (night) — **Stage 3 (caries) default changed**: the lesion detector
 (`models/16_lever_b_pooled/`) replaces the gate as the pipeline default, adopted via the
@@ -69,6 +70,19 @@ gate: DENTEX **−20.67 pp [−26.39, −15.06]** (the gate is higher, flagging 
 CariesXrays +37.80 pp; Ningxia +8.39 pp [+4.06, +12.67]. The constant rises with the detector
 (+13.99, +4.12, +19.25 pp), so the rise in every column is mostly the front end. Lever B's
 4 Sep verdict is not re-decided by this table. Per hospital: `RESULTS_LOG` 2026-10-11g.
+
+**The manuscript's comparison — gate pipeline minus constant** (`RESULTS_LOG` 2026-10-11i; not
+a pre-registered comparison, computed afterwards from the same runs):
+
+| Cohort | Previous front end | arm3c |
+|---|---|---|
+| DENTEX | −4.18 pp [−8.42, −0.21], constant ahead | **+17.12 pp [+12.15, +21.89], gate ahead** |
+| CariesXrays 1,200 | −24.44 pp [−26.56, −22.36] | −22.42 pp [−24.62, −20.18], constant ahead |
+| Ningxia pooled | +0.79 pp [−3.27, +4.71] | +0.89 pp [−3.86, +5.57], not separated |
+
+**On DENTEX the order reverses with the front end; on both external cohorts it does not.** On
+FDI-set F1 the gate pipeline is likewise now above the constant (+4.27 pp [+1.58, +7.05]),
+where it was not separable from it before. DENTEX is in-domain for arm3c.
 
 **Caries, FDI-set F1** — 164 DENTEX images, 477 carious teeth. Constant: 0.320 (fixed).
 

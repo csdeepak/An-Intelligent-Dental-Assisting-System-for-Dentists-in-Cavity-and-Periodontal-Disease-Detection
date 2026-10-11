@@ -8151,3 +8151,67 @@ in the third decimal and are corrected here.
 - **Follow-ups:** unchanged from 2026-10-11g, less item (6): the manuscript's front end, the
   Docker image, `param_counts.json` with the manuscript, the Kaggle licence, and telling the
   repo owner and the mentor.
+
+## 2026-10-11i — the manuscript's own comparison under the new front end: on DENTEX the gate pipeline now scores above the image-blind constant
+
+Found while mapping `paper/main.tex` against 2026-10-11g. The matrix compared the lesion
+detector with the constant and with the gate, and each arm with itself across detectors. It did
+not compare **the gate pipeline with the constant** — which is the comparison the manuscript's
+abstract, Tables IV to VII and Conclusion are built on. Added here from the same saved runs.
+**No model was run. This comparison is not among those `outputs/stage1_switch/PRE_REGISTRATION.md`
+§7 lists; it was chosen after the matrix had been read, it is a description, and no rule reads
+it.**
+
+- **What was done:** one more paired difference in `scripts/eval/stage1_switch_intervals.py` —
+  gate pipeline minus constant, lesion agreement, each cohort and each Ningxia hospital, under
+  each front end. Same harness: paired cluster bootstrap over images, 10,000 resamples, seed 42.
+  The results file gained 14 blocks; **no existing value in it changed** (checked key by key).
+- **Dataset / config:** the committed run directories of rows C, E and F. Nothing re-run.
+- **Metrics — gate pipeline minus image-blind constant, lesion agreement.**
+
+  | Cohort | Previous front end | Current front end (arm3c) |
+  |---|---|---|
+  | DENTEX, 479 lesions | 215 vs 235: **−4.18 pp [−8.42, −0.21]**, constant ahead | 384 vs 302: **+17.12 pp [+12.15, +21.89]**, gate ahead |
+  | CariesXrays 1,200, 2,815 lesions | 895 vs 1,583: −24.44 pp [−26.56, −22.36], constant ahead | 1,068 vs 1,699: −22.42 pp [−24.62, −20.18], constant ahead |
+  | Ningxia pooled, 1,013 lesions | 412 vs 404: +0.79 pp [−3.27, +4.71], not separated | 608 vs 599: +0.89 pp [−3.86, +5.57], not separated |
+  | — test1, 134 images | −15.51 pp [−22.04, −9.19], constant ahead | −18.99 pp [−26.32, −11.84], constant ahead |
+  | — test2, 110 | +10.89 pp [+5.17, +16.67], gate ahead | +12.32 pp [+5.01, +19.20], gate ahead |
+  | — test3, 40 | +3.09 pp [−9.03, +13.33], not separated here | +1.85 pp [−10.07, +11.56], not separated here |
+  | — test4, 53 | +7.53 pp [−0.98, +15.82], not separated here | +12.37 pp [−0.50, +24.35], not separated here |
+
+  The previous-front-end column agrees with what was published from the other machine
+  (DENTEX constant − gate +4.59 pp [+0.60, +8.89]; Ningxia −0.89 pp [−4.88, +3.01]).
+- **Metrics — the same comparison on FDI-set F1,** already in 2026-10-11 and 2026-10-11g, put
+  side by side. Constant 0.320 throughout. Previous front end: constant − gate pipeline +2.61 pp
+  [−0.64, +5.99], not separable — that interval is on the published gate arm from the other
+  machine (F1 0.294); this machine's control scores 0.300, a gap of 1.95 pp with no interval
+  computed. Current front end: gate pipeline 0.362, **+4.27 pp
+  [+1.58, +7.05] above the constant**; lesion-detector pipeline 0.498, +17.80 pp
+  [+13.48, +22.02] above it.
+- **Key decision or insight:** **on development data the paper's headline reverses with the
+  front end.** `main.tex` says an image-blind constant "scored highest" and "outscored a
+  six-stage pipeline … under two unrelated metrics", and that its four systems span 0.149 to
+  0.320 "with the least informed at the top". With the multi-corpus detector, on the same 164
+  DENTEX images, the order on F1 is lesion-detector pipeline 0.498, gate pipeline 0.362,
+  constant 0.320, then the two language models; and on lesion agreement the gate pipeline leads
+  the constant by 17 pp. **The external results do not move:** on Ningxia the gate pipeline and
+  the constant are still not separated pooled, with the same swing between hospitals — the
+  constant ahead by 19 pp at test1, the gate ahead by 12 pp at test2 — and on CariesXrays the
+  constant is still ahead of the gate by 22 pp.
+  Three cautions. (1) DENTEX is in-domain for the new detector, so this is a pipeline clearing
+  the floor on its own development corpus, not evidence that it reads radiographs it has not
+  seen; the external rows are the ones that speak to that, and they are unchanged. (2) The gate
+  gets its lesion-agreement lead while flagging 1,439 teeth to the constant's 988; F1, which
+  charges for that, gives a 4 pp lead, not 17. (3) What the old headline rested on was thin:
+  the previous-front-end DENTEX interval excludes zero by one lesion (upper bound −0.21 pp,
+  1 / 479; across 40 other seeds it is −0.22 to 0.00, and −0.20 at 200,000 resamples).
+- **What this means for the manuscript.** Which front end the paper reports is no longer only a
+  question of which numbering figure to print. It decides whether the abstract's first result
+  is true of the system described. `PAPER_MATERIAL.md` §8.30 and `docs/paper/SUBMISSION_TODO.md`
+  set out both ways of writing it. Authors and mentor.
+- **Source:** `outputs/stage1_switch/stage1_switch_results.json`, keys
+  `…/deltas/"<detector>: pipeline_minus_constant-molars"`; the log beside it. Re-derived with a
+  second implementation: all 14 points agree to 0.01 pp and every bound within 0.50 pp at a
+  different seed.
+- **Follow-ups:** the Ningxia test4 lower bounds (−0.98, −0.50) sit close to zero on 53 images
+  and should be read as "not separated here", not as near-wins. Nothing else.

@@ -2526,6 +2526,31 @@ image-blind constant rose by about as much, because in that metric the constant 
 the pipeline's own boxes and codes. FDI-set F1, where the constant is fixed at 0.320: the
 default pipeline 0.376 → **0.498**, **+17.80 pp [+13.48, +22.02]** above the constant.
 
+**The paper's development-data headline depends on the front end** (`RESULTS_LOG`
+2026-10-11i; a comparison added after the matrix, from the same runs, not pre-registered).
+`main.tex` says the image-blind constant "scored highest" and "outscored a six-stage pipeline …
+under two unrelated metrics". Gate pipeline minus constant:
+
+| | Previous front end | Current front end |
+|---|---|---|
+| DENTEX, FDI-set F1 | −2.61 pp [−5.99, +0.64], not separable (published arm, other machine; −1.95 pp on this one) | **+4.27 pp [+1.58, +7.05]** |
+| DENTEX, lesion agreement | −4.18 pp [−8.42, −0.21] | **+17.12 pp [+12.15, +21.89]** |
+| CariesXrays, lesion agreement | −24.44 pp [−26.56, −22.36] | −22.42 pp [−24.62, −20.18] |
+| Ningxia pooled, lesion agreement | +0.79 pp [−3.27, +4.71] | +0.89 pp [−3.86, +5.57] |
+| Ningxia test1 / test2 | −15.51 / +10.89 pp | −18.99 / +12.32 pp |
+
+On DENTEX the order reverses: with the multi-corpus detector the pipeline is above the constant
+on both metrics, and on F1 the ladder reads lesion-detector pipeline 0.498, gate pipeline 0.362,
+constant 0.320, then the two language models. On the external cohorts nothing moves — the gate
+and the constant are still not separated on Ningxia, with the same swing between hospitals, and
+the constant still leads the gate by 22 pp on CariesXrays. So a manuscript on the new front end
+cannot open with "the constant scored highest". It can say something narrower and arguably
+stronger: *a pipeline that clears the image-blind floor on its development corpus still cannot
+be told from it at external hospitals — and clearing it at home took an in-domain detector, not
+a better caries model.* A manuscript on the previous front end keeps its headline, on an
+interval that excludes zero by one lesion on this machine, and must say the released default
+differs. Either way the claim is the authors' to choose.
+
 **How to write this honestly.**
 
 - **Say that it was a decision against the registered rule.** The manuscript's credibility
@@ -2582,7 +2607,10 @@ For whoever drafts the actual paper. Tick items off here as they land.
       of interest, author contributions, and acknowledgments including the AI-use disclosure IEEE
       requires.
 - [ ] **Decide which front end the manuscript reports, and make every table say so** (§8.30,
-      11 Oct 2026). `main.tex` describes the Tufts-only seg detector throughout; the pipeline
+      11 Oct 2026). **This decides whether the abstract's first result is true of the system
+      described:** on DENTEX the constant no longer leads the pipeline under the new front end
+      (`RESULTS_LOG` 2026-10-11i). The table-by-table list is in
+      `docs/paper/SUBMISSION_TODO.md`. `main.tex` describes the Tufts-only seg detector throughout; the pipeline
       default is now the multi-corpus detector. Either the paper is rebuilt on the new front end
       — every pipeline table re-stated from `outputs/stage1_switch/`, the decision against the
       registered rule stated, 92.8% labelled in-domain, the parameter total 95.34 M — or it

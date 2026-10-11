@@ -58,6 +58,10 @@ gate passed, the one stop rule did not fire) and `DEF_DETECTOR` is now the multi
 2026-10-11h, `docs/session-memory/2026-10-11h-switch-verification-and-corrections.md`): a fresh
 checkout of the pushed commit runs the default pipeline, every figure was re-derived by a second
 implementation, and three figures that had been mis-rounded by one digit were corrected.
+**11 Oct, night — the manuscript's own comparison was run under the new front end, and its
+development-data headline reverses** (`RESULTS_LOG` 2026-10-11i,
+`docs/session-memory/2026-10-11i-gate-vs-constant-and-submission-list.md`). §2.2, §3 and §4 edited;
+`docs/paper/SUBMISSION_TODO.md` rewritten (§3 item 12 closed).
 
 > **Windows clone, 6 Sep 2026 — the Tufts crop corpus was cut from the wrong frame, and is now
 > rebuilt.** It scored 11.5% crop-level FDI-exact where the published number is 71.5%, with correct
@@ -120,6 +124,11 @@ implementation, and three figures that had been mis-rounded by one digit were co
 > separable** (−1.30 pp [−4.64, +2.26]); DENTEX 58.4% → 92.8%, **in-domain** for the new
 > detector; default-pipeline FDI-set F1 0.376 → **0.498**, +17.80 pp above the constant;
 > lesion agreement up on all three cohorts, the constant up with it.
+> **And the paper's headline depends on which front end it reports** (`RESULTS_LOG`
+> 2026-10-11i): on DENTEX the gate pipeline is now *above* the image-blind constant on both
+> metrics (F1 +4.27 pp [+1.58, +7.05]; lesion agreement +17.12 pp [+12.15, +21.89]), where
+> `main.tex` says the constant "scored highest". On Ningxia and CariesXrays that comparison did
+> not move.
 > **Three things are now out of step and a reader must know which:** (1) `paper/main.tex`, its
 > PDF, `verify_paper_numbers.py` and `outputs/param_counts/` all describe the *previous* front
 > end; (2) the Docker image predates the change; (3) every number in §2.2 and the Lever B table
@@ -223,6 +232,15 @@ checkpoints — replaced three hardcoded literals that had drifted, 4 Sep).
 
 *Every table in this subsection is the **gate** caries path on the **previous** front end, as
 published. The same comparisons for the shipped pipeline are in §2.4.*
+
+**Under the current front end the development-data result below reverses, and the external
+ones do not** (`RESULTS_LOG` 2026-10-11i). Gate pipeline minus constant, previous → current:
+DENTEX F1 −2.61 pp (not separable; the published arm from the other machine) → **+4.27 pp
+[+1.58, +7.05]**; DENTEX lesion agreement
+−4.18 pp [−8.42, −0.21] → **+17.12 pp [+12.15, +21.89]**; Ningxia pooled +0.79 → +0.89 pp, not
+separated either way, with the same swing between hospitals (test1 −19.0, test2 +12.3 pp);
+CariesXrays −24.44 → −22.42 pp, the constant still well ahead. DENTEX is in-domain for the
+current detector.
 
 **Development (DENTEX, 164 leak-free images, 477 carious teeth):**
 
@@ -438,7 +456,7 @@ compliance breaches (§4). Nothing has been committed to this repository since 7
 | 9 | Correct `main.tex`: the three false bone-loss statements (image-level splits, 700/150/150 as the bone-loss split, "domain shift"); add the mandatory statements — ethics, data and code availability, funding, conflict of interest, contributions, acknowledgments with the AI-use disclosure IEEE requires | Owner — needs LaTeX, which the macOS clone does not have | **Open, blocking (10 Oct).** Line-by-line list in the 10 Oct session file |
 | 10 | Reviewer-risk edits that need no experiment: the Conclusion never mentions Lever B; "the radiograph is never read" is untrue of the localisation tables, where the constant's teeth are placed with the pipeline's own boxes and numbering; the claim that none of the 49 surveyed papers reports an image-blind baseline was never counted | Owner | **Open (10 Oct)** |
 | 11 | Two analyses from saved artefacts, no inference: per-hospital paired intervals for Lever B (point estimates beat the constant at all four hospitals; test1 by 1.6 pp), and an interval on the headline F1 gap (0.320 vs 0.294) | Anyone with the repo | **Open, small (10 Oct)** |
-| 12 | Refresh `docs/paper/SUBMISSION_TODO.md` — status date 28 Aug, stale in both directions | Anyone | **Open** — corrective banner added 10 Oct, list not rewritten |
+| 12 | Refresh `docs/paper/SUBMISSION_TODO.md` — status date 28 Aug, stale in both directions | Anyone | **Done 11 Oct** — rewritten, each item re-checked against `main.tex`; it now carries the table-by-table list for either front end |
 
 **Implementation phase — order set by an 11 Oct council
 (`docs/session-memory/2026-10-11-implementation-phase-council.md`). Time box: two working days on
@@ -564,7 +582,7 @@ depends on this.
 | **IRB paperwork** | Not started. Longest lead time of anything open. Needed only if clinic data is ever used in a result. |
 | **Is the Tufts mirror-numbering finding novel?** Not established — the source paper (Panetta et al., IEEE JBHI 2022) is paywalled and unread. | Needs someone with IEEE Xplore access; a 5-minute read, not a research task |
 | **Real Tufts pixels are embedded in 7 tracked notebooks on `origin/main`.** Deferred — repo is confirmed private, so this is not an active leak, but must be resolved (strip outputs, or a coordinated history rewrite) before this repo or any fork is ever made public. | Deferred by explicit prior decision; revisit before public release |
-| **Which front end does the manuscript report?** The pipeline default changed on 11 Oct; `paper/main.tex` describes the previous detector in every table. Rebuild the paper on the new front end, stating that the change went against two pre-registered verdicts — or report the previous front end and say the released default differs (`PAPER_MATERIAL.md` §8.30). | Changes the paper's tables and one of its claims; authors and mentor |
+| **Which front end does the manuscript report? It now decides the paper's headline.** Under the new front end the pipeline scores above the image-blind constant on DENTEX on both metrics, so "the constant scored highest" is true only of the previous one; the external results are the same either way (`RESULTS_LOG` 2026-10-11i). The pipeline default changed on 11 Oct; `paper/main.tex` describes the previous detector in every table. Rebuild the paper on the new front end, stating that the change went against two pre-registered verdicts — or report the previous front end and say the released default differs (`PAPER_MATERIAL.md` §8.30). | Changes the paper's tables and one of its claims; authors and mentor |
 | **The Stage-1 switch was made without the repo owner or the mentor.** It overrides two pre-registered verdicts, re-scored the locked Ningxia cohort, and put a 51 MB file into git history for good (`arm3c_best.pt`, pushed 11 Oct in `7dd3ff4`). Reverting the default is still one line; the file stays in history either way. Whether either of them has been told since is not recorded in this repo. | They own the repo and the supervision |
 | **The Kaggle "dual-labeled" licence is unstated, and the default detector was trained on it.** Acceptable for an ablation; a publication question for a shipped default. | Needs a person to ask the dataset's authors, or a decision to retrain without it |
 | **`models/11` (53 MB) is committed to git, over the ~50 MB rule-4 line, and git history keeps it forever.** Deferred by the 3 Sep handoff decision (needed for a working fresh-clone demo). To undo: `git rm --cached`, restore `.gitignore`, re-host on Drive. | Revisit before any public release |

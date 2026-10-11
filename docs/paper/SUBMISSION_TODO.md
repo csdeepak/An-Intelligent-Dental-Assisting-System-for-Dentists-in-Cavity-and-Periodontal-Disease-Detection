@@ -1,253 +1,137 @@
-# Submission to-do — cross-verified against the repository
+# Submission to-do — re-checked against `paper/main.tex`
 
-**Status date: 28 August 2026.** Every item below was checked against the actual repository
-before being marked. Items already satisfied are marked **DONE** with the evidence, because a
-to-do list that reopens closed work is how this project previously lost a week
-(`CLAUDE.md` rule 4).
+**Status date: 11 October 2026.** Rewritten from scratch; the 28 Aug list it replaces is in git
+history (`git log -- docs/paper/SUBMISSION_TODO.md`). Every item was checked against
+`paper/main.tex` as it stands — last changed 7 Sep (`fc811ca`), **14 pages** — and line numbers
+below refer to that file. Tables are named by their LaTeX label; in the built PDF `tab:fdiset`
+is Table IV, `tab:lesion` V, `tab:external` VI, `tab:cohorts` VII and `tab:leverb` VIII. Older
+notes in this repo call `tab:fdiset` "Table I", from before the Related Work table was added. Items are marked done only with the evidence, because a list that
+reopens closed work is how this project once lost a week (`CLAUDE.md` rule 4).
 
-> **Re-checked against `paper/main.tex` on 10 Oct 2026 — this list is stale in both directions.**
-> It has not been rewritten; read it with these corrections
-> (`docs/session-memory/2026-10-10-state-review-council.md`).
->
-> - **Already done, still listed as open below:** the dataset table (Table I); the clinical
->   interpretation subsection; the DENTEX and Ningxia licences (recorded 4 Sep, `transfer.md`
->   §2.7); the "22 broken DOIs" blocker (resolved 2 Sep).
-> - **Open and blocking, as listed:** authors and placeholders; ethics, funding, conflict of
->   interest, contributions and acknowledgements; data and code availability; the claim that
->   none of the 49 surveyed papers reports an image-blind baseline. Add the AI-use disclosure
->   IEEE requires in the acknowledgments.
-> - **New blockers that are not on this list:** the bone-loss split and label
->   (`RESULTS_LOG` 2026-10-10 — it also overturns this file's "UNBLOCKED" banner below, since the
->   experiment is not worth reproducing further); and the venue facts in `transfer.md` §5.
-
-Legend: **DONE** · **PARTIAL** — some of it exists, the gap is named · **OPEN** — not started ·
-**BLOCKED** — cannot be done with the data on this machine.
+Nothing on this list needs a GPU. Items marked **LaTeX** need the Windows machine; this file
+was written on the macOS clone, which cannot build the paper.
 
 ---
 
-## 🔴 Technical / Scientific
+## 1. The decision everything else waits on — which tooth detector the paper reports
 
-### Reproduce the periodontal experiment — **UNBLOCKED 7 Sep 2026 (was BLOCKED)**
+On 11 Oct the pipeline's Stage-1 default changed from the Tufts-only seg detector to a
+multi-corpus detector, by a decision against two pre-registered ablation verdicts
+(`RESULTS_LOG` 2026-10-11f, -g). `main.tex` describes the previous detector in every table.
+**The choice now decides the paper's headline** (`RESULTS_LOG` 2026-10-11i): gate pipeline minus
+image-blind constant, on the 164 DENTEX images,
 
-> The crops were recovered from the project Drive, jittered ones included, and the frozen
-> checkpoint reproduces the reported diseased-class figure **exactly: 49/59, sensitivity 0.8305**
-> (`RESULTS_LOG` 2026-09-07). The table below is the 27 Aug state and its "cannot be rebuilt"
-> reasoning was about *regenerating* the crops from source, which remains true and is now beside
-> the point. The 0.40 rebuild was a defective reconstruction (wrong box convention — 187/187
-> crops match bit-for-bit once corrected, `RESULTS_LOG` 2026-09-07b). Full macro-F1 verification
-> awaits the remaining 565 negative crops. The *selected-maximum* caveat is unaffected and stands.
-
-| sub-item | status |
-|---|---|
-| Save random seeds | DONE going forward (`seed=42` fixed in all builders) |
-| Save exact crop coordinates / jitter | **BLOCKED for the existing result** |
-| Save checkpoint / model version | DONE — hash-pinned in `verify_invariants.py` |
-| Save predictions + eval scripts | PARTIAL — scripts saved, per-item predictions not dumped |
-| Rerun and replace | **BLOCKED** |
-| If impossible, remove from primary results | **DONE** |
-
-**Why it is blocked.** 49.6% of the bone-loss validation crops (773 of 1,558) carry ±15% jitter
-applied at construction time with offsets that were never saved. Those crops are irreproducible
-*by construction*. The remaining 785 are reproducible, but a number computed on them is a new
-measurement on a clean subset, not a reproduction of the reported 0.9233.
-The original un-rotated Tufts radiographs are also absent from this machine; the rebuild attempt
-scored 0.400 sensitivity against a documented 0.831 (`RESULTS_LOG.md` 2026-08-27u, 2026-08-28c).
-
-**The fallback is already applied**: bone loss appears in the paper as a *measured negative
-result* — strong in-domain, near-inert out of domain — never as a headline capability.
-
-### Add 95% confidence intervals — **MOSTLY DONE**
-
-Already present (`model_metrics.md` "Confidence intervals", cluster-bootstrapped over **images**):
-
-| metric | point | 95% CI |
+| | Previous front end | Current front end |
 |---|---|---|
-| Detection recall | 70.6% | [66.5, 74.6] |
-| FDI exact, end-to-end | 58.3% | [53.9, 62.8] |
-| FDI exact, of detected | 82.6% | [79.1, 85.8] |
-| Lesion agreement (internal) | 44.3% | [39.0, 49.3] |
-| External site 1–4 | 28.8 / 51.3 / 40.1 / 41.9% | all four have CIs |
-| External pooled | 40.8% | [37.0, 44.8] |
-| Paired detector delta | +12.1 pp | [+6.8, +17.2] |
-| Abstention gain, Stage 2 | +5.91 pp | [+3.88, +7.68] |
-| Abstention gain, caries | +14.25 pp | [+11.32, +16.63] |
-| Constant − pipeline, internal | +4.59 pp | [+0.60, +8.89] |
-| Constant − pipeline, external | −0.89 pp | [−4.88, +3.01] |
-| Third-corpus gain, DENTEX | +1.14 pp | [+0.33, +1.95] |
+| FDI-set F1 | −2.61 pp [−5.99, +0.64] — not separable | **+4.27 pp [+1.58, +7.05]** — pipeline ahead |
+| Lesion agreement | −4.18 pp [−8.42, −0.21] — constant ahead | **+17.12 pp [+12.15, +21.89]** — pipeline ahead |
 
-**Still OPEN:** detection **mAP** and per-class **precision/recall** for the classifiers. Both need
-per-item prediction dumps, which are cheap CPU work and not yet written.
+while on Ningxia (pooled +0.79 → +0.89 pp, not separated; test1 −19.0, test2 +12.3 pp) and on
+CariesXrays (constant ahead by 22 pp) the comparison is the same either way.
 
-### Statistical uncertainty on external testing — **DONE**
-Per-site results, pooled result, and uncertainty **around the difference** are all reported.
-The per-site spread (a 26-point swing) is presented as a finding in its own right.
-
-### Clearly distinguish the metrics — **DONE**
-DENTEX uses IoU ≥ 0.30 with a centroid-containment fallback; external cohorts use centroid
-containment alone. The reason is documented in both scripts and the paper: external lesions are
-89–3,090 px focal blobs inside ~25,000 px tooth boxes, so IoU ≥ 0.30 would score ~0% *by
-construction* regardless of model quality. Which comparisons remain valid is stated with it.
-
----
-
-## 🟠 Story / Structure
-
-| item | status | note |
+| | **A — rebuild on the current front end** | **B — keep the previous front end** |
 |---|---|---|
-| Replace the title | **DECISION NEEDED** | current: *"What a Tooth-Level Score Cannot Tell You…"*. The recommended alternative is more literal and more searchable; the current one is more memorable. Pick one. |
-| One primary research question in the Introduction | **PARTIAL** | implied throughout, never stated as a single sentence |
-| 2–4 explicit hypotheses / objectives | **OPEN** | |
-| Restructure around the story arc | **MOSTLY DONE** | current order is problem → floor → baseline ladder → controls → external → implications |
-| Every Results subsection answers a Methods question | **PARTIAL** | true for the baseline sections, looser for the supporting ones |
-| Move secondary experiments out of the main story | **DONE** | |
-| Make periodontal clearly secondary | **DONE** | |
+| Headline | "The constant scored highest" becomes false. The claim becomes: a pipeline that clears the floor on its development corpus still cannot be told from it at external hospitals, and clearing it took an in-domain detector, not a better caries model | Kept, on an interval that excludes zero by one lesion on this machine |
+| Must be stated | The default was changed against two pre-registered verdicts; 92.8% numbering is in-domain; no cross-domain numbering figure exists | The released code's default differs from the system described, and why |
+| Work | Every row of §1.1, the re-measurements of §1.2, four figures re-rendered | One paragraph, and `tab:fdiset`'s pipeline row restated from one machine |
+| Paper and code agree | Yes | No |
+
+**Owner: authors and mentor. Not an engineering call.** `PAPER_MATERIAL.md` §8.30 has the
+wording rules for A.
+
+### 1.1 Option A — what changes in `main.tex`, and from which file
+
+All values are in `outputs/stage1_switch/stage1_switch_results.json` unless another file is
+named. Both detectors were run on one machine, so no row mixes machines.
+
+| Where (line) | Now | Under the current front end |
+|---|---|---|
+| Abstract (76–78) | F1 0.320 vs 0.294; lesion 0.489 vs 0.443 | Constant 0.320 vs gate pipeline 0.362 and lesion-detector pipeline 0.498; lesion agreement constant 0.630 vs gate 0.802 |
+| Abstract (79–83) | "swung 26 percentage points"; "3,421 lesions … 25 percentage points" | Swing 31 points (test1 constant +19.0, test4 gate +12.4); CariesXrays is the 1,200 held-out images, 2,815 lesions, constant +22.4 — the 1,500-image sample was not re-run (§1.2) |
+| Abstract (88–90) | lesion detector "beat the constant by 10.2 percentage points" | +9.28 pp [+4.72, +13.73] |
+| Table `tab:stages` (382–397) | YOLOv11l-seg 27.62 M; total 97.65 M; caries path 75.29 M; gate variant 83.52 / 61.16 M | YOLOv11l multi-corpus 25.31 M; 95.34 M; 72.99 M; 81.21 / 58.85 M — `outputs/stage1_switch/H_params_arm3c/param_counts.json` |
+| Speed (401) | 2.39 s per image on CPU (other machine) | 1.70 s on the macOS clone; 1.45 s there with the previous detector. State the machine |
+| Table `tab:fdiset` (748–753) | Pipeline 0.235 / 0.390 / 0.294, 61.2 M | Gate pipeline 0.237 / 0.765 / 0.362 (365 / 1,172 / 112), 58.85 M; add the default: lesion-detector pipeline 0.439 / 0.574 / 0.498 (274 / 350 / 203), 72.99 M |
+| Table `tab:lesion` (780–783) | Constant 0.489 (859 flagged); pipeline 0.443 (755); all teeth 0.722 (3,344) | Constant 0.630 (988); gate pipeline 0.802 (1,439); lesion detector 0.595 (603); all teeth 0.998 (4,132). Match rates: each run's `lesion_localization.json` under `C_dentex_*_arm3c/` |
+| Table `tab:external` (813–817) | test1 0.288 / 0.446; test2 0.513 / 0.407; test3 0.401 / 0.377; test4 0.419 / 0.323; pooled 0.408 / 0.399 | Pipeline / constant: test1 0.519 / 0.709 (+19.0); test2 0.702 / 0.579 (−12.3); test3 0.512 / 0.494 (−1.9); test4 0.624 / 0.500 (−12.4); pooled 0.600 / 0.591 (−0.89 [−5.57, +3.86]) |
+| Table `tab:cohorts` (861–863) | DENTEX +4.6 [+0.6, +8.9]; Ningxia −0.9 [−4.9, +3.0]; CariesXrays 3,421 lesions +25.2 [+23.2, +27.3] | Constant − pipeline: DENTEX **−17.12 [−21.89, −12.15]**; Ningxia −0.89 [−5.57, +3.86]; CariesXrays 2,815 lesions +22.42 [+20.18, +24.62] |
+| Table `tab:leverb` (919–921) | Gate / constant / lesion: 0.443 / 0.489 / 0.455; 0.317 / 0.562 / 0.684; 0.408 / 0.399 / 0.500 | 0.802 / 0.630 / 0.595, −3.55 [−10.11, +2.64]; 0.379 / 0.604 / 0.757, +15.38 [+12.96, +17.73]; 0.600 / 0.591 / 0.684, +9.28 [+4.72, +13.73]. Label the 4 Sep adoption evidence as the previous front end's |
+| Numbering (982–987) | 58.3% (546 / 936) [53.9, 62.8]; 29.4% never detected; 82.6% of 661 | 92.8% (869 / 936) [90.6, 94.9], **in-domain**; 4 of 936 never detected; 93.2% of 932. Add Tufts: 63.5% [59.3, 67.5], against 64.8% before, not separable |
+| Capabilities list (1239–1240), Limitations (1368–1370) | 82.6% of detected, 70.6% bound, 0.810 box mAP | 93.2% and 99.6% on DENTEX; Tufts box mAP@0.5 **0.585**, below both pre-registered guards |
+| Periodontal (1129–1135) | Fires on 0.7% of DENTEX teeth; external pooled 2.4% [2.0, 2.9] | External pooled 2.17% [1.75, 2.62] (153 of 7,049). The 0.7% and the per-site intervals were not re-measured (§1.2) |
+| Discussion (1170), Conclusion (1397) | "an image-blind constant outscored a purpose-built …"; "outscored a six-stage pipeline and two vision–language models under two unrelated metrics" | No longer true on DENTEX. Rewrite around the external result |
+| "What we propose" (1289–1290) | "our four systems span 0.149 to 0.320 with the least informed at the top" | Five systems, 0.149 to 0.498, with the constant third |
+
+### 1.2 Option A — not yet measured under the current front end
+
+All CPU, all from scripts that exist. None was part of the 11 Oct matrix.
+
+| What the paper reports | Where | Needs |
+|---|---|---|
+| Stage-2 failure taxonomy: 546 correct, 275 undetected, 89 off-by-one … | `fig:stage2`, lines 976–987 | `stage2_failure_taxonomy.py` on `outputs/stage1_switch/B_dentex_arm3c/` |
+| Coverage–accuracy for numbering, and "75% of 70.6% = 53.0%" | `fig:coverage`, lines 1047–1074 | `c4_coverage_accuracy.py` with the current detector; the 0.30 threshold stays as registered |
+| CariesXrays on the 1,500-image sample, 3,421 lesions | Abstract, `tab:cohorts` | Either re-run the constant and the gate on that sample, or move the row to the 1,200 held-out images, which the matrix covers |
+| Stage-4 firing rate on DENTEX, 0.7% | line 1130 | One pass of `bone_loss_eval.py` |
+| Stage-4 per-hospital intervals | lines 1133–1134 | A per-split loop over `G_ningxia_stage4_arm3c/`; no inference |
+| Tufts box mAP of the current detector | lines 1368, 507-area tables | 0.585 was measured on the training box on 3 Sep and not since |
+| Figures `fig_baselines`, `fig_stage2`, `fig_coverage`, `fig_boneloss` | rendered at build time | Re-point the figure scripts at the new artefacts |
+| `outputs/param_counts/param_counts.json` and `verify_paper_numbers.py` | 127 asserted numbers | Move together with the manuscript, never one without the other |
 
 ---
 
-## 🟠 Literature
+## 2. Blocking whichever front end is chosen
 
-| item | status |
+| # | Item | Evidence in `main.tex` | Owner |
+|---|---|---|---|
+| 1 | **Authors and affiliations** | `Unknown` at lines 49–53 | Authors |
+| 2 | **Mandatory statements — none is present.** Ethics; data availability with licences; code availability; funding; conflict of interest; author contributions; acknowledgments with the AI-use disclosure IEEE requires | No match for any of them | Authors — **LaTeX** |
+| 3 | **Bone-loss branch: cut it, or keep it re-described.** Three statements are false as written: "Splits are image-level throughout" (458); 700/150/150 given as its split (468, 492); "domain shift" / "did not transfer" as the reading of the external result (104, 217, 1116, 1235, 1250–1251, 1336, 1406, 1411). `PAPER_MATERIAL.md` §8.28 | Present | Authors and mentor |
+| 4 | **"No image-blind baseline in any of the 49 papers"** (181–182, 326). The review sheet has no such field; this was never counted. Soften to an observation, or count | Present | Authors |
+| 5 | **Three statements against their intervals** (`PAPER_MATERIAL.md` §8.29): "scored highest" / "outscored" (76, 1107, 1170, 1397) — the constant and the gate pipeline are not separable on F1 even on the previous front end; "It replicates on the one cohort that is genuinely external" (949) — true pooled, not at test1; Table `tab:fdiset` has no row for the lesion detector, the system the pipeline ships | Present | Authors — **LaTeX** |
+| 6 | **Reviewer-risk edits.** The Conclusion (1389–1418) never mentions the lesion detector. "The radiograph is never read" (605) is untrue of the localisation tables, where the constant's teeth are placed with the pipeline's own boxes and codes. Table `tab:fdiset`'s pipeline row (0.294) is from the other machine; this one gives 0.300 | Present | Authors — **LaTeX** |
+| 7 | **Venue and length.** 14 pages against venues that cap or charge. Department guidelines and the grade table: `transfer.md` §5. NCC 2027 closes 16 Oct at six pages, double-blind; CONECCT 2027 was read as 15 Dec | — | Authors and mentor |
+| 8 | **Compliance, account owner.** A Tufts Drive folder opens without signing in (re-checked 10 Oct) — a live licence breach. SDH `metadata/index.csv` sits beside `images/`, voiding that copy's de-identification. IRB not started. Tufts pixels in seven tracked notebooks, before the repo is ever public | `transfer.md` §4 | Account owner |
+| 9 | **The Kaggle "dual-labeled" licence** — only if §1 goes to A. The current detector was trained on that set and its authors state no licence. A detector trained without it already exists (`models/13`, Tufts + DENTEX), but adopting it is a new decision with its own record | `data/README.md` | Authors |
+
+---
+
+## 3. Not blocking
+
+| Item | State |
 |---|---|
-| Grow references from 26 to 35–50 | **OPEN** — 26 present, all verified |
-| Cover the 11 named topic areas | **PARTIAL** — dental AI, caries, periodontal, numbering, VLM, shortcut learning present; calibration, selective prediction, distribution shift, medical-AI reporting are thin |
-| Strengthen the research gap | **PARTIAL** |
-| Document or downgrade the "49 papers" claim | **MUST FIX** |
-
-**On the "49 papers" claim.** The *external-validation* count (2 of 49) is traceable to the review
-sheet. The claim that **none** report an image-blind baseline was **never actually counted** — the
-extraction has no such field. It must be softened to a targeted observation, or the census must be
-done properly. This was caught in the manuscript audit and is the single most exposed claim in the
-paper, because the whole contribution rests on that gap existing.
+| Title | Unchanged: "What a Tooth-Level Score Cannot Tell You". Under option A it may no longer fit |
+| Abstract form | Narrative by an earlier instruction; a medical journal will want it structured. A team call |
+| One research question and 2–4 hypotheses in the Introduction | Implied, not stated |
+| References | 27 cited, 83 in `source.bib`. Thin on calibration, selective prediction and reporting guidelines |
+| "external validation" → "external testing" | 8 occurrences, 0 of the replacement |
+| Terms defined at first use | FDI, mAP, ECE and coverage are not all defined |
+| Dataset-flow diagram | Absent; the dataset table exists |
+| Similarity check | Internal check done (`scripts/check_text_reuse.py`); the institutional one is pending |
+| University-format and venue-format copies | Not made |
 
 ---
 
-## 🟡 Methods / Reproducibility
+## 4. Done — do not reopen
 
-| item | status |
+| Item | Evidence |
 |---|---|
-| Dataset characteristics table | **OPEN** — all facts exist, the table does not |
-| Dataset-flow diagram (inclusion/exclusion, splits) | **OPEN** |
-| Document model, prompt, preprocessing, seed, thresholds, matching, metric impl., versions | **PARTIAL** — all live in code and are recorded per run; the paper states some, not all |
-| Code Availability section | **OPEN** |
-| Data Availability section | **OPEN** |
-
-Facts available for the dataset table: Tufts (1,000 OPGs, frozen 700/150/150), DENTEX (250 disease
-images → **164 leak-free**, 477 affected teeth, 479 lesions; 634 enumeration images), Kaggle
-dual-labeled (499 usable images, 13,166 teeth, ablation only), Ningxia (4 hospitals, 337 caries
-images, 1,013 lesions, locked external), SDH clinic (IRB-blocked, contributes to no result).
-
----
-
-## 🟡 Clinical / Scientific Interpretation
-
-| item | status |
-|---|---|
-| Add a Clinical and Evaluation Implications section, covering the five points | **OPEN** |
-| Do not claim clinical diagnostic capability | **DONE** |
-| Do not generalise the VLM findings beyond the models tested | **DONE** |
-
-The five points are already argued in the Discussion; they are not gathered under a heading a
-clinical reader would look for.
+| Dataset table | `tab:data`, line 455 |
+| Clinical interpretation section | line 1303 |
+| DENTEX and Ningxia licences | recorded 4 Sep, `transfer.md` §2.7 |
+| Broken DOIs | resolved 2 Sep, `outputs/citation_audit/` |
+| Citation audit | `scripts/audit_citations.py`; seven errors found and fixed |
+| Confidence intervals, including Ningxia periodontitis and detection quality | `model_metrics.md` "Confidence intervals"; `RESULTS_LOG` 2026-09-04l |
+| Lever B folded into the manuscript | 4 Sep, `RESULTS_LOG` 2026-09-04i |
+| Interval on the headline F1 gap; Lever B per hospital; the lesion detector on the `tab:fdiset` metric | Measured 11 Oct, `RESULTS_LOG` 2026-10-11. **Measured, not yet in `main.tex`** — item 5 above |
+| "Reproduce the periodontal experiment" | Closed as moot: the figure reproduces, and it is not a held-out estimate of a periodontal label (`RESULTS_LOG` 2026-10-10). Do not finish the 565-crop pull |
+| Stage-4 wording in the report and the demo | Report schema 1.2, `RESULTS_LOG` 2026-10-11b |
+| The pipeline under the current front end, with intervals | `RESULTS_LOG` 2026-10-11g, -h, -i |
 
 ---
 
-## 🟡 Writing
+## 5. The one item that most changes the grade
 
-| item | status |
-|---|---|
-| Rewrite the abstract as Background → Problem → Methods → Results → Conclusion | **CONFLICT — decide** |
-| Remove VLM/AI jargon from the first ~2 pages | **PARTIAL** |
-| Introduction understandable without VLM knowledge | **MOSTLY DONE** |
-| Define every technical term at first use | **PARTIAL** — FDI, mAP, ECE, coverage are not all defined |
-| Remove disconnected consecutive sentences | **PARTIAL** |
-| Every section: Why → How → What → So what | **PARTIAL** |
-| Remove rhetorical language that does not aid clarity | **PARTIAL** |
-
-**The abstract conflict, stated plainly.** The current abstract is deliberately narrative: it
-states the question and withholds the outcome, to make the reader open the paper. That was an
-explicit earlier instruction. This to-do asks for a structured Background/Problem/Methods/Results/
-Conclusion abstract, which requires giving the result away in sentence four. **Both are defensible
-and they are mutually exclusive.** Most clinical journals expect the structured form; most CS
-venues accept either. Recommendation: **structured**, if the target is a medical journal — but this
-is a call for the team, not a silent edit.
-
----
-
-## 🟢 Final publication cleanup
-
-| item | status |
-|---|---|
-| "external validation" → "external testing" | **OPEN** |
-| "reference standard" used consistently | **OPEN** |
-| Funding statement | **OPEN** |
-| Conflict-of-interest statement | **OPEN** |
-| Ethics / IRB statement | **OPEN — blocked on IRB** |
-| Author contributions | **OPEN** |
-| Acknowledgements | **OPEN** |
-| Remove `unknown@unknown`, withheld affiliations, "Others", TODOs | **OPEN** — 4 `Unknown`, 1 `unknown@unknown`, `Others` in 3 bib entries |
-| Citation audit | **DONE** — see below |
-| Plagiarism / similarity | **PARTIAL** |
-| University format + venue format copies | **OPEN** |
-
-**Citation audit — done, and it found real errors.** All 19 citation commands were checked against
-the entry each points at (`scripts/audit_citations.py`, re-runnable). Seven were wrong: two invented
-titles, one wrong publication year, one claim attributed to two papers about entirely different
-conditions, and three descriptions that did not match the cited work. Ten added entries had their
-DOIs verified against publisher records; four were wrong. No orphan or missing references remain.
-
-**Plagiarism — internal check done, institutional check pending.** `scripts/check_text_reuse.py`
-found a longest shared span of 15 words (a table row of model names and numbers) and **zero overlap
-with the team's prior survey paper** at a 6-word threshold. This is not a literature check and does
-not substitute for Turnitin/iThenticate.
-
----
-
-## 🔴 NEW BLOCKER (1 Sep 2026) — 22 of 63 checkable DOIs are broken
-
-Every DOI in `source.bib` was dereferenced against the DOI registry
-(`scripts/verify_citations_crossref.py`, read-only). **Nothing was fixed — this is the saved
-work item.**
-
-| category | count |
-|---|---|
-| clean | 40 |
-| **DOI resolves to a DIFFERENT paper** | **11** |
-| **DOI not registered with any agency** | **11** |
-| no DOI, unverifiable by this method | 19 |
-
-Full list and per-entry evidence: `outputs/citation_audit/FINDINGS.md`.
-
-**To do, per entry, for all 22:** look the work up by title, then either correct the DOI or drop
-the reference. This cannot be automated — the audit can prove a DOI is wrong but not what the
-right one is. It does **not** follow that the papers are fabricated; a real paper can carry a
-wrong identifier, and that distinction has to be made by hand.
-
-Then decide what to do about the 19 entries carrying no DOI at all.
-
-**Why this is a blocker:** a reviewer who dereferences one bad DOI checks the rest. The 28 Aug
-audit found 7 citation errors including two invented titles and still passed all 22 of these,
-because `audit_citations.py` makes no network call — it prints citations for eye-review. An audit
-that cannot fail is not an audit.
-
-Re-run: `python scripts/verify_citations_crossref.py`
-
----
-
-## The four items that block submission regardless of the above
-
-None are engineering, and all are account-owner actions:
-
-1. **IRB not started** — longest lead time of anything open. Gates the ethics statement *and* the
-   reader study.
-2. **A Tufts Drive folder is browsable without sign-in** — the licence forbids redistribution.
-   This is a live breach, not paperwork.
-3. **DENTEX and Ningxia licences never read or recorded** — required for the Data Availability
-   section.
-4. **SDH `metadata/index.csv` sits beside `images/`** — voids that copy's de-identification.
-
-## The one item that most changes the grade
-
-**A reader study.** Protocol is written and runnable the day IRB clears (100 images, 2–3 dentists,
-the same scorer as every machine arm, with the constant included in the comparison). Without it
-the paper rests on methodology against modest numbers. With it, it has external testing across four
-hospitals *and* a clinician reference — a combination that is uncommon in this literature.
+**A reader study.** The protocol is written and runnable the day IRB clears: 100 images, two or
+three dentists, the same scorer as every machine arm, the constant included. Without it the
+paper rests on methodology against modest numbers. IRB is the longest lead time of anything
+open, and it has not been started.

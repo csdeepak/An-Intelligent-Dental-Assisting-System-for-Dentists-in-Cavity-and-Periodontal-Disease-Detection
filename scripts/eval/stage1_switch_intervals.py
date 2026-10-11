@@ -179,6 +179,11 @@ def lesion_row(row):
             for comp in ("constant-molars", "pipeline"):
                 out["deltas"][f"{det}: lesion-detector_minus_{comp}"] = delta(
                     sub[det][comp], sub[det]["lesion-detector"], AGREEMENT)
+            # Added after the matrix (RESULTS_LOG 2026-10-11i) and NOT among the comparisons
+            # PRE_REGISTRATION.md Sec 7 lists: the manuscript's own gate-vs-constant comparison
+            # (its Tables IV-VII), from the same saved runs. A description; no rule reads it.
+            out["deltas"][f"{det}: pipeline_minus_constant-molars"] = delta(
+                sub[det]["constant-molars"], sub[det]["pipeline"], AGREEMENT)
         for dec in c["decisions"]:
             out["deltas"][f"{dec}: arm3c_minus_m11"] = delta(
                 sub["m11"][dec], sub["arm3c"][dec], AGREEMENT)

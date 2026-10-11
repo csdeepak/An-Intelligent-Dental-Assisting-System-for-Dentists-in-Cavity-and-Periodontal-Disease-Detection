@@ -31,6 +31,9 @@ Detect every tooth · number it in FDI notation · classify two pathologies per 
 > (`RESULTS_LOG` 2026-10-11f), and the pipeline was re-measured with both detectors on one
 > machine (2026-10-11g). End-to-end numbering: Tufts 64.8% → 63.5% (not separable), DENTEX
 > 58.4% → 92.8% (**in-domain** for the new detector). Default-pipeline caries F1 0.376 → 0.498.
+> With it the pipeline scores *above* the image-blind constant on DENTEX — the reverse of this
+> page's headline finding — while on the external cohorts that comparison is unchanged
+> (`RESULTS_LOG` 2026-10-11i).
 > **The rows marked 11 Oct below are current. The figures, the manuscript, the Docker image and
 > every other "pipeline" number on this page describe the previous front end**, which is
 > retained and selectable: `--detector models/11_yolo_seg_tufts_r1/best.pt`.
@@ -45,7 +48,7 @@ Detect every tooth · number it in FDI notation · classify two pathologies per 
 > | A readable one-page overview — what was done, results, limitations, what's next | [`PROJECT_OVERVIEW.html`](PROJECT_OVERVIEW.html) — a **6 Sep 2026 snapshot**, not kept in sync; open in a browser (3-theme toggle). Internal / pre-submission. |
 > | What are the current numbers? | [`docs/results/model_metrics.md`](docs/results/model_metrics.md) |
 > | Full technical story + honest limitations (the paper is written from this) | [`docs/results/PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) |
-> | Why is it like this? What happened when? | [`docs/results/RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) — 147 dated entries, append-only |
+> | Why is it like this? What happened when? | [`docs/results/RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) — 148 dated entries, append-only |
 > | What should I work on? | [`docs/research/PUBLICATION_TODO.md`](docs/research/PUBLICATION_TODO.md), sequenced by [`MASTER_PLAN_2026H2.md`](docs/research/MASTER_PLAN_2026H2.md) |
 > | How is the documentation laid out? | [`docs/README.md`](docs/README.md) |
 > | What does the code do? | [`src/README.md`](src/README.md), [`scripts/README.md`](scripts/README.md) |
@@ -558,7 +561,7 @@ Each of those four rows is a bug that was found the hard way. See
     ├── architecture/            ← pipeline diagrams (+ drawio source)
     ├── results/
     │   ├── PAPER_MATERIAL.md    ← ★ master paper-writing document
-    │   ├── RESULTS_LOG.md       ← append-only journal, 147 entries
+    │   ├── RESULTS_LOG.md       ← append-only journal, 148 entries
     │   ├── model_metrics.md     ← one-page scoreboard
     │   ├── METHODOLOGY_CHANGELOG.md
     │   └── figures/paper/       ← 17 paper/review figures

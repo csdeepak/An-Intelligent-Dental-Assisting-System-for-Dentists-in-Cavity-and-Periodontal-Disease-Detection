@@ -329,6 +329,15 @@
           "excludes_zero": false,
           "frac_resamples_le_0": 0.377
         },
+        "m11: pipeline_minus_constant-molars": {
+          "delta_pp": -4.18,
+          "ci95_pp": [
+            -8.42,
+            -0.21
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.9832
+        },
         "arm3c: lesion-detector_minus_constant-molars": {
           "delta_pp": -3.55,
           "ci95_pp": [
@@ -346,6 +355,15 @@
           ],
           "excludes_zero": true,
           "frac_resamples_le_0": 1.0
+        },
+        "arm3c: pipeline_minus_constant-molars": {
+          "delta_pp": 17.12,
+          "ci95_pp": [
+            12.15,
+            21.89
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
         },
         "pipeline: arm3c_minus_m11": {
           "delta_pp": 35.28,
@@ -503,6 +521,15 @@
           "excludes_zero": true,
           "frac_resamples_le_0": 0.0
         },
+        "m11: pipeline_minus_constant-molars": {
+          "delta_pp": -24.44,
+          "ci95_pp": [
+            -26.56,
+            -22.36
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 1.0
+        },
         "arm3c: lesion-detector_minus_constant-molars": {
           "delta_pp": 15.38,
           "ci95_pp": [
@@ -520,6 +547,15 @@
           ],
           "excludes_zero": true,
           "frac_resamples_le_0": 0.0
+        },
+        "arm3c: pipeline_minus_constant-molars": {
+          "delta_pp": -22.42,
+          "ci95_pp": [
+            -24.62,
+            -20.18
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 1.0
         },
         "pipeline: arm3c_minus_m11": {
           "delta_pp": 6.15,
@@ -667,6 +703,15 @@
           "excludes_zero": true,
           "frac_resamples_le_0": 0.0
         },
+        "m11: pipeline_minus_constant-molars": {
+          "delta_pp": 0.79,
+          "ci95_pp": [
+            -3.27,
+            4.71
+          ],
+          "excludes_zero": false,
+          "frac_resamples_le_0": 0.3581
+        },
         "arm3c: lesion-detector_minus_constant-molars": {
           "delta_pp": 9.28,
           "ci95_pp": [
@@ -684,6 +729,15 @@
           ],
           "excludes_zero": true,
           "frac_resamples_le_0": 0.0001
+        },
+        "arm3c: pipeline_minus_constant-molars": {
+          "delta_pp": 0.89,
+          "ci95_pp": [
+            -3.86,
+            5.57
+          ],
+          "excludes_zero": false,
+          "frac_resamples_le_0": 0.3659
         },
         "pipeline: arm3c_minus_m11": {
           "delta_pp": 19.35,
@@ -813,6 +867,15 @@
           "excludes_zero": true,
           "frac_resamples_le_0": 0.0
         },
+        "m11: pipeline_minus_constant-molars": {
+          "delta_pp": -15.51,
+          "ci95_pp": [
+            -22.04,
+            -9.19
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 1.0
+        },
         "arm3c: lesion-detector_minus_constant-molars": {
           "delta_pp": -3.16,
           "ci95_pp": [
@@ -830,6 +893,15 @@
           ],
           "excludes_zero": true,
           "frac_resamples_le_0": 0.0001
+        },
+        "arm3c: pipeline_minus_constant-molars": {
+          "delta_pp": -18.99,
+          "ci95_pp": [
+            -26.32,
+            -11.84
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 1.0
         },
         "pipeline: arm3c_minus_m11": {
           "delta_pp": 22.47,
@@ -959,6 +1031,15 @@
           "excludes_zero": false,
           "frac_resamples_le_0": 0.0432
         },
+        "m11: pipeline_minus_constant-molars": {
+          "delta_pp": 10.89,
+          "ci95_pp": [
+            5.17,
+            16.67
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
         "arm3c: lesion-detector_minus_constant-molars": {
           "delta_pp": 16.91,
           "ci95_pp": [
@@ -976,6 +1057,15 @@
           ],
           "excludes_zero": false,
           "frac_resamples_le_0": 0.1069
+        },
+        "arm3c: pipeline_minus_constant-molars": {
+          "delta_pp": 12.32,
+          "ci95_pp": [
+            5.01,
+            19.2
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0009
         },
         "pipeline: arm3c_minus_m11": {
           "delta_pp": 18.34,
@@ -1105,6 +1195,15 @@
           "excludes_zero": false,
           "frac_resamples_le_0": 0.055
         },
+        "m11: pipeline_minus_constant-molars": {
+          "delta_pp": 3.09,
+          "ci95_pp": [
+            -9.03,
+            13.33
+          ],
+          "excludes_zero": false,
+          "frac_resamples_le_0": 0.3255
+        },
         "arm3c: lesion-detector_minus_constant-molars": {
           "delta_pp": 11.73,
           "ci95_pp": [
@@ -1122,6 +1221,15 @@
           ],
           "excludes_zero": true,
           "frac_resamples_le_0": 0.019
+        },
+        "arm3c: pipeline_minus_constant-molars": {
+          "delta_pp": 1.85,
+          "ci95_pp": [
+            -10.07,
+            11.56
+          ],
+          "excludes_zero": false,
+          "frac_resamples_le_0": 0.4083
         },
         "pipeline: arm3c_minus_m11": {
           "delta_pp": 11.11,
@@ -1251,6 +1359,15 @@
           "excludes_zero": false,
           "frac_resamples_le_0": 0.1711
         },
+        "m11: pipeline_minus_constant-molars": {
+          "delta_pp": 7.53,
+          "ci95_pp": [
+            -0.98,
+            15.82
+          ],
+          "excludes_zero": false,
+          "frac_resamples_le_0": 0.0425
+        },
         "arm3c: lesion-detector_minus_constant-molars": {
           "delta_pp": 13.98,
           "ci95_pp": [
@@ -1268,6 +1385,15 @@
           ],
           "excludes_zero": false,
           "frac_resamples_le_0": 0.4142
+        },
+        "arm3c: pipeline_minus_constant-molars": {
+          "delta_pp": 12.37,
+          "ci95_pp": [
+            -0.5,
+            24.35
+          ],
+          "excludes_zero": false,
+          "frac_resamples_le_0": 0.0315
         },
         "pipeline: arm3c_minus_m11": {
           "delta_pp": 23.12,
