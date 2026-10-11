@@ -60,6 +60,10 @@ sys.path.insert(0, str(REPO_ROOT / "scripts" / "eval"))
 
 DEF_DISEASE = Path.home() / "Downloads" / "Capstone" / "DENTEX" / "disease"
 DEF_OUT = REPO_ROOT / "outputs" / "c1_vlm"
+# The tooth detector the published pipeline arm was measured with. Named here rather than taken
+# from run_inference.DEF_DETECTOR, so that a change of the pipeline default cannot silently
+# change what a bare re-run of this harness reproduces -- same policy as `--caries-method`.
+DEF_C1_DETECTOR = REPO_ROOT / "models/11_yolo_seg_tufts_r1/best.pt"
 
 PROMPT = (
     "This is a dental panoramic radiograph (OPG).\n"
@@ -179,7 +183,8 @@ def score(gt, pred, name):
             "per_image": per_image}
 
 
-def run_pipeline_arm(disease_dir, gt, out, caries_method="gate", out_name="arm_pipeline.json"):
+def run_pipeline_arm(disease_dir, gt, out, caries_method="gate", out_name="arm_pipeline.json",
+                     detector=DEF_C1_DETECTOR):
     """OUR pipeline. CPU-only -- this arm costs nothing to run.
 
     `caries_method` defaults to the GATE, not to run_pipeline's own default: the published
@@ -189,13 +194,13 @@ def run_pipeline_arm(disease_dir, gt, out, caries_method="gate", out_name="arm_p
     """
     import cv2
     import torch
-    from scripts.run_inference import load_models, run_pipeline
+    from scripts.run_inference import file_sha256, load_models, run_pipeline
     # load_models returns (models, device, paths), and run_pipeline takes
     # (img, models, device, paths, image_label=...). Read from run_inference.main() rather
     # than assumed -- an assumed 2-tuple is what failed on the first run.
     # The device is forced: pick_device() returns MPS on Apple silicon, and this arm has always
     # been recorded as "cpu".
-    models, device, paths = load_models(device=torch.device("cpu"))
+    models, device, paths = load_models(detector=detector, device=torch.device("cpu"))
     pred, lat = {}, []
     for i, stem in enumerate(sorted(gt), 1):
         ip = disease_dir / "input" / f"{stem}.png"
@@ -213,6 +218,7 @@ def run_pipeline_arm(disease_dir, gt, out, caries_method="gate", out_name="arm_p
     out.mkdir(parents=True, exist_ok=True)
     (out / out_name).write_text(json.dumps(
         {"arm": "pipeline", "caries_method": caries_method,
+         "detector": str(detector), "detector_sha256": file_sha256(str(detector)),
          "mean_latency_s": round(sum(lat) / max(len(lat), 1), 3),
          "device": "cpu", "predictions": {k: sorted(v) for k, v in pred.items()}}, indent=2) + "\n")
     return pred, sum(lat) / max(len(lat), 1)
@@ -377,6 +383,8 @@ def main():
     ap.add_argument("--score", action="store_true", help="score whatever arm files exist")
     ap.add_argument("--caries-method", choices=["gate", "lesion-detector"], default="gate",
                     help="pipeline arm only; the gate is what the published arm was measured with")
+    ap.add_argument("--detector", type=Path, default=DEF_C1_DETECTOR,
+                    help="pipeline arm only; Stage-1 tooth detector weights")
     args = ap.parse_args()
 
     gt = load_gt(args.disease_dir)
@@ -387,7 +395,8 @@ def main():
     if args.arm == "pipeline":
         name = args.out_name or ("arm_pipeline.json" if args.caries_method == "gate"
                                  else "arm_pipeline_lesion_detector.json")
-        pred, lat = run_pipeline_arm(args.disease_dir, gt, args.out, args.caries_method, name)
+        pred, lat = run_pipeline_arm(args.disease_dir, gt, args.out, args.caries_method, name,
+                                     args.detector)
         print(f"\npipeline arm ({args.caries_method}) done, {lat:.2f}s/image -> {name}")
     elif args.arm == "vlm":
         name = args.out_name or (f"arm_vlm_{args.shots}shot.json" if args.shots

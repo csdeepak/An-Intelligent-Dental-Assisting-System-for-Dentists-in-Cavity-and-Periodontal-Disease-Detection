@@ -26,6 +26,7 @@ per-crop gate is retained as a variant. Both are counted, and both totals emitte
 Run: py -3.13 scripts/count_model_params.py
 Writes: outputs/param_counts/param_counts.json
 """
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -81,8 +82,19 @@ def count(path: Path) -> int:
 
 
 def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--stage1", default=CHECKPOINTS[0][1],
+                    help="count a different Stage-1 detector (path relative to the repo)")
+    ap.add_argument("--out", type=Path, default=OUT)
+    args = ap.parse_args()
+    if args.stage1 != CHECKPOINTS[0][1] and args.out == OUT:
+        # param_counts.json is what the manuscript's numbers are asserted against.
+        print("a non-default --stage1 needs its own --out; refusing to overwrite", OUT.name)
+        return 1
+    checkpoints = [("stage1_detector", args.stage1)] + CHECKPOINTS[1:]
+
     counts, missing = {}, []
-    for name, rel in CHECKPOINTS:
+    for name, rel in checkpoints:
         path = REPO / rel
         if not path.exists():
             missing.append(rel)
@@ -114,14 +126,14 @@ def main() -> int:
     for name, n in totals.items():
         print(f"{name:26s} {n:>12,}   {n / 1e6:6.2f} M")
 
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps({
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    args.out.write_text(json.dumps({
         "rule": "learnable parameters only; batch-norm buffers excluded",
-        "checkpoints": dict(CHECKPOINTS),
+        "checkpoints": dict(checkpoints),
         "params": counts,
         "totals": totals,
     }, indent=2) + "\n", encoding="utf-8")
-    print(f"\nwrote {OUT.relative_to(REPO).as_posix()}")
+    print(f"\nwrote {args.out}")
     return 0
 
 

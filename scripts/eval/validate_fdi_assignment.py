@@ -356,6 +356,8 @@ def main():
                    "fdi_exact_of_all": len(exact)/n if n else 0,
                    "quadrant_correct_of_detected": len(quad)/len(det) if det else 0,
                    "mean_detections_per_image": float(mean_det),
+                   "detector": str(args.weights),
+                   "head": str(args.head_weights) if args.method == "head" else None,
                    "method": args.method, "assignment": arm, "one_to_one": not args.no_one_to_one,
                    "duplicate_fdi_codes": dup,
                    "conf": args.conf, "imgsz": args.imgsz, "min_iou": args.min_iou,

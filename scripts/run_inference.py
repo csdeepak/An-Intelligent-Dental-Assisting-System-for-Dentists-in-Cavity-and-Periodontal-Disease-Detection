@@ -62,6 +62,8 @@ surfaced so the report cannot be quoted as more than it is.
 """
 
 import argparse
+import functools
+import hashlib
 import json
 import sys
 from datetime import datetime
@@ -77,7 +79,11 @@ sys.path.insert(0, str(REPO_ROOT))
 # `bone_loss_domain_shift` was corrected, and `models.bone_loss` gained `label_definition` and
 # `validation_split`. Additive only -- nothing was renamed or removed and every per-tooth record
 # is unchanged, so 1.1 consumers keep working. RESULTS_LOG 2026-10-10 (the finding), 2026-10-11b.
-SCHEMA_VERSION = "opg-report/1.2"
+# 1.3 (11 Oct 2026): `models.detector` gained `sha256`, and the detector's tag and the two
+# accuracy figures in `limitations` now follow the weights actually loaded (DETECTOR_PROFILES
+# below). For a detector with no profile those two figures are null -- the one change a
+# consumer can notice, and only on a non-default `--detector`. RESULTS_LOG 2026-10-11e.
+SCHEMA_VERSION = "opg-report/1.3"
 
 # Measured Stage-1/Stage-2 performance, stamped into every report's "limitations" block so a
 # report always carries the accuracy of the pipeline that produced it.
@@ -118,6 +124,43 @@ SUPERSEDED_STAGE2_END_TO_END = 0.465  # as originally published; 0.463 on this m
 # The bbox detector is retained, unchanged and hash-pinned, at models/06_yolo_detection_a100_run/.
 DEF_DETECTOR = REPO_ROOT / "models/11_yolo_seg_tufts_r1/best.pt"
 DETECTOR_TAG = "tooth-detector-seg-tufts-1024-v1.0"
+
+# What is known about each Stage-1 detector, keyed by the sha256 of its weights, so that the tag
+# and the accuracy stamped into a report belong to the detector that produced it. Until
+# 11 Oct 2026 they were the module constants above, and `--detector <anything else>` wrote a
+# report carrying this detector's name and its 70.6% / 58.3%. A detector with no entry gets an
+# "unregistered" tag and no accuracy claim -- add its entry only from a measurement of it.
+DETECTOR_PROFILES = {
+    "271316c46caaf4029ea707fa77b6fe30697795e46632e1f6fcae3498c48781ba": {
+        "tag": DETECTOR_TAG,
+        "recall": STAGE1_DETECTOR_RECALL,
+        "fdi_exact_end_to_end": STAGE2_FDI_EXACT_END_TO_END,
+        "interpretation": (
+            "Detection recall and FDI accuracy are measured on DENTEX disease/ "
+            "(164 leak-free images, 936 GT teeth) against the CURRENT seg detector, "
+            "re-measured 27 Aug 2026 (RESULTS_LOG 2026-08-27e). The superseded bbox "
+            "detector scored 67.3% / 46.3% on the same harness. "
+            "A missed tooth is absent "
+            "from this report; a misnumbered tooth carries correct findings under the "
+            "wrong FDI code. Expect roughly half the codes in this report to be wrong."),
+    },
+}
+UNREGISTERED_DETECTOR = {
+    "recall": None,
+    "fdi_exact_end_to_end": None,
+    "interpretation": (
+        "No detection recall or FDI accuracy has been measured for the detector that produced "
+        "this report: its weights have no entry in DETECTOR_PROFILES. Figures quoted elsewhere "
+        "for this pipeline belong to a different detector and do not apply here. A missed tooth "
+        "is absent from this report; a misnumbered tooth carries correct findings under the "
+        "wrong FDI code."),
+}
+
+
+@functools.lru_cache(maxsize=None)
+def file_sha256(path):
+    """sha256 of a weight file. Cached: run_pipeline asks once per image."""
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 # v2.0 = DENTEX + Tufts. Adopted 26 Aug 2026 for ROBUSTNESS, not in-domain accuracy:
 # in-domain it is +0.11pp (inside the ~1pt noise floor), out-of-domain +21.5pp on Tufts.
 # v1.0 (models/08_fdi_enumeration_head/) is retained unchanged — it is the head every
@@ -245,6 +288,8 @@ def build_report(image_path, img_bgr, boxes, confs, fdi_assign, caries, bone, me
 
     H, W = img_bgr.shape[:2]
     codes = [t["fdi"] for t in teeth if t["fdi"] is not None]
+    det_profile = DETECTOR_PROFILES.get(meta.get("detector", {}).get("sha256"),
+                                        UNREGISTERED_DETECTOR)
     return {
         "schema_version": SCHEMA_VERSION,
         "generated": datetime.now().isoformat(timespec="seconds"),
@@ -260,16 +305,9 @@ def build_report(image_path, img_bgr, boxes, confs, fdi_assign, caries, bone, me
         "teeth": teeth,
         "models": meta,
         "limitations": {
-            "stage1_detector_recall": STAGE1_DETECTOR_RECALL,
-            "stage2_fdi_exact_end_to_end": STAGE2_FDI_EXACT_END_TO_END,
-            "interpretation": (
-                "Detection recall and FDI accuracy are measured on DENTEX disease/ "
-                "(164 leak-free images, 936 GT teeth) against the CURRENT seg detector, "
-                "re-measured 27 Aug 2026 (RESULTS_LOG 2026-08-27e). The superseded bbox "
-                "detector scored 67.3% / 46.3% on the same harness. "
-                "A missed tooth is absent "
-                "from this report; a misnumbered tooth carries correct findings under the "
-                "wrong FDI code. Expect roughly half the codes in this report to be wrong."),
+            "stage1_detector_recall": det_profile["recall"],
+            "stage2_fdi_exact_end_to_end": det_profile["fdi_exact_end_to_end"],
+            "interpretation": det_profile["interpretation"],
             "caries_method_caveat": (
                 CARIES_METHOD_CAVEATS["lesion-detector"] if meta["caries"].get("method") ==
                 "lesion-detector" else CARIES_METHOD_CAVEATS["gate"]),
@@ -448,8 +486,11 @@ def run_pipeline(img_bgr, models, device, paths, image_label="image", imgsz=1024
     log("stage 4 — bone-loss cascade (1.5x/2.0x crops) …")
     bone = run_bone_loss(models["bbin"], models["bsev"], img_bgr, boxes, device)
 
+    det_sha = file_sha256(str(paths["detector"]))
     meta = {
-        "detector": {"weights": str(paths["detector"]), "tag": DETECTOR_TAG,
+        "detector": {"weights": str(paths["detector"]), "sha256": det_sha,
+                     "tag": (DETECTOR_PROFILES[det_sha]["tag"] if det_sha in DETECTOR_PROFILES
+                             else f"unregistered-{det_sha[:8]}"),
                      "imgsz": imgsz, "conf": conf, "nms_iou": det_iou,
                      "input_rotation": "90 deg counter-clockwise (src/orientation.py)"},
         "fdi_head": {"weights": str(paths["fdi_head"]), "tag": "fdi-enumeration-head-resnet18-v1.0",
@@ -551,11 +592,17 @@ def main():
     # after STAGE2_FDI_EXACT_END_TO_END was set to 0.583 on 27 Aug, so the deployed demo
     # printed a superseded number to users while the JSON it wrote beside it was correct.
     # A literal in a print() is a second source of truth. RESULTS_LOG 2026-08-27m.
-    _wrong = 1.0 - STAGE2_FDI_EXACT_END_TO_END
+    # Read from the report, not the constant: the figure belongs to the detector that ran.
+    _e2e = report["limitations"]["stage2_fdi_exact_end_to_end"]
     print("")
-    print(f"  NOTE: ~{_wrong:.0%} of FDI codes are expected wrong "
-          f"(Stage 2 = {STAGE2_FDI_EXACT_END_TO_END:.1%} end-to-end). Caries "
-          f"({args.caries_method}) is improved, not solved -- see report['limitations'].")
+    if _e2e is None:
+        print(f"  NOTE: no FDI accuracy has been measured for this detector "
+              f"({report['models']['detector']['tag']}). Caries "
+              f"({args.caries_method}) is improved, not solved -- see report['limitations'].")
+    else:
+        print(f"  NOTE: ~{1.0 - _e2e:.0%} of FDI codes are expected wrong "
+              f"(Stage 2 = {_e2e:.1%} end-to-end). Caries "
+              f"({args.caries_method}) is improved, not solved -- see report['limitations'].")
 
 
 if __name__ == "__main__":

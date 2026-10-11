@@ -146,7 +146,7 @@ def main():
     import torch
     from ningxia_external import MOLAR_CONSTANT, match_by_centroid
     from run_inference import (DEF_CARIES_GATE, DEF_CARIES_SEVERITY, DEF_DETECTOR,
-                               DEF_FDI_HEAD)
+                               DEF_FDI_HEAD, file_sha256)
     from src.classifiers import (lesion_preds_to_tooth_idx, load_classifier, run_caries,
                                  run_lesion_detector_raw)
     from src.fdi_head_inference import assign_fdi_head, load_head
@@ -261,6 +261,8 @@ def main():
     res = {
         "cohort": "CariesXrays — Chen et al., AAAI 2024, 38(20) 21940-21948, DOI 10.1609/aaai.v38i20.30196 (licence not stated)",
         "decision": args.decision,
+        "detector": str(det_path),
+        "detector_sha256": file_sha256(str(det_path)),
         "lesion_model": (str(args.lesion_model) if args.decision == "lesion-detector" else None),
         "lesion_conf": (args.lesion_conf if args.decision == "lesion-detector" else None),
         "manifest_filter": manifest_note,

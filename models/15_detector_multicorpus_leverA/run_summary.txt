@@ -181,3 +181,12 @@ HANDOFF -- open items (see outputs/lever_A_multicorpus_detector_v2/STATUS.md S5)
 3. Optional cheap follow-up: a Tufts-WEIGHTED (not balanced) arm for a 3rd frontier point
    (Tufts share 33% -> 52% -> ~70%). Not pre-registered. Below Lever B in priority.
 4. ningxia_external.py --tag does not namespace --out (one-line fix).
+
+--------------------------------------------------------------------------------
+FULL HASHES  (added 11 Oct 2026. The ARMS table above records only an 8-character
+              prefix, which scripts/eval/verify_invariants.py cannot pin. These
+              are the files on the macOS machine, and each agrees with its prefix.)
+--------------------------------------------------------------------------------
+controlB_best.pt  sha256 d3aa1e388fc41da1a449d2dd39b1e6c0764e8dd541edbc91c6cf896ac0145757
+arm3c_best.pt     sha256 5d301f13fb48da5c74e7ef01bd0f91226f9b6800cb433dee5aebc8f8db8f161e
+arm4c_best.pt     sha256 8cafd77a3e9b27eb2e15be2f4b26f6d89b043ae0a37af849786541d67860ade7

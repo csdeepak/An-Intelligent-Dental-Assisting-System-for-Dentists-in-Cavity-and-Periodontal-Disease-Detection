@@ -97,6 +97,10 @@ def inv_weight_hashes():
         # adopted for its box gain despite missing §2's mask bar (RESULTS_LOG 2026-08-27d).
         ("models/11_yolo_seg_tufts_r1/best.pt",
          "models/11_yolo_seg_tufts_r1/run_summary.txt"),
+        # The Lever A multi-corpus detector. Pinned 11 Oct 2026, ahead of a planned change of
+        # the Stage-1 default to it; not in git, so this is a SKIP on any other machine.
+        ("models/15_detector_multicorpus_leverA/arm3c_best.pt",
+         "models/15_detector_multicorpus_leverA/run_summary.txt"),
         # Stages 4a/4b, tagged 27 Aug 2026 -- the last untagged models in the project.
         # They were in use as pipeline defaults for months with no hash on record, so
         # nothing would have caught a silent swap or a partial copy.
@@ -123,7 +127,9 @@ def inv_weight_hashes():
         want = hash_from_summary(sp.read_text(encoding="utf-8"), Path(w).name)
         got = hashlib.sha256(wp.read_bytes()).hexdigest()
         if want is None:
-            out.append(f"NO HASH RECORDED for {Path(w).name}")
+            # A failure, not a note: a pin with nothing to compare against passes for no reason.
+            # Lever A's summary held only an 8-character prefix until 11 Oct 2026.
+            raise AssertionError(f"no sha256 recorded for {Path(w).name} in {s}")
         elif want != got:
             raise AssertionError(f"{Path(w).name}: recorded {want[:12]}… but file is {got[:12]}…")
         else:
@@ -283,6 +289,26 @@ def inv_lever_c_defaults():
             f"gap_factor={GAP_FACTOR} (== assign_fdi default)")
 
 
+def inv_default_detector_registered():
+    """
+    The default Stage-1 detector must carry accuracy figures measured for IT.
+
+    Every report states a detection recall and an end-to-end FDI accuracy. Until 11 Oct 2026
+    both were module constants, so changing `DEF_DETECTOR`, or passing `--detector`, produced
+    reports quoting another detector's name and numbers. They are now looked up by the weights'
+    sha256. This names no checkpoint: it checks that whatever the default is has an entry, so
+    a new default cannot ship without figures of its own.
+    """
+    sys.path.insert(0, str(REPO_ROOT))
+    from scripts.run_inference import DEF_DETECTOR, DETECTOR_PROFILES, file_sha256
+    sha = file_sha256(str(DEF_DETECTOR))
+    prof = DETECTOR_PROFILES.get(sha)
+    assert prof, f"DEF_DETECTOR {DEF_DETECTOR.name} ({sha[:12]}…) has no DETECTOR_PROFILES entry"
+    assert prof["recall"] and prof["fdi_exact_end_to_end"], f"{prof['tag']}: no accuracy recorded"
+    return (f"{prof['tag']}: recall {prof['recall']:.3f}, "
+            f"FDI end-to-end {prof['fdi_exact_end_to_end']:.3f}")
+
+
 def inv_stage4_report_wording():
     """
     The report must not present Stage 4 as a periodontal finding (RESULTS_LOG 2026-10-10).
@@ -424,6 +450,7 @@ check("checkpoint class orders", inv_class_orders)
 check("crop contracts distinct", inv_crop_contracts)
 check("Stage-2 numbers reproduce", inv_stage2_reproduces)
 check("Lever C off by default", inv_lever_c_defaults)
+check("default detector registered", inv_default_detector_registered)
 check("Stage-4 report wording", inv_stage4_report_wording)
 check("crop source frames", inv_crop_frames)
 check("caries v3 dataset hygiene", inv_v3_dataset)
