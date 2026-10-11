@@ -164,3 +164,39 @@ Everything under `outputs/stage1_switch/`: one directory per row and detector, t
 CariesXrays list, one results JSON with every point estimate, interval and gate, and the stdout
 of each run. One `RESULTS_LOG.md` entry; `model_metrics.md`; `PAPER_MATERIAL.md`; `transfer.md`;
 a session-memory file. `paper/main.tex` is not edited on this machine.
+
+---
+
+## Amendment 1 — the control gate for row G (11 October 2026, 17:27 IST)
+
+**State when written.** Rows A, B and H had run and been read. Row C had run and had not been
+read. Row D was running. Row E had not started. **No Ningxia run, under either detector, had been
+made on this machine** — rows F and G did not exist. Committed before either is started; the
+commit hash goes in the results entry beside the freeze hash.
+
+**What is wrong with §4 as frozen.** Row G says the `models/11` control "must give 6,791 affected
+teeth". An affected tooth is a *detected* tooth box with at least half its area inside the expert
+region (`affected_tooth_sensitivity`, `scripts/eval/ningxia_external.py`). The count is therefore
+a property of the detector's boxes, not of the dataset, and 6,791 was produced on the other
+machine. The same weights do not give the same boxes on the two machines: 546 against 547
+correctly numbered DENTEX teeth, 413 against 412 matched Ningxia lesions. An exact match was never
+a sound requirement. This is the drafting error of this morning's first M3 tolerance
+(`outputs/caries_intervals/PRE_REGISTRATION.md`, Amendment 1), found this time by reading the
+code rather than by missing the gate.
+
+**The gate for row G, replacing that cell of §4.**
+
+- The control must score **736 images** — a dataset count, exact.
+- Its affected-teeth and flagged counts are recorded beside the other machine's 6,791 and 165.
+- The row stops until explained if the affected-teeth count is more than 1.5% from 6,791, or the
+  flag rate more than 1.5 percentage points from 165 / 6,791. That is §3's tolerance, unchanged.
+
+**A consequence, stated now.** The flag rate's denominator is detector-dependent, so it will
+differ between the two front ends. Both counts are reported beside each rate, and the difference
+is described as a difference in flag rate over each detector's own affected teeth, never as the
+same teeth flagged more or less often.
+
+**The repo owner.** The decision owner confirmed on 11 October that the repo owner has not been
+told and that rows F and G run regardless. §4 requires the results entry to say so.
+
+Nothing else in this file changes. S1 (§5) does not involve row G.
