@@ -15,8 +15,9 @@ It is a single-user, unauthenticated, local demo for showing the pipeline workin
 
 WHY THE LIMITATIONS ARE RENDERED, NOT LINKED
 ---------------------------------------------
-`report["limitations"]` already carries the honest caveats (detector recall 70.6%, Stage-2
-58.3% end-to-end -- both re-measured 27 Aug on the seg detector, RESULTS_LOG 2026-08-27e --
+`report["limitations"]` already carries the honest caveats (the detector recall and Stage-2
+end-to-end accuracy of whichever detector ran, with a note on where those figures hold --
+RESULTS_LOG 2026-10-11g for the default --
 the caries caveat for whichever method ran, and that Stage 4 flags proximity to an abnormality
 rather than periodontal bone loss). This
 page puts that block directly under the results, same size as everything else, so it cannot

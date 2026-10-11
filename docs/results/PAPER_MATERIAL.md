@@ -276,6 +276,12 @@ applied at the detector output. Full table in `configs/dataset_config.yaml`
 
 ### 5.1 Stage 1 — Tooth detection (YOLOv11l)
 
+> **11 Oct 2026 — the pipeline default is no longer the Tufts-only model described below.** It
+> is the Lever A multi-corpus detect model (arm3c: Tufts + DENTEX `quadrant_enumeration` + Kaggle
+> "dual", per-corpus balanced sampling, otherwise this section's configuration), made the
+> default by a decision against two pre-registered ablation verdicts. §8.30 has the numbers and
+> how to write them. What follows describes the Tufts-only detectors, which are retained.
+
 - Single-class detection (`tooth`), primary/letter teeth included.
 - Annotations converted from Tufts `[y1, x1, y2, x2]` corner boxes to normalised YOLO
   `cx cy w h` (`scripts/yolo/convert_tufts_to_yolo.py`); boxes with w<2 or h<2 dropped;
@@ -504,7 +510,10 @@ already-planned fix, scheduled for Week 6, not Week 2. Report the current thresh
 All figures for Stage 1 are in `docs/results/figures/yolo_detection_a100/`
 (`val_*` = training/validation run, `test_*` = held-out test evaluation).
 
-### 7.1 Stage 1 — tooth detection (two frozen detectors; the **seg** model is the pipeline default since 27 Aug 2026)
+### 7.1 Stage 1 — tooth detection (two frozen Tufts-only detectors; the **seg** model was the pipeline default 27 Aug – 11 Oct 2026)
+
+> The default since 11 Oct 2026 is the multi-corpus detector — §8.30, and `model_metrics.md`
+> for its numbers. Its Tufts test box mAP@0.5 is 0.585 against the seg model's 0.810 below.
 
 | Run | GPU | imgsz | Epochs | Split | Precision | Recall | mAP@0.5 | mAP@0.5:0.95 |
 |-----|-----|-------|--------|-------|-----------|--------|---------|--------------|
@@ -2491,6 +2500,71 @@ flags 544 teeth where the constant names 1,312.
 Source: `outputs/caries_intervals/caries_intervals.json`; `scripts/eval/caries_intervals.py`;
 `docs/session-memory/2026-10-11b-caries-interval-measurements.md`.
 
+### 8.30 The tooth detector was changed against two pre-registered verdicts — what the pipeline measures now
+
+On 11 Oct 2026 the Stage-1 default became the Lever A multi-corpus detector (arm3c: Tufts +
+DENTEX + Kaggle "dual"), replacing the Tufts-only seg detector. **Lever 1 (1 Sep) and Lever A
+(3 Sep) had each been recorded as an ablation, because each failed a pre-registered Tufts
+box-mAP guard, and both rules say a failed guard leaves the default alone. Neither bar was moved
+and neither guard is claimed met.** The change is a later human decision, recorded as that
+(`RESULTS_LOG` 2026-10-11f), and the pipeline was then re-measured under a pre-registration
+frozen before any run (`outputs/stage1_switch/PRE_REGISTRATION.md`, `RESULTS_LOG` 2026-10-11g).
+Both detectors were run on one machine; differences are paired over images.
+
+**Numbering.**
+
+| Cohort | Previous detector | arm3c | Difference |
+|---|---|---|---|
+| Tufts test, 3,760 teeth, end to end | 64.8% | 63.5% | −1.30 pp [−4.64, +2.26] — not separable |
+| — recall | 82.4% | 89.3% | +6.89 pp [+4.94, +9.00] |
+| — accuracy on detected teeth | 78.6% | 71.1% | −7.52 pp [−10.79, −4.16] |
+| DENTEX, 936 teeth, end to end | 58.4% (cross-domain) | 92.8% (**in-domain**) | +34.40 pp [+30.29, +38.54] |
+
+**Caries.** Lesion agreement of the default caries path (the lesion detector) rose on all three
+cohorts — DENTEX 0.457 → 0.595, CariesXrays 0.682 → 0.757, Ningxia 0.499 → 0.684 — and the
+image-blind constant rose by about as much, because in that metric the constant is placed with
+the pipeline's own boxes and codes. FDI-set F1, where the constant is fixed at 0.320: the
+default pipeline 0.376 → **0.498**, **+17.80 pp [+13.48, +22.02]** above the constant.
+
+**How to write this honestly.**
+
+- **Say that it was a decision against the registered rule.** The manuscript's credibility
+  rests on reporting pre-registered outcomes as they fell; this one fell "ablation" twice and
+  the default was changed anyway. One sentence stating that, with what was given up (Tufts test
+  box mAP@0.5 0.810 → 0.585; instance masks), is the price of using the result.
+- **92.8% is in-domain.** The 164 images are held out from the detector's training data, but
+  DENTEX is one of its training corpora. The previous 58% was a Tufts-only detector on DENTEX —
+  a cross-domain figure, and the two must never share a row unlabelled. **With arm3c the
+  pipeline has no cross-domain numbering figure**: both cohorts with tooth labels are in its
+  training distribution. That is a limitation the previous front end did not have.
+- **Tufts is "not separable", not "no cost".** The interval reaches −4.64 pp, and under it the
+  detector finds more teeth and numbers them worse. Teeth matched to a box but given no code
+  rose from 26 to 65: the one-to-one assignment stops at 32 boxes and cannot reject a surplus
+  one.
+- **Most of the caries rise is the front end, not the caries model.** The constant moved with
+  it on every cohort (+13.99, +4.12, +19.25 pp). What the lesion detector adds over the constant
+  is about what it added before: not separated on DENTEX (−3.55 pp [−10.11, +2.64]), separated
+  on CariesXrays (+15.38 pp) and Ningxia (+9.28 pp [+4.72, +13.73]); per hospital it is again
+  not separated at test1.
+- **One result got worse and must be printed.** On DENTEX lesion agreement under arm3c the
+  retired gate scores 0.802 against the lesion detector's 0.595 (−20.67 pp [−26.39, −15.06]);
+  under the previous front end they were tied. The gate gets there by flagging 1,439 teeth to
+  the detector's 603, and on FDI-set F1, which charges for that, the order reverses (0.363
+  against 0.498). Both tables belong side by side, with the flagged counts.
+- **Lever B was adopted under the previous front end.** Its rule was not re-run and is not
+  claimed for this one. If the paper reports the new front end, the adoption evidence is
+  labelled with the front end it was scored on.
+- **Ningxia is no longer blind to the choice of detector.** The default was chosen after this
+  detector's gate-path Ningxia result was known, and the cohort was used once more as a veto
+  (the one stop rule: lesion-detector agreement must not fall by more than 2 pp; it rose
+  +10.40 pp [+8.71, +12.09]). Nothing was fitted on it.
+- **Two open items a reviewer can raise:** the Kaggle "dual-labeled" set, part of arm3c's
+  training data, states no licence; and the Tufts box-mAP guard figures were not re-measured.
+
+Source: `outputs/stage1_switch/stage1_switch_results.json`;
+`scripts/eval/stage1_switch_intervals.py`;
+`docs/session-memory/2026-10-11g-detector-switch-matrix-and-flip.md`.
+
 ---
 
 ## 9. What's not yet written — checklist
@@ -2507,6 +2581,13 @@ For whoever drafts the actual paper. Tick items off here as they land.
       affiliations, ethics, data availability with licences, code availability, funding, conflict
       of interest, author contributions, and acknowledgments including the AI-use disclosure IEEE
       requires.
+- [ ] **Decide which front end the manuscript reports, and make every table say so** (§8.30,
+      11 Oct 2026). `main.tex` describes the Tufts-only seg detector throughout; the pipeline
+      default is now the multi-corpus detector. Either the paper is rebuilt on the new front end
+      — every pipeline table re-stated from `outputs/stage1_switch/`, the decision against the
+      registered rule stated, 92.8% labelled in-domain, the parameter total 95.34 M — or it
+      reports the previous front end and says the released default differs. Authors and mentor;
+      not an engineering call. Until one is done the manuscript and the code disagree.
 - [ ] **Bring three statements in `main.tex` into line with their intervals** (§8.29, measured
       11 Oct 2026): "the constant scored highest" → not separable from the gate pipeline on F1;
       "it replicates on the one cohort that is genuinely external" → a pooled statement, printed

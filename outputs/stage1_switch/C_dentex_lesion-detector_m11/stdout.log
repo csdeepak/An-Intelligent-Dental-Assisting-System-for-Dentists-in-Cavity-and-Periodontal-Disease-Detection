@@ -1,0 +1,12 @@
+objc[34801]: Class AVFFrameReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x11a7b43a8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x13f5703a8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[34801]: Class AVFAudioReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x11a7b43f8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x13f5703f8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+images: 164  (86 excluded as training duplicates)
+device=mps  lesion_model=best.pt conf=0.25 (frozen)
+
+==================================================================
+lesions (çürük polygons): 479  across 148 images
+lesion-localisation agreement: 219/479 = 45.7%
+predicted-positive teeth: 526  (219 land on an annotated lesion = 41.6%)
+  ^ diagnostic only -- see 'caveat' in the JSON, this is not a precision figure
+==================================================================
+-> outputs/stage1_switch/C_dentex_lesion-detector_m11/lesion_localization.json

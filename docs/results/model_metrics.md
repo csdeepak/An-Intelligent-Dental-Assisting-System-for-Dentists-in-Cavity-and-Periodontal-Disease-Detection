@@ -3,7 +3,12 @@
 Current best numbers only. One table per model, nothing else. For how a number was
 obtained see `PAPER_MATERIAL.md`; for when and why it changed see `RESULTS_LOG.md`.
 
-**Last updated:** 2026-09-04 (night) — **Stage 3 (caries) default changed**: the lesion detector
+**Last updated:** 2026-10-11 — **Stage 1 default changed** to the multi-corpus detector
+(arm3c); the re-measured numbers are in the first section below, and everything further down
+that says "pipeline" is the previous front end unless labelled. `RESULTS_LOG.md` 2026-10-11f
+(the decision) and 2026-10-11g (the measurement).
+
+**Before that:** 2026-09-04 (night) — **Stage 3 (caries) default changed**: the lesion detector
 (`models/16_lever_b_pooled/`) replaces the gate as the pipeline default, adopted via the
 pre-registered Lever B Sec 6 rule (`RESULTS_LOG.md` 2026-09-04h). The gate is retained,
 unchanged, via `--caries-method gate` and its numbers below are unaffected. Parameter table
@@ -19,9 +24,75 @@ the Stage-2 head-v3 three-corpus ablation.
 
 ---
 
+## Current front end — Stage-1 default changed 11 Oct 2026
+
+**The Stage-1 tooth detector is now the Lever A multi-corpus model**
+(`models/15_detector_multicorpus_leverA/arm3c_best.pt`, tag
+`tooth-detector-multicorpus-1024-v1.0`, SHA-256
+`5d301f13fb48da5c74e7ef01bd0f91226f9b6800cb433dee5aebc8f8db8f161e`; trained on Tufts + DENTEX
+`quadrant_enumeration` + Kaggle "dual"; a detect model, no masks). It replaced the Tufts-only seg
+detector by a human decision **against two pre-registered ablation verdicts, which stand**
+(`RESULTS_LOG` 2026-10-11f). The tables in this section are the pre-registered re-measurement
+(`outputs/stage1_switch/PRE_REGISTRATION.md`, `RESULTS_LOG` 2026-10-11g): both detectors run on
+one machine, differences by paired cluster bootstrap over images. **Every other "pipeline" table
+in this file was measured with the previous front end unless it says otherwise.**
+
+**Tooth numbering** — FDI head v2.0, one-to-one assignment.
+
+| Cohort | Detector | Recall | Of detected | **End to end** | 95% CI |
+|---|---|---|---|---|---|
+| Tufts test, 143 images, 3,760 teeth | previous (`models/11`) | 82.4% | 78.6% | 64.8% | [60.44, 69.13] |
+| | **arm3c (default)** | 89.3% | 71.1% | **63.5%** | [59.34, 67.50] |
+| DENTEX, 164 images, 936 teeth | previous — cross-domain | 70.8% | 82.5% | 58.4% | [53.83, 63.05] |
+| | **arm3c (default) — in-domain** | 99.6% | 93.2% | **92.8%** | [90.63, 94.87] |
+
+Tufts end to end: −1.30 pp [−4.64, +2.26], **not separable**; recall +6.89 pp, accuracy on
+detected teeth −7.52 pp, both separated. DENTEX: +34.40 pp [+30.29, +38.54], on held-out images
+of a corpus the detector was trained on. **There is no cross-domain numbering figure for the
+current default.** Tufts test box mAP@0.5, measured 3 Sep and not re-measured: 0.810 → 0.585.
+
+**Caries, lesion agreement** — (teeth flagged) beside each figure; agreement rises with flagged
+area. The default caries path is the lesion detector.
+
+| Cohort | Front end | Retired gate | Image-blind constant | **Lesion detector** |
+|---|---|---|---|---|
+| DENTEX, 479 lesions | previous | 0.449 (751) | 0.491 (857) | 0.457 (526) |
+| | **arm3c** | 0.802 (1,439) | 0.630 (988) | **0.595** (603) |
+| CariesXrays 1,200, 2,815 lesions | previous | 0.318 (4,776) | 0.562 (7,717) | 0.682 (2,351) |
+| | **arm3c** | 0.379 (5,808) | 0.604 (8,457) | **0.757** (2,596) |
+| Ningxia, 1,013 lesions | previous | 0.407 (2,109) | 0.399 (1,941) | 0.499 (1,287) |
+| | **arm3c** | 0.600 (3,104) | 0.591 (2,410) | **0.684** (1,465) |
+
+Under arm3c, lesion detector − constant: DENTEX −3.55 pp [−10.11, +2.64], not separated;
+CariesXrays +15.38 pp [+12.96, +17.73]; Ningxia +9.28 pp [+4.72, +13.73]. Lesion detector −
+gate: DENTEX **−20.67 pp [−26.39, −15.06]** (the gate is higher, flagging 2.4 times the teeth);
+CariesXrays +37.80 pp; Ningxia +8.39 pp [+4.06, +12.67]. The constant rises with the detector
+(+13.99, +4.12, +19.25 pp), so the rise in every column is mostly the front end. Lever B's
+4 Sep verdict is not re-decided by this table. Per hospital: `RESULTS_LOG` 2026-10-11g.
+
+**Caries, FDI-set F1** — 164 DENTEX images, 477 carious teeth. Constant: 0.320 (fixed).
+
+| Caries path | Front end | P | R | **F1** | s / image (CPU) |
+|---|---|---|---|---|---|
+| Lesion detector (default) | previous | 0.353 | 0.403 | 0.376 | 1.45 |
+| | **arm3c** | 0.439 | 0.574 | **0.498** | 1.70 |
+| Retired gate | previous | 0.242 | 0.396 | 0.300 | 1.74 |
+| | **arm3c** | 0.238 | 0.765 | 0.363 | 2.11 |
+
+Default pipeline − constant **+17.80 pp [+13.48, +22.02]**; − its own previous front end
++12.16 pp [+8.86, +15.52]. In-domain for the front end.
+
+**Stage 4 flag, Ningxia periodontitis, 736 images** — 2.43% (165 of 6,792 affected teeth) →
+2.17% (153 of 7,049); −0.26 pp [−0.74, +0.23], not separable. Not a periodontal finding.
+
+**Size** — Stage 1 27,617,459 → 25,311,251; default pipeline 97,649,753 → **95,343,545**.
+
+---
+
 ## Stage 1 — Tooth detection · Tufts
 
-**Current default since 27 Aug 2026 is the YOLOv11l-SEG model — see the R1 block below.**
+**The default since 11 Oct 2026 is the multi-corpus detector — see the section above and the
+Lever A block under Stage 2. From 27 Aug to 11 Oct 2026 it was the YOLOv11l-SEG model, R1 below.**
 The YOLOv11l **bbox** run immediately following is the SUPERSEDED detector, retained and
 hash-pinned because every number published before 27 Aug was measured on it.
 
@@ -42,7 +113,7 @@ Verified by loading under Ultralytics (task=detect, 1 class, 25.3M params) and b
 byte-identical `args.yaml`/`results.csv` against the copies already committed here — see
 `docs/research/T0.6_detector_reconciliation.md` §1 for the full verification record.
 
-### R1 — YOLOv11l-**seg** (27 Aug 2026) — **ADOPTED as Stage-1 default**
+### R1 — YOLOv11l-**seg** (27 Aug 2026) — Stage-1 default 27 Aug – 11 Oct 2026, now superseded
 
 Same frozen split, same config, only `model` and label format changed. Held-out test touched
 once. Weights `models/11_yolo_seg_tufts_r1/run/weights/best.pt` (gitignored), tag
@@ -123,7 +194,7 @@ fallback); `mosaic=0` per house rule. JarvisLabs A100-40GB, ₹256.61.
 
 ## Stage 2 — FDI numbering · learned enumeration head · ResNet18 + positional features
 
-### Current — with the seg detector (re-measured 27 Aug 2026)
+### Previous front end — with the seg detector (re-measured 27 Aug 2026)
 
 Same 164 leak-free `DENTEX/disease/` images, 936 GT teeth, same conf 0.25 / NMS IoU 0.50 /
 imgsz 1024 / CCW rotation, same head v2.0. Only the detector changed. `RESULTS_LOG.md`
@@ -204,6 +275,10 @@ head, on held-out DENTEX; leakage ruled out three ways) — it confirms that the
 scenario as the cross-domain 58.3% and must not be quoted as if it were.
 
 ### Lever A — multi-corpus detector "done right" (3 Sep 2026) — **ABLATION, NOT adopted**
+
+*11 Oct 2026: arm 3C below is now the pipeline default. The verdict in this block is unchanged —
+Guard 2 failed and is not claimed met; the default was changed by a separate, later decision
+(`RESULTS_LOG` 2026-10-11f).*
 
 Lever 1's fix attempt: **4 corpora** (Tufts + DENTEX `quadrant_enumeration` + Kaggle "dual" +
 UFBA-425) with **per-corpus balanced sampling**. `models/15_detector_multicorpus_leverA/`,
@@ -372,6 +447,9 @@ Full record: `RESULTS_LOG.md` 2026-08-22i and **22j (the leakage correction)**.
 ---
 
 ## Stage 3 — Caries · current pipeline default since 4 Sep 2026: the LESION DETECTOR
+
+*The table in this section is Lever B's adoption evidence and was measured with the previous
+front end. The same arms under the current front end are in the first section of this file.*
 
 **`caries-lesion-detector-yolo11l-leverb-bpooled-v1.0`, `models/16_lever_b_pooled/`. Adopted
 4 Sep 2026 (Lever B, `RESULTS_LOG.md` 2026-09-04g/04h) because it decisively beats both the gate
@@ -846,6 +924,12 @@ Produced by **`scripts/count_model_params.py`**, which writes
 against that artefact. Recorded here because the manuscript cites it and because a wrong
 version of this number propagated through nine places in the docs before it was caught
 (`RESULTS_LOG.md` 2026-08-28).
+
+**11 Oct 2026 — Stage 1 changed, and this table has not.** It is the previous front end's
+count and stays so while `verify_paper_numbers.py` asserts the manuscript against it. With the
+current default (`arm3c_best.pt`, 25,311,251) the totals are **95,343,545** all six,
+81,209,832 with the gate, **72,987,956** caries path —
+`outputs/stage1_switch/H_params_arm3c/param_counts.json`.
 
 **Updated 4 Sep 2026 — Stage 3a changed.** The lesion detector (25.3 M params) replaced the
 ResNet18 gate (11.2 M) as the pipeline default (Lever B, `RESULTS_LOG.md` 2026-09-04h). The row

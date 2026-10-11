@@ -32,11 +32,15 @@ Composing four independently-trained stages does not produce a clinically valida
 and the numbers here are not a performance claim. Three limitations are structural and are
 written into every report rather than left to a footnote:
 
-  * ERROR PROPAGATION. Detector recall is 70.6% and Stage-2 FDI accuracy is 58.3% end-to-end
-    (RESULTS_LOG 2026-08-27e, seg detector + head v2.0; it was 67.0% / 46.5% on the superseded
-    bbox detector). A tooth that is missed is absent from the report entirely, and a tooth
-    numbered wrongly attaches correct findings to the wrong tooth. Roughly two FDI codes in
-    five are still expected to be wrong. `stage2_fdi_exact_end_to_end` is the authority.
+  * ERROR PROPAGATION. With the default detector (multi-corpus, adopted 11 Oct 2026) detector
+    recall is 99.6% and Stage-2 FDI accuracy 92.8% end-to-end on the 164 held-out DENTEX images
+    (RESULTS_LOG 2026-10-11g). DENTEX IS IN-DOMAIN FOR THAT DETECTOR -- it was trained on
+    Tufts, DENTEX and a third corpus -- and on the held-out Tufts test split the same pipeline
+    scores 89.3% / 63.5%. No numbering figure exists for it on a source it was not trained on.
+    The previous Tufts-only seg detector scored 70.6% / 58.3% on DENTEX, cross-domain
+    (RESULTS_LOG 2026-08-27e). A tooth that is missed is absent from the report entirely, and
+    a tooth numbered wrongly attaches correct findings to the wrong tooth.
+    `stage2_fdi_exact_end_to_end` is the authority, and its `interpretation` says where it holds.
   * THE CARIES BRANCH IS AN ADOPTED LESION DETECTOR, NOT A SOLVED PROBLEM. Adopted 4 Sep 2026
     (Lever B, RESULTS_LOG 2026-09-04h) because it decisively beats both the old per-crop gate
     AND an image-blind constant baseline -- on this project's six cohorts, that constant had
@@ -96,7 +100,8 @@ SCHEMA_VERSION = "opg-report/1.3"
 #   RESULTS_LOG 2026-08-22j (measurement), 2026-08-24b (byte-identical re-verification).
 # RE-MEASURED 27 Aug 2026 against the seg detector, on the same 164 leak-free DENTEX images /
 # 936 GT teeth, same conf 0.25 / NMS IoU 0.50 / imgsz 1024 / CCW rotation, same v2.0 head.
-# RESULTS_LOG 2026-08-27e. These are the current pipeline's numbers.
+# RESULTS_LOG 2026-08-27e. These are the seg detector's numbers -- the default until 11 Oct 2026.
+# The current default's figures live in its DETECTOR_PROFILES entry below.
 STAGE1_DETECTOR_RECALL = 0.706        # = 661/936, seg detector
 STAGE2_FDI_EXACT_END_TO_END = 0.583   # = 546/936, seg detector + head v2.0, Hungarian 1-to-1
 
@@ -122,8 +127,21 @@ SUPERSEDED_STAGE2_END_TO_END = 0.465  # as originally published; 0.463 on this m
 #     unwired; this model is used for its BOXES only, exactly like its predecessor;
 #   - every DENTEX-measured downstream number is now stale — see the constants above.
 # The bbox detector is retained, unchanged and hash-pinned, at models/06_yolo_detection_a100_run/.
-DEF_DETECTOR = REPO_ROOT / "models/11_yolo_seg_tufts_r1/best.pt"
-DETECTOR_TAG = "tooth-detector-seg-tufts-1024-v1.0"
+#
+# SUPERSEDED AS THE DEFAULT 11 Oct 2026 by the Lever A multi-corpus DETECT model (arm3c: Tufts +
+# DENTEX + Kaggle), by explicit user decision AGAINST two pre-registered ablation verdicts.
+# Lever 1 and Lever A each passed their primary (+34 pp end-to-end FDI on DENTEX) and failed a
+# Tufts box-mAP guard, and both pre-registrations say a failed guard leaves the default alone.
+# NEITHER BAR WAS MOVED AND NEITHER GUARD IS CLAIMED MET; the change is a later, dated human
+# decision (RESULTS_LOG 2026-10-11f), re-measured under outputs/stage1_switch/PRE_REGISTRATION.md
+# (RESULTS_LOG 2026-10-11g), whose one stop rule did not fire.
+#
+# Given up: Tufts test box mAP@0.5 0.810 -> 0.585, and instance masks (arm3c has none). The seg
+# detector above stays selectable, unchanged and hash-pinned, and every pipeline number
+# published between 27 Aug and 11 Oct 2026 used it:
+#   --detector models/11_yolo_seg_tufts_r1/best.pt
+DEF_DETECTOR = REPO_ROOT / "models/15_detector_multicorpus_leverA/arm3c_best.pt"
+DETECTOR_TAG = "tooth-detector-seg-tufts-1024-v1.0"   # the seg detector's tag, not the default's
 
 # What is known about each Stage-1 detector, keyed by the sha256 of its weights, so that the tag
 # and the accuracy stamped into a report belong to the detector that produced it. Until
@@ -143,6 +161,21 @@ DETECTOR_PROFILES = {
             "A missed tooth is absent "
             "from this report; a misnumbered tooth carries correct findings under the "
             "wrong FDI code. Expect roughly half the codes in this report to be wrong."),
+    },
+    # arm3c, the default since 11 Oct 2026. Row B of outputs/stage1_switch/, measured on the
+    # macOS clone: 932 of 936 teeth detected, 869 numbered correctly.
+    "5d301f13fb48da5c74e7ef01bd0f91226f9b6800cb433dee5aebc8f8db8f161e": {
+        "tag": "tooth-detector-multicorpus-1024-v1.0",
+        "recall": 0.996,
+        "fdi_exact_end_to_end": 0.928,
+        "interpretation": (
+            "Detection recall and FDI accuracy are measured on DENTEX disease/ (164 held-out "
+            "images, 936 GT teeth), 11 Oct 2026 (RESULTS_LOG 2026-10-11g). DENTEX is "
+            "IN-DOMAIN for this detector, which was trained on Tufts, DENTEX and a third "
+            "corpus. On the held-out Tufts test split the same pipeline scores 89.3% / 63.5%, "
+            "and no figure exists for a source it was not trained on -- do not read 92.8% as "
+            "what to expect on a new radiograph. A missed tooth is absent from this report; a "
+            "misnumbered tooth carries correct findings under the wrong FDI code."),
     },
 }
 UNREGISTERED_DETECTOR = {
@@ -600,9 +633,9 @@ def main():
               f"({report['models']['detector']['tag']}). Caries "
               f"({args.caries_method}) is improved, not solved -- see report['limitations'].")
     else:
-        print(f"  NOTE: ~{1.0 - _e2e:.0%} of FDI codes are expected wrong "
-              f"(Stage 2 = {_e2e:.1%} end-to-end). Caries "
-              f"({args.caries_method}) is improved, not solved -- see report['limitations'].")
+        print(f"  NOTE: Stage-2 numbering is {_e2e:.1%} end-to-end on this detector's DENTEX "
+              f"benchmark; report['limitations']['interpretation'] says how far that carries. "
+              f"Caries ({args.caries_method}) is improved, not solved.")
 
 
 if __name__ == "__main__":

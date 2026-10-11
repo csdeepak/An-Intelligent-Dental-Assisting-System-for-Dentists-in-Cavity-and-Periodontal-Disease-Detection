@@ -1,0 +1,25 @@
+objc[36511]: Class AVFFrameReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x1047d43a8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x1416103a8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[36511]: Class AVFAudioReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x1047d43f8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x1416103f8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+device=mps
+weights in use:
+  detector           models/11_yolo_seg_tufts_r1/best.pt
+  fdi_head           models/10_fdi_head_dentex_tufts_v2/enumeration_head_best.pth
+  caries_gate        /Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/models/09_caries_gate_v3/caries_gate_v3.pth
+  caries_severity    /Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/models/07_caries_cascade/phase2_final_bundle.pth
+categories: dental_caries
+  dental_caries   test1  done (134 images)
+  dental_caries   test2  done (110 images)
+  dental_caries   test3  done (40 images)
+  dental_caries   test4  done (53 images)
+
+==================================================================================
+category        split  centre                 imgs  lesion agree  img sens
+----------------------------------------------------------------------------------
+dental_caries   test1  cross_centre            134   93/316    29.4%     93.3%
+dental_caries   test2  same_centre_as_train    110  181/349    51.9%     98.2%
+dental_caries   test3  cross_centre             40   65/162    40.1%    100.0%
+dental_caries   test4  cross_centre             53   73/186    39.2%     98.1%
+==================================================================================
+Reported per category and per split, never pooled (§4.3.2).
+Specificity/AUC are NOT computable here -- Ningxia has no healthy controls.
+-> outputs/stage1_switch/F_ningxia_caries_pipeline_m11/ningxia_external.json

@@ -69,6 +69,12 @@ models/**/*.pt
 # clone can run Lever B / the pipeline without a Drive round-trip. 53 MB, private
 # repo, sha256 pinned in models/11_.../run_summary.txt + docs/EXTERNAL_DRIVE.md.
 !models/11_yolo_seg_tufts_r1/best.pt
+# EXCEPTION (11 Oct 2026): the Stage-1 default became the Lever A arm3c detector
+# (RESULTS_LOG 2026-10-11f, the decision; 2026-10-11g, the re-measurement), so its weights
+# are committed for the same reason. 51 MB, sha256 pinned in models/15_.../run_summary.txt
+# and scripts/eval/verify_invariants.py. The other two checkpoints in that folder
+# (controlB, arm4c) stay ignored.
+!models/15_detector_multicorpus_leverA/arm3c_best.pt
 
 # --- Training outputs ---
 # Ignored by default (these are regenerable evaluation artefacts), EXCEPT the specific runs

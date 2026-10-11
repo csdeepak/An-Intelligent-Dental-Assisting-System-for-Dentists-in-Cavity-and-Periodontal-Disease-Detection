@@ -1,0 +1,62 @@
+objc[35384]: Class AVFFrameReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x1030503a8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x125fe43a8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[35384]: Class AVFAudioReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x1030503f8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x125fe43f8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+detector: models/11_yolo_seg_tufts_r1/best.pt
+manifest filter: outputs/stage1_switch/cariesxrays_val_1200.csv split=val (1200 stems, 1200 resolved)
+CariesXrays external — decision=pipeline  images=1200
+  50/1200  agreement so far 0.3421
+  100/1200  agreement so far 0.3320
+  150/1200  agreement so far 0.3308
+  200/1200  agreement so far 0.3257
+  250/1200  agreement so far 0.3206
+  300/1200  agreement so far 0.3182
+  350/1200  agreement so far 0.3234
+  400/1200  agreement so far 0.3291
+  450/1200  agreement so far 0.3299
+  500/1200  agreement so far 0.3245
+  550/1200  agreement so far 0.3193
+  600/1200  agreement so far 0.3161
+  650/1200  agreement so far 0.3220
+  700/1200  agreement so far 0.3147
+  750/1200  agreement so far 0.3154
+  800/1200  agreement so far 0.3153
+  850/1200  agreement so far 0.3125
+  900/1200  agreement so far 0.3120
+  950/1200  agreement so far 0.3119
+  1000/1200  agreement so far 0.3106
+  1050/1200  agreement so far 0.3130
+  1100/1200  agreement so far 0.3155
+  1150/1200  agreement so far 0.3186
+  1200/1200  agreement so far 0.3179
+{
+  "cohort": "CariesXrays \u2014 Chen et al., AAAI 2024, 38(20) 21940-21948, DOI 10.1609/aaai.v38i20.30196 (licence not stated)",
+  "decision": "pipeline",
+  "detector": "models/11_yolo_seg_tufts_r1/best.pt",
+  "detector_sha256": "271316c46caaf4029ea707fa77b6fe30697795e46632e1f6fcae3498c48781ba",
+  "lesion_model": null,
+  "lesion_conf": null,
+  "manifest_filter": "outputs/stage1_switch/cariesxrays_val_1200.csv split=val (1200 stems, 1200 resolved)",
+  "sampling": "all",
+  "n_images_scored": 1200,
+  "counts": {
+    "images": 1200,
+    "unreadable": 0,
+    "no_xml": 0,
+    "xml_size_mismatch": 339,
+    "lesions": 2815,
+    "lesions_covered": 895,
+    "lesions_strict": 834,
+    "teeth_detected": 31212,
+    "teeth_flagged": 4776,
+    "flagged_hitting_a_lesion": 948
+  },
+  "agreement_covered": 0.3179,
+  "agreement_strict": 0.2963,
+  "match_rate_DIAGNOSTIC_not_precision": 0.1985,
+  "mean_teeth_detected_per_image": 26.01,
+  "mean_teeth_flagged_per_image": 3.98,
+  "matcher": "centroid containment, imported from ningxia_external.match_by_centroid",
+  "geometry": "width/height read from the DECODED IMAGE; XML <size> deliberately ignored (27.3% of them are wrong)",
+  "caveat": "annotation exhaustiveness is unknown, so match_rate is a diagnostic and a flagged tooth with no lesion is NOT a confirmed false positive"
+}
+
+wrote outputs/stage1_switch/E_cariesxrays_pipeline_m11/cariesxrays_external_pipeline.json

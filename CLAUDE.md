@@ -103,7 +103,9 @@ folder outside git. Git has tracked `_repo_archive/ARCHIVE_MANIFEST.md` at the r
   pipeline without a Drive round-trip. Three of them are over the line: `models/11` at 56 MB,
   `models/14` and `models/16` at 51 MB each. Private repo; `transfer.md` §4 records it and how
   to undo. This does not open the door to committing other weights — `models/06`, the
-  `models/{13,15,17}` ablation weights, and anything new stay out.)*
+  `models/{13,15,17}` ablation weights, and anything new stay out. **11 Oct 2026:** one file
+  under `models/15`, `arm3c_best.pt` (51 MB), became the Stage-1 default and is whitelisted for
+  the same reason; `controlB` and `arm4c` beside it stay out.)*
 - **No new file paths containing spaces.** `notebooks/Bone Loss/` was renamed to
   `notebooks/bone_loss/` for exactly this reason.
 - **Do not "fix" a stale status table by guessing.** Verify against notebook outputs and
@@ -141,11 +143,14 @@ The only durable facts worth repeating here, because they shape almost every tas
   the honest per-stage numbers, including the ones that collapse out-of-domain, are in
   `transfer.md` §1–§2.
 - **Model weights live under `models/<NN>_<name>/`, and which checkpoint is the pipeline
-  default changes** — the Stage-2 head became v2.0 on 26 Aug and the Stage-3a caries default
-  became the lesion detector (`models/16_lever_b_pooled/`) on 4 Sep, each with its predecessor
-  retained and hash-pinned. Read `models/README.md` and the `DEF_*` defaults in
-  `run_inference.py` rather than assuming. Every `DEF_*` checkpoint is in git; the superseded
-  detector (`models/06`) and the ablation weights (`models/{13,15,17}`) are not —
+  default changes** — the Stage-2 head became v2.0 on 26 Aug, the Stage-3a caries default
+  became the lesion detector (`models/16_lever_b_pooled/`) on 4 Sep, and the Stage-1 detector
+  became the multi-corpus model (`models/15_…/arm3c_best.pt`) on 11 Oct, each with its
+  predecessor retained and hash-pinned. Read `models/README.md` and the `DEF_*` defaults in
+  `run_inference.py` rather than assuming, and check `git ls-files` before telling anyone a
+  fresh clone has a given `DEF_*` checkpoint. The superseded detector (`models/06`) and the
+  other ablation weights (`models/{13,17}`, and `controlB` / `arm4c` under `models/15`) are not
+  in git —
   `docs/EXTERNAL_DRIVE.md` and each `run_summary.txt` say where they live.
 - **Ningxia is external test data.** Never train on it, never tune on it
   (`MASTER_PLAN_2026H2.md` §4.1).

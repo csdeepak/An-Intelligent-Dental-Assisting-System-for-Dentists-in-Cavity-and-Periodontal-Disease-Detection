@@ -1,0 +1,26 @@
+objc[36820]: Class AVFFrameReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x106bb83a8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x1696103a8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[36820]: Class AVFAudioReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x106bb83f8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x1696103f8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+device=mps
+weights in use:
+  detector           models/15_detector_multicorpus_leverA/arm3c_best.pt
+  fdi_head           models/10_fdi_head_dentex_tufts_v2/enumeration_head_best.pth
+  bone_loss          /Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/models/03_bone_loss_model_training_notebook_models/bone_loss_resnet18_best.pth
+  bone_severity      /Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/models/04_bone_loss_severity_notebook_models/bone_loss_severity_resnet18_best.pth
+  bone_loss_class_order [normal, bone_loss] -- confirmed, see run_summary.txt
+categories: periodontitis
+  periodontitis   test1  done (320 images)
+  periodontitis   test2  done (297 images)
+  periodontitis   test3  done (50 images)
+  periodontitis   test4  done (69 images)
+
+==================================================================================
+category        split  centre                 imgs  lesion agree  img sens
+----------------------------------------------------------------------------------
+periodontitis   test1  cross_centre            320  103/3538    2.9%     37.2%
+periodontitis   test2  same_centre_as_train    297   18/2834    0.6%     14.8%
+periodontitis   test3  cross_centre             50   18/454     4.0%     50.0%
+periodontitis   test4  cross_centre             69   14/223     6.3%     59.4%
+==================================================================================
+Reported per category and per split, never pooled (§4.3.2).
+Specificity/AUC are NOT computable here -- Ningxia has no healthy controls.
+-> outputs/stage1_switch/G_ningxia_stage4_arm3c/ningxia_external.json

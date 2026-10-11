@@ -1,0 +1,1469 @@
+{
+  "pre_registration": "outputs/stage1_switch/PRE_REGISTRATION.md",
+  "frozen_at_commit": "c139779",
+  "amendment_1_commit": "85df6ff",
+  "n_boot": 10000,
+  "seed": 42,
+  "method": "paired cluster bootstrap over images, 95% percentile interval; every difference between detectors is against the same-machine models/11 control",
+  "A_tufts_numbering": {
+    "control_gate": {
+      "images": 143,
+      "teeth": 3760,
+      "correct": 2438
+    },
+    "deltas": {
+      "end_to_end_arm3c_minus_m11": {
+        "delta_pp": -1.3,
+        "ci95_pp": [
+          -4.64,
+          2.26
+        ],
+        "excludes_zero": false,
+        "frac_resamples_le_0": 0.7713
+      },
+      "recall_arm3c_minus_m11": {
+        "delta_pp": 6.89,
+        "ci95_pp": [
+          4.94,
+          9.0
+        ],
+        "excludes_zero": true,
+        "frac_resamples_le_0": 0.0
+      },
+      "exact_of_detected_arm3c_minus_m11": {
+        "delta_pp": -7.52,
+        "ci95_pp": [
+          -10.79,
+          -4.16
+        ],
+        "excludes_zero": true,
+        "frac_resamples_le_0": 1.0
+      }
+    },
+    "m11": {
+      "teeth": 3760,
+      "detected": 3100,
+      "correct": 2438,
+      "matched_teeth_given_no_code": 26,
+      "end_to_end": {
+        "value": 0.6484,
+        "ci95": [
+          0.6044,
+          0.6913
+        ]
+      },
+      "recall": {
+        "value": 0.8245,
+        "ci95": [
+          0.7949,
+          0.852
+        ]
+      },
+      "exact_of_detected": {
+        "value": 0.7865,
+        "ci95": [
+          0.7501,
+          0.8204
+        ]
+      }
+    },
+    "arm3c": {
+      "teeth": 3760,
+      "detected": 3359,
+      "correct": 2389,
+      "matched_teeth_given_no_code": 65,
+      "end_to_end": {
+        "value": 0.6354,
+        "ci95": [
+          0.5934,
+          0.675
+        ]
+      },
+      "recall": {
+        "value": 0.8934,
+        "ci95": [
+          0.8762,
+          0.9093
+        ]
+      },
+      "exact_of_detected": {
+        "value": 0.7112,
+        "ci95": [
+          0.6714,
+          0.7479
+        ]
+      }
+    }
+  },
+  "B_dentex_numbering": {
+    "control_gate": {
+      "images": 164,
+      "teeth": 936,
+      "correct": 547
+    },
+    "deltas": {
+      "end_to_end_arm3c_minus_m11": {
+        "delta_pp": 34.4,
+        "ci95_pp": [
+          30.29,
+          38.54
+        ],
+        "excludes_zero": true,
+        "frac_resamples_le_0": 0.0
+      },
+      "recall_arm3c_minus_m11": {
+        "delta_pp": 28.74,
+        "ci95_pp": [
+          24.78,
+          32.85
+        ],
+        "excludes_zero": true,
+        "frac_resamples_le_0": 0.0
+      },
+      "exact_of_detected_arm3c_minus_m11": {
+        "delta_pp": 10.74,
+        "ci95_pp": [
+          7.66,
+          14.02
+        ],
+        "excludes_zero": true,
+        "frac_resamples_le_0": 0.0
+      }
+    },
+    "m11": {
+      "teeth": 936,
+      "detected": 663,
+      "correct": 547,
+      "matched_teeth_given_no_code": 0,
+      "end_to_end": {
+        "value": 0.5844,
+        "ci95": [
+          0.5383,
+          0.6305
+        ]
+      },
+      "recall": {
+        "value": 0.7083,
+        "ci95": [
+          0.6667,
+          0.7485
+        ]
+      },
+      "exact_of_detected": {
+        "value": 0.825,
+        "ci95": [
+          0.7896,
+          0.8578
+        ]
+      }
+    },
+    "arm3c": {
+      "teeth": 936,
+      "detected": 932,
+      "correct": 869,
+      "matched_teeth_given_no_code": 0,
+      "end_to_end": {
+        "value": 0.9284,
+        "ci95": [
+          0.9063,
+          0.9487
+        ]
+      },
+      "recall": {
+        "value": 0.9957,
+        "ci95": [
+          0.991,
+          0.999
+        ]
+      },
+      "exact_of_detected": {
+        "value": 0.9324,
+        "ci95": [
+          0.911,
+          0.9521
+        ]
+      }
+    }
+  },
+  "C_dentex_lesion_agreement": {
+    "control_gate": {
+      "pipeline": {
+        "lesions_matched": 215,
+        "other_machine": 212,
+        "difference_pp": 0.63
+      },
+      "constant-molars": {
+        "lesions_matched": 235,
+        "other_machine": 234,
+        "difference_pp": 0.21
+      },
+      "lesion-detector": {
+        "lesions_matched": 219,
+        "other_machine": 218,
+        "difference_pp": 0.21
+      },
+      "all-teeth": {
+        "lesions_matched": 346
+      }
+    },
+    "pooled": {
+      "n_images": 148,
+      "arms": {
+        "m11": {
+          "pipeline": {
+            "lesion_agreement": {
+              "value": 0.4489,
+              "ci95": [
+                0.3978,
+                0.499
+              ]
+            },
+            "lesions": 479,
+            "lesions_matched": 215,
+            "teeth_flagged": 751
+          },
+          "constant-molars": {
+            "lesion_agreement": {
+              "value": 0.4906,
+              "ci95": [
+                0.4425,
+                0.5376
+              ]
+            },
+            "lesions": 479,
+            "lesions_matched": 235,
+            "teeth_flagged": 857
+          },
+          "lesion-detector": {
+            "lesion_agreement": {
+              "value": 0.4572,
+              "ci95": [
+                0.411,
+                0.5028
+              ]
+            },
+            "lesions": 479,
+            "lesions_matched": 219,
+            "teeth_flagged": 526
+          },
+          "all-teeth": {
+            "lesion_agreement": {
+              "value": 0.7223,
+              "ci95": [
+                0.6756,
+                0.7682
+              ]
+            },
+            "lesions": 479,
+            "lesions_matched": 346,
+            "teeth_flagged": 3343
+          }
+        },
+        "arm3c": {
+          "pipeline": {
+            "lesion_agreement": {
+              "value": 0.8017,
+              "ci95": [
+                0.7615,
+                0.8395
+              ]
+            },
+            "lesions": 479,
+            "lesions_matched": 384,
+            "teeth_flagged": 1439
+          },
+          "constant-molars": {
+            "lesion_agreement": {
+              "value": 0.6305,
+              "ci95": [
+                0.5906,
+                0.6725
+              ]
+            },
+            "lesions": 479,
+            "lesions_matched": 302,
+            "teeth_flagged": 988
+          },
+          "lesion-detector": {
+            "lesion_agreement": {
+              "value": 0.595,
+              "ci95": [
+                0.5438,
+                0.6453
+              ]
+            },
+            "lesions": 479,
+            "lesions_matched": 285,
+            "teeth_flagged": 603
+          },
+          "all-teeth": {
+            "lesion_agreement": {
+              "value": 0.9979,
+              "ci95": [
+                0.9932,
+                1.0
+              ]
+            },
+            "lesions": 479,
+            "lesions_matched": 478,
+            "teeth_flagged": 4132
+          }
+        }
+      },
+      "deltas": {
+        "m11: lesion-detector_minus_constant-molars": {
+          "delta_pp": -3.34,
+          "ci95_pp": [
+            -8.33,
+            1.39
+          ],
+          "excludes_zero": false,
+          "frac_resamples_le_0": 0.9187
+        },
+        "m11: lesion-detector_minus_pipeline": {
+          "delta_pp": 0.84,
+          "ci95_pp": [
+            -3.73,
+            5.3
+          ],
+          "excludes_zero": false,
+          "frac_resamples_le_0": 0.377
+        },
+        "arm3c: lesion-detector_minus_constant-molars": {
+          "delta_pp": -3.55,
+          "ci95_pp": [
+            -10.11,
+            2.64
+          ],
+          "excludes_zero": false,
+          "frac_resamples_le_0": 0.8701
+        },
+        "arm3c: lesion-detector_minus_pipeline": {
+          "delta_pp": -20.67,
+          "ci95_pp": [
+            -26.39,
+            -15.06
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 1.0
+        },
+        "pipeline: arm3c_minus_m11": {
+          "delta_pp": 35.28,
+          "ci95_pp": [
+            30.53,
+            40.43
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
+        "constant-molars: arm3c_minus_m11": {
+          "delta_pp": 13.99,
+          "ci95_pp": [
+            10.39,
+            17.78
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
+        "lesion-detector: arm3c_minus_m11": {
+          "delta_pp": 13.78,
+          "ci95_pp": [
+            9.84,
+            17.93
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
+        "all-teeth: arm3c_minus_m11": {
+          "delta_pp": 27.56,
+          "ci95_pp": [
+            22.95,
+            32.27
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        }
+      }
+    }
+  },
+  "E_cariesxrays_lesion_agreement": {
+    "control_gate": {
+      "pipeline": {
+        "lesions_matched": 895,
+        "other_machine": 892,
+        "difference_pp": 0.11
+      },
+      "constant-molars": {
+        "lesions_matched": 1583,
+        "other_machine": 1582,
+        "difference_pp": 0.04
+      },
+      "lesion-detector": {
+        "lesions_matched": 1921,
+        "other_machine": 1926,
+        "difference_pp": -0.18
+      }
+    },
+    "pooled": {
+      "n_images": 1200,
+      "arms": {
+        "m11": {
+          "pipeline": {
+            "lesion_agreement": {
+              "value": 0.3179,
+              "ci95": [
+                0.2975,
+                0.3385
+              ]
+            },
+            "lesions": 2815,
+            "lesions_matched": 895,
+            "teeth_flagged": 4776
+          },
+          "constant-molars": {
+            "lesion_agreement": {
+              "value": 0.5623,
+              "ci95": [
+                0.5398,
+                0.5857
+              ]
+            },
+            "lesions": 2815,
+            "lesions_matched": 1583,
+            "teeth_flagged": 7717
+          },
+          "lesion-detector": {
+            "lesion_agreement": {
+              "value": 0.6824,
+              "ci95": [
+                0.6625,
+                0.702
+              ]
+            },
+            "lesions": 2815,
+            "lesions_matched": 1921,
+            "teeth_flagged": 2351
+          }
+        },
+        "arm3c": {
+          "pipeline": {
+            "lesion_agreement": {
+              "value": 0.3794,
+              "ci95": [
+                0.3574,
+                0.4013
+              ]
+            },
+            "lesions": 2815,
+            "lesions_matched": 1068,
+            "teeth_flagged": 5808
+          },
+          "constant-molars": {
+            "lesion_agreement": {
+              "value": 0.6036,
+              "ci95": [
+                0.5823,
+                0.6252
+              ]
+            },
+            "lesions": 2815,
+            "lesions_matched": 1699,
+            "teeth_flagged": 8457
+          },
+          "lesion-detector": {
+            "lesion_agreement": {
+              "value": 0.7574,
+              "ci95": [
+                0.7399,
+                0.7741
+              ]
+            },
+            "lesions": 2815,
+            "lesions_matched": 2132,
+            "teeth_flagged": 2596
+          }
+        }
+      },
+      "deltas": {
+        "m11: lesion-detector_minus_constant-molars": {
+          "delta_pp": 12.01,
+          "ci95_pp": [
+            9.86,
+            14.06
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
+        "m11: lesion-detector_minus_pipeline": {
+          "delta_pp": 36.45,
+          "ci95_pp": [
+            34.14,
+            38.73
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
+        "arm3c: lesion-detector_minus_constant-molars": {
+          "delta_pp": 15.38,
+          "ci95_pp": [
+            12.96,
+            17.73
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
+        "arm3c: lesion-detector_minus_pipeline": {
+          "delta_pp": 37.8,
+          "ci95_pp": [
+            35.29,
+            40.3
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
+        "pipeline: arm3c_minus_m11": {
+          "delta_pp": 6.15,
+          "ci95_pp": [
+            4.2,
+            8.09
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
+        "constant-molars: arm3c_minus_m11": {
+          "delta_pp": 4.12,
+          "ci95_pp": [
+            2.2,
+            6.04
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
+        "lesion-detector: arm3c_minus_m11": {
+          "delta_pp": 7.5,
+          "ci95_pp": [
+            5.63,
+            9.41
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        }
+      }
+    }
+  },
+  "F_ningxia_caries_lesion_agreement": {
+    "control_gate": {
+      "pipeline": {
+        "lesions_matched": 412,
+        "this_machine_reference": 412
+      },
+      "constant-molars": {
+        "lesions_matched": 404,
+        "other_machine": 404,
+        "difference_pp": 0.0
+      },
+      "lesion-detector": {
+        "lesions_matched": 506,
+        "other_machine": 507,
+        "difference_pp": -0.1
+      }
+    },
+    "pooled": {
+      "n_images": 337,
+      "arms": {
+        "m11": {
+          "pipeline": {
+            "lesion_agreement": {
+              "value": 0.4067,
+              "ci95": [
+                0.3683,
+                0.4449
+              ]
+            },
+            "lesions": 1013,
+            "lesions_matched": 412,
+            "teeth_flagged": 2109
+          },
+          "constant-molars": {
+            "lesion_agreement": {
+              "value": 0.3988,
+              "ci95": [
+                0.3622,
+                0.4363
+              ]
+            },
+            "lesions": 1013,
+            "lesions_matched": 404,
+            "teeth_flagged": 1941
+          },
+          "lesion-detector": {
+            "lesion_agreement": {
+              "value": 0.4995,
+              "ci95": [
+                0.4622,
+                0.5363
+              ]
+            },
+            "lesions": 1013,
+            "lesions_matched": 506,
+            "teeth_flagged": 1287
+          }
+        },
+        "arm3c": {
+          "pipeline": {
+            "lesion_agreement": {
+              "value": 0.6002,
+              "ci95": [
+                0.5633,
+                0.6367
+              ]
+            },
+            "lesions": 1013,
+            "lesions_matched": 608,
+            "teeth_flagged": 3104
+          },
+          "constant-molars": {
+            "lesion_agreement": {
+              "value": 0.5913,
+              "ci95": [
+                0.5568,
+                0.6268
+              ]
+            },
+            "lesions": 1013,
+            "lesions_matched": 599,
+            "teeth_flagged": 2410
+          },
+          "lesion-detector": {
+            "lesion_agreement": {
+              "value": 0.6841,
+              "ci95": [
+                0.6486,
+                0.7182
+              ]
+            },
+            "lesions": 1013,
+            "lesions_matched": 693,
+            "teeth_flagged": 1465
+          }
+        }
+      },
+      "deltas": {
+        "m11: lesion-detector_minus_constant-molars": {
+          "delta_pp": 10.07,
+          "ci95_pp": [
+            6.1,
+            14.0
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
+        "m11: lesion-detector_minus_pipeline": {
+          "delta_pp": 9.28,
+          "ci95_pp": [
+            5.28,
+            13.29
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
+        "arm3c: lesion-detector_minus_constant-molars": {
+          "delta_pp": 9.28,
+          "ci95_pp": [
+            4.72,
+            13.73
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0001
+        },
+        "arm3c: lesion-detector_minus_pipeline": {
+          "delta_pp": 8.39,
+          "ci95_pp": [
+            4.06,
+            12.67
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0001
+        },
+        "pipeline: arm3c_minus_m11": {
+          "delta_pp": 19.35,
+          "ci95_pp": [
+            15.46,
+            23.19
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
+        "constant-molars: arm3c_minus_m11": {
+          "delta_pp": 19.25,
+          "ci95_pp": [
+            15.69,
+            22.81
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
+        "lesion-detector: arm3c_minus_m11": {
+          "delta_pp": 18.46,
+          "ci95_pp": [
+            15.26,
+            21.78
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        }
+      }
+    },
+    "test1": {
+      "n_images": 134,
+      "arms": {
+        "m11": {
+          "pipeline": {
+            "lesion_agreement": {
+              "value": 0.2943,
+              "ci95": [
+                0.2381,
+                0.352
+              ]
+            },
+            "lesions": 316,
+            "lesions_matched": 93,
+            "teeth_flagged": 641
+          },
+          "constant-molars": {
+            "lesion_agreement": {
+              "value": 0.4494,
+              "ci95": [
+                0.379,
+                0.5208
+              ]
+            },
+            "lesions": 316,
+            "lesions_matched": 142,
+            "teeth_flagged": 740
+          },
+          "lesion-detector": {
+            "lesion_agreement": {
+              "value": 0.4525,
+              "ci95": [
+                0.3864,
+                0.5213
+              ]
+            },
+            "lesions": 316,
+            "lesions_matched": 143,
+            "teeth_flagged": 421
+          }
+        },
+        "arm3c": {
+          "pipeline": {
+            "lesion_agreement": {
+              "value": 0.519,
+              "ci95": [
+                0.4615,
+                0.5779
+              ]
+            },
+            "lesions": 316,
+            "lesions_matched": 164,
+            "teeth_flagged": 1064
+          },
+          "constant-molars": {
+            "lesion_agreement": {
+              "value": 0.7089,
+              "ci95": [
+                0.6542,
+                0.7619
+              ]
+            },
+            "lesions": 316,
+            "lesions_matched": 224,
+            "teeth_flagged": 972
+          },
+          "lesion-detector": {
+            "lesion_agreement": {
+              "value": 0.6772,
+              "ci95": [
+                0.6208,
+                0.7314
+              ]
+            },
+            "lesions": 316,
+            "lesions_matched": 214,
+            "teeth_flagged": 492
+          }
+        }
+      },
+      "deltas": {
+        "m11: lesion-detector_minus_constant-molars": {
+          "delta_pp": 0.32,
+          "ci95_pp": [
+            -5.9,
+            6.56
+          ],
+          "excludes_zero": false,
+          "frac_resamples_le_0": 0.4744
+        },
+        "m11: lesion-detector_minus_pipeline": {
+          "delta_pp": 15.82,
+          "ci95_pp": [
+            8.74,
+            23.29
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
+        "arm3c: lesion-detector_minus_constant-molars": {
+          "delta_pp": -3.16,
+          "ci95_pp": [
+            -10.56,
+            3.97
+          ],
+          "excludes_zero": false,
+          "frac_resamples_le_0": 0.8195
+        },
+        "arm3c: lesion-detector_minus_pipeline": {
+          "delta_pp": 15.82,
+          "ci95_pp": [
+            7.8,
+            23.8
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0001
+        },
+        "pipeline: arm3c_minus_m11": {
+          "delta_pp": 22.47,
+          "ci95_pp": [
+            16.34,
+            28.7
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
+        "constant-molars: arm3c_minus_m11": {
+          "delta_pp": 25.95,
+          "ci95_pp": [
+            19.33,
+            32.79
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
+        "lesion-detector: arm3c_minus_m11": {
+          "delta_pp": 22.47,
+          "ci95_pp": [
+            15.81,
+            29.19
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        }
+      }
+    },
+    "test2": {
+      "n_images": 110,
+      "arms": {
+        "m11": {
+          "pipeline": {
+            "lesion_agreement": {
+              "value": 0.5186,
+              "ci95": [
+                0.4464,
+                0.5915
+              ]
+            },
+            "lesions": 349,
+            "lesions_matched": 181,
+            "teeth_flagged": 814
+          },
+          "constant-molars": {
+            "lesion_agreement": {
+              "value": 0.4097,
+              "ci95": [
+                0.3475,
+                0.4759
+              ]
+            },
+            "lesions": 349,
+            "lesions_matched": 143,
+            "teeth_flagged": 660
+          },
+          "lesion-detector": {
+            "lesion_agreement": {
+              "value": 0.5731,
+              "ci95": [
+                0.5115,
+                0.6346
+              ]
+            },
+            "lesions": 349,
+            "lesions_matched": 200,
+            "teeth_flagged": 481
+          }
+        },
+        "arm3c": {
+          "pipeline": {
+            "lesion_agreement": {
+              "value": 0.702,
+              "ci95": [
+                0.6396,
+                0.7629
+              ]
+            },
+            "lesions": 349,
+            "lesions_matched": 245,
+            "teeth_flagged": 1094
+          },
+          "constant-molars": {
+            "lesion_agreement": {
+              "value": 0.5788,
+              "ci95": [
+                0.518,
+                0.6411
+              ]
+            },
+            "lesions": 349,
+            "lesions_matched": 202,
+            "teeth_flagged": 772
+          },
+          "lesion-detector": {
+            "lesion_agreement": {
+              "value": 0.7479,
+              "ci95": [
+                0.6918,
+                0.8006
+              ]
+            },
+            "lesions": 349,
+            "lesions_matched": 261,
+            "teeth_flagged": 529
+          }
+        }
+      },
+      "deltas": {
+        "m11: lesion-detector_minus_constant-molars": {
+          "delta_pp": 16.33,
+          "ci95_pp": [
+            9.78,
+            22.92
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
+        "m11: lesion-detector_minus_pipeline": {
+          "delta_pp": 5.44,
+          "ci95_pp": [
+            -0.56,
+            11.54
+          ],
+          "excludes_zero": false,
+          "frac_resamples_le_0": 0.0432
+        },
+        "arm3c: lesion-detector_minus_constant-molars": {
+          "delta_pp": 16.91,
+          "ci95_pp": [
+            9.17,
+            24.62
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
+        "arm3c: lesion-detector_minus_pipeline": {
+          "delta_pp": 4.58,
+          "ci95_pp": [
+            -2.43,
+            11.63
+          ],
+          "excludes_zero": false,
+          "frac_resamples_le_0": 0.1069
+        },
+        "pipeline: arm3c_minus_m11": {
+          "delta_pp": 18.34,
+          "ci95_pp": [
+            11.43,
+            25.14
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
+        "constant-molars: arm3c_minus_m11": {
+          "delta_pp": 16.91,
+          "ci95_pp": [
+            11.05,
+            22.93
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
+        "lesion-detector: arm3c_minus_m11": {
+          "delta_pp": 17.48,
+          "ci95_pp": [
+            12.89,
+            22.19
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        }
+      }
+    },
+    "test3": {
+      "n_images": 40,
+      "arms": {
+        "m11": {
+          "pipeline": {
+            "lesion_agreement": {
+              "value": 0.4012,
+              "ci95": [
+                0.3106,
+                0.4904
+              ]
+            },
+            "lesions": 162,
+            "lesions_matched": 65,
+            "teeth_flagged": 252
+          },
+          "constant-molars": {
+            "lesion_agreement": {
+              "value": 0.3704,
+              "ci95": [
+                0.2764,
+                0.4653
+              ]
+            },
+            "lesions": 162,
+            "lesions_matched": 60,
+            "teeth_flagged": 245
+          },
+          "lesion-detector": {
+            "lesion_agreement": {
+              "value": 0.4938,
+              "ci95": [
+                0.4124,
+                0.5839
+              ]
+            },
+            "lesions": 162,
+            "lesions_matched": 80,
+            "teeth_flagged": 174
+          }
+        },
+        "arm3c": {
+          "pipeline": {
+            "lesion_agreement": {
+              "value": 0.5123,
+              "ci95": [
+                0.4113,
+                0.6013
+              ]
+            },
+            "lesions": 162,
+            "lesions_matched": 83,
+            "teeth_flagged": 323
+          },
+          "constant-molars": {
+            "lesion_agreement": {
+              "value": 0.4938,
+              "ci95": [
+                0.4153,
+                0.5868
+              ]
+            },
+            "lesions": 162,
+            "lesions_matched": 80,
+            "teeth_flagged": 290
+          },
+          "lesion-detector": {
+            "lesion_agreement": {
+              "value": 0.6111,
+              "ci95": [
+                0.5155,
+                0.7034
+              ]
+            },
+            "lesions": 162,
+            "lesions_matched": 99,
+            "teeth_flagged": 200
+          }
+        }
+      },
+      "deltas": {
+        "m11: lesion-detector_minus_constant-molars": {
+          "delta_pp": 12.35,
+          "ci95_pp": [
+            1.33,
+            22.67
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0167
+        },
+        "m11: lesion-detector_minus_pipeline": {
+          "delta_pp": 9.26,
+          "ci95_pp": [
+            -1.89,
+            20.98
+          ],
+          "excludes_zero": false,
+          "frac_resamples_le_0": 0.055
+        },
+        "arm3c: lesion-detector_minus_constant-molars": {
+          "delta_pp": 11.73,
+          "ci95_pp": [
+            1.07,
+            21.34
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0185
+        },
+        "arm3c: lesion-detector_minus_pipeline": {
+          "delta_pp": 9.88,
+          "ci95_pp": [
+            0.74,
+            19.2
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.019
+        },
+        "pipeline: arm3c_minus_m11": {
+          "delta_pp": 11.11,
+          "ci95_pp": [
+            -1.93,
+            22.56
+          ],
+          "excludes_zero": false,
+          "frac_resamples_le_0": 0.0527
+        },
+        "constant-molars: arm3c_minus_m11": {
+          "delta_pp": 12.35,
+          "ci95_pp": [
+            3.77,
+            20.74
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0029
+        },
+        "lesion-detector: arm3c_minus_m11": {
+          "delta_pp": 11.73,
+          "ci95_pp": [
+            3.55,
+            19.51
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0025
+        }
+      }
+    },
+    "test4": {
+      "n_images": 53,
+      "arms": {
+        "m11": {
+          "pipeline": {
+            "lesion_agreement": {
+              "value": 0.3925,
+              "ci95": [
+                0.3068,
+                0.4734
+              ]
+            },
+            "lesions": 186,
+            "lesions_matched": 73,
+            "teeth_flagged": 402
+          },
+          "constant-molars": {
+            "lesion_agreement": {
+              "value": 0.3172,
+              "ci95": [
+                0.2455,
+                0.3904
+              ]
+            },
+            "lesions": 186,
+            "lesions_matched": 59,
+            "teeth_flagged": 296
+          },
+          "lesion-detector": {
+            "lesion_agreement": {
+              "value": 0.4462,
+              "ci95": [
+                0.3516,
+                0.5374
+              ]
+            },
+            "lesions": 186,
+            "lesions_matched": 83,
+            "teeth_flagged": 211
+          }
+        },
+        "arm3c": {
+          "pipeline": {
+            "lesion_agreement": {
+              "value": 0.6237,
+              "ci95": [
+                0.5345,
+                0.7072
+              ]
+            },
+            "lesions": 186,
+            "lesions_matched": 116,
+            "teeth_flagged": 623
+          },
+          "constant-molars": {
+            "lesion_agreement": {
+              "value": 0.5,
+              "ci95": [
+                0.4371,
+                0.5659
+              ]
+            },
+            "lesions": 186,
+            "lesions_matched": 93,
+            "teeth_flagged": 376
+          },
+          "lesion-detector": {
+            "lesion_agreement": {
+              "value": 0.6398,
+              "ci95": [
+                0.5425,
+                0.724
+              ]
+            },
+            "lesions": 186,
+            "lesions_matched": 119,
+            "teeth_flagged": 244
+          }
+        }
+      },
+      "deltas": {
+        "m11: lesion-detector_minus_constant-molars": {
+          "delta_pp": 12.9,
+          "ci95_pp": [
+            3.83,
+            21.7
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0041
+        },
+        "m11: lesion-detector_minus_pipeline": {
+          "delta_pp": 5.38,
+          "ci95_pp": [
+            -5.35,
+            15.34
+          ],
+          "excludes_zero": false,
+          "frac_resamples_le_0": 0.1711
+        },
+        "arm3c: lesion-detector_minus_constant-molars": {
+          "delta_pp": 13.98,
+          "ci95_pp": [
+            2.34,
+            24.34
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0131
+        },
+        "arm3c: lesion-detector_minus_pipeline": {
+          "delta_pp": 1.61,
+          "ci95_pp": [
+            -10.8,
+            13.43
+          ],
+          "excludes_zero": false,
+          "frac_resamples_le_0": 0.4142
+        },
+        "pipeline: arm3c_minus_m11": {
+          "delta_pp": 23.12,
+          "ci95_pp": [
+            15.51,
+            30.81
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
+        "constant-molars: arm3c_minus_m11": {
+          "delta_pp": 18.28,
+          "ci95_pp": [
+            11.28,
+            25.61
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
+        "lesion-detector: arm3c_minus_m11": {
+          "delta_pp": 19.35,
+          "ci95_pp": [
+            11.49,
+            27.66
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        }
+      }
+    }
+  },
+  "D_fdi_set_f1": {
+    "constant": {
+      "precision": 0.218,
+      "recall": 0.5996,
+      "f1": 0.3197,
+      "tp": 286,
+      "fp": 1026,
+      "fn": 191
+    },
+    "gate": {
+      "control_identical_to_this_morning": true,
+      "m11": {
+        "precision": 0.2417,
+        "recall": 0.3962,
+        "f1": 0.3002,
+        "tp": 189,
+        "fp": 593,
+        "fn": 288,
+        "mean_latency_s": 1.74
+      },
+      "arm3c": {
+        "precision": 0.2375,
+        "recall": 0.7652,
+        "f1": 0.3625,
+        "tp": 365,
+        "fp": 1172,
+        "fn": 112,
+        "mean_latency_s": 2.109
+      },
+      "deltas": {
+        "arm3c_minus_constant": {
+          "delta_pp": 4.27,
+          "ci95_pp": [
+            1.58,
+            7.05
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0009
+        },
+        "arm3c_minus_m11": {
+          "delta_pp": 6.22,
+          "ci95_pp": [
+            3.31,
+            9.18
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        }
+      }
+    },
+    "lesion-detector": {
+      "control_identical_to_this_morning": true,
+      "m11": {
+        "precision": 0.3529,
+        "recall": 0.4025,
+        "f1": 0.3761,
+        "tp": 192,
+        "fp": 352,
+        "fn": 285,
+        "mean_latency_s": 1.449
+      },
+      "arm3c": {
+        "precision": 0.4391,
+        "recall": 0.5744,
+        "f1": 0.4977,
+        "tp": 274,
+        "fp": 350,
+        "fn": 203,
+        "mean_latency_s": 1.695
+      },
+      "deltas": {
+        "arm3c_minus_constant": {
+          "delta_pp": 17.8,
+          "ci95_pp": [
+            13.48,
+            22.02
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
+        "arm3c_minus_m11": {
+          "delta_pp": 12.16,
+          "ci95_pp": [
+            8.86,
+            15.52
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        }
+      }
+    }
+  },
+  "G_ningxia_stage4_flag": {
+    "control_gate": {
+      "images": 736,
+      "affected_teeth": 6792,
+      "flagged": 165,
+      "other_machine_affected_teeth": 6791,
+      "other_machine_flagged": 165,
+      "flag_rate_difference_pp": -0.0
+    },
+    "m11": {
+      "images": 736,
+      "affected_teeth": 6792,
+      "affected_teeth_flagged": 165,
+      "teeth_detected": 17829,
+      "teeth_flagged": 341,
+      "flag_rate": {
+        "value": 0.0243,
+        "ci95": [
+          0.0199,
+          0.0288
+        ]
+      }
+    },
+    "arm3c": {
+      "images": 736,
+      "affected_teeth": 7049,
+      "affected_teeth_flagged": 153,
+      "teeth_detected": 21412,
+      "teeth_flagged": 411,
+      "flag_rate": {
+        "value": 0.0217,
+        "ci95": [
+          0.0175,
+          0.0262
+        ]
+      }
+    },
+    "delta_arm3c_minus_m11": {
+      "delta_pp": -0.26,
+      "ci95_pp": [
+        -0.74,
+        0.23
+      ],
+      "excludes_zero": false,
+      "frac_resamples_le_0": 0.8518
+    }
+  },
+  "H_parameter_counts": {
+    "m11": {
+      "stage1_detector": 27617459,
+      "total_default": 97649753,
+      "total_gate_variant": 83516040,
+      "caries_path_default": 75294164,
+      "caries_path_gate_variant": 61160451
+    },
+    "arm3c": {
+      "stage1_detector": 25311251,
+      "total_default": 95343545,
+      "total_gate_variant": 81209832,
+      "caries_path_default": 72987956,
+      "caries_path_gate_variant": 58854243
+    }
+  },
+  "S1": {
+    "delta_pp": 10.4,
+    "ci95_pp": [
+      8.71,
+      12.09
+    ],
+    "excludes_zero": true,
+    "frac_resamples_le_0": 0.0,
+    "margin_pp": -2.0,
+    "fires": false,
+    "n_images": 1537
+  }
+}

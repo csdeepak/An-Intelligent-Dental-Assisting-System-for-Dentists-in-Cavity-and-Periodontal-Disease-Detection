@@ -7892,3 +7892,189 @@ has been run and `DEF_DETECTOR` is still `models/11`.** The re-measurement is pr
 - **Follow-ups:** run the pre-registered matrix; apply its one reversal rule; only then change
   the default. Lever B's verdict and this morning's measurements are not re-opened — they are
   relabelled "previous front end" wherever they are quoted beside the new numbers.
+
+## 2026-10-11g — the pipeline re-measured under the multi-corpus tooth detector (arm3c), and the Stage-1 default changed to it
+
+The re-measurement that the decision record (2026-10-11f) said would come before the default
+moved. Pre-registered in `outputs/stage1_switch/PRE_REGISTRATION.md`, frozen at `c139779` before
+any run; Amendment 1 at `85df6ff`, before any Ningxia run. **This entry does not show that the
+switch was right. That was a person's decision, taken with outcomes in view, against two
+pre-registered verdicts that still stand. It reports what the pipeline measures under the new
+front end, and that the one result registered to stop the switch did not occur.**
+
+- **What was done:** every pipeline-level number was run twice on the macOS clone — the previous
+  detector `models/11` first, as a same-machine control, then
+  `models/15_detector_multicorpus_leverA/arm3c_best.pt` — 32 runs over eight rows, each into
+  its own directory under `outputs/stage1_switch/`. Each control was checked against its gate
+  before the arm3c files of that row were opened. Every difference between detectors below is
+  against the same-machine control, by paired cluster bootstrap over images (10,000 resamples,
+  seed 42, 95% percentile interval). Then `DEF_DETECTOR` was changed.
+- **Dataset / config:** nothing tuned. FDI head `models/10`, lesion detector `models/16`, gate
+  `models/09`, detector confidence 0.25, image size 1024, NMS IoU 0.50, lesion confidence 0.25,
+  one-to-one assignment — all as before. torch 2.2.0, ultralytics 8.4.127. Both detectors ran on
+  CPU; the classifier heads ran on MPS for rows A, B, C, F and G and on CPU for rows D and E,
+  which is what each script has always done on this machine.
+- **Control gates — all eight passed.**
+
+  | Row | Control must give | Control gave |
+  |---|---|---|
+  | A Tufts numbering | 2,438 of 3,760 on 143 images, exact | 2,438 |
+  | B DENTEX numbering | 547 of 936 on 164 images, exact | 547 |
+  | C DENTEX lesion agreement | 479 lesions; other machine 212 / 234 / 218 | 479; 215 / 235 / 219 (largest gap +0.63 pp) |
+  | D FDI-set F1 | this morning's prediction sets, exact | identical, both caries methods |
+  | E CariesXrays 1,200 | 1,200 images, 2,815 lesions; other machine 892 / 1,582 / 1,926 | 1,200; 2,815; 895 / 1,583 / 1,921 (largest gap −0.18 pp) |
+  | F Ningxia caries | 1,013 lesions; gate 412 exact; other machine 404 / 507 | 1,013; 412; 404 / 506 |
+  | G Ningxia Stage 4 (amended) | 736 images; other machine 6,791 affected, 165 flagged | 736; 6,792; 165 |
+  | H parameters | 27,617,459 and 97,649,753 | both |
+
+- **Metrics — tooth numbering.** Recall, accuracy on detected teeth, end to end.
+
+  | Cohort | Detector | Recall | Of detected | End to end | 95% CI |
+  |---|---|---|---|---|---|
+  | Tufts test, 143 images, 3,760 teeth | previous | 82.4% | 78.6% | **64.8%** (2,438) | [60.44, 69.13] |
+  | | arm3c | 89.3% | 71.1% | **63.5%** (2,389) | [59.34, 67.50] |
+  | DENTEX, 164 images, 936 teeth | previous — **cross-domain** | 70.8% | 82.5% | **58.4%** (547) | [53.83, 63.05] |
+  | | arm3c — **in-domain** | 99.6% | 93.2% | **92.8%** (869) | [90.63, 94.87] |
+
+  - *Tufts:* end to end −1.30 pp [−4.64, +2.26]. **Not separable on Tufts.** Under that sits a
+    real trade: recall +6.89 pp [+4.94, +9.00], accuracy on detected teeth −7.52 pp
+    [−10.79, −4.16]. arm3c finds more teeth and numbers them worse. This is not evidence that
+    either earlier guard was met; both were box-mAP guards and both failed.
+  - *DENTEX:* +34.40 pp [+30.29, +38.54]. The 164 images are held out from arm3c's training
+    data (2026-10-11d) but DENTEX is one of its training corpora, so 92.8% is an **in-domain**
+    figure. The previous detector's 58.4% on this machine (58.3% as published, from the other
+    machine) was a Tufts-only detector on DENTEX and stays as the cross-domain reference. With
+    arm3c the pipeline has **no cross-domain numbering figure at all**: both cohorts with tooth
+    labels are in its training distribution.
+  - *Teeth matched to a detection but given no code,* because the one-to-one assignment stops
+    at 32 boxes: Tufts 26 → 65; DENTEX 0 → 0. Mean boxes per image: Tufts 24.3 → 27.8, DENTEX
+    22.0 → 27.5.
+
+- **Metrics — caries, lesion agreement.** Lesions landing on a flagged tooth, with the number
+  of teeth each arm flagged beside it, because agreement rises with flagged area.
+
+  | Cohort | Front end | Retired gate | Image-blind constant | Lesion detector (default) |
+  |---|---|---|---|---|
+  | DENTEX, 479 lesions | previous | 0.449 (751 flagged) | 0.491 (857) | 0.457 (526) |
+  | | arm3c | 0.802 (1,439) | 0.630 (988) | 0.595 (603) |
+  | CariesXrays, 2,815 lesions | previous | 0.318 (4,776) | 0.562 (7,717) | 0.682 (2,351) |
+  | | arm3c | 0.379 (5,808) | 0.604 (8,457) | 0.757 (2,596) |
+  | Ningxia, 1,013 lesions | previous | 0.407 (2,109) | 0.399 (1,941) | 0.499 (1,287) |
+  | | arm3c | 0.600 (3,104) | 0.591 (2,410) | 0.684 (1,465) |
+
+  *The lesion detector, arm3c minus the control:* DENTEX +13.78 pp [+9.84, +17.93];
+  CariesXrays +7.50 pp [+5.63, +9.41]; Ningxia +18.46 pp [+15.26, +21.78]. The constant rises
+  by about as much on every cohort (+13.99, +4.12, +19.25), because in this metric the constant
+  is placed with the pipeline's own boxes and codes. **Most of the rise is the front end
+  finding and numbering more teeth, for every arm alike; it is not the caries model reading
+  lesions better.** On DENTEX, flagging every detected tooth scores 0.722 → 0.998.
+
+  *Lever B's comparison, recomputed under arm3c — a description, not a re-decision.* Lever B's
+  verdict of 4 Sep stands for the front end it was scored on.
+
+  | Cohort | Lesion detector − constant | Lesion detector − retired gate |
+  |---|---|---|
+  | DENTEX | −3.55 pp [−10.11, +2.64], not separated | **−20.67 pp [−26.39, −15.06]**, the gate is higher |
+  | CariesXrays | +15.38 pp [+12.96, +17.73] | +37.80 pp [+35.29, +40.30] |
+  | Ningxia | +9.28 pp [+4.72, +13.73] | +8.39 pp [+4.06, +12.67] |
+
+  Against the constant the pattern is the one Lever B was adopted on: separated on the two
+  external cohorts, not on DENTEX (previous front end, this machine: −3.34 pp [−8.33, +1.39],
+  +12.01 pp, +10.07 pp). **One thing is new and unfavourable: on DENTEX under arm3c the retired
+  gate scores above the lesion detector, 0.802 against 0.595, interval excluding zero.** It
+  does so while flagging 1,439 teeth to the detector's 603, and under the previous front end
+  the two were tied (+0.84 pp [−3.73, +5.30]). On the metric with a false-positive cost, below,
+  the order is the other way round.
+
+  *Ningxia per hospital, under arm3c, lesion detector − constant:* test1 −3.16 pp
+  [−10.56, +3.97], not separated here; test2 +16.91 pp [+9.17, +24.62], separated; test3
+  +11.73 pp [+1.07, +21.34], separated; test4 +13.98 pp [+2.34, +24.34], separated. Lesion
+  detector − gate: test1 +15.82 pp [+7.80, +23.80], separated; test2 +4.58 pp [−2.43, +11.63],
+  not separated here; test3 +9.88 pp [+0.74, +19.20], separated; test4 +1.61 pp
+  [−10.80, +13.43], not separated here. 134, 110, 40 and 53 images. The same hospitals fail to
+  separate as under the previous front end, with one change: test3 against the gate now does.
+
+- **Metrics — caries, FDI-set F1** (164 DENTEX images, 477 carious teeth; this metric charges
+  for false positives). The image-blind constant is fixed whatever the detector: tp/fp/fn
+  286 / 1,026 / 191, F1 0.320.
+
+  | Caries path | Front end | P | R | F1 | tp / fp / fn | s per image, CPU |
+  |---|---|---|---|---|---|---|
+  | Lesion detector (default) | previous | 0.353 | 0.403 | 0.376 | 192 / 352 / 285 | 1.45 |
+  | | arm3c | 0.439 | 0.574 | **0.498** | 274 / 350 / 203 | 1.70 |
+  | Retired gate | previous | 0.242 | 0.396 | 0.300 | 189 / 593 / 288 | 1.74 |
+  | | arm3c | 0.238 | 0.765 | 0.363 | 365 / 1,172 / 112 | 2.11 |
+
+  Lesion-detector pipeline: arm3c − constant **+17.80 pp [+13.48, +22.02]**, separated; arm3c −
+  control +12.16 pp [+8.86, +15.52], separated. Gate pipeline: arm3c − constant +4.27 pp
+  [+1.58, +7.05], separated; arm3c − control +6.22 pp [+3.31, +9.18], separated. With arm3c the
+  lesion detector's 82 extra true positives come with two fewer false positives; the gate's 176
+  come with 579 more. DENTEX is in-domain for arm3c, so these are in-domain figures for the
+  front end.
+
+- **Metrics — Stage 4, the abnormality-proximity flag, Ningxia periodontitis, 736 images.**
+  165 of 6,792 affected teeth flagged (2.43% [1.99, 2.88]) → 153 of 7,049 (2.17%
+  [1.75, 2.62]); −0.26 pp [−0.74, +0.23], not separable. An affected tooth is a detected box,
+  so the two rates are over each detector's own affected teeth, not the same teeth. Stage 4
+  remains a flag that almost never fires on this cohort and is not a periodontal finding
+  (2026-10-10).
+- **Metrics — size.** Stage 1: 27,617,459 → 25,311,251 learnable parameters. Whole default
+  pipeline: 97,649,753 → **95,343,545**; caries path 75,294,164 → 72,987,956.
+- **The one registered stop, S1.** Lesion-detector path, lesion agreement, arm3c − control,
+  pooled over the 337 Ningxia caries images and the 1,200 CariesXrays images: **+10.40 pp
+  [+8.71, +12.09]**. The rule was a lower bound below −2 pp. **S1 does not fire.** That is the
+  caries result not being harmed, on a comparison in which the locked cohort was used as a
+  veto. It is not validation of the detector.
+- **Key decision or insight:** `DEF_DETECTOR` is now arm3c. Its `DETECTOR_PROFILES` entry
+  carries row B's figures from this machine — recall 99.6% (932 of 936), end to end 92.8%
+  (869) — and says in every report that DENTEX is in-domain, that Tufts is 89.3% / 63.5%, and
+  that no figure exists for a source the detector was not trained on. The console note no
+  longer turns that figure into "about 7% of codes are expected wrong". `models/11` is
+  unchanged, hash-pinned and selectable with `--detector`. The FDI-set F1 harness and
+  `count_model_params.py` keep `models/11` as their own default, because both reproduce
+  published numbers. **Every result recorded before this entry — Lever B's adoption, this
+  morning's three measurements, every table in `paper/main.tex` — belongs to the previous front
+  end and is not superseded as a record; it is superseded as a description of the default.**
+- **Disclosures the pre-registration requires.**
+  - *The repo owner was not told* before the Ningxia rows ran. The decision owner confirmed
+    this on 11 Oct and chose to run.
+  - *Ningxia is not blind to this choice.* The default was chosen after this detector's
+    gate-path Ningxia result (0.407 → 0.600) was known. By saved outputs the caries images have
+    now been scored in 20 full passes, six of them here, and the periodontitis images in six,
+    two of them here, besides one 24-image smoke test. Under arm3c: four caries passes, one
+    periodontitis pass. Nothing was fitted, tuned or selected on Ningxia in this matrix.
+  - *Amendment 1.* Row G's frozen gate demanded exactly 6,791 affected teeth. That count is a
+    property of detected boxes and came from the other machine. Found by reading the code after
+    rows A, B and H had been read, while row D was running, and before any Ningxia run; the
+    gate became 736 images exact with the counts held to 1.5%. The control then gave 6,792, so the frozen gate would have failed by
+    one tooth.
+  - *One stop, caused by the analysis script.* Its first gate for row C compared the 148
+    per-image rows (`lesion_localization.py` lists only images carrying a caries lesion)
+    with the cohort's 164 images and stopped. The control files themselves report 164 images
+    and 479 lesions. The gate was changed to read each file's own image count before any arm3c
+    file of row C was opened.
+  - *Seen before the matrix,* and so not a prediction of it: arm3c's numbering on both
+    cohorts, its gate-path lesion agreement on Ningxia and on a 1,500-image CariesXrays sample,
+    and the 0.604 → 0.950 ceiling on DENTEX caries recall. New here: the lesion detector with
+    arm3c on any cohort, the constant under arm3c, FDI-set F1 under arm3c, every interval.
+- **What this does not establish.** That arm3c generalises: both numbering cohorts are
+  in-domain for it. That the Tufts cost is zero: the interval reaches −4.64 pp. That the
+  caries model improved: the constant moved with it. That Lever B would be adopted afresh
+  under this front end: its rule was not re-run and is not claimed.
+- **Source:** `outputs/stage1_switch/stage1_switch_results.json` (every figure above) and
+  `stage1_switch_results.log`; the 32 run directories beside them, each with its `stdout.log`;
+  `outputs/stage1_switch/run_matrix.sh` (every command); `scripts/eval/stage1_switch_intervals.py`
+  (gates and intervals). Verified after the change: `pytest tests` 174 passed;
+  `verify_paper_numbers.py` 127 of 127; all eleven invariants hold, the default-detector one now
+  reading the new profile; a default run and a `--detector models/11` run on one DENTEX image
+  each reproduce their row D caries codes and carry their own tag and figures.
+- **Follow-ups:** (1) `paper/main.tex` still describes `models/11` throughout and cannot be
+  rebuilt on this machine; until it is, the manuscript and the pipeline default disagree.
+  (2) The Docker image predates the change. (3) `outputs/param_counts/param_counts.json` is
+  still the previous front end's count, because `verify_paper_numbers.py` asserts the
+  manuscript against it; it moves with the manuscript. (4) The Kaggle "dual-labeled" licence is
+  still unstated, and arm3c was trained on that set. (5) The repo owner and the mentor have not
+  been consulted on any of this. (6) arm3c's weights (51 MB) are whitelisted in `.gitignore`
+  and not yet committed. (7) Not done, and not registered: a Tufts box-mAP re-measurement — the
+  guard figures of 1 and 3 Sep are unchanged — and any reject option for surplus boxes, which
+  the 26 → 65 uncoded Tufts teeth make more pressing.

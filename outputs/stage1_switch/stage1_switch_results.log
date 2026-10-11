@@ -1,0 +1,125 @@
+
+Row A -- tufts numbering
+  control gate: 2438 of 3760 teeth correct on 143 images -- reproduces
+  m11    end-to-end 0.6484  recall 0.8245  of detected 0.7865  (2438 correct, 26 matched teeth given no code)
+  arm3c  end-to-end 0.6354  recall 0.8934  of detected 0.7112  (2389 correct, 65 matched teeth given no code)
+  end_to_end  arm3c - m11                        -1.30 pp  [  -4.64,   +2.26]  INCLUDES 0
+  recall  arm3c - m11                            +6.89 pp  [  +4.94,   +9.00]  excludes 0
+  exact_of_detected  arm3c - m11                 -7.52 pp  [ -10.79,   -4.16]  excludes 0
+
+Row B -- dentex numbering
+  control gate: 547 of 936 teeth correct on 164 images -- reproduces
+  m11    end-to-end 0.5844  recall 0.7083  of detected 0.8250  (547 correct, 0 matched teeth given no code)
+  arm3c  end-to-end 0.9284  recall 0.9957  of detected 0.9324  (869 correct, 0 matched teeth given no code)
+  end_to_end  arm3c - m11                       +34.40 pp  [ +30.29,  +38.54]  excludes 0
+  recall  arm3c - m11                           +28.74 pp  [ +24.78,  +32.85]  excludes 0
+  exact_of_detected  arm3c - m11                +10.74 pp  [  +7.66,  +14.02]  excludes 0
+
+Row C -- lesion agreement, DENTEX, 164 images
+  control gate: counts reproduce; pipeline 215 (other machine 212), constant-molars 235 (other machine 234), lesion-detector 219 (other machine 218), all-teeth 346
+  pooled (n=148)
+    m11    pipeline 0.449 (751 flagged)   constant-molars 0.491 (857 flagged)   lesion-detector 0.457 (526 flagged)   all-teeth 0.722 (3343 flagged)
+    arm3c  pipeline 0.802 (1439 flagged)   constant-molars 0.630 (988 flagged)   lesion-detector 0.595 (603 flagged)   all-teeth 0.998 (4132 flagged)
+    m11: lesion-detector - constant-molars       -3.34 pp  [  -8.33,   +1.39]  INCLUDES 0
+    m11: lesion-detector - pipeline              +0.84 pp  [  -3.73,   +5.30]  INCLUDES 0
+    arm3c: lesion-detector - constant-molars     -3.55 pp  [ -10.11,   +2.64]  INCLUDES 0
+    arm3c: lesion-detector - pipeline           -20.67 pp  [ -26.39,  -15.06]  excludes 0
+    pipeline: arm3c - m11                       +35.28 pp  [ +30.53,  +40.43]  excludes 0
+    constant-molars: arm3c - m11                +13.99 pp  [ +10.39,  +17.78]  excludes 0
+    lesion-detector: arm3c - m11                +13.78 pp  [  +9.84,  +17.93]  excludes 0
+    all-teeth: arm3c - m11                      +27.56 pp  [ +22.95,  +32.27]  excludes 0
+
+Row E -- lesion agreement, CariesXrays, 1,200 held-out images
+  control gate: counts reproduce; pipeline 895 (other machine 892), constant-molars 1583 (other machine 1582), lesion-detector 1921 (other machine 1926)
+  pooled (n=1200)
+    m11    pipeline 0.318 (4776 flagged)   constant-molars 0.562 (7717 flagged)   lesion-detector 0.682 (2351 flagged)
+    arm3c  pipeline 0.379 (5808 flagged)   constant-molars 0.604 (8457 flagged)   lesion-detector 0.757 (2596 flagged)
+    m11: lesion-detector - constant-molars      +12.01 pp  [  +9.86,  +14.06]  excludes 0
+    m11: lesion-detector - pipeline             +36.45 pp  [ +34.14,  +38.73]  excludes 0
+    arm3c: lesion-detector - constant-molars    +15.38 pp  [ +12.96,  +17.73]  excludes 0
+    arm3c: lesion-detector - pipeline           +37.80 pp  [ +35.29,  +40.30]  excludes 0
+    pipeline: arm3c - m11                        +6.15 pp  [  +4.20,   +8.09]  excludes 0
+    constant-molars: arm3c - m11                 +4.12 pp  [  +2.20,   +6.04]  excludes 0
+    lesion-detector: arm3c - m11                 +7.50 pp  [  +5.63,   +9.41]  excludes 0
+
+Row F -- lesion agreement, Ningxia caries, 337 images
+  control gate: counts reproduce; pipeline 412, constant-molars 404 (other machine 404), lesion-detector 506 (other machine 507)
+  pooled (n=337)
+    m11    pipeline 0.407 (2109 flagged)   constant-molars 0.399 (1941 flagged)   lesion-detector 0.499 (1287 flagged)
+    arm3c  pipeline 0.600 (3104 flagged)   constant-molars 0.591 (2410 flagged)   lesion-detector 0.684 (1465 flagged)
+    m11: lesion-detector - constant-molars      +10.07 pp  [  +6.10,  +14.00]  excludes 0
+    m11: lesion-detector - pipeline              +9.28 pp  [  +5.28,  +13.29]  excludes 0
+    arm3c: lesion-detector - constant-molars     +9.28 pp  [  +4.72,  +13.73]  excludes 0
+    arm3c: lesion-detector - pipeline            +8.39 pp  [  +4.06,  +12.67]  excludes 0
+    pipeline: arm3c - m11                       +19.35 pp  [ +15.46,  +23.19]  excludes 0
+    constant-molars: arm3c - m11                +19.25 pp  [ +15.69,  +22.81]  excludes 0
+    lesion-detector: arm3c - m11                +18.46 pp  [ +15.26,  +21.78]  excludes 0
+  test1 (n=134)
+    m11    pipeline 0.294 (641 flagged)   constant-molars 0.449 (740 flagged)   lesion-detector 0.453 (421 flagged)
+    arm3c  pipeline 0.519 (1064 flagged)   constant-molars 0.709 (972 flagged)   lesion-detector 0.677 (492 flagged)
+    m11: lesion-detector - constant-molars       +0.32 pp  [  -5.90,   +6.56]  INCLUDES 0
+    m11: lesion-detector - pipeline             +15.82 pp  [  +8.74,  +23.29]  excludes 0
+    arm3c: lesion-detector - constant-molars     -3.16 pp  [ -10.56,   +3.97]  INCLUDES 0
+    arm3c: lesion-detector - pipeline           +15.82 pp  [  +7.80,  +23.80]  excludes 0
+    pipeline: arm3c - m11                       +22.47 pp  [ +16.34,  +28.70]  excludes 0
+    constant-molars: arm3c - m11                +25.95 pp  [ +19.33,  +32.79]  excludes 0
+    lesion-detector: arm3c - m11                +22.47 pp  [ +15.81,  +29.19]  excludes 0
+  test2 (n=110)
+    m11    pipeline 0.519 (814 flagged)   constant-molars 0.410 (660 flagged)   lesion-detector 0.573 (481 flagged)
+    arm3c  pipeline 0.702 (1094 flagged)   constant-molars 0.579 (772 flagged)   lesion-detector 0.748 (529 flagged)
+    m11: lesion-detector - constant-molars      +16.33 pp  [  +9.78,  +22.92]  excludes 0
+    m11: lesion-detector - pipeline              +5.44 pp  [  -0.56,  +11.54]  INCLUDES 0
+    arm3c: lesion-detector - constant-molars    +16.91 pp  [  +9.17,  +24.62]  excludes 0
+    arm3c: lesion-detector - pipeline            +4.58 pp  [  -2.43,  +11.63]  INCLUDES 0
+    pipeline: arm3c - m11                       +18.34 pp  [ +11.43,  +25.14]  excludes 0
+    constant-molars: arm3c - m11                +16.91 pp  [ +11.05,  +22.93]  excludes 0
+    lesion-detector: arm3c - m11                +17.48 pp  [ +12.89,  +22.19]  excludes 0
+  test3 (n=40)
+    m11    pipeline 0.401 (252 flagged)   constant-molars 0.370 (245 flagged)   lesion-detector 0.494 (174 flagged)
+    arm3c  pipeline 0.512 (323 flagged)   constant-molars 0.494 (290 flagged)   lesion-detector 0.611 (200 flagged)
+    m11: lesion-detector - constant-molars      +12.35 pp  [  +1.33,  +22.67]  excludes 0
+    m11: lesion-detector - pipeline              +9.26 pp  [  -1.89,  +20.98]  INCLUDES 0
+    arm3c: lesion-detector - constant-molars    +11.73 pp  [  +1.07,  +21.34]  excludes 0
+    arm3c: lesion-detector - pipeline            +9.88 pp  [  +0.74,  +19.20]  excludes 0
+    pipeline: arm3c - m11                       +11.11 pp  [  -1.93,  +22.56]  INCLUDES 0
+    constant-molars: arm3c - m11                +12.35 pp  [  +3.77,  +20.74]  excludes 0
+    lesion-detector: arm3c - m11                +11.73 pp  [  +3.55,  +19.51]  excludes 0
+  test4 (n=53)
+    m11    pipeline 0.393 (402 flagged)   constant-molars 0.317 (296 flagged)   lesion-detector 0.446 (211 flagged)
+    arm3c  pipeline 0.624 (623 flagged)   constant-molars 0.500 (376 flagged)   lesion-detector 0.640 (244 flagged)
+    m11: lesion-detector - constant-molars      +12.90 pp  [  +3.83,  +21.70]  excludes 0
+    m11: lesion-detector - pipeline              +5.38 pp  [  -5.35,  +15.34]  INCLUDES 0
+    arm3c: lesion-detector - constant-molars    +13.98 pp  [  +2.34,  +24.34]  excludes 0
+    arm3c: lesion-detector - pipeline            +1.61 pp  [ -10.80,  +13.43]  INCLUDES 0
+    pipeline: arm3c - m11                       +23.12 pp  [ +15.51,  +30.81]  excludes 0
+    constant-molars: arm3c - m11                +18.28 pp  [ +11.28,  +25.61]  excludes 0
+    lesion-detector: arm3c - m11                +19.35 pp  [ +11.49,  +27.66]  excludes 0
+
+Row D -- FDI-set F1, 164 leak-free DENTEX images
+  gate: control reproduces this morning's sets (tp/fp/fn 189/593/288)
+    m11    P 0.2417  R 0.3962  F1 0.3002  (tp/fp/fn 189/593/288)  1.74 s/image
+    arm3c  P 0.2375  R 0.7652  F1 0.3625  (tp/fp/fn 365/1172/112)  2.11 s/image
+    F1  arm3c - constant                         +4.27 pp  [  +1.58,   +7.05]  excludes 0
+    F1  arm3c - m11                              +6.22 pp  [  +3.31,   +9.18]  excludes 0
+  lesion-detector: control reproduces this morning's sets (tp/fp/fn 192/352/285)
+    m11    P 0.3529  R 0.4025  F1 0.3761  (tp/fp/fn 192/352/285)  1.45 s/image
+    arm3c  P 0.4391  R 0.5744  F1 0.4977  (tp/fp/fn 274/350/203)  1.70 s/image
+    F1  arm3c - constant                        +17.80 pp  [ +13.48,  +22.02]  excludes 0
+    F1  arm3c - m11                             +12.16 pp  [  +8.86,  +15.52]  excludes 0
+
+Row G -- Ningxia Stage-4 abnormality-proximity flag rate
+  control gate: 736 images; 6792 affected teeth (other machine 6,791); 165 flagged (other machine 165)
+  m11    165 of 6792 affected teeth flagged = 0.0243
+  arm3c  153 of 7049 affected teeth flagged = 0.0217
+  flag rate  arm3c - m11                         -0.26 pp  [  -0.74,   +0.23]  INCLUDES 0
+
+Row H -- parameter counts
+  m11    Stage 1 27,617,459   pipeline total 97,649,753
+  arm3c  Stage 1 25,311,251   pipeline total 95,343,545
+
+S1 -- the one result that stops the switch (Sec 5)
+  lesion-detector path, arm3c - m11, E + F      +10.40 pp  [  +8.71,  +12.09]  excludes 0
+  lower bound +8.71 pp against -2.0 pp: S1 does not fire
+
+rows not yet run: none
+-> /Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/outputs/stage1_switch/stage1_switch_results.json

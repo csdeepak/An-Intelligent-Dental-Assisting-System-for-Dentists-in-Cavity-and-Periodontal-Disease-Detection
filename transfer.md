@@ -49,7 +49,11 @@ call Stage 4 a periodontal finding; report schema 1.2.
 what limits end-to-end FDI and what is parked is at the end of §3's implementation block.
 **11 Oct, afternoon — the user decided to switch the Stage-1 detector; a second council planned
 it** (`docs/session-memory/2026-10-11e-detector-switch-plan-council.md`, `RESULTS_LOG`
-2026-10-11d). Planned, not started.
+2026-10-11d).
+**11 Oct, evening — the switch is done.** The pre-registered matrix ran (32 runs, every control
+gate passed, the one stop rule did not fire) and `DEF_DETECTOR` is now the multi-corpus detector
+(`RESULTS_LOG` 2026-10-11g, `docs/session-memory/2026-10-11g-detector-switch-matrix-and-flip.md`).
+§1, §2.1, §2.3, §2.4, §2.6, §3, §4 and §8 were edited in place. Read the note below first.
 
 > **Windows clone, 6 Sep 2026 — the Tufts crop corpus was cut from the wrong frame, and is now
 > rebuilt.** It scored 11.5% crop-level FDI-exact where the published number is 71.5%, with correct
@@ -102,6 +106,23 @@ it** (`docs/session-memory/2026-10-11e-detector-switch-plan-council.md`, `RESULT
 > Also checked on 10 Oct: the **Tufts Drive folder still opens without signing in**; nothing has
 > been committed since 7 Sep; and the macOS clone holds all 1,000 original Tufts radiographs.
 
+> **11 Oct 2026, evening — the Stage-1 tooth detector changed, and the manuscript has not.**
+> The pipeline default is now `models/15_detector_multicorpus_leverA/arm3c_best.pt` (Tufts +
+> DENTEX + Kaggle), replacing the Tufts-only `models/11`. **This was a human decision against
+> two pre-registered ablation verdicts, which stand; neither failed guard is claimed met**
+> (`RESULTS_LOG` 2026-10-11f). The pipeline was re-measured under
+> `outputs/stage1_switch/PRE_REGISTRATION.md` with both detectors on one machine
+> (`RESULTS_LOG` 2026-10-11g). In one line each: Tufts end-to-end numbering 64.8% → 63.5%, **not
+> separable** (−1.30 pp [−4.64, +2.26]); DENTEX 58.4% → 92.8%, **in-domain** for the new
+> detector; default-pipeline FDI-set F1 0.376 → **0.498**, +17.80 pp above the constant;
+> lesion agreement up on all three cohorts, the constant up with it.
+> **Three things are now out of step and a reader must know which:** (1) `paper/main.tex`, its
+> PDF, `verify_paper_numbers.py` and `outputs/param_counts/` all describe the *previous* front
+> end; (2) the Docker image predates the change; (3) every number in §2.2 and the Lever B table
+> in §2.4 was measured with the previous front end. `models/11` is retained, hash-pinned and
+> selectable with `--detector`, so all of those still reproduce. The repo owner and the mentor
+> have not been consulted.
+
 **Maintenance rule (CLAUDE.md rule 5): before any substantial session ends, update this file.**
 A stale snapshot has cost this project real time more than once — see the pattern note in §4.
 
@@ -136,7 +157,11 @@ cohorts. Both threads are in the manuscript.
 
 ## 1. Where we are
 
-The six-stage pipeline runs end to end on CPU alone (2.39 s/image), is deployed in a Streamlit +
+**Since 11 Oct 2026 the pipeline's tooth detector is the multi-corpus model, and the manuscript
+described in this paragraph still reports the previous one — see the 11 Oct evening note above.**
+
+The six-stage pipeline runs end to end on CPU alone (2.39 s/image as published; 1.70 s/image
+with the current default on the macOS clone), is deployed in a Streamlit +
 Docker demo, and has been evaluated on **six independent cohorts**: DENTEX (development), four
 Ningxia hospitals, and the CariesXrays benchmark. Every reported number traces to a saved
 artefact — `scripts/verify_paper_numbers.py` asserts **127 manuscript claims** against those
@@ -167,23 +192,33 @@ failed ones).
 
 | Stage | Model | Params | Checkpoint |
 |---|---|---|---|
-| 1 Detect | YOLOv11l-seg | 27.62 M | `models/11_yolo_seg_tufts_r1/best.pt` |
+| 1 Detect **(default since 11 Oct)** | YOLOv11l, multi-corpus (Tufts + DENTEX + Kaggle) | 25.31 M | `models/15_detector_multicorpus_leverA/arm3c_best.pt` |
+| 1 Detect (previous default, retained, `--detector`) | YOLOv11l-seg, Tufts only | 27.62 M | `models/11_yolo_seg_tufts_r1/best.pt` |
 | 2 Number (FDI) | ResNet18 + 4 positional feats | 11.19 M | `models/10_fdi_head_dentex_tufts_v2/` |
 | 3a Caries localisation **(default)** | YOLOv11l lesion detector | 25.31 M | `models/16_lever_b_pooled/.../best.pt` |
 | 3a Caries gate **(retained variant, `--caries-method gate`)** | ResNet18 | 11.18 M | `models/09_caries_gate_v3/` |
 | 3b Caries severity | ResNet18 | 11.18 M | `models/07_caries_cascade/` |
 | 4a Bone-loss gate | ResNet18 | 11.18 M | `models/03_bone_loss_model_training_notebook_models/` |
 | 4b Bone-loss severity | ResNet18 | 11.18 M | `models/04_bone_loss_severity_notebook_models/` |
-| **Total (default)** | | **97.65 M** | |
-| Total (gate variant) | | 83.52 M | |
-| **Caries path only (1,2,3a,3b), default** | | **75.29 M** | |
-| Caries path only, gate variant | | 61.16 M | |
+| **Total (default)** | | **95.34 M** | |
+| Total (gate variant) | | 81.21 M | |
+| **Caries path only (1,2,3a,3b), default** | | **72.99 M** | |
+| Caries path only, gate variant | | 58.85 M | |
 
-Speed: **2.39 s/image on CPU**, no GPU needed for inference. Counted by
+With the previous detector the four totals were 97.65 / 83.52 / 75.29 / 61.16 M — the figures
+the manuscript and `outputs/param_counts/param_counts.json` still carry; the current ones are in
+`outputs/stage1_switch/H_params_arm3c/param_counts.json`.
+
+Speed: **2.39 s/image on CPU** as published (previous front end, other machine); on the macOS
+clone, CPU, 1.45 s/image with the previous detector and 1.70 with the current one. No GPU needed
+for inference. Counted by
 `scripts/count_model_params.py` (learnable parameters only, one stated rule for all seven
 checkpoints — replaced three hardcoded literals that had drifted, 4 Sep).
 
 ### 2.2 The central finding — image-blind constant vs. the pipeline
+
+*Every table in this subsection is the **gate** caries path on the **previous** front end, as
+published. The same comparisons for the shipped pipeline are in §2.4.*
 
 **Development (DENTEX, 164 leak-free images, 477 carious teeth):**
 
@@ -220,17 +255,22 @@ eight-molar set.
 
 ### 2.3 What the pipeline demonstrates that a constant cannot
 
-**Tooth numbering (Stage 2, DENTEX 164 images / 936 teeth):**
+**Tooth numbering (Stage 2), current front end beside the previous one — both run on one
+machine, 11 Oct (`RESULTS_LOG` 2026-10-11g):**
 
-| Metric | Value | 95% CI |
-|---|---|---|
-| Detection recall | 70.6% | [66.5, 74.6] |
-| FDI exact, end-to-end | 58.3% | [53.9, 62.8] |
-| FDI exact, of detected teeth | 82.6% | [79.1, 85.8] |
+| Cohort | Detector | Recall | Of detected | End to end | 95% CI |
+|---|---|---|---|---|---|
+| Tufts test, 143 images, 3,760 teeth | previous | 82.4% | 78.6% | 64.8% | [60.44, 69.13] |
+| | **current** | 89.3% | 71.1% | **63.5%** | [59.34, 67.50] |
+| DENTEX, 164 images, 936 teeth | previous — cross-domain | 70.8% | 82.5% | 58.4% | [53.83, 63.05] |
+| | **current — in-domain** | 99.6% | 93.2% | **92.8%** | [90.63, 94.87] |
 
-77.4% of remaining errors are benign off-by-one within the correct quadrant; only 2.4% of
-detected teeth get a wrong-quadrant error. Tufts end-to-end (harder test, every tooth not just
-pathological ones, 143 images): **64.8%**.
+Tufts: −1.30 pp [−4.64, +2.26], not separable — more teeth found (+6.89 pp), numbered worse
+(−7.52 pp). DENTEX: +34.40 pp [+30.29, +38.54] on held-out images of a corpus the current
+detector trained on. **The current front end has no cross-domain numbering figure.** The
+published DENTEX figures for the previous front end (other machine) are 70.6% / 82.6% / 58.3%;
+its error breakdown — 77.4% of remaining errors off-by-one within the correct quadrant, 2.4% of
+detected teeth in the wrong quadrant — has not been redone for the current one.
 
 **Calibration (caries gate, 863 held-out test crops):** raw ECE 0.136 (systematically
 overconfident) → isotonic regression **0.043**. Temperature scaling made it *worse* (0.152) —
@@ -270,6 +310,23 @@ scores marginally higher on CariesXrays (0.694) but collapses to 0.086 on DENTEX
 Ningxia — the training *mixture*, not the architecture, is what transfers. The old gate is
 retained, unchanged, via `--caries-method gate`, so every pre-4-Sep number stays reproducible.
 
+**That table is the previous front end, and it is the evidence the adoption rests on. Under the
+current front end** (`RESULTS_LOG` 2026-10-11g; lesion agreement, teeth flagged in brackets):
+
+| Cohort | Gate | Constant | **Lesion detector** | Detector − constant |
+|---|---|---|---|---|
+| DENTEX | 0.802 (1,439) | 0.630 (988) | 0.595 (603) | −3.55 [−10.11, +2.64], not separated |
+| CariesXrays | 0.379 (5,808) | 0.604 (8,457) | **0.757** (2,596) | **+15.38 [+12.96, +17.73]** |
+| Ningxia | 0.600 (3,104) | 0.591 (2,410) | **0.684** (1,465) | **+9.28 [+4.72, +13.73]** |
+
+Every column rose with the detector, the constant included, so the rise is mostly the front end.
+The detector's margin over the constant is about what it was. **New and unfavourable: on DENTEX
+the retired gate now scores above the lesion detector** (−20.67 pp [−26.39, −15.06]) while
+flagging 2.4 times the teeth. On FDI-set F1, which charges for false positives (constant 0.320,
+fixed): **lesion-detector pipeline 0.498** (P 0.439 / R 0.574), gate pipeline 0.363. Lever B's
+rule was not re-run under this front end and is not claimed for it. Per hospital the detector is
+again not separated from the constant at test1.
+
 ### 2.5 Periodontal (bone-loss) branch — an honest negative result
 
 | | In-domain (Tufts) | External (4 Ningxia hospitals) |
@@ -296,7 +353,7 @@ failure to transfer. Whether this branch stays in the paper is §3 item 5.
 |---|---|---|
 | 1 | Multi-corpus detector (Tufts+DENTEX) | FDI e2e 58.4%→93.4% in-domain (+34.9pp); Tufts guard fails 0.810→0.647 → **ABLATION** |
 | 2 | Standalone CariesXrays lesion detector, benchmark row | COCO AP 0.482/AP50 0.845/AP75 0.500 — level with FPCL (0.482/0.841/0.506), ~6 AP above their strongest baseline → **benchmark row in Related Work**, not a pipeline component. Its `best.pt` = Lever B's single-corpus arm. |
-| A | Multi-corpus detector, 4 corpora, balanced | DENTEX e2e 0.584→0.928 (+34.4pp); Guard 1 (external caries) passes +9.1pp; Guard 2 (Tufts box mAP) fails 0.724→0.585 → **ABLATION**, 2/3. Diagnosed as capacity dilution, not a bug. |
+| A | Multi-corpus detector, 4 corpora, balanced | DENTEX e2e 0.584→0.928 (+34.4pp); Guard 1 (external caries) passes +9.1pp; Guard 2 (Tufts box mAP) fails 0.724→0.585 → **ABLATION**, 2/3. Diagnosed as capacity dilution, not a bug. **The verdict stands; arm 3C was made the Stage-1 default on 11 Oct by a separate decision against it.** |
 | A2 | Frozen-backbone Tufts head fine-tune of Lever A's arm | DENTEX e2e +29.3pp; Guard 1 +8.6pp; Guard 2 fails (0.585→0.593, val recovered, test didn't) → **ABLATION** |
 | **B** | Caries lesion detector (reformulated task) | 2 of 3 cohorts pass → **ADOPTED**, see §2.4 |
 | D | Bone-loss second corpus (BRAR) | Opt-in only, not started, no pre-registration |
@@ -395,35 +452,45 @@ the macOS clone, then write.** Nothing here needs a GPU, the Windows machine or 
 **The implementation phase is complete as of 11 Oct.** What is left is writing and decisions:
 items 1–5 and 9–10 of the table above, and the six-page caries-only cut (§5).
 
-**End-to-end FDI (58.3% DENTEX, 64.8% Tufts) — what limits it and what is parked.** Councilled
-11 Oct (`docs/session-memory/2026-10-11d-fdi-and-lagging-metrics-council.md`, `RESULTS_LOG`
+**End-to-end FDI (was 58.3% DENTEX, 64.8% Tufts; now 92.8% in-domain, 63.5%) — the detector
+switch, what it left open, and what is parked.** Councilled 11 Oct (`docs/session-memory/2026-10-11d-fdi-and-lagging-metrics-council.md`, `RESULTS_LOG`
 2026-10-11c).
 
-- **DENTEX is detector-bound.** 275 of 936 teeth are never detected, and about two thirds of the
-  115 wrong codes also come from the detector's boxes (115 → 41 on the same teeth with the
-  multi-corpus detector's boxes, same head). A multi-corpus detector reaches 92.8% and already
-  exists (`models/15` arm3c). The morning council advised leaving it an ablation. **On the
-  afternoon of 11 Oct the user decided to make it the Stage-1 default anyway**, knowing that it
-  overrides two pre-registered verdicts and re-measures every pipeline number. **Nothing has
-  run and `DEF_DETECTOR` is still `models/11`.** The agreed plan is in
-  `docs/session-memory/2026-10-11e-detector-switch-plan-council.md`: safety fixes first, then a
-  signed override record and a pre-registration, then about 34 runs with a same-machine
-  `models/11` control before each, and the one-line default change last. The repo owner and the
-  mentor have not been consulted; nothing is to be pushed until they are.
-  **Status, 11 Oct evening:** Phase 1 is done — a report's detector tag and accuracy now follow
-  the weights loaded, and arm3c is hash-pinned (`RESULTS_LOG` 2026-10-11e). Phase 2 is written —
-  the decision record (`RESULTS_LOG` 2026-10-11f) and
-  `outputs/stage1_switch/PRE_REGISTRATION.md`. **The matrix has not been run and the default is
-  still `models/11`.** Next: commit both, then run the eight rows, Ningxia last.
-- **The same loss caps the caries score.** The deployed front end delivers 288 of 477 carious
-  teeth under the right code, a recall ceiling of 0.604; arm3c's would be 0.950.
-- **Now, writing only:** say in the manuscript that numbering is detection-bound and name the
-  multi-corpus ablation as the measured ceiling. `main.tex` does not mention it at all.
-- **One optional measurement, about a day, needs its own pre-registration:** the lesion detector
-  on the arm3c front end, DENTEX only, once, estimation only, default unchanged. Two council
-  seats said now, one said after submission.
-- **After submission:** a reject option in the one-to-one assignment, tuned on Tufts validation
-  only; then, and only by a new pre-registered decision, whether the default detector changes.
+- **DENTEX was detector-bound, and the detector has been changed.** With the Tufts-only
+  detector 275 of 936 teeth were never detected, and about two thirds of the 115 wrong codes also
+  came from its boxes. The morning council advised leaving the multi-corpus detector an
+  ablation; **on the afternoon of 11 Oct the user decided to make it the default anyway**,
+  against two pre-registered verdicts. **Done, 11 Oct evening:** safety fixes
+  (`RESULTS_LOG` 2026-10-11e), decision record (2026-10-11f), pre-registration frozen at
+  `c139779` with Amendment 1 at `85df6ff`, 32 runs with a same-machine `models/11` control
+  before every arm3c run, all eight control gates passed, the one stop rule did not fire
+  (+10.40 pp [+8.71, +12.09] against a −2 pp bound), and `DEF_DETECTOR` changed
+  (2026-10-11g). The numbers are in §2.3 and §2.4.
+- **What the switch did not settle.** Tufts end to end is "not separable", with an interval
+  reaching −4.64 pp and accuracy on detected teeth down 7.5 pp. Both numbering cohorts are now
+  in the detector's training distribution, so the pipeline has no cross-domain numbering figure.
+  The Tufts box-mAP guard figures (0.810 → 0.585) were not re-measured and neither guard is
+  claimed met. Lever B was adopted under the previous front end.
+- **Still to do for the switch, in order:**
+  1. **Tell the repo owner and the mentor.** Neither was consulted, and the Ningxia rows ran
+     without the owner being told — the results entry says so.
+  2. **Commit and push arm3c's weights** (`models/15_detector_multicorpus_leverA/arm3c_best.pt`,
+     51 MB). They are whitelisted in `.gitignore`; until they are in git a fresh clone has a
+     default detector it cannot load. History keeps a 51 MB file for good, which is why this is
+     listed after item 1.
+  3. **Decide which front end the manuscript reports** (`PAPER_MATERIAL.md` §8.30 and §9).
+     `main.tex` describes `models/11` throughout. Authors and mentor.
+  4. **On the Windows machine:** rebuild `main.tex` and its PDF to match item 3; then switch
+     `scripts/count_model_params.py`'s first checkpoint, regenerate
+     `outputs/param_counts/param_counts.json` and bring `verify_paper_numbers.py` along; rebuild
+     and smoke-test the Docker image.
+  5. **The Kaggle "dual-labeled" licence.** arm3c was trained on that set and its authors state
+     no licence. If it cannot be cleared before submission the remedy is a detector trained
+     without it — a new decision with its own record.
+- **Parked, each needing its own pre-registration:** a reject option in the one-to-one
+  assignment, tuned on Tufts validation only — more pressing now that teeth matched to a box but
+  given no code rose from 26 to 65 on Tufts; a redo of the numbering error breakdown under the
+  current front end; a Tufts box-mAP re-measurement.
 - **Never for this paper:** a new position-digit model or a retrained detector.
 
 **What items 3–5 found (`RESULTS_LOG` 2026-10-11, `PAPER_MATERIAL.md` §8.29).** The constant
@@ -493,6 +560,9 @@ depends on this.
 | **IRB paperwork** | Not started. Longest lead time of anything open. Needed only if clinic data is ever used in a result. |
 | **Is the Tufts mirror-numbering finding novel?** Not established — the source paper (Panetta et al., IEEE JBHI 2022) is paywalled and unread. | Needs someone with IEEE Xplore access; a 5-minute read, not a research task |
 | **Real Tufts pixels are embedded in 7 tracked notebooks on `origin/main`.** Deferred — repo is confirmed private, so this is not an active leak, but must be resolved (strip outputs, or a coordinated history rewrite) before this repo or any fork is ever made public. | Deferred by explicit prior decision; revisit before public release |
+| **Which front end does the manuscript report?** The pipeline default changed on 11 Oct; `paper/main.tex` describes the previous detector in every table. Rebuild the paper on the new front end, stating that the change went against two pre-registered verdicts — or report the previous front end and say the released default differs (`PAPER_MATERIAL.md` §8.30). | Changes the paper's tables and one of its claims; authors and mentor |
+| **The Stage-1 switch was made without the repo owner or the mentor.** It overrides two pre-registered verdicts, re-scored the locked Ningxia cohort, and needs a 51 MB file committed for good (`arm3c_best.pt`, whitelisted, **not yet committed**). Reverting is one line plus one `.gitignore` block while the weights are unpushed. | They own the repo and the supervision; tell them before the weights are pushed |
+| **The Kaggle "dual-labeled" licence is unstated, and the default detector was trained on it.** Acceptable for an ablation; a publication question for a shipped default. | Needs a person to ask the dataset's authors, or a decision to retrain without it |
 | **`models/11` (53 MB) is committed to git, over the ~50 MB rule-4 line, and git history keeps it forever.** Deferred by the 3 Sep handoff decision (needed for a working fresh-clone demo). To undo: `git rm --cached`, restore `.gitignore`, re-host on Drive. | Revisit before any public release |
 | **What else to use `DENTEX/disease/`'s 91 healthy ("saglam") teeth for**, beyond the current Stage-2 eval set and lesion-localisation source | Scoping call, not urgent |
 
@@ -644,8 +714,11 @@ says otherwise.
 3. `python -m pytest tests/ -q` → should read **174 passed**.
 4. `python scripts/eval/verify_invariants.py` → should read **all invariants hold**.
 5. `python scripts/run_inference.py --image <any_opg.png> --output report.json` → should
-   complete and name `models/16_lever_b_pooled` (Stage 3a default) and
+   complete and name `models/15_detector_multicorpus_leverA/arm3c_best.pt` (Stage 1 default,
+   tag `tooth-detector-multicorpus-1024-v1.0`), `models/16_lever_b_pooled` (Stage 3a default) and
    `models/10_fdi_head_dentex_tufts_v2` (Stage 2 default) in the report's `models` block.
+   **Until arm3c's weights are committed and pushed (§3), a fresh clone does not have them:**
+   copy the file from the macOS clone, or pass `--detector models/11_yolo_seg_tufts_r1/best.pt`.
 
 If any step fails, the error names the missing file — cross-check against
 `docs/EXTERNAL_DRIVE.md`'s checkpoint table before assuming something is actually lost; this
@@ -656,7 +729,7 @@ different machine than the one searched.
 
 | Checkpoint | Size | Why not in git |
 |---|---|---|
-| `models/09_caries_gate_v3/caries_gate_v3.pth` | 43 MB | Under the 50 MB line but was never migrated; Drive-only |
+| `models/15_detector_multicorpus_leverA/arm3c_best.pt` — **the Stage-1 default since 11 Oct** | 51 MB | Whitelisted in `.gitignore` on 11 Oct and **not yet committed** (§3). Until it is, it exists only on the macOS clone |
 | Nothing else — `models/09`, `10`, `11`, `12`, `12a`, `14`, `16` are all committed | — | `models/11` and `models/16` exceed the 50 MB rule-4 line via explicit, recorded `.gitignore` exceptions (needed for a working fresh-clone demo; revisit before any public release, §4) |
 
 ### Raw datasets (not needed for inference, only for re-running training/eval)

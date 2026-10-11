@@ -1,0 +1,13 @@
+objc[35022]: Class AVFFrameReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x106c3c3a8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x16d9103a8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[35022]: Class AVFAudioReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x106c3c3f8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x16d9103f8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+ground truth: 164 leak-free images, 477 affected teeth, 148 images with >=1 caries
+  20/164  (1.53s/image)
+  40/164  (1.49s/image)
+  60/164  (1.47s/image)
+  80/164  (1.44s/image)
+  100/164  (1.43s/image)
+  120/164  (1.44s/image)
+  140/164  (1.44s/image)
+  160/164  (1.45s/image)
+
+pipeline arm (lesion-detector) done, 1.45s/image -> arm_pipeline_lesion_detector.json
