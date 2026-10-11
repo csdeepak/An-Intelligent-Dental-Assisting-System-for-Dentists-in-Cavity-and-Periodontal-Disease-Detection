@@ -7713,3 +7713,87 @@ output was still repeating the reading that entry withdrew.
   `interpretation` text says "roughly half the codes" will be wrong where the measured figure is
   42%; and the app's "Caries conf (cal.)" column is always empty under the default caries
   method, because that confidence belongs to the retained gate.
+
+## 2026-10-11c — what limits end-to-end FDI, decomposed from saved rows; and the ceiling the front end puts on caries recall
+
+A diagnostic, not a run. No model was executed and nothing changed. The numbers come from
+per-tooth rows already saved and tracked; a council asked "how do we fix end-to-end FDI" and
+these are the facts its verdict rests on (`docs/session-memory/2026-10-11d-fdi-and-lagging-metrics-council.md`).
+
+- **What was done:** joined the saved Stage-2 rows of the deployed detector and of the Lever A
+  multi-corpus detector (arm3c) on the same 936 DENTEX teeth, same numbering head, and counted.
+- **Dataset / config:** 164 leak-free DENTEX images, 936 annotated teeth, of which 477 carious.
+  `outputs/stage2_segdet/stage2_rows_head.json` (deployed, `models/11`) and
+  `outputs/lever_A_multicorpus_detector_v2/arm3c/stage2_rows_head.json` (`models/15` arm3c).
+- **Metrics — where the 41.7% goes (DENTEX, deployed detector):**
+
+  | | teeth | of 936 |
+  |---|---|---|
+  | correct code | 546 | 58.3% |
+  | never detected | 275 | 29.4% |
+  | detected, wrong code | 115 | 12.3% |
+
+  On the **660 teeth both detectors find**, the same head gives 115 wrong codes from the
+  deployed detector's boxes and **41** from arm3c's. So roughly two thirds of the "numbering"
+  errors are also the detector's. The misses are concentrated by image, not by tooth: the worst
+  quarter of images (41) holds 168 of the 275, and 50 images have none.
+- **Metrics — the ceiling this puts on the caries headline:** a flagged lesion only scores on
+  FDI-set F1 if its tooth is detected and numbered correctly.
+
+  | front end | carious teeth detected and correctly numbered | recall ceiling |
+  |---|---|---|
+  | deployed detector + head | 288 of 477 | **0.604** |
+  | arm3c detector + same head | 453 of 477 | **0.950** |
+
+  The lesion-detector pipeline's measured recall is 0.403 (192 of 477, 2026-10-11). Of its 285
+  false negatives, 189 are teeth the front end never delivers under the right code.
+- **Key decision or insight:** on DENTEX, end-to-end FDI is bound by a Tufts-only tooth detector
+  losing whole radiographs, and the same loss caps the caries score. The fix that is known to
+  work — a multi-corpus detector — already exists and was recorded as an ablation on 1 and 3 Sep
+  because it failed its pre-registered Tufts box-mAP guard. The council's verdict: **the default
+  does not change now** (3 of 3); see the session file for what is parked and why. The
+  caries-recall ceiling is new, and it is the reason one measurement — the lesion detector on
+  the arm3c front end, DENTEX only, default unchanged — is the single piece of Stage-1 work the
+  council thought worth doing for the paper.
+- **Source:** the two row files above; `outputs/caries_intervals/caries_intervals.json` for the
+  0.403. Counted by the session chair after a council member reported them.
+- **Follow-ups:** (1) Reported by a member and **not** re-derived by the chair: on Tufts,
+  of-detected accuracy falls with the number of surplus boxes per image, identically for both
+  detectors, because the one-to-one assignment has no way to reject a box; and at detector
+  confidence 0.10 a tenth of detected teeth receive no code at all. If that holds, a reject
+  option is the cheap Tufts lever, and the earlier "conf 0.25 is near-optimal" reading
+  (2026-09-04d) measured the 32-code cap rather than the detector. (2) The saved Tufts summary
+  says 143 images where the log says 149; untraced. (3) `run_inference.py --detector` stamps
+  the default detector's tag and its 70.6% / 58.3% constants into the report whatever weights
+  are loaded.
+
+## 2026-10-11d — before the Stage-1 switch: the multi-corpus detector's hold-out re-checked, and the Tufts cohort is 143 images, not 149
+
+Checks made while planning a change of the default tooth detector
+(`docs/session-memory/2026-10-11e-detector-switch-plan-council.md`). No model was run.
+
+- **What was done:** (1) re-checked that the 164 scored DENTEX images are held out from the
+  Lever A arm3c detector's training data, by content rather than by filename; (2) traced a
+  discrepancy in the Tufts end-to-end cohort size.
+- **Dataset / config:** the 164 leak-free `disease/` images against arm3c's 634 DENTEX
+  `quadrant_enumeration` source images and its 500 Kaggle images; MD5 and a 256-bit difference
+  hash. Tufts: `split_v1.csv` test rows against `outputs/stage2_tufts/stage2_per_image_head.json`.
+- **Metrics:**
+  - *Hold-out.* No scored image is byte-identical to any training-source image. Nearest
+    training image by perceptual hash, DENTEX: minimum 42 bits, median 63; training images
+    among themselves: 5th percentile 45, median 59. Kaggle: minimum 55, median 77. No sign of a
+    near-duplicate.
+  - *Tufts cohort.* 150 test images − 1 train duplicate (`590`) − 6 with no tooth annotations
+    (`118`, `339`, `417`, `501`, `528`, `974`) = **143 scored images**, 3,760 teeth.
+  - *Hashes.* arm3c on disk is `5d301f13fb48da5c74e7ef01bd0f91226f9b6800cb433dee5aebc8f8db8f161e`;
+    `models/15_detector_multicorpus_leverA/run_summary.txt` records only `5d301f13...`, which
+    the invariant script cannot pin.
+- **Key decision or insight:** 2026-09-04d and every document quoting it said "149 frozen-test
+  images". **That count was wrong; every score computed on the cohort is unaffected** (the
+  teeth, 3,760, were always right). Corrected in `model_metrics.md`, `README.md` and
+  `transfer.md`; 2026-09-04d is left as written. The hold-out result means arm3c's 92.8% on
+  DENTEX is an in-domain number on genuinely unseen images, as it was always labelled.
+- **Source:** the files named above; counted in-session.
+- **Follow-ups:** arm3c was trained partly on the Kaggle "dual-labeled" set, whose licence its
+  authors do not state (`data/README.md`, `paper/main.tex`). That was acceptable for an ablation
+  and has to be resolved or disclosed before a detector trained on it ships as the default.

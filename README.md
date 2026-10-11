@@ -34,7 +34,7 @@ Detect every tooth · number it in FDI notation · classify two pathologies per 
 > | A readable one-page overview — what was done, results, limitations, what's next | [`PROJECT_OVERVIEW.html`](PROJECT_OVERVIEW.html) — a **6 Sep 2026 snapshot**, not kept in sync; open in a browser (3-theme toggle). Internal / pre-submission. |
 > | What are the current numbers? | [`docs/results/model_metrics.md`](docs/results/model_metrics.md) |
 > | Full technical story + honest limitations (the paper is written from this) | [`docs/results/PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) |
-> | Why is it like this? What happened when? | [`docs/results/RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) — 141 dated entries, append-only |
+> | Why is it like this? What happened when? | [`docs/results/RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) — 143 dated entries, append-only |
 > | What should I work on? | [`docs/research/PUBLICATION_TODO.md`](docs/research/PUBLICATION_TODO.md), sequenced by [`MASTER_PLAN_2026H2.md`](docs/research/MASTER_PLAN_2026H2.md) |
 > | How is the documentation laid out? | [`docs/README.md`](docs/README.md) |
 > | What does the code do? | [`src/README.md`](src/README.md), [`scripts/README.md`](scripts/README.md) |
@@ -170,7 +170,7 @@ against those artefacts, so numeric drift fails loudly.
 |---|---|---|---|
 | YOLOv11l-**seg** detection (**pipeline default**) | Tufts | **test** | mAP@0.5 box **0.810** / mask 0.638 |
 | YOLOv11l bbox detection — superseded, retained + hash-pinned | Tufts | val / **test** | 0.834 / **0.7824** |
-| FDI enumeration head v2.0 | DENTEX / Tufts | 164 / 149 held-out | DENTEX **58.3%** e2e / **82.6%** of detected; Tufts **64.8%** e2e / **78.6%** of detected (3,760 teeth, 4 Sep) |
+| FDI enumeration head v2.0 | DENTEX / Tufts | 164 / 143 held-out | DENTEX **58.3%** e2e / **82.6%** of detected; Tufts **64.8%** e2e / **78.6%** of detected (3,760 teeth, 4 Sep) |
 | **Caries lesion detector (Stage-3a default, Lever B)** | DENTEX / CariesXrays / Ningxia | frozen, tooth-level lesion agreement | DENTEX **45.5%** (tie), CariesXrays **68.4%** (win), Ningxia **50.0%** (win) — beats both the gate and the image-blind constant on 2 of 3 |
 | Caries gate v3.0 *(retained variant)* | DENTEX | held-out test (863 crops) | P **0.398** / R **0.740**, AP **0.550**, ECE 0.136 |
 | Caries depth (caries vs deep) | DENTEX | val (133) | acc **0.81**, macro F1 **0.77** |
@@ -534,7 +534,7 @@ Each of those four rows is a bug that was found the hard way. See
     ├── architecture/            ← pipeline diagrams (+ drawio source)
     ├── results/
     │   ├── PAPER_MATERIAL.md    ← ★ master paper-writing document
-    │   ├── RESULTS_LOG.md       ← append-only journal, 141 entries
+    │   ├── RESULTS_LOG.md       ← append-only journal, 143 entries
     │   ├── model_metrics.md     ← one-page scoreboard
     │   ├── METHODOLOGY_CHANGELOG.md
     │   └── figures/paper/       ← 17 paper/review figures

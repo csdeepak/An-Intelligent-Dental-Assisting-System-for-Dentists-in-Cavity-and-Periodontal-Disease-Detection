@@ -146,7 +146,9 @@ cleaner boxes lift FDI-exact-of-detected by 13.9 points on top of the recall gai
 
 ### Tufts end-to-end FDI (4 Sep 2026) — the Stage-2 number the paper lacked
 
-`scripts/eval/validate_fdi_assignment_tufts.py`, 149 frozen-test images, **3,760 permanent GT
+`scripts/eval/validate_fdi_assignment_tufts.py`, **143** frozen-test images (150, less one
+train duplicate and six with no tooth annotations — this line said 149 until 11 Oct 2026,
+`RESULTS_LOG` 2026-10-11d; the scores were never affected), **3,760 permanent GT
 teeth** (all of them, mirror-corrected), same head v2.0 / conf 0.25 / NMS 0.50 / one-to-one.
 `RESULTS_LOG` 2026-09-04d.
 

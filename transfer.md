@@ -45,6 +45,11 @@ published point values and should be read with them.
 **11 Oct — item 6 done, implementation phase complete** (`RESULTS_LOG` 2026-10-11b,
 `docs/session-memory/2026-10-11c-stage4-report-wording.md`): the report and the demo no longer
 call Stage 4 a periodontal finding; report schema 1.2.
+**11 Oct — FDI and lagging-metrics council** (`RESULTS_LOG` 2026-10-11c): no default changes;
+what limits end-to-end FDI and what is parked is at the end of §3's implementation block.
+**11 Oct, afternoon — the user decided to switch the Stage-1 detector; a second council planned
+it** (`docs/session-memory/2026-10-11e-detector-switch-plan-council.md`, `RESULTS_LOG`
+2026-10-11d). Planned, not started.
 
 > **Windows clone, 6 Sep 2026 — the Tufts crop corpus was cut from the wrong frame, and is now
 > rebuilt.** It scored 11.5% crop-level FDI-exact where the published number is 71.5%, with correct
@@ -225,7 +230,7 @@ eight-molar set.
 
 77.4% of remaining errors are benign off-by-one within the correct quadrant; only 2.4% of
 detected teeth get a wrong-quadrant error. Tufts end-to-end (harder test, every tooth not just
-pathological ones, 149 images): **64.8%**.
+pathological ones, 143 images): **64.8%**.
 
 **Calibration (caries gate, 863 held-out test crops):** raw ECE 0.136 (systematically
 overconfident) → isotonic regression **0.043**. Temperature scaling made it *worse* (0.152) —
@@ -389,6 +394,32 @@ the macOS clone, then write.** Nothing here needs a GPU, the Windows machine or 
 
 **The implementation phase is complete as of 11 Oct.** What is left is writing and decisions:
 items 1–5 and 9–10 of the table above, and the six-page caries-only cut (§5).
+
+**End-to-end FDI (58.3% DENTEX, 64.8% Tufts) — what limits it and what is parked.** Councilled
+11 Oct (`docs/session-memory/2026-10-11d-fdi-and-lagging-metrics-council.md`, `RESULTS_LOG`
+2026-10-11c).
+
+- **DENTEX is detector-bound.** 275 of 936 teeth are never detected, and about two thirds of the
+  115 wrong codes also come from the detector's boxes (115 → 41 on the same teeth with the
+  multi-corpus detector's boxes, same head). A multi-corpus detector reaches 92.8% and already
+  exists (`models/15` arm3c). The morning council advised leaving it an ablation. **On the
+  afternoon of 11 Oct the user decided to make it the Stage-1 default anyway**, knowing that it
+  overrides two pre-registered verdicts and re-measures every pipeline number. **Nothing has
+  run and `DEF_DETECTOR` is still `models/11`.** The agreed plan is in
+  `docs/session-memory/2026-10-11e-detector-switch-plan-council.md`: safety fixes first, then a
+  signed override record and a pre-registration, then about 34 runs with a same-machine
+  `models/11` control before each, and the one-line default change last. The repo owner and the
+  mentor have not been consulted; nothing is to be pushed until they are.
+- **The same loss caps the caries score.** The deployed front end delivers 288 of 477 carious
+  teeth under the right code, a recall ceiling of 0.604; arm3c's would be 0.950.
+- **Now, writing only:** say in the manuscript that numbering is detection-bound and name the
+  multi-corpus ablation as the measured ceiling. `main.tex` does not mention it at all.
+- **One optional measurement, about a day, needs its own pre-registration:** the lesion detector
+  on the arm3c front end, DENTEX only, once, estimation only, default unchanged. Two council
+  seats said now, one said after submission.
+- **After submission:** a reject option in the one-to-one assignment, tuned on Tufts validation
+  only; then, and only by a new pre-registered decision, whether the default detector changes.
+- **Never for this paper:** a new position-digit model or a retrained detector.
 
 **What items 3–5 found (`RESULTS_LOG` 2026-10-11, `PAPER_MATERIAL.md` §8.29).** The constant
 and the *gate* pipeline cannot be told apart on F1. The *adopted* lesion detector beats the
