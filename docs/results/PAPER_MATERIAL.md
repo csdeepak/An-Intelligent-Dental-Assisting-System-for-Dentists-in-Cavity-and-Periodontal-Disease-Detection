@@ -2521,7 +2521,7 @@ Both detectors were run on one machine; differences are paired over images.
 | DENTEX, 936 teeth, end to end | 58.4% (cross-domain) | 92.8% (**in-domain**) | +34.40 pp [+30.29, +38.54] |
 
 **Caries.** Lesion agreement of the default caries path (the lesion detector) rose on all three
-cohorts — DENTEX 0.457 → 0.595, CariesXrays 0.682 → 0.757, Ningxia 0.499 → 0.684 — and the
+cohorts — DENTEX 0.457 → 0.595, CariesXrays 0.682 → 0.757, Ningxia 0.500 → 0.684 — and the
 image-blind constant rose by about as much, because in that metric the constant is placed with
 the pipeline's own boxes and codes. FDI-set F1, where the constant is fixed at 0.320: the
 default pipeline 0.376 → **0.498**, **+17.80 pp [+13.48, +22.02]** above the constant.
@@ -2549,7 +2549,7 @@ default pipeline 0.376 → **0.498**, **+17.80 pp [+13.48, +22.02]** above the c
 - **One result got worse and must be printed.** On DENTEX lesion agreement under arm3c the
   retired gate scores 0.802 against the lesion detector's 0.595 (−20.67 pp [−26.39, −15.06]);
   under the previous front end they were tied. The gate gets there by flagging 1,439 teeth to
-  the detector's 603, and on FDI-set F1, which charges for that, the order reverses (0.363
+  the detector's 603, and on FDI-set F1, which charges for that, the order reverses (0.362
   against 0.498). Both tables belong side by side, with the flagged counts.
 - **Lever B was adopted under the previous front end.** Its rule was not re-run and is not
   claimed for this one. If the paper reports the new front end, the adoption evidence is

@@ -45,7 +45,7 @@ Detect every tooth · number it in FDI notation · classify two pathologies per 
 > | A readable one-page overview — what was done, results, limitations, what's next | [`PROJECT_OVERVIEW.html`](PROJECT_OVERVIEW.html) — a **6 Sep 2026 snapshot**, not kept in sync; open in a browser (3-theme toggle). Internal / pre-submission. |
 > | What are the current numbers? | [`docs/results/model_metrics.md`](docs/results/model_metrics.md) |
 > | Full technical story + honest limitations (the paper is written from this) | [`docs/results/PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) |
-> | Why is it like this? What happened when? | [`docs/results/RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) — 146 dated entries, append-only |
+> | Why is it like this? What happened when? | [`docs/results/RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) — 147 dated entries, append-only |
 > | What should I work on? | [`docs/research/PUBLICATION_TODO.md`](docs/research/PUBLICATION_TODO.md), sequenced by [`MASTER_PLAN_2026H2.md`](docs/research/MASTER_PLAN_2026H2.md) |
 > | How is the documentation laid out? | [`docs/README.md`](docs/README.md) |
 > | What does the code do? | [`src/README.md`](src/README.md), [`scripts/README.md`](scripts/README.md) |
@@ -361,7 +361,7 @@ predated the Lever B adoption). Every one is version-tagged and SHA-256 pinned, 
 
 | Stage | Model | Directory | Params | Version tag | In git? |
 |---|---|---|---|---|---|
-| 1 | YOLOv11l multi-corpus **(default, 11 Oct)** | [`models/15_detector_multicorpus_leverA/`](models/15_detector_multicorpus_leverA/) (`arm3c_best.pt`) | 25,311,251 | `tooth-detector-multicorpus-1024-v1.0` | ⏳ whitelisted 11 Oct, 51 MB, **not yet committed** |
+| 1 | YOLOv11l multi-corpus **(default, 11 Oct)** | [`models/15_detector_multicorpus_leverA/`](models/15_detector_multicorpus_leverA/) (`arm3c_best.pt`) | 25,311,251 | `tooth-detector-multicorpus-1024-v1.0` | ✅ *(committed 11 Oct, 51 MB)* |
 | 1 | YOLOv11l-seg *(previous default, retained)* | [`models/11_yolo_seg_tufts_r1/`](models/11_yolo_seg_tufts_r1/) | 27,617,459 | `tooth-detector-seg-tufts-1024-v1.0` | ✅ *(committed 3 Sep, 53 MB)* |
 | 1 | YOLOv11l bbox *(superseded)* | [`models/06_yolo_detection_a100_run/`](models/06_yolo_detection_a100_run/) | 25.3 M | `tooth-detector-a100-1024-v1.0` | ❌ Drive |
 | 2 | ResNet18 + 4 positional feats | [`models/10_fdi_head_dentex_tufts_v2/`](models/10_fdi_head_dentex_tufts_v2/) | 11,187,916 | `fdi-enumeration-head-resnet18-v2.0` | ✅ |
@@ -558,7 +558,7 @@ Each of those four rows is a bug that was found the hard way. See
     ├── architecture/            ← pipeline diagrams (+ drawio source)
     ├── results/
     │   ├── PAPER_MATERIAL.md    ← ★ master paper-writing document
-    │   ├── RESULTS_LOG.md       ← append-only journal, 146 entries
+    │   ├── RESULTS_LOG.md       ← append-only journal, 147 entries
     │   ├── model_metrics.md     ← one-page scoreboard
     │   ├── METHODOLOGY_CHANGELOG.md
     │   └── figures/paper/       ← 17 paper/review figures
@@ -599,9 +599,8 @@ pip install -r requirements.txt
 
 ### Fetching the checkpoints
 
-**Since 11 Oct 2026 the default tooth detector is `models/15_…/arm3c_best.pt`, which is
-whitelisted but not yet committed** — until it is, copy it from the macOS clone or pass
-`--detector models/11_yolo_seg_tufts_r1/best.pt`. Everything else below still holds.
+**Since 11 Oct 2026 the default tooth detector is `models/15_…/arm3c_best.pt` (51 MB), committed
+the same day** via the same kind of `.gitignore` exception — `git clone` is still enough.
 
 **As of 3 Sep 2026 `git clone` is enough to run the pipeline** — the three `DEF_*` checkpoints
 (`models/11/best.pt` 53 MB, `models/09/caries_gate_v3.pth` 43 MB, `models/10/…head` 43 MB) are

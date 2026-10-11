@@ -60,7 +60,7 @@ area. The default caries path is the lesion detector.
 | | **arm3c** | 0.802 (1,439) | 0.630 (988) | **0.595** (603) |
 | CariesXrays 1,200, 2,815 lesions | previous | 0.318 (4,776) | 0.562 (7,717) | 0.682 (2,351) |
 | | **arm3c** | 0.379 (5,808) | 0.604 (8,457) | **0.757** (2,596) |
-| Ningxia, 1,013 lesions | previous | 0.407 (2,109) | 0.399 (1,941) | 0.499 (1,287) |
+| Ningxia, 1,013 lesions | previous | 0.407 (2,109) | 0.399 (1,941) | 0.500 (1,287) |
 | | **arm3c** | 0.600 (3,104) | 0.591 (2,410) | **0.684** (1,465) |
 
 Under arm3c, lesion detector − constant: DENTEX −3.55 pp [−10.11, +2.64], not separated;
@@ -77,7 +77,7 @@ CariesXrays +37.80 pp; Ningxia +8.39 pp [+4.06, +12.67]. The constant rises with
 | Lesion detector (default) | previous | 0.353 | 0.403 | 0.376 | 1.45 |
 | | **arm3c** | 0.439 | 0.574 | **0.498** | 1.70 |
 | Retired gate | previous | 0.242 | 0.396 | 0.300 | 1.74 |
-| | **arm3c** | 0.238 | 0.765 | 0.363 | 2.11 |
+| | **arm3c** | 0.237 | 0.765 | 0.362 | 2.11 |
 
 Default pipeline − constant **+17.80 pp [+13.48, +22.02]**; − its own previous front end
 +12.16 pp [+8.86, +15.52]. In-domain for the front end.

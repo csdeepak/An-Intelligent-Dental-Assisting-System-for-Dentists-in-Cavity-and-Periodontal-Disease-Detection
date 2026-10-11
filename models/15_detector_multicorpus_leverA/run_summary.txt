@@ -211,10 +211,10 @@ Re-measured under outputs/stage1_switch/PRE_REGISTRATION.md (frozen c139779, Ame
   DENTEX, 936 teeth         end-to-end 0.584 -> 0.928   +34.40 pp [+30.29, +38.54]  IN-DOMAIN
   FDI-set F1, lesion-detector pipeline   0.376 -> 0.498  (+17.80 pp over the constant)
   Lesion agreement, lesion detector      DENTEX 0.457 -> 0.595, CariesXrays 0.682 -> 0.757,
-                                         Ningxia 0.499 -> 0.684 (the constant rose as much)
+                                         Ningxia 0.500 -> 0.684 (the constant rose as much)
   Stop rule S1 (pooled external lesion agreement, bound -2 pp): +10.40 pp [+8.71, +12.09]
 
 Given up:  Tufts test box mAP@0.5 0.810 (models/11) -> 0.585. Instance masks.
 Open:      trained partly on the Kaggle "dual-labeled" set, licence unstated.
-Weights:   arm3c_best.pt whitelisted in .gitignore 11 Oct 2026. controlB and arm4c stay
-           gitignored, local disk only.
+Weights:   arm3c_best.pt committed 11 Oct 2026 (7dd3ff4, .gitignore exception). controlB and
+           arm4c stay gitignored, local disk only.

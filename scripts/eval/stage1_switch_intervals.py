@@ -186,7 +186,10 @@ def lesion_row(row):
         print(f"  {g} (n={len(idx)})")
         for det in DETS:
             print(f"    {det:6s} " + "   ".join(
-                f"{dec} {a['lesion_agreement']['value']:.3f} ({a['teeth_flagged']} flagged)"
+                # the stored value is already rounded to 4 places: print all four, and the counts.
+                # Printed to 3 it read 0.499 for 506/1013, which is 0.500 (RESULTS_LOG 2026-10-11h).
+                f"{dec} {a['lesion_agreement']['value']:.4f} "
+                f"({a['lesions_matched']}/{a['lesions']}; {a['teeth_flagged']} flagged)"
                 for dec, a in out["arms"][det].items()))
         for k, d in out["deltas"].items():
             show(f"  {k.replace('_minus_', ' - ')}", d)
@@ -299,7 +302,11 @@ def main():
     toy = [{"image": "a", "n_lesions": 2, "n_matched": 1}, {"image": "b", "n_lesions": 2, "n_matched": 2}]
     assert paired(toy, toy[::-1]) == toy and delta(toy, toy, AGREEMENT)["delta_pp"] == 0.0
 
-    dirty = subprocess.run(["git", "status", "--porcelain", "--untracked-files=no", "--", "outputs"],
+    # This script's own two outputs are tracked, and a shell redirect into the .log modifies it
+    # before the first line here runs -- so they are exempt; every other tracked output is not.
+    dirty = subprocess.run(["git", "status", "--porcelain", "--untracked-files=no", "--", "outputs",
+                            ":(exclude)outputs/stage1_switch/stage1_switch_results.json",
+                            ":(exclude)outputs/stage1_switch/stage1_switch_results.log"],
                            cwd=REPO_ROOT, capture_output=True, text=True, check=True).stdout
     gate(not dirty.strip(), f"tracked files under outputs/ are modified:\n{dirty}")
 

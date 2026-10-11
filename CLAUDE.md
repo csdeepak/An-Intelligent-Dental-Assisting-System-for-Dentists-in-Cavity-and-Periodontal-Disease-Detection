@@ -104,7 +104,7 @@ folder outside git. Git has tracked `_repo_archive/ARCHIVE_MANIFEST.md` at the r
   `models/14` and `models/16` at 51 MB each. Private repo; `transfer.md` §4 records it and how
   to undo. This does not open the door to committing other weights — `models/06`, the
   `models/{13,15,17}` ablation weights, and anything new stay out. **11 Oct 2026:** one file
-  under `models/15`, `arm3c_best.pt` (51 MB), became the Stage-1 default and is whitelisted for
+  under `models/15`, `arm3c_best.pt` (51 MB), became the Stage-1 default and is committed for
   the same reason; `controlB` and `arm4c` beside it stay out.)*
 - **No new file paths containing spaces.** `notebooks/Bone Loss/` was renamed to
   `notebooks/bone_loss/` for exactly this reason.

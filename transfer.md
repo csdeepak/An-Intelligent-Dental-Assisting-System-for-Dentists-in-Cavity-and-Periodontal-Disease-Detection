@@ -54,6 +54,10 @@ it** (`docs/session-memory/2026-10-11e-detector-switch-plan-council.md`, `RESULT
 gate passed, the one stop rule did not fire) and `DEF_DETECTOR` is now the multi-corpus detector
 (`RESULTS_LOG` 2026-10-11g, `docs/session-memory/2026-10-11g-detector-switch-matrix-and-flip.md`).
 §1, §2.1, §2.3, §2.4, §2.6, §3, §4 and §8 were edited in place. Read the note below first.
+**11 Oct, night — the switch was verified after it was pushed** (`7dd3ff4`; `RESULTS_LOG`
+2026-10-11h, `docs/session-memory/2026-10-11h-switch-verification-and-corrections.md`): a fresh
+checkout of the pushed commit runs the default pipeline, every figure was re-derived by a second
+implementation, and three figures that had been mis-rounded by one digit were corrected.
 
 > **Windows clone, 6 Sep 2026 — the Tufts crop corpus was cut from the wrong frame, and is now
 > rebuilt.** It scored 11.5% crop-level FDI-exact where the published number is 71.5%, with correct
@@ -323,7 +327,7 @@ Every column rose with the detector, the constant included, so the rise is mostl
 The detector's margin over the constant is about what it was. **New and unfavourable: on DENTEX
 the retired gate now scores above the lesion detector** (−20.67 pp [−26.39, −15.06]) while
 flagging 2.4 times the teeth. On FDI-set F1, which charges for false positives (constant 0.320,
-fixed): **lesion-detector pipeline 0.498** (P 0.439 / R 0.574), gate pipeline 0.363. Lever B's
+fixed): **lesion-detector pipeline 0.498** (P 0.439 / R 0.574), gate pipeline 0.362. Lever B's
 rule was not re-run under this front end and is not claimed for it. Per hospital the detector is
 again not separated from the constant at test1.
 
@@ -474,10 +478,10 @@ switch, what it left open, and what is parked.** Councilled 11 Oct (`docs/sessio
 - **Still to do for the switch, in order:**
   1. **Tell the repo owner and the mentor.** Neither was consulted, and the Ningxia rows ran
      without the owner being told — the results entry says so.
-  2. **Commit and push arm3c's weights** (`models/15_detector_multicorpus_leverA/arm3c_best.pt`,
-     51 MB). They are whitelisted in `.gitignore`; until they are in git a fresh clone has a
-     default detector it cannot load. History keeps a 51 MB file for good, which is why this is
-     listed after item 1.
+  2. ~~Commit and push arm3c's weights~~ — **done 11 Oct, `7dd3ff4`.** The blob in git is
+     51,227,097 bytes with the pinned sha256, and a checkout of that commit containing tracked
+     files only runs the default pipeline (`RESULTS_LOG` 2026-10-11h). History now keeps that
+     file for good. It was pushed before item 1 was recorded as done.
   3. **Decide which front end the manuscript reports** (`PAPER_MATERIAL.md` §8.30 and §9).
      `main.tex` describes `models/11` throughout. Authors and mentor.
   4. **On the Windows machine:** rebuild `main.tex` and its PDF to match item 3; then switch
@@ -561,7 +565,7 @@ depends on this.
 | **Is the Tufts mirror-numbering finding novel?** Not established — the source paper (Panetta et al., IEEE JBHI 2022) is paywalled and unread. | Needs someone with IEEE Xplore access; a 5-minute read, not a research task |
 | **Real Tufts pixels are embedded in 7 tracked notebooks on `origin/main`.** Deferred — repo is confirmed private, so this is not an active leak, but must be resolved (strip outputs, or a coordinated history rewrite) before this repo or any fork is ever made public. | Deferred by explicit prior decision; revisit before public release |
 | **Which front end does the manuscript report?** The pipeline default changed on 11 Oct; `paper/main.tex` describes the previous detector in every table. Rebuild the paper on the new front end, stating that the change went against two pre-registered verdicts — or report the previous front end and say the released default differs (`PAPER_MATERIAL.md` §8.30). | Changes the paper's tables and one of its claims; authors and mentor |
-| **The Stage-1 switch was made without the repo owner or the mentor.** It overrides two pre-registered verdicts, re-scored the locked Ningxia cohort, and needs a 51 MB file committed for good (`arm3c_best.pt`, whitelisted, **not yet committed**). Reverting is one line plus one `.gitignore` block while the weights are unpushed. | They own the repo and the supervision; tell them before the weights are pushed |
+| **The Stage-1 switch was made without the repo owner or the mentor.** It overrides two pre-registered verdicts, re-scored the locked Ningxia cohort, and put a 51 MB file into git history for good (`arm3c_best.pt`, pushed 11 Oct in `7dd3ff4`). Reverting the default is still one line; the file stays in history either way. Whether either of them has been told since is not recorded in this repo. | They own the repo and the supervision |
 | **The Kaggle "dual-labeled" licence is unstated, and the default detector was trained on it.** Acceptable for an ablation; a publication question for a shipped default. | Needs a person to ask the dataset's authors, or a decision to retrain without it |
 | **`models/11` (53 MB) is committed to git, over the ~50 MB rule-4 line, and git history keeps it forever.** Deferred by the 3 Sep handoff decision (needed for a working fresh-clone demo). To undo: `git rm --cached`, restore `.gitignore`, re-host on Drive. | Revisit before any public release |
 | **What else to use `DENTEX/disease/`'s 91 healthy ("saglam") teeth for**, beyond the current Stage-2 eval set and lesion-localisation source | Scoping call, not urgent |
@@ -717,8 +721,8 @@ says otherwise.
    complete and name `models/15_detector_multicorpus_leverA/arm3c_best.pt` (Stage 1 default,
    tag `tooth-detector-multicorpus-1024-v1.0`), `models/16_lever_b_pooled` (Stage 3a default) and
    `models/10_fdi_head_dentex_tufts_v2` (Stage 2 default) in the report's `models` block.
-   **Until arm3c's weights are committed and pushed (§3), a fresh clone does not have them:**
-   copy the file from the macOS clone, or pass `--detector models/11_yolo_seg_tufts_r1/best.pt`.
+   arm3c's weights are in git since `7dd3ff4` (11 Oct), so a clone has them; this step was
+   verified on a checkout holding tracked files only (`RESULTS_LOG` 2026-10-11h).
 
 If any step fails, the error names the missing file — cross-check against
 `docs/EXTERNAL_DRIVE.md`'s checkpoint table before assuming something is actually lost; this
@@ -729,8 +733,7 @@ different machine than the one searched.
 
 | Checkpoint | Size | Why not in git |
 |---|---|---|
-| `models/15_detector_multicorpus_leverA/arm3c_best.pt` — **the Stage-1 default since 11 Oct** | 51 MB | Whitelisted in `.gitignore` on 11 Oct and **not yet committed** (§3). Until it is, it exists only on the macOS clone |
-| Nothing else — `models/09`, `10`, `11`, `12`, `12a`, `14`, `16` are all committed | — | `models/11` and `models/16` exceed the 50 MB rule-4 line via explicit, recorded `.gitignore` exceptions (needed for a working fresh-clone demo; revisit before any public release, §4) |
+| Nothing — `models/09`, `10`, `11`, `12`, `12a`, `14`, `16` and `models/15`'s `arm3c_best.pt` (since 11 Oct, `7dd3ff4`) are all committed | — | `models/11`, `models/15`'s `arm3c_best.pt` and `models/16` exceed the 50 MB rule-4 line via explicit, recorded `.gitignore` exceptions (needed for a working fresh-clone demo; revisit before any public release, §4) |
 
 ### Raw datasets (not needed for inference, only for re-running training/eval)
 

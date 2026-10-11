@@ -8078,3 +8078,76 @@ front end, and that the one result registered to stop the switch did not occur.*
   and not yet committed. (7) Not done, and not registered: a Tufts box-mAP re-measurement — the
   guard figures of 1 and 3 Sep are unchanged — and any reject option for surplus boxes, which
   the 26 → 65 uncoded Tufts teeth make more pressing.
+
+## 2026-10-11h — the Stage-1 switch verified after it was pushed; three figures in 2026-10-11g were mis-rounded by one digit
+
+A verification pass over 2026-10-11g, made after the switch was committed and pushed
+(`7dd3ff4`). **No model was run on any cohort, no count, difference, interval or reading
+changes, and the default detector is as 2026-10-11g left it.** Three printed figures were wrong
+in the third decimal and are corrected here.
+
+- **What was done:** (1) checked out the pushed commit into a clean directory holding tracked
+  files only, and ran the pipeline and the checks from it; (2) re-derived every count, point
+  difference and interval of 2026-10-11g with a second implementation that shares no loader,
+  pairing or bootstrap code with `scripts/eval/stage1_switch_intervals.py`; (3) audited every
+  figure written into the documents against the results file and against exact arithmetic on
+  the integer counts.
+- **Dataset / config:** the 32 committed run directories under `outputs/stage1_switch/`. The
+  only inference was one DENTEX image through the default pipeline, as a smoke test.
+- **Metrics — the pushed commit, tracked files only.**
+  - The blob in git for `models/15_detector_multicorpus_leverA/arm3c_best.pt` is 51,227,097
+    bytes, sha256 `5d301f13…8f161e`, the pinned hash. It is the file, not a pointer.
+  - `run_inference.py` with no `--detector` loads it and reports
+    `tooth-detector-multicorpus-1024-v1.0`, recall 0.996, end to end 0.928, schema 1.3. Its
+    caries codes for `test_0` equal row D's for arm3c.
+  - `pytest tests` 174 passed; `verify_paper_numbers.py` 127 of 127; all eleven invariants
+    hold, the two that need local datasets skipping as they are written to.
+  - `stage1_switch_intervals.py`, run there, rewrites `stage1_switch_results.json` **byte for
+    byte**.
+- **Metrics — independent re-derivation: 164 comparisons, all agree.** Every count equals the
+  results file, including each producing script's own totals against the sum of its per-image
+  rows. Every point difference agrees to 0.01 pp. The 66 interval bounds, bootstrapped with a
+  different seed, agree within 0.24 pp. Replaying seed 42 draw for draw reproduces the DENTEX
+  numbering interval exactly, [+30.29, +38.54]. The stop rule, independently: +10.40 pp, lower
+  bound +8.70 against the registered +8.71; it does not fire.
+- **Metrics — how precise a registered interval is.** The pre-registered 10,000 resamples
+  leave Monte Carlo noise in each bound. For the DENTEX numbering difference, 30 seeds put the
+  lower bound at 30.43 ± 0.06 (30.32 to 30.57) and 400,000 resamples give [+30.42, +38.47]; the
+  registered seed-42 interval is about 0.1 pp wider at each end. **No reading in 2026-10-11g
+  turns on that.** The three bounds nearest zero keep their side across 30 seeds: Ningxia test3
+  under arm3c, lesion detector − gate, lower +0.56 to +1.15 (registered +0.74, 40 images — the
+  thinnest "separated" in the entry); test2 under the previous front end, lower −0.85 to −0.53;
+  the Stage-4 flag-rate difference, upper +0.21 to +0.23.
+- **Correction to 2026-10-11g — three figures, each one unit in the third decimal.** The
+  results file stores four decimals; I rounded those to three by hand, which rounds twice.
+  Recomputed exactly from the counts, 73 figures; three differ from what was printed:
+
+  | Where in 2026-10-11g | Printed | Correct | From |
+  |---|---|---|---|
+  | F1 table, retired gate under arm3c, precision | 0.238 | **0.237** | 365 / 1,537 = 0.23748 |
+  | F1 table, retired gate under arm3c, F1 (also quoted in the text as "0.363") | 0.363 | **0.362** | 730 / 2,014 = 0.36246 |
+  | Lesion-agreement table, Ningxia, previous front end, lesion detector | 0.499 | **0.500** | 506 / 1,013 = 0.49951 |
+
+  The tp / fp / fn beside the first two (365 / 1,172 / 112) and every difference and interval
+  were right, being computed from counts. 2026-10-11g is left as written. Corrected in
+  `model_metrics.md`, `PAPER_MATERIAL.md` §8.30, `transfer.md` §2.4 and
+  `models/15_detector_multicorpus_leverA/run_summary.txt`. All 58 intervals quoted across those
+  documents match the results file.
+- **Also changed.** `stage1_switch_intervals.py` now prints each agreement to four places with
+  its counts, so the log cannot be mis-rounded the same way; and its integrity gate exempts
+  the script's own two output files, which became tracked with `7dd3ff4` — redirecting into
+  the log tripped the gate before the script's first line ran. The gate still stops on any
+  other modified output (tested by touching one and restoring it). The results file is
+  unchanged; the log was regenerated. Documents that said arm3c's weights were "not yet
+  committed" now say they are in git.
+- **Key decision or insight:** nothing in 2026-10-11g moves. What this adds is that the pushed
+  commit runs from a clean checkout, and that the numbers do not depend on the one script that
+  produced them. The slip is a reminder that a figure in a table should be computed from the
+  counts beside it, not from another rounded figure.
+- **Source:** `outputs/stage1_switch/stage1_switch_results.json` and `.log`;
+  `docs/session-memory/2026-10-11h-switch-verification-and-corrections.md`. The second
+  implementation was a throwaway script and is not in the repo; its method is described in
+  that session file closely enough to rewrite.
+- **Follow-ups:** unchanged from 2026-10-11g, less item (6): the manuscript's front end, the
+  Docker image, `param_counts.json` with the manuscript, the Kaggle licence, and telling the
+  repo owner and the mentor.
