@@ -7797,3 +7797,98 @@ Checks made while planning a change of the default tooth detector
 - **Follow-ups:** arm3c was trained partly on the Kaggle "dual-labeled" set, whose licence its
   authors do not state (`data/README.md`, `paper/main.tex`). That was acceptable for an ablation
   and has to be resolved or disclosed before a detector trained on it ships as the default.
+
+## 2026-10-11e — a report could carry one detector's name and accuracy over another detector's boxes; fixed ahead of the Stage-1 switch (report schema 1.3)
+
+Phase 1 of the plan in `docs/session-memory/2026-10-11e-detector-switch-plan-council.md`. The
+default detector is unchanged by this entry.
+
+- **What was done:** `scripts/run_inference.py` stamped a detector tag and two accuracy figures
+  (recall 70.6%, end-to-end FDI 58.3%) into every report from module constants. Running it with
+  `--detector` set to any other checkpoint produced a report naming the default detector and
+  quoting its accuracy. The tag and both figures are now looked up by the sha256 of the weights
+  actually loaded (`DETECTOR_PROFILES`); a detector with no entry is tagged `unregistered-<sha>`
+  and its two figures are null. `models.detector` gains `sha256`. Schema 1.2 → **1.3**.
+- **Also changed, so the planned re-measurement leaves a clean trail:**
+  `scripts/eval/c1_vlm_baseline.py` takes `--detector` (default pinned to `models/11`, the
+  detector the published arm used) and records the detector and its hash;
+  `scripts/eval/cariesxrays_external.py` and `scripts/eval/validate_fdi_assignment.py` record
+  which detector produced their output; `scripts/count_model_params.py` takes `--stage1` and
+  `--out` and refuses to write a non-default count over the published file.
+- **Hash pins:** `models/15_detector_multicorpus_leverA/run_summary.txt` now carries the full
+  sha256 of its three checkpoints (it held 8-character prefixes); `verify_invariants.py` pins
+  arm3c, and **fails** where it used to print "NO HASH RECORDED" and pass. A new invariant
+  requires whatever `DEF_DETECTOR` is to have a profile with measured figures.
+- **Dataset / config:** no model, weight, threshold or default changed.
+- **Metrics — verification, not a result.** The previous commit's code and this code, default
+  detector, on one Tufts and one DENTEX image: `teeth`, `summary` and `limitations` identical;
+  the only differences are `schema_version`, the new `sha256` key and the timestamp. With
+  arm3c passed explicitly, on a Tufts *training* image: tag `unregistered-5d301f13`, both
+  figures null, and the report says no accuracy has been measured for that detector. `pytest`
+  174 passed; `verify_paper_numbers.py` 127 of 127; all invariants hold.
+- **Key decision or insight:** this had to land before the default changes, not with it. Had
+  the default been switched first, every report from the new detector would have claimed the
+  old one's 70.6% / 58.3% until someone remembered to edit two constants.
+- **Source:** the files named above.
+- **Follow-ups:** `count_model_params.py` rewrites `param_counts.json` with LF line endings on
+  macOS where the committed file is CRLF — content identical, but it shows as modified; pass
+  `--out` when counting anything on this machine. arm3c counts 25,311,251 learnable parameters.
+
+## 2026-10-11f — DECISION RECORD: the Lever A multi-corpus detector (arm3c) is to become the Stage-1 default, overriding two pre-registered ABLATION verdicts
+
+**This entry records a decision. It reports no new number, and at the time of writing nothing
+has been run and `DEF_DETECTOR` is still `models/11`.** The re-measurement is pre-registered in
+`outputs/stage1_switch/PRE_REGISTRATION.md`, committed with this entry and before any of it runs.
+
+- **What was decided, and by whom:** on 11 Oct 2026 Gunadeep (gunadeep19) decided that
+  `models/15_detector_multicorpus_leverA/arm3c_best.pt` (sha256 `5d301f13…8f161e`) will replace
+  `models/11_yolo_seg_tufts_r1/best.pt` as the pipeline's Stage-1 tooth detector, in order to
+  fix end-to-end FDI on DENTEX.
+- **The two verdicts this overrides stand exactly as recorded.** Lever 1 (2026-09-01h): primary
+  passed, guard failed — Tufts test box mAP@0.5 0.647 against a bar of 0.75. Lever A
+  (2026-09-03, -03b): primary and Guard 1 passed, Guard 2 failed — 0.585 against 0.684. Both
+  pre-registrations say what follows a failed guard: "the pipeline default does not change"
+  (`outputs/detector_multicorpus/PRE_REGISTRATION.md`,
+  `outputs/lever_A_multicorpus_detector_v2/PRE_REGISTRATION.md`). **Neither bar has been moved
+  and neither guard is claimed to have been met.** This is a later human decision to change the
+  default anyway, and it is recorded as that.
+- **It is a stronger override than the one of 27 Aug 2026.** Then, the seg detector was adopted
+  against a missed *mask* bar, and the thing the bar protected — mask-aware cropping — was left
+  unwired. Here the rules named the default itself.
+- **Who advised against, and who was not asked.** A council on the morning of 11 Oct advised
+  against changing the default, three seats of three
+  (`docs/session-memory/2026-10-11d-fdi-and-lagging-metrics-council.md`). The repo owner and the
+  mentor were not consulted before this entry was written.
+- **Reasons the decision rests on.** The registered primary passed twice, by a wide margin
+  (+34.9 pp and +34.4 pp end-to-end FDI on the 164 held-out DENTEX images). The saved-row
+  decomposition of 2026-10-11c shows that on DENTEX both the numbering loss and the ceiling on
+  caries recall come from the Tufts-only detector. And a judgement: that Tufts box mAP at IoU
+  0.5 is worth giving up for that.
+- **What is *not* offered as a reason.** The Tufts end-to-end figures (64.8% → 63.5%,
+  2026-09-04d) were measured after both verdicts, carry no interval and were part of neither
+  rule; they are reported, never as "the guard satisfied". The +19 pp on Ningxia with the
+  retired gate was a no-regression guard on locked data, not a selection criterion — but it
+  **was known when this decision was made**, and Ningxia is therefore no longer blind to the
+  choice of Stage-1 detector. This morning's three pre-registered measurements were made to word
+  three sentences, not to choose a detector.
+- **What is given up.** Tufts test box mAP@0.5 0.810 → 0.585. Instance masks: arm3c is a
+  detect model, so mask-aware cropping is not merely unwired but unavailable. The cross-domain
+  numbering figure: 58.3% was a Tufts-trained detector on DENTEX; arm3c's 92.8% is in-domain.
+  Continuity with every pipeline number measured between 27 Aug and 11 Oct, including Lever B's
+  adoption and this morning's intervals, all of which used `models/11`.
+- **Why arm3c and not another checkpoint.** It was named the primary arm in Lever A's
+  pre-registration before any arm trained. For the record: the Lever 1 arm (`models/13`) scores
+  higher on both detector metrics already seen (DENTEX 93.4%, Tufts box mAP 0.647), and the
+  decision to switch at all was taken with outcomes in view.
+- **Open, and disclosed rather than settled:** arm3c was trained partly on the Kaggle
+  "dual-labeled" set, whose authors state no licence. If that cannot be cleared before
+  submission, the remedy is a detector trained without it — a new decision with its own record.
+- **Consequences enforced in code** (2026-10-11e, already in place): a report's detector tag
+  and accuracy follow the weights loaded; `models/11` stays selectable and hash-pinned, so every
+  number published to date remains reproducible; the default cannot change without measured
+  figures of its own.
+- **Source:** the two pre-registrations named above; 2026-09-01h, 2026-09-03, 2026-09-03b,
+  2026-09-04d, 2026-10-11c, 2026-10-11d in this file.
+- **Follow-ups:** run the pre-registered matrix; apply its one reversal rule; only then change
+  the default. Lever B's verdict and this morning's measurements are not re-opened — they are
+  relabelled "previous front end" wherever they are quoted beside the new numbers.

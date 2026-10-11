@@ -410,6 +410,11 @@ items 1–5 and 9–10 of the table above, and the six-page caries-only cut (§5
   signed override record and a pre-registration, then about 34 runs with a same-machine
   `models/11` control before each, and the one-line default change last. The repo owner and the
   mentor have not been consulted; nothing is to be pushed until they are.
+  **Status, 11 Oct evening:** Phase 1 is done — a report's detector tag and accuracy now follow
+  the weights loaded, and arm3c is hash-pinned (`RESULTS_LOG` 2026-10-11e). Phase 2 is written —
+  the decision record (`RESULTS_LOG` 2026-10-11f) and
+  `outputs/stage1_switch/PRE_REGISTRATION.md`. **The matrix has not been run and the default is
+  still `models/11`.** Next: commit both, then run the eight rows, Ningxia last.
 - **The same loss caps the caries score.** The deployed front end delivers 288 of 477 carious
   teeth under the right code, a recall ceiling of 0.604; arm3c's would be 0.950.
 - **Now, writing only:** say in the manuscript that numbering is detection-bound and name the
