@@ -72,6 +72,11 @@ CariesXrays +37.80 pp; Ningxia +8.39 pp [+4.06, +12.67]. The constant rises with
 (+13.99, +4.12, +19.25 pp), so the rise in every column is mostly the front end. Lever B's
 4 Sep verdict is not re-decided by this table. Per hospital: `RESULTS_LOG` 2026-10-11g.
 
+*12 Oct 2026:* the CariesXrays 1,200 images are the lesion detector's **validation split** —
+not trained on, but used for early stopping and to choose `best.pt`. Its 0.757 there is a
+validation-split figure. The gate and the constant never saw those images. `RESULTS_LOG`
+2026-10-12.
+
 **The manuscript's comparison — gate pipeline minus constant** (`RESULTS_LOG` 2026-10-11i; not
 a pre-registered comparison, computed afterwards from the same runs):
 

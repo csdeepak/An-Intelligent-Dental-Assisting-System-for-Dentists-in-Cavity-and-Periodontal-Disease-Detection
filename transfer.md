@@ -69,6 +69,10 @@ and §8 edited.
 **12 Oct — publishability council** (`docs/session-memory/2026-10-12-publishability-council.md`):
 nothing is left to implement; the paper is not submittable as it stands and about even odds as a
 six-page caries-only cut. Verdict at the end of §3's implementation block.
+**12 Oct, later — per-stage evidence audit, second council plus an ML-engineering review**
+(`docs/session-memory/2026-10-12b-stage-metrics-council.md`, `RESULTS_LOG` 2026-10-12): no
+stage is both cleanly external and strong; that does not touch the paper's thesis. One cohort
+was mis-described in the manuscript. Three small measurements recommended, none run. §3 edited.
 
 > **Windows clone, 6 Sep 2026 — the Tufts crop corpus was cut from the wrong frame, and is now
 > rebuilt.** It scored 11.5% crop-level FDI-exact where the published number is 71.5%, with correct
@@ -550,6 +554,50 @@ switch, what it left open, and what is parked.** Councilled 11 Oct (`docs/sessio
 - **Eight defects in the rebuilt manuscript** were found and verified; the most serious is that
   the paper says Ningxia was "never tuned against" without saying how often it was scored or
   that the detector was chosen with its Ningxia result in view. All are edits.
+
+**Are the metrics good at every stage? Councilled again 12 Oct, three seats plus the
+`mle-reviewer` agent** (`docs/session-memory/2026-10-12b-stage-metrics-council.md`,
+`RESULTS_LOG` 2026-10-12). No model was run.
+
+| Stage | What the evidence is | Usable for |
+|---|---|---|
+| 1 Tooth detection | Held out but in-domain; the default was chosen against two registered verdicts. Tufts test box mAP 0.587 against 0.723 for the Tufts-only control | "The front end", with the override stated |
+| 2 Numbering | 92.8% in-domain, 63.5% on Tufts test; nothing on a corpus neither model trained on | A caveated line; not "accurate numbering" |
+| 3a Lesion detector (default) | DENTEX in-domain; **CariesXrays 1,200 is its own validation split**; Ningxia external but one of the cohorts that decided adoption | The sign of the lead, not its size |
+| 3a Retired gate | Held-out test crops; external on CariesXrays and on Ningxia, and unchanged by the detector swap | The paper's cleanest evidence |
+| 3b Severity | 133 validation crops; no test, and none can be built from data on hand | No claim |
+| 4a / 4b | Not held out; the label is not bone loss; 4b is 52 crops | Cut |
+| 5–6 | Software: 174 tests, schema 1.2 | "Implemented" |
+
+- **The weak numbers do not threaten the thesis.** Precision 0.44, Tufts 63.5% and box mAP
+  0.587 would sink a paper claiming a good clinical system. This paper claims a baseline that
+  must be reported.
+- **What does threaten it:** the constant in the lesion-agreement tables is placed by Stages 1
+  and 2, with no numbering accuracy measured off-corpus behind it; the DENTEX sign flips with a
+  front end chosen afterwards; and the CariesXrays split was described as kept away from the
+  lesion detector (`docs/paper/SUBMISSION_TODO.md` §1a, row i).
+- **Still no GPU, no new default, no pass over Ningxia (3 of 3).** A second seed, a threshold
+  study, the reject option and a retrained detector are all refused again: the first cannot be
+  scored externally, the second has no clean development split, the last two orphan every
+  Ningxia figure.
+- **Recommended, none run, each estimation-only with its own pre-registration and the user's
+  go-ahead:**
+  1. From saved rows, minutes: on the 164 DENTEX images, the lesion detector's flagged teeth
+     by tooth type and by label category (caries, other finding, labelled healthy,
+     unannotated), beside the constant's. One reviewer has already looked at the tooth-type
+     split of the saved predictions; the pre-registration must list that as seen.
+  2. From saved rows, minutes: of the Tufts test teeth the pipeline codes as a first or
+     second molar, the fraction that are one. This says how well the constant is placed.
+  3. About a day, CPU: numbering and tooth recall on UFBA-425, single pass, hash-checked
+     against every training list first, handedness checked from the labels first. No existing
+     scorer reads its label format. The export is a squashed 640×640, so a low score is
+     ambiguous and a high one is a lower bound.
+- **Hard stop proposed: 31 Oct.** Nothing new is measured after it.
+- **Engineering findings from the review, none changing a reported number:** `requirements.txt`
+  pins no exact version (all 18 version lines are `>=`); `torch.load(..., weights_only=False)` in `src/classifiers.py`
+  and `src/fdi_head_inference.py`; only the detector's hash is stamped into the report, and no
+  checkpoint is verified before loading; an unreadable image is skipped silently in
+  `lesion_localization.py`. Not verified by the chair beyond the first.
 
 **What items 3–5 found (`RESULTS_LOG` 2026-10-11, `PAPER_MATERIAL.md` §8.29).** The constant
 and the *gate* pipeline cannot be told apart on F1. The *adopted* lesion detector beats the

@@ -2600,6 +2600,38 @@ Source: `outputs/stage1_switch/stage1_switch_results.json`;
 
 ---
 
+### 8.31 What kind of evidence each stage has — and one cohort that was mis-described
+
+*12 Oct 2026, second council and an ML-engineering review. `RESULTS_LOG` 2026-10-12. No new
+number.*
+
+**The 1,200 CariesXrays images are the lesion detector's validation split.** The detector was
+not trained on them, but its training stopped early on them and its `best.pt` was chosen on
+them (`scripts/yolo/train_lever_b_pooled_detector.py`; `models/16_lever_b_pooled/run_summary.txt`
+has said so since 4 Sep). The manuscript rebuilt on 11 Oct says the detector "was kept away
+from" them. For the gate and for the constant, which never saw them, the cohort is external
+and the −22.42 pp row stands. For the lesion detector the 0.757 is a validation-split figure.
+That leaves **Ningxia as the only cohort the lesion detector neither trained nor selected on**,
+and Ningxia was one of the cohorts that decided its adoption.
+
+| Stage | Evidence | A claim it supports |
+|---|---|---|
+| 1 | Held out, in-domain; default chosen against two registered verdicts | It is the front end |
+| 2 | In-domain on DENTEX, 63.5% on Tufts test, nothing off-corpus | A caveated accuracy |
+| 3a lesion detector | In-domain (DENTEX), validation (CariesXrays), adoption-conditioned external (Ningxia) | The direction of the lead over the constant |
+| 3a gate | Held-out crops; external on two cohorts; unchanged by the detector swap | Not separable from the constant externally |
+| 3b | 133 validation crops | None |
+| 4a, 4b | Not held out; label is not bone loss | None |
+
+**No held-out test of Stage 3b can be built from data on hand.** The 164 leak-free DENTEX
+images carry a caries class and no deep-caries class.
+
+**What no further implementation removes:** no caries cohort untouched by a decision and none
+with healthy controls; one training run per model; a default adopted with outcomes in view;
+no clinician reference.
+
+---
+
 ## 9. What's not yet written — checklist
 
 For whoever drafts the actual paper. Tick items off here as they land.

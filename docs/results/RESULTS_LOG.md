@@ -8379,3 +8379,50 @@ manuscript now carries is from 2026-10-11g, -i and -j — and one new check, on 
 - **Source:** `paper/main.tex`, `paper/main.pdf`, `paper/fig_{baselines,stage2,coverage,boneloss}.png`;
   `scripts/verify_paper_numbers.py`; `scripts/figures/make_baseline_figure.py`,
   `make_boneloss_paper_figure.py`; `outputs/param_counts/param_counts.json`.
+
+## 2026-10-12 — per-stage evidence audit by a second council and an ML-engineering review: no new number, one cohort mis-described
+
+- **What was done:** At the user's request every stage's evidence was classified — held out,
+  in-domain, selection-conditioned, validation-only or invalid — by three independent read-only
+  reviewers and the `mle-reviewer` agent. No model was run and no number changed. The chair
+  re-ran `pytest tests` (174 pass), `scripts/verify_paper_numbers.py` (191 claims, no drift) and
+  `scripts/eval/stage1_switch_intervals.py` (results file byte-identical to the committed one).
+- **Dataset / config:** none run.
+- **Metrics:** none new. Classification: Stages 1 and 2 held out but in-domain, with the default
+  detector chosen against two registered verdicts. Stage 3a lesion detector: DENTEX in-domain;
+  CariesXrays 1,200 **validation**; Ningxia external but one of the cohorts that decided its
+  adoption. Retired gate: held-out test crops (863 crops, 34 images) and external on both
+  CariesXrays and Ningxia. Stage 3b: validation only, 133 crops. Stage 4a: not held out.
+  Stage 4b: 52 validation crops, split unaudited.
+- **Key decision or insight:**
+  1. **The 1,200 CariesXrays images scored in every lesion-agreement table are the lesion
+     detector's validation split.** The training YAML written by
+     `scripts/yolo/train_lever_b_pooled_detector.py` names `cariesxrays_det/images/val` as `val`,
+     with `patience=25`. No gradient came from those images; early stopping and the choice of
+     `best.pt` did. `models/16_lever_b_pooled/run_summary.txt` and
+     `scripts/yolo/build_lever_b_pooled_dataset.py` have said so since 4 Sep. The manuscript
+     rebuilt on 11 Oct says the detector "was kept away from" them (`paper/main.tex` 588–589;
+     footnote d, 1019–1020; "1,200 held out", 503), and `stage1_switch_intervals.py` labels the
+     cohort "1,200 held-out images". For the lesion detector they are validation data. For the
+     gate and the constant, neither of which saw them, they remain external, so gate minus
+     constant (−22.42 pp) is unaffected. Lever B's rule of 4 Sep counted this cohort among its
+     "2 of 3"; that verdict stands as scored and must be described accurately from here on.
+  2. **A held-out test of Stage 3b cannot be built from data on hand.** The 164 leak-free DENTEX
+     images carry `çürük` only; the label table in `scripts/eval/lesion_localization.py` has no
+     deep-caries class.
+  3. **Verdict, 3 of 3:** no GPU, no new default, no further pass over Ningxia. Remove the
+     Stage 3b and Stage 4 figures from the conference cut. None of the weak absolute numbers —
+     precision 0.439, Tufts 63.5%, box mAP 0.587 — bears on the paper's thesis.
+  4. Three default-preserving, estimation-only measurements were recommended and **none has been
+     run**: the lesion detector's flagged teeth by tooth type and label category on DENTEX, from
+     saved rows; the precision of the molar codes on Tufts, from saved rows; numbering on
+     UFBA-425.
+- **Source:** `docs/session-memory/2026-10-12b-stage-metrics-council.md`;
+  `scripts/yolo/train_lever_b_pooled_detector.py`; `models/16_lever_b_pooled/run_summary.txt`;
+  `paper/main.tex`.
+- **Follow-ups:** correct the wording (`docs/paper/SUBMISSION_TODO.md` §1a, row i). A
+  pre-registration for the three measurements needs the user's go-ahead. One reviewer counted
+  tooth types in the saved predictions while checking feasibility — 447 of 624 flagged codes
+  molars, by its count **[UNVERIFIED]** — so the pre-registration must list that as already
+  seen. Engineering findings from the review (requirements mostly unpinned, `weights_only=False`, no
+  hash check before loading a checkpoint) are in the session file; none changes a reported number.
