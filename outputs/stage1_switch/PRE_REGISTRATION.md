@@ -258,3 +258,109 @@ on. The like-for-like pair is Control B and arm3c, and the manuscript states the
 **Forbidden,** in addition to §8: moving the 0.30 threshold; choosing between the 12-image and the
 164-image firing rate after seeing them — 164 is the figure; dropping a row because the
 manuscript reads better without it; any run on Ningxia.
+
+## Amendment 3 — three rows on what the caries stage flags, how the constant is placed, and numbering on an unseen corpus (12 October 2026, 18:40 IST)
+
+**State when written.** Rows A–M have run, been read and been logged. A second council of
+12 Oct (`docs/session-memory/2026-10-12b-stage-metrics-council.md`) recommended three further
+measurements and the decision owner said to run them. **None of rows N, O, P has been run.**
+Committed before any of them starts.
+
+**What these rows are for.** They are estimates for the manuscript. **Nothing here is a test.
+Nothing here can change the default detector, the default caries path, or any earlier verdict,
+whatever it gives.** No row touches Ningxia.
+
+**Already seen, and bearing on these rows.**
+
+- Row D: the lesion detector under arm3c flags 624 tooth codes on the 164 DENTEX images, 274 of
+  them carious (tp 274, fp 350, fn 203). The constant: 286 / 1,026 / 191.
+- A council member, checking that row N was feasible, counted tooth types in the saved
+  predictions and reported 447 of the 624 flagged codes as molars. The chair has not checked
+  that count. It is listed here because someone has seen it.
+- On held-out crops with ground-truth boxes the retired gate flags 48.2% of healthy molars
+  (31 Aug). That is a different population and a different model.
+- Rows A and B: every numbering total for both detectors. Row I: the DENTEX error buckets.
+- arm 4C, a detector trained **on** UFBA-425, was scored in September. arm3c and the numbering
+  head v2.0 never trained on UFBA-425 (`data/detector_multicorpus_v2/train_3corpus.txt` has no
+  UFBA line; the head's corpora are DENTEX and Tufts) and neither has been run on it.
+- **Not seen:** how the 624 codes divide by label category; how many teeth in the 164 images
+  are labelled healthy; precision by tooth type; how often a code in the constant's set sits on
+  a tooth that is one; any output of either current detector on UFBA-425.
+
+| Row | What | How | Gate before anything new is read |
+|---|---|---|---|
+| N | What the caries stage flags on DENTEX, 164 images | Analysis of the files row D saved, against the DENTEX labels. No inference | 164 leak-free images; the constant's 286 / 1,026 / 191; the lesion detector's 274 / 350 / 203 and the gate's row-D counts under arm3c, all exact |
+| O | How well the constant's eight codes are placed, Tufts test, 143 images | Analysis of the rows row A saved. No inference. DENTEX (row B's rows) beside it as a secondary | Row A's totals for both detectors, exact: 3,760 teeth; 2,438 correct for `models/11` |
+| P | Numbering and tooth recall on UFBA-425 | `validate_fdi_assignment_tufts.py` with a UFBA loader, head v2.0, conf 0.25, NMS 0.50, imgsz 1024, one-to-one. `models/11` first, then arm3c | Three gates, below |
+
+**Row N, fixed now.**
+
+- Each flagged (image, FDI code) pair falls in one category, first match wins: **caries** (the
+  code carries a class-1 label), **other finding** (any of classes 2, 3, 5, 6, 7, 8),
+  **labelled healthy** (class 0 only), **no annotation**.
+- Tooth type by the code's position digit: incisor 1–2, canine 3, premolar 4–5, molar 6–8.
+- Reported for the lesion detector, the retired gate and the constant: flagged codes by
+  category; flagged codes by tooth type, with the carious share of each.
+- **Primary:** the fraction of labelled-healthy teeth whose code is flagged, per arm, with a
+  cluster interval over images, and the paired differences lesion detector − constant and
+  lesion detector − gate. The same over labelled-healthy teeth at the constant's eight codes,
+  where the constant is 100% by construction.
+- With fewer than 30 labelled-healthy teeth in the cohort, or fewer than 10 at the eight codes,
+  the counts are reported and no interval is.
+- **Limits, to be printed with the result.** A flagged code is a code the pipeline assigned, so
+  a misnumbered tooth is filed under the wrong tooth. "No annotation" is not "healthy": DENTEX
+  labels about 6 teeth in 30. Labelled-healthy teeth are a small, non-random sample.
+- **Wording.** `paper/main.tex` 447–449 says a model that must place a lesion "cannot score well
+  by reproducing a prior over tooth positions". If the molar share of the lesion detector's
+  flagged codes is within 10 points of the constant's 100%, or its flag rate on labelled-healthy
+  teeth at the eight codes is 40% or more, that sentence is deleted. Otherwise it stays and the
+  figures are quoted beside it.
+
+**Row O, fixed now.** M is the constant's set {16, 17, 26, 27, 36, 37, 46, 47}.
+
+- **Placement precision:** of ground-truth teeth matched to a box whose assigned code is in M,
+  the fraction whose true code is in M; and the fraction whose assigned code is exactly right.
+- **Reach:** of ground-truth teeth whose true code is in M, the fraction matched to a box and
+  given a code in M.
+- Each with a cluster interval over images, for both detectors, and the paired difference.
+- Where the others go: of true-M teeth that are matched but coded outside M, the counts coded as
+  a third molar, as a premolar, as anything else, and given no code.
+- **Limit, to be printed.** Saved rows are per ground-truth tooth. A box matched to no tooth is
+  not in them, so its code is unknown; the number of such boxes per detector is reported.
+- **Wording.** In every lesion-agreement table the constant is described as placed by the
+  pipeline's own boxes and numbering, with this row's precision and reach beside it, whatever
+  they are. No bar.
+
+**Row P, fixed now.**
+
+- **Gate P1 — harness.** The scorer with the loader added, run **without** the UFBA option on
+  the Tufts test split with arm3c into a scratch directory, must give rows identical to the
+  rows row A saved. The scratch output is discarded.
+- **Gate P2 — handedness, from the labels alone.** In at least 99% of images, the mean x of the
+  boxes labelled quadrants 1 and 4 must lie left of the mean x of quadrants 2 and 3, and the
+  mean y of quadrants 1 and 2 above the mean y of quadrants 3 and 4. A failure stops the row
+  before any model is run.
+- **Gate P3 — leakage.** MD5 and a 256-bit difference hash of all 425 images against the Tufts
+  radiographs, every DENTEX release folder on this machine and the Kaggle "dual" images. A
+  byte-identical image, or one within Hamming distance 10, is excluded and listed. More than 20
+  exclusions stops the row.
+- **Images.** Primary: as distributed, 640×640. The export is square and the original aspect
+  ratio is not recorded in its metadata (the segmentation images are 512×512). Secondary, a
+  sensitivity analysis only: each image widened to 1991:1127, the frame size the source
+  collection reports, which has not been verified for these files. **The primary is the
+  as-distributed figure whatever the secondary gives.**
+- **Ground truth.** Every box in the YOLO label files, class c mapped to FDI
+  (c // 8 + 1) × 10 + (c mod 8 + 1). All teeth, third molars included.
+- **Reported, for each detector and each image treatment:** end-to-end exact FDI over all
+  ground-truth teeth (primary), recall, exact of detected, quadrant correct of detected, each
+  with a cluster interval; and the paired difference arm3c − `models/11`.
+- **One pass.** A run directory that exists is refused, as for every row.
+- **Wording.** The figure replaces "we have none on unseen data" (`main.tex`, Limitations),
+  described as one corpus neither model trained on, an aspect-distorted 640×640 re-export,
+  single pass. It is set beside Tufts 63.5% and DENTEX 92.8% with no claim that the three are
+  comparable cohorts. If `models/11` scores above arm3c with an interval excluding zero, the
+  paper says so in the same sentence. **The default does not change on any outcome of this row.**
+
+**Forbidden,** in addition to §8: a second pass over UFBA-425 with another confidence, image
+size, interpolation or aspect ratio; reporting the secondary treatment without the primary;
+re-drawing row N's categories or row O's set after seeing them; any run on Ningxia.
