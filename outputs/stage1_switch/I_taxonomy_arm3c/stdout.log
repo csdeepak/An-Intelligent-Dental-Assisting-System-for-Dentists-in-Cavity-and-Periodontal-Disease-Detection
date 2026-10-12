@@ -1,0 +1,39 @@
+STAGE 2 FAILURE TAXONOMY — 936 ground-truth teeth, 164 leak-free DENTEX images
+source: stage2_rows_head.json (already-saved evaluation; nothing re-run)
+
+  correct                869   92.8%
+  not_detected             4    0.4%
+  off_by_one              51    5.4%
+  same_quadrant_far        6    0.6%
+  mirror_lr                2    0.2%
+  wrong_arch               2    0.2%
+  other                    2    0.2%
+
+  of the 932 DETECTED teeth, 63 carry a wrong code (6.8%):
+     off_by_one              51   81.0% of all numbering errors
+     same_quadrant_far        6    9.5% of all numbering errors
+     mirror_lr                2    3.2% of all numbering errors
+     wrong_arch               2    3.2% of all numbering errors
+     other                    2    3.2% of all numbering errors
+
+  off-by-one direction: {'mesial (-1)': 29, 'distal (+1)': 22}   (a systematic lean would point at an indexing bug, not model noise)
+
+  error rate by TOOTH POSITION (1 central incisor .. 8 third molar):
+    pos    n   correct   wrong-code%
+     1     69      62      10.1%
+     2     62      55      11.3%
+     3     36      34       5.6%
+     4     53      47       9.6%
+     5     98      94       4.1%
+     6    215     202       5.6%
+     7    159     145       8.2%
+     8    244     230       5.3%
+
+  error rate by QUADRANT (1 UR, 2 UL, 3 LL, 4 LR):
+     Q1  n= 203  detected= 202  wrong-code=9.4%
+     Q2  n= 184  detected= 183  wrong-code=6.6%
+     Q3  n= 291  detected= 289  wrong-code=5.2%
+     Q4  n= 258  detected= 258  wrong-code=6.6%
+
+  figure -> outputs/stage1_switch/I_taxonomy_arm3c/stage2_failure_taxonomy.png
+-> outputs/stage1_switch/I_taxonomy_arm3c/stage2_failure_taxonomy.json

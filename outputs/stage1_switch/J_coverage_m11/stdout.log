@@ -1,0 +1,19 @@
+objc[44301]: Class AVFFrameReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x1121243a8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x16d3383a8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[44301]: Class AVFAudioReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x1121243f8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x16d3383f8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+STAGE 2 — FDI numbering, 663 detected teeth (of 936 GT)
+  accuracy at 100% coverage : 0.825   <- the of-detected figure
+  accuracy at 90% coverage  : 0.844   (confidence >= 0.410)
+  accuracy at 75% coverage  : 0.877   (confidence >= 0.956)
+  accuracy at 50% coverage  : 0.909   (confidence >= 0.999)
+  PRE-REGISTERED threshold 0.3: coverage 91.3%, accuracy 0.845
+  gain at 75% coverage      : +5.22 pp [+3.49, +7.30]  (shuffled control -0.06 pp)
+
+CARIES GATE — 863 held-out crops (calibrated confidence)
+  accuracy at 100% coverage : 0.797
+  accuracy at 90% coverage  : 0.857   (confidence >= 0.299)
+  accuracy at 75% coverage  : 0.940   (confidence >= 0.777)
+  accuracy at 50% coverage  : 0.970   (confidence >= 0.914)
+  gain at 75% coverage      : +14.25 pp [+11.32, +16.62]  (shuffled control +0.00 pp)
+
+  figure -> outputs/stage1_switch/J_coverage_m11/c4_coverage_accuracy.png
+-> outputs/stage1_switch/J_coverage_m11/c4_coverage_accuracy.json

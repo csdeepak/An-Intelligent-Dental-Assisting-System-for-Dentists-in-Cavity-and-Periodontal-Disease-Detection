@@ -1,0 +1,10 @@
+{
+  "weights": "models/15_detector_multicorpus_leverA/arm3c_best.pt",
+  "sha256": "5d301f13fb48da5c74e7ef01bd0f91226f9b6800cb433dee5aebc8f8db8f161e",
+  "split": "test_tufts.txt",
+  "device": "cpu",
+  "box_map50": 0.5873215709220491,
+  "box_map50_95": 0.2097313284946023,
+  "precision": 0.5930827053961467,
+  "recall": 0.6373598369011213
+}

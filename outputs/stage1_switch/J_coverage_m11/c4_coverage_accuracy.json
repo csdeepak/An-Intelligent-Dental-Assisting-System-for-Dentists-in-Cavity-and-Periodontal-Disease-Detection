@@ -1,0 +1,78 @@
+{
+  "stage2": {
+    "n": 663,
+    "rows": "outputs/stage1_switch/B_dentex_m11/stage2_rows_head.json",
+    "accuracy_full_coverage": 0.825,
+    "gain_at_75": {
+      "target_coverage": 0.75,
+      "accuracy_full_coverage": 0.825,
+      "gain_pp": 5.22,
+      "ci95_pp": [
+        3.49,
+        7.3
+      ],
+      "n_images": 151,
+      "shuffled_control_gain_pp": -0.06,
+      "shuffled_control_note": "confidence shuffled -> abstention carries no information; a real gain must clear this"
+    },
+    "operating_point": {
+      "threshold": 0.3,
+      "coverage": 0.9125,
+      "accuracy": 0.8446
+    },
+    "at_90": {
+      "coverage": 0.9004524886877828,
+      "n_retained": 597,
+      "accuracy": 0.8442211055276382,
+      "threshold_at_this_coverage": 0.4099
+    },
+    "at_75": {
+      "coverage": 0.7496229260935143,
+      "n_retained": 497,
+      "accuracy": 0.8772635814889336,
+      "threshold_at_this_coverage": 0.9559
+    },
+    "at_50": {
+      "coverage": 0.49924585218702866,
+      "n_retained": 331,
+      "accuracy": 0.9093655589123867,
+      "threshold_at_this_coverage": 0.9994
+    }
+  },
+  "caries_gate": {
+    "n": 863,
+    "accuracy_full_coverage": 0.7972,
+    "gain_at_75": {
+      "target_coverage": 0.75,
+      "accuracy_full_coverage": 0.7972,
+      "gain_pp": 14.25,
+      "ci95_pp": [
+        11.32,
+        16.62
+      ],
+      "n_images": 34,
+      "shuffled_control_gain_pp": 0.0,
+      "shuffled_control_note": "confidence shuffled -> abstention carries no information; a real gain must clear this"
+    },
+    "at_90": {
+      "coverage": 0.9003476245654692,
+      "n_retained": 777,
+      "accuracy": 0.8571428571428571,
+      "threshold_at_this_coverage": 0.29870128631591797
+    },
+    "at_75": {
+      "coverage": 0.7497103128621089,
+      "n_retained": 647,
+      "accuracy": 0.9397217928902627,
+      "threshold_at_this_coverage": 0.7770692215498176
+    },
+    "at_50": {
+      "coverage": 0.49942062572421786,
+      "n_retained": 431,
+      "accuracy": 0.9698375870069605,
+      "threshold_at_this_coverage": 0.9142857119441032
+    },
+    "confidence": "isotonic-calibrated, in the reported class"
+  },
+  "discipline": "ASSESSABILITY_MIN_FDI_CONFIDENCE = 0.30 is pre-registered in run_inference.py and was NOT tuned here; the curve only locates it"
+}

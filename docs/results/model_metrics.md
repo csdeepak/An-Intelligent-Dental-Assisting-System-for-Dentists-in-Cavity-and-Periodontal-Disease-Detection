@@ -6,8 +6,9 @@ obtained see `PAPER_MATERIAL.md`; for when and why it changed see `RESULTS_LOG.m
 **Last updated:** 2026-10-11 — **Stage 1 default changed** to the multi-corpus detector
 (arm3c); the re-measured numbers are in the first section below, and everything further down
 that says "pipeline" is the previous front end unless labelled. `RESULTS_LOG.md` 2026-10-11f
-(the decision), 2026-10-11g (the measurement), 2026-10-11h (three rounding corrections) and
-2026-10-11i (the gate pipeline against the constant under each front end).
+(the decision), 2026-10-11g (the measurement), 2026-10-11h (three rounding corrections),
+2026-10-11i (the gate pipeline against the constant under each front end), 2026-10-11j (five
+further rows) and 2026-10-11k (the manuscript rebuilt on this front end).
 
 **Before that:** 2026-09-04 (night) — **Stage 3 (caries) default changed**: the lesion detector
 (`models/16_lever_b_pooled/`) replaces the gate as the pipeline default, adopted via the
@@ -98,6 +99,35 @@ Default pipeline − constant **+17.80 pp [+13.48, +22.02]**; − its own previo
 
 **Stage 4 flag, Ningxia periodontitis, 736 images** — 2.43% (165 of 6,792 affected teeth) →
 2.17% (153 of 7,049); −0.26 pp [−0.74, +0.23], not separable. Not a periodontal finding.
+Per hospital under arm3c: 2.91% [2.23, 3.65], 0.64% [0.34, 0.96], 3.96% [2.03, 6.36] and
+6.28% [2.49, 12.12] — the last on 223 affected teeth where the previous detector found 630,
+unexplained. **On DENTEX**, 164 images: 0.80% (29 of 3,607 detected teeth) → **0.75%** (34 of
+4,512); −0.05 pp [−0.41, +0.32]. `RESULTS_LOG` 2026-10-11j.
+
+**Numbering errors, DENTEX, 936 teeth** (`RESULTS_LOG` 2026-10-11j; in-domain for arm3c).
+
+| Detector | Correct | Not detected | Off by one | Same quadrant, 2+ | Mirrored | Wrong arch | Other |
+|---|---|---|---|---|---|---|---|
+| previous | 547 | 273 | 92 | 8 | 8 | 6 | 2 |
+| **arm3c** | **869** | **4** | 51 | 6 | 2 | 2 | 2 |
+
+Under arm3c 51 of 63 wrong codes (81.0%) are off by one and 6 of 932 detected teeth (0.6%) are
+in a wrong quadrant.
+
+**Selective prediction for numbering** — threshold 0.30 as registered on 28 Aug, not tuned.
+
+| Detector | Full coverage | 90% | 75% | Gain at 75% | At 0.30 |
+|---|---|---|---|---|---|
+| previous | 0.825 | 0.844 | 0.877 | +5.22 pp [+3.49, +7.30] | coverage 91.2%, accuracy 0.845 |
+| **arm3c** | 0.932 | 0.955 | **0.980** | **+4.76 pp [+3.29, +6.54]** | **96.1%, 0.941** |
+
+Shuffled-confidence control −0.06 pp for both. The caries gate's own curve is on held-out crops
+and does not depend on the tooth detector.
+
+**Tufts test box mAP@0.5, 150 images, one label frame, this machine** — Tufts-only control
+0.723, **arm3c 0.587**: −13.6 pp. This is the like-for-like cost. The 0.810 → 0.585 quoted
+elsewhere in this file sets a segmentation model on polygon labels against a detection model
+on box labels. Lever A's Guard 2 failed on this figure and still does.
 
 **Size** — Stage 1 27,617,459 → 25,311,251; default pipeline 97,649,753 → **95,343,545**.
 
@@ -939,11 +969,11 @@ against that artefact. Recorded here because the manuscript cites it and because
 version of this number propagated through nine places in the docs before it was caught
 (`RESULTS_LOG.md` 2026-08-28).
 
-**11 Oct 2026 — Stage 1 changed, and this table has not.** It is the previous front end's
-count and stays so while `verify_paper_numbers.py` asserts the manuscript against it. With the
-current default (`arm3c_best.pt`, 25,311,251) the totals are **95,343,545** all six,
-81,209,832 with the gate, **72,987,956** caries path —
-`outputs/stage1_switch/H_params_arm3c/param_counts.json`.
+**11 Oct 2026 — Stage 1 changed, and this table changed with the manuscript**
+(`RESULTS_LOG` 2026-10-11k). `count_model_params.py` now counts the current default and
+`param_counts.json` was regenerated. With the previous detector (`models/11`, 27,617,459) the
+four totals were 97,649,753 / 83,516,040 / 75,294,164 / 61,160,451 —
+`outputs/stage1_switch/H_params_m11/param_counts.json`.
 
 **Updated 4 Sep 2026 — Stage 3a changed.** The lesion detector (25.3 M params) replaced the
 ResNet18 gate (11.2 M) as the pipeline default (Lever B, `RESULTS_LOG.md` 2026-09-04h). The row
@@ -961,23 +991,23 @@ ultralytics prints — a third quantity again, and also not an error.
 
 | Stage | Model | Checkpoint | Parameters |
 |---|---|---|---|
-| 1  | YOLOv11l-seg | `models/11_yolo_seg_tufts_r1/best.pt` | 27,617,459 |
+| 1  | YOLOv11l, multi-corpus | `models/15_detector_multicorpus_leverA/arm3c_best.pt` | 25,311,251 |
 | 2  | ResNet18 + 4 positional feats | `models/10_fdi_head_dentex_tufts_v2/` | 11,187,916 |
 | **3a (default)** | **YOLOv11l lesion detector** | **`models/16_lever_b_pooled/.../best.pt`** | **25,311,251** |
 | 3a (`--caries-method gate`) | ResNet18 caries gate | `models/09_caries_gate_v3/` | 11,177,538 |
 | 3b | ResNet18 caries severity | `models/07_caries_cascade/` | 11,177,538 |
 | 4a | ResNet18 bone-loss gate | `models/03_bone_loss_model_training_notebook_models/` | 11,177,538 |
 | 4b | ResNet18 bone-loss severity | `models/04_bone_loss_severity_notebook_models/` | 11,178,051 |
-| | **Total, all six, current default (lesion detector)** | | **97,649,753** |
-| | Total, all six, `--caries-method gate` | | 83,516,040 |
-| | **Caries path only** (1, 2, 3a-default, 3b) | | **75,294,164** |
-| | Caries path only, `--caries-method gate` (1, 2, 3a-gate, 3b) | | 61,160,451 |
+| | **Total, all six, current default (lesion detector)** | | **95,343,545** |
+| | Total, all six, `--caries-method gate` | | 81,209,832 |
+| | **Caries path only** (1, 2, 3a-default, 3b) | | **72,987,956** |
+| | Caries path only, `--caries-method gate` (1, 2, 3a-gate, 3b) | | 58,854,243 |
 
 **Do not quote "~25 M" for the pipeline.** That is the *superseded bbox* detector's own
 count (`tooth-detector-a100-1024-v1.0`, 25.3 M, recorded under Stage 1 above) -- coincidentally
 close to the NEW Stage 3a's own count, a separate model; the two must not be conflated. The
-efficiency comparison against Qwen2.5-VL-32B-Instruct is now 33.45 B vs **75.3 M** (current
-default) -- roughly 444x, still overwhelmingly in the small pipeline's favour, down from the
+efficiency comparison against Qwen2.5-VL-32B-Instruct is now 33.45 B vs **72.99 M** (current
+default, since 11 Oct) -- roughly 458x, still overwhelmingly in the small pipeline's favour, down from the
 ~550x quoted against the old 61.2 M caries-path figure. **Every pre-4-Sep mention of "61.2 M
 caries path" / "83.6 M total" in the paper describes the retained `--caries-method gate` path,
 not the current default — flagged for `PAPER_MATERIAL.md` to disambiguate, not silently

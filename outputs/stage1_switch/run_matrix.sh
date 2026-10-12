@@ -117,5 +117,77 @@ row_H() {  # parameter counts; --out is a file here, so not through run()
   done
 }
 
+# ---- Amendment 2: rows for rebuilding the manuscript on the current front end -------------
+# Row L of that amendment is analysis only (stage1_switch_intervals.py) and has no command.
+
+row_I() {  # numbering failure taxonomy, from the rows row B saved. No inference.
+  for det in $DETS; do
+    run "I_taxonomy_$det" $PY scripts/eval/stage2_failure_taxonomy.py \
+      --rows "$OUT/B_dentex_$det/stage2_rows_head.json" --control "$OUT/none" \
+      --fig "$OUT/I_taxonomy_$det"
+  done
+}
+
+row_J() {  # coverage-accuracy for numbering, from the same saved rows. Threshold 0.30, not swept.
+  for det in $DETS; do
+    run "J_coverage_$det" $PY scripts/eval/c4_coverage_accuracy.py \
+      --rows "$OUT/B_dentex_$det/stage2_rows_head.json" --fig "$OUT/J_coverage_$det"
+  done
+}
+
+row_K() {  # Stage-4 flags on the 164 DENTEX images, through the pipeline as shipped. CPU.
+  for det in $DETS; do
+    local d="$OUT/K_dentex_stage4_$det"
+    if [ -e "$d" ]; then echo "REFUSED: $d exists" >&2; exit 1; fi
+    mkdir -p "$d"
+    echo "[$(date '+%H:%M:%S')] $d"
+    $PY - "$(det_path $det)" "$d/dentex_stage4.json" > "$d/stdout.log" 2>&1 <<'PYEOF'
+import json, sys
+from pathlib import Path
+import cv2, torch
+sys.path[:0] = [".", "scripts/eval"]
+from c1_vlm_baseline import DEF_DISEASE, load_gt
+from scripts.run_inference import file_sha256, load_models, run_pipeline
+det = Path(sys.argv[1]).resolve()
+models, device, paths = load_models(detector=det, device=torch.device("cpu"))
+rows = []
+for stem in sorted(load_gt(DEF_DISEASE)):            # the 164 leak-free images
+    img = cv2.imread(str(DEF_DISEASE / "input" / f"{stem}.png"), cv2.IMREAD_COLOR)
+    s = run_pipeline(img, models, device, paths, image_label=stem, verbose=False)["summary"]
+    rows.append({"image": stem, "teeth_detected": s["teeth_detected"],
+                 "stage4_flagged": s["bone_loss_positive"], "caries_positive": s["caries_positive"]})
+Path(sys.argv[2]).write_text(json.dumps(
+    {"detector": sys.argv[1], "detector_sha256": file_sha256(str(det)), "device": "cpu",
+     "n_images": len(rows), "per_image": rows}, indent=2) + "\n")
+print(len(rows), "images;", sum(r["stage4_flagged"] for r in rows), "of",
+      sum(r["teeth_detected"] for r in rows), "detected teeth flagged by Stage 4")
+PYEOF
+  done
+}
+
+row_M() {  # Tufts test box mAP in the detector's own label frame: Control B, then arm3c. CPU.
+  for w in controlB arm3c; do
+    local d="$OUT/M_tufts_map_$w"
+    if [ -e "$d" ]; then echo "REFUSED: $d exists" >&2; exit 1; fi
+    mkdir -p "$d"
+    echo "[$(date '+%H:%M:%S')] $d"
+    $PY - "models/15_detector_multicorpus_leverA/${w}_best.pt" "$d" > "$d/stdout.log" 2>&1 <<'PYEOF'
+import hashlib, json, sys
+from pathlib import Path
+from ultralytics import YOLO
+w, out = Path(sys.argv[1]), Path(sys.argv[2])
+# the call scripts/yolo/train_multicorpus_detector_v2.py made after each arm trained, on CPU
+m = YOLO(str(w)).val(data="data/detector_multicorpus_v2/data.yaml", split="test", device="cpu",
+                     project=str(out.resolve()), name="val", exist_ok=True, plots=False)
+res = {"weights": str(w), "sha256": hashlib.sha256(w.read_bytes()).hexdigest(),
+       "split": "test_tufts.txt", "device": "cpu",
+       "box_map50": float(m.box.map50), "box_map50_95": float(m.box.map),
+       "precision": float(m.box.mp), "recall": float(m.box.mr)}
+(out / "tufts_test_map.json").write_text(json.dumps(res, indent=2) + "\n")
+print(json.dumps(res, indent=2))
+PYEOF
+  done
+}
+
 "row_$1"
 echo "[$(date '+%H:%M:%S')] row $1 done ($DETS)"

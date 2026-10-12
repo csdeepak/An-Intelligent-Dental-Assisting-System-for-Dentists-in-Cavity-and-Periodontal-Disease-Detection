@@ -39,7 +39,7 @@ OUT = REPO / "outputs" / "param_counts" / "param_counts.json"
 # Kept in the pipeline's own stage order. Paths mirror the DEF_* defaults in
 # scripts/run_inference.py -- if a default checkpoint changes there, change it here.
 CHECKPOINTS = [
-    ("stage1_detector",       "models/11_yolo_seg_tufts_r1/best.pt"),
+    ("stage1_detector",       "models/15_detector_multicorpus_leverA/arm3c_best.pt"),
     ("stage2_fdi_head",       "models/10_fdi_head_dentex_tufts_v2/enumeration_head_best.pth"),
     ("stage3a_lesion",        "models/16_lever_b_pooled/lever_b_pooled_yolo11l-2/weights/best.pt"),
     ("stage3a_gate_variant",  "models/09_caries_gate_v3/caries_gate_v3.pth"),

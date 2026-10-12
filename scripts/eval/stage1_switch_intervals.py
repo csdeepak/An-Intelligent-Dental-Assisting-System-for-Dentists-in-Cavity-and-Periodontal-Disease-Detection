@@ -3,7 +3,7 @@
 
 Pre-registration: outputs/stage1_switch/PRE_REGISTRATION.md, frozen at commit c139779 before any
 run was made, with Amendment 1 (commit 85df6ff, row G's control gate) committed before any
-Ningxia run. Every gate, comparison and the one stop rule below is fixed there; read it before
+Ningxia run, and Amendment 2 (rows I to M, for rebuilding the manuscript) before any of those. Every gate, comparison and the one stop rule below is fixed there; read it before
 changing anything here.
 
 Nothing here runs a model -- `outputs/stage1_switch/run_matrix.sh <row>` does. A row is reported
@@ -282,6 +282,29 @@ def row_g():
               f"affected teeth flagged = {res[det]['flag_rate']['value']:.4f}")
     res["delta_arm3c_minus_m11"] = delta(ctl, new, rate)
     show("flag rate  arm3c - m11", res["delta_arm3c_minus_m11"])
+
+    # Row L (Amendment 2): the same files split by hospital. Ningxia is not scored again.
+    other = {"test1": (79, 3285, 320), "test2": (34, 2462, 297), "test3": (23, 411, 50),
+             "test4": (29, 633, 69)}                 # flagged, affected, images -- other machine
+    res["per_hospital"] = {}
+    for split, (o_hit, o_aff, o_img) in other.items():
+        idx = [i for i, r in enumerate(ctl) if r["split"] == split]
+        c, n = [ctl[i] for i in idx], [new[i] for i in idx]
+        c_hit, c_aff = sum(r["n_affected_flagged"] for r in c), sum(r["n_affected"] for r in c)
+        gap = 100 * (c_hit / c_aff - o_hit / o_aff)
+        gate(len(c) == o_img, f"row L control {split}: {len(c)} images, expected {o_img}")
+        gate(abs(gap) <= TOL_PP, f"row L control {split}: {c_hit}/{c_aff} vs {o_hit}/{o_aff} "
+             f"on the other machine, {gap:+.2f} pp")
+        out = {"images": len(c), "control_vs_other_machine_pp": round(gap, 2),
+               "delta_arm3c_minus_m11": delta(c, n, rate)}
+        for det, rows in (("m11", c), ("arm3c", n)):
+            out[det] = {"affected_teeth": sum(r["n_affected"] for r in rows),
+                        "affected_teeth_flagged": sum(r["n_affected_flagged"] for r in rows),
+                        "flag_rate": est(rows, rate)}
+        res["per_hospital"][split] = out
+        print(f"  {split} (n={len(c)}): " + "   ".join(
+            f"{det} {out[det]['affected_teeth_flagged']}/{out[det]['affected_teeth']} = "
+            f"{out[det]['flag_rate']['value']:.4f}" for det in DETS))
     return res
 
 
@@ -303,20 +326,166 @@ def row_h():
     return res
 
 
+# ---- Amendment 2 (PRE_REGISTRATION.md): rows for rebuilding the manuscript ---------------------
+
+TAXONOMY_OTHER_MACHINE = {"correct": 546, "not_detected": 275, "off_by_one": 89,
+                          "same_quadrant_far": 10, "mirror_lr": 8, "wrong_arch": 6, "other": 2}
+
+
+def row_i():
+    """Numbering failure taxonomy, from the rows row B saved."""
+    path = {det: OUT / f"I_taxonomy_{det}" / "stage2_failure_taxonomy.json" for det in DETS}
+    if not all(p.exists() for p in path.values()):
+        return None
+    print("\nRow I -- numbering failure taxonomy, DENTEX, 936 teeth")
+
+    def load(det):
+        raw = json.loads(path[det].read_text())
+        gate(f"B_dentex_{det}" in raw["source"], f"row I: {path[det].parent.name} did not read {det}'s rows")
+        return {k: raw["categories"].get(k, 0) for k in TAXONOMY_OTHER_MACHINE}
+
+    ctl = load("m11")
+    gate((sum(ctl.values()), ctl["correct"], ctl["not_detected"]) == (936, 547, 273),
+         f"row I control: {ctl}")
+    worst = max(abs(ctl[k] - v) for k, v in TAXONOMY_OTHER_MACHINE.items())
+    gate(worst <= 14, f"row I control: a bucket is {worst} teeth from the other machine's")
+    print(f"  control gate: 936 / 547 / 273 reproduce; largest bucket gap to the other machine {worst} teeth")
+    res = {"control_gate": {"other_machine": TAXONOMY_OTHER_MACHINE, "largest_bucket_gap_teeth": worst}}
+    for det, cats in (("m11", ctl), ("arm3c", load("arm3c"))):
+        detected = 936 - cats["not_detected"]
+        wrong = detected - cats["correct"]
+        wrong_quadrant = cats["mirror_lr"] + cats["wrong_arch"] + cats["other"]
+        res[det] = {**cats, "detected": detected, "wrong_code": wrong,
+                    "off_by_one_share_of_wrong_codes": round(cats["off_by_one"] / wrong, 4),
+                    "wrong_quadrant": wrong_quadrant,
+                    "wrong_quadrant_share_of_detected": round(wrong_quadrant / detected, 4)}
+        print(f"  {det:6s} " + "  ".join(f"{k} {v}" for k, v in cats.items())
+              + f"   | {cats['off_by_one']}/{wrong} wrong codes off by one; "
+                f"{wrong_quadrant}/{detected} detected in a wrong quadrant")
+    return res
+
+
+def row_j():
+    """Coverage-accuracy for numbering, from the same rows. The 0.30 threshold is located, not tuned."""
+    path = {det: OUT / f"J_coverage_{det}" / "c4_coverage_accuracy.json" for det in DETS}
+    if not all(p.exists() for p in path.values()):
+        return None
+    print("\nRow J -- coverage-accuracy for numbering, DENTEX")
+    other = {"full": 0.826, "at_75": 0.8851, "gain_pp": 5.91, "op_coverage": 0.9077, "op_accuracy": 0.8467}
+
+    def load(det):
+        s2 = json.loads(path[det].read_text())["stage2"]
+        gate(f"B_dentex_{det}" in s2["rows"], f"row J: {path[det].parent.name} did not read {det}'s rows")
+        return s2
+
+    def view(s2):
+        op = s2["operating_point"]
+        return {"teeth": s2["n"], "accuracy_full_coverage": s2["accuracy_full_coverage"],
+                **{f"accuracy_at_{c}": round(s2[f"at_{c}"]["accuracy"], 4) for c in (90, 75, 50)},
+                "gain_at_75_pp": s2["gain_at_75"]["gain_pp"], "gain_at_75_ci95_pp": s2["gain_at_75"]["ci95_pp"],
+                "shuffled_control_gain_pp": s2["gain_at_75"]["shuffled_control_gain_pp"],
+                "threshold": op["threshold"], "coverage_at_threshold": op["coverage"],
+                "accuracy_at_threshold": op["accuracy"],
+                "retained_at_threshold_of_936_present": round(op["coverage"] * s2["n"] / 936, 4),
+                "retained_at_75_of_936_present": round(0.75 * s2["n"] / 936, 4)}
+
+    ctl = view(load("m11"))
+    gate((ctl["teeth"], round(ctl["accuracy_full_coverage"] * ctl["teeth"])) == (663, 547),
+         f"row J control: {ctl['teeth']} teeth at {ctl['accuracy_full_coverage']}")
+    gaps = {"full": ctl["accuracy_full_coverage"] - other["full"], "at_75": ctl["accuracy_at_75"] - other["at_75"],
+            "op_coverage": ctl["coverage_at_threshold"] - other["op_coverage"],
+            "op_accuracy": ctl["accuracy_at_threshold"] - other["op_accuracy"],
+            "gain": (ctl["gain_at_75_pp"] - other["gain_pp"]) / 100}
+    gate(max(abs(v) for v in gaps.values()) <= TOL_PP / 100,
+         f"row J control is more than {TOL_PP} pp from the other machine: {gaps}")
+    print("  control gate: 663 teeth / 547 correct reproduce; largest gap to the other machine "
+          f"{100 * max(abs(v) for v in gaps.values()):.2f} pp")
+    res = {"control_gate": {"other_machine": other, "gaps_pp": {k: round(100 * v, 2) for k, v in gaps.items()}},
+           "m11": ctl, "arm3c": view(load("arm3c"))}
+    for det in DETS:
+        v = res[det]
+        print(f"  {det:6s} full {v['accuracy_full_coverage']:.4f}  90% {v['accuracy_at_90']:.4f}  "
+              f"75% {v['accuracy_at_75']:.4f}  50% {v['accuracy_at_50']:.4f}   gain@75 {v['gain_at_75_pp']:+.2f} pp "
+              f"{v['gain_at_75_ci95_pp']} (shuffled {v['shuffled_control_gain_pp']:+.2f})   "
+              f"at 0.30: coverage {v['coverage_at_threshold']:.4f}, accuracy {v['accuracy_at_threshold']:.4f}")
+    return res
+
+
+def row_k():
+    """Stage-4 flags over detected teeth on DENTEX: a firing rate, not a sensitivity."""
+    path = {det: OUT / f"K_dentex_stage4_{det}" / "dentex_stage4.json" for det in DETS}
+    if not all(p.exists() for p in path.values()):
+        return None
+    print("\nRow K -- Stage-4 firing rate on DENTEX, 164 images")
+    rate = ratio("stage4_flagged", "teeth_detected")
+    subset = {p.stem for p in (REPO_ROOT / "outputs/r4_batch_v3").glob("*.json")}   # the 12 of 24-25 Aug
+
+    def load(det):
+        raw = json.loads(path[det].read_text())
+        gate(raw["detector_sha256"] == SHA[det] and raw["n_images"] == 164,
+             f"row K: {path[det].parent.name} is not {det} over 164 images")
+        return raw["per_image"]
+
+    ctl = load("m11")
+    new = paired(ctl, load("arm3c"))
+    res = {"manuscript_figure_not_a_gate": "2 of 299 teeth on 12 images, bbox detector, 24-25 Aug 2026"}
+    for det, rows in (("m11", ctl), ("arm3c", new)):
+        sub = [r for r in rows if r["image"] in subset]
+        res[det] = {"images": len(rows), "teeth_detected": sum(r["teeth_detected"] for r in rows),
+                    "stage4_flagged": sum(r["stage4_flagged"] for r in rows),
+                    "images_with_a_flag": sum(r["stage4_flagged"] > 0 for r in rows),
+                    "firing_rate": est(rows, rate),
+                    "subset_of_12_images": {"images": len(sub),
+                                            "teeth_detected": sum(r["teeth_detected"] for r in sub),
+                                            "stage4_flagged": sum(r["stage4_flagged"] for r in sub)}}
+        print(f"  {det:6s} {res[det]['stage4_flagged']} of {res[det]['teeth_detected']} detected teeth flagged "
+              f"= {res[det]['firing_rate']['value']:.4f}   (the 12 images: "
+              f"{res[det]['subset_of_12_images']['stage4_flagged']} of {res[det]['subset_of_12_images']['teeth_detected']})")
+    res["delta_arm3c_minus_m11"] = delta(ctl, new, rate)
+    show("firing rate  arm3c - m11", res["delta_arm3c_minus_m11"])
+    return res
+
+
+def row_m():
+    """Tufts test box mAP@0.5 in the Lever A label frame: Control B first, then arm3c."""
+    ref = {"controlB": (0.7243, "d3aa1e388fc41da1a449d2dd39b1e6c0764e8dd541edbc91c6cf896ac0145757"),
+           "arm3c": (0.5852, SHA["arm3c"])}
+    path = {w: OUT / f"M_tufts_map_{w}" / "tufts_test_map.json" for w in ref}
+    if not all(p.exists() for p in path.values()):
+        return None
+    print("\nRow M -- Tufts test box mAP@0.5, 150 images, detector label frame")
+    res = {}
+    for w, (want, sha) in ref.items():
+        raw = json.loads(path[w].read_text())
+        gap = 100 * (raw["box_map50"] - want)
+        gate(raw["sha256"] == sha, f"row M: {path[w].parent.name} is not {w}")
+        gate(abs(gap) <= TOL_PP, f"row M {w}: {raw['box_map50']:.4f} vs {want} on the training machine, {gap:+.2f} pp")
+        res[w] = {"box_map50": round(raw["box_map50"], 4), "training_machine": want,
+                  "difference_pp": round(gap, 2), "box_map50_95": round(raw["box_map50_95"], 4),
+                  "precision": round(raw["precision"], 4), "recall": round(raw["recall"], 4)}
+        print(f"  {w:8s} mAP@0.5 {raw['box_map50']:.4f}   (training machine {want}, {gap:+.2f} pp)")
+    res["arm3c_minus_controlB_pp"] = round(100 * (res["arm3c"]["box_map50"] - res["controlB"]["box_map50"]), 2)
+    return res
+
+
 def main():
     toy = [{"image": "a", "n_lesions": 2, "n_matched": 1}, {"image": "b", "n_lesions": 2, "n_matched": 2}]
     assert paired(toy, toy[::-1]) == toy and delta(toy, toy, AGREEMENT)["delta_pp"] == 0.0
 
     # This script's own two outputs are tracked, and a shell redirect into the .log modifies it
     # before the first line here runs -- so they are exempt; every other tracked output is not.
+    # run_matrix.sh is exempt too: it is the command list, not a result, and it grows when an
+    # amendment adds rows (it stopped the first read of rows I-M, RESULTS_LOG 2026-10-11j).
     dirty = subprocess.run(["git", "status", "--porcelain", "--untracked-files=no", "--", "outputs",
                             ":(exclude)outputs/stage1_switch/stage1_switch_results.json",
-                            ":(exclude)outputs/stage1_switch/stage1_switch_results.log"],
+                            ":(exclude)outputs/stage1_switch/stage1_switch_results.log",
+                            ":(exclude)outputs/stage1_switch/run_matrix.sh"],
                            cwd=REPO_ROOT, capture_output=True, text=True, check=True).stdout
     gate(not dirty.strip(), f"tracked files under outputs/ are modified:\n{dirty}")
 
     results = {"pre_registration": "outputs/stage1_switch/PRE_REGISTRATION.md",
                "frozen_at_commit": "c139779", "amendment_1_commit": "85df6ff",
+               "amendment_2_commit": "d78f502",
                "n_boot": N_BOOT, "seed": SEED,
                "method": "paired cluster bootstrap over images, 95% percentile interval; every "
                          "difference between detectors is against the same-machine models/11 control",
@@ -327,6 +496,8 @@ def main():
                      ("F", "F_ningxia_caries_lesion_agreement")):
         results[key], s1_rows[row] = lesion_row(row)
     results.update(D_fdi_set_f1=row_d(), G_ningxia_stage4_flag=row_g(), H_parameter_counts=row_h())
+    results.update(I_dentex_numbering_taxonomy=row_i(), J_dentex_numbering_coverage=row_j(),
+                   K_dentex_stage4_firing=row_k(), M_tufts_test_box_map=row_m())
 
     print("\nS1 -- the one result that stops the switch (Sec 5)")
     if s1_rows["E"] and s1_rows["F"]:

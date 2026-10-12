@@ -8215,3 +8215,167 @@ it.**
   different seed.
 - **Follow-ups:** the Ningxia test4 lower bounds (−0.98, −0.50) sit close to zero on 53 images
   and should be read as "not separated here", not as near-wins. Nothing else.
+
+## 2026-10-11j — five further measurements under the current front end, for rebuilding the manuscript (Amendment 2)
+
+The decision owner chose to rebuild `paper/main.tex` on the current front end
+(`docs/paper/SUBMISSION_TODO.md` §1, option A). The manuscript reports five things the 11 Oct
+matrix did not measure under it. They are measured here, under both detectors on this machine,
+under Amendment 2 of `outputs/stage1_switch/PRE_REGISTRATION.md` — committed at `d78f502` before
+any of them ran. **None is a test, none decides anything, and none can touch an earlier verdict.**
+
+- **What was done:** rows I, J, K and M run; row L computed from row G's saved files. Each
+  `models/11` (or Control B) control was checked against its gate before the arm3c result was
+  opened. All five gates passed.
+- **Dataset / config:** as 2026-10-11g. Rows I and J read the per-tooth rows row B saved and run
+  no model. Row K runs the pipeline as shipped over the 164 DENTEX images on CPU. Row M is the
+  validation call the trainer made on 3 Sep, on CPU. **Ningxia was not scored again.**
+- **Metrics — row I, numbering failure taxonomy, DENTEX, 936 teeth.**
+
+  | | Correct | Not detected | Off by one | Same quadrant, 2+ | Mirrored | Wrong arch | Other |
+  |---|---|---|---|---|---|---|---|
+  | Previous detector, this machine | 547 | 273 | 92 | 8 | 8 | 6 | 2 |
+  | Previous detector, as published | 546 | 275 | 89 | 10 | 8 | 6 | 2 |
+  | **arm3c — in-domain** | **869** | **4** | 51 | 6 | 2 | 2 | 2 |
+
+  Under arm3c 63 detected teeth carry a wrong code; 51 of them (81.0%) name the neighbouring
+  tooth in the right quadrant, and 6 of 932 detected teeth (0.6%) are placed in a wrong quadrant.
+  With the previous detector on this machine: 92 of 116 (79.3%) and 16 of 663 (2.4%).
+- **Metrics — row J, coverage–accuracy for numbering.** Threshold 0.30 as registered on 28 Aug,
+  located and not tuned.
+
+  | | Teeth | Full coverage | 90% | 75% | 50% | Gain at 75% | Shuffled | At 0.30 |
+  |---|---|---|---|---|---|---|---|---|
+  | Previous, this machine | 663 | 0.825 | 0.844 | 0.877 | 0.909 | +5.22 pp [+3.49, +7.30] | −0.06 pp | coverage 91.2%, accuracy 0.845 |
+  | Previous, as published | 661 | 0.826 | 0.849 | 0.885 | 0.918 | +5.91 pp [+3.88, +7.68] | +0.03 pp | 90.8%, 0.847 |
+  | **arm3c — in-domain** | 932 | 0.932 | 0.955 | **0.980** | 0.989 | **+4.76 pp [+3.29, +6.54]** | −0.06 pp | **96.1%, 0.941** |
+
+  The gain from declining survives under arm3c and its shuffled control is still nil. At the
+  registered threshold the pipeline keeps 896 of the 936 teeth present (95.7%); with the previous
+  detector it kept 605 (64.6%). Retaining three quarters of detections is now 74.7% of the teeth
+  present, where the manuscript's sentence says 53.0%.
+- **Metrics — row K, Stage-4 flags on DENTEX, 164 images.** Previous detector 29 of 3,607
+  detected teeth, 0.80% [0.48, 1.18], on 22 images; arm3c 34 of 4,512, 0.75% [0.48, 1.06], on 27
+  images; difference −0.05 pp [−0.41, +0.32], not separable. On the 12 images of the August run:
+  2 of 289 and 3 of 355. **The manuscript's "0.7% of DENTEX teeth" turns out to be 2 of 299 teeth
+  on 12 images with the bbox detector of two front ends ago** (`outputs/r4_batch_v3/`); the
+  figure survives on 164 images, but it had never been measured on the detector the manuscript
+  describes. A firing rate, not a sensitivity: DENTEX has no periodontal ground truth.
+- **Metrics — row L, Stage-4 flag rate per Ningxia hospital**, over each detector's own affected
+  teeth.
+
+  | Hospital | Images | Previous detector | arm3c | Difference |
+  |---|---|---|---|---|
+  | test1 | 320 | 77 / 3,289 = 2.34% [1.76, 2.97] | 103 / 3,538 = 2.91% [2.23, 3.65] | +0.57 pp [−0.12, +1.27] |
+  | test2 | 297 | 35 / 2,458 = 1.42% [0.90, 2.02] | 18 / 2,834 = 0.64% [0.34, 0.96] | −0.79 pp [−1.34, −0.28] |
+  | test3 | 50 | 22 / 415 = 5.30% [3.10, 8.00] | 18 / 454 = 3.96% [2.03, 6.36] | −1.34 pp [−4.08, +0.95] |
+  | test4 | 69 | 31 / 630 = 4.92% [3.08, 6.96] | 14 / 223 = 6.28% [2.49, 12.12] | +1.36 pp [−2.89, +7.43] |
+
+  The control is within 0.34 pp of the other machine at every hospital. **One thing is
+  unexplained and is reported as such: at test4 the teeth counted as affected fall from 630 to
+  223 under arm3c, while the teeth it detects there rise from 22.6 to 28.9 per image; 26 of the
+  69 images have no affected tooth at all.** At the other three hospitals the count rises with
+  the detector, as expected. A tooth is "affected" when at least half its box lies inside the
+  expert band, so the count depends on box shape as well as box number; the boxes are not saved
+  in these files and Ningxia was not re-run to look. Lesion agreement at test4 rose under arm3c
+  like everywhere else (2026-10-11g), so the boxes are not misplaced. Until it is understood the
+  test4 Stage-4 rate under arm3c rests on 223 teeth and should not be quoted as a hospital
+  result.
+- **Metrics — row M, Tufts test box mAP@0.5, 150 images, the Lever A label frame.** Control B
+  (Tufts only, same recipe) 0.7233, against 0.7243 on the training machine; arm3c **0.5873**,
+  against 0.5852. Both reproduce within 0.21 pp. The like-for-like cost of multi-corpus training
+  on Tufts is therefore **−13.6 pp of box mAP** (0.723 → 0.587). The 0.810 → 0.585 quoted until
+  now, including in 2026-10-11f and -g, compares a segmentation model scored on polygon labels
+  with a detection model scored on box labels; it is two protocols and overstates the gap.
+  Guard 2 is as it was: failed.
+- **Key decision or insight:** nothing here changes a decision. For the manuscript: numbering's
+  residual errors are still mostly off by one; selective prediction still works and the registered
+  threshold now keeps 96% of teeth; Stage 4 is as inert on DENTEX as before; and the Tufts mAP
+  cost should be stated as 13.6 pp against the Tufts-only control, not as 22.5 pp against a
+  different kind of model.
+- **Process, disclosed.** The first read of rows I–M stopped on the analysis script's own
+  integrity check, because `run_matrix.sh` — tracked since `7dd3ff4` — had gained the five rows.
+  It is the command list, not a result, and is now exempt, as the script's two output files
+  already were. No row was run again and no existing value in the results file changed (checked
+  key by key). The taxonomy and coverage figures were re-derived from the raw rows by separate
+  code and agree.
+- **Source:** `outputs/stage1_switch/stage1_switch_results.json`, keys `I_…`, `J_…`, `K_…`,
+  `M_…` and `G_ningxia_stage4_flag/per_hospital`; the eight new run directories beside it;
+  `run_matrix.sh` rows I, J, K, M.
+- **Follow-ups:** the test4 affected-tooth count. Whether the bone-loss branch stays in the
+  manuscript at all is still the authors' decision (`SUBMISSION_TODO.md` §2 item 3), and it
+  decides whether rows K and L are ever printed.
+
+## 2026-10-11k — the manuscript rebuilt on the current front end; its number checker rebuilt with it
+
+Option A of `docs/paper/SUBMISSION_TODO.md` §1, chosen by the decision owner on 11 Oct.
+`paper/main.tex` described the Tufts-only seg detector in every table; it now describes the
+pipeline as it ships. **This entry reports no new pipeline measurement** — every figure the
+manuscript now carries is from 2026-10-11g, -i and -j — and one new check, on leakage.
+
+- **What was done:** `paper/main.tex` rewritten from the abstract to the Conclusion, in three
+  passes, each compiled; four of its five figures re-rendered from the new artefacts;
+  `scripts/verify_paper_numbers.py` rebuilt to assert the new text against
+  `outputs/stage1_switch/`; `scripts/count_model_params.py` and
+  `outputs/param_counts/param_counts.json` moved to the current Stage-1 detector.
+- **What the manuscript now says, where it used to say otherwise.**
+  - *Headline.* No longer "the constant scored highest". On the 164 DENTEX images the constant
+    (F1 0.320) outscores both language models, and the pipeline is above it — 0.362 with the
+    per-crop gate, 0.498 with the lesion detector — **with a tooth detector trained on that
+    corpus**. On four external hospitals the gate pipeline and the constant are not separated
+    (31-point swing between sites), and on CariesXrays the constant leads by 22.42 pp.
+  - *The detector's adoption.* §Data states that it was adopted over a pre-registered guard it
+    failed — Tufts test box mAP@0.5 0.587 against a Tufts-only control's 0.723 — by a dated
+    decision, and the Discussion and Limitations repeat it.
+  - *Numbering.* 92.8% on DENTEX labelled in-domain, 63.5% on Tufts beside it, and the absence
+    of any figure on unseen data stated as a limitation.
+  - *Lever B.* The adoption rule is reported as met on the pipeline as it then stood, with its
+    three published differences; Table VIII gives the same arms under the current detector, as
+    a description. "It replicates on the one cohort that is genuinely external" became a pooled
+    statement with the per-hospital intervals beside it. The one comparison that went against
+    the lesion detector (DENTEX lesion agreement, 0.595 against the gate's 0.802) is printed.
+  - *The constant.* A paragraph in §Evaluation Protocol says its codes are placed by the
+    pipeline's own boxes and numbering, so its agreement moves with the front end. "The
+    radiograph is never read" was untrue of the localisation tables in that sense.
+  - *CariesXrays.* Every row now uses the 1,200 held-out images (2,815 lesions). The
+    1,500-image sample of 1 Sep and the three figures derived from it (72.0% on molars, 60.2% on
+    the eight codes, 22.1% outside any detected tooth) are no longer quoted: they were measured
+    with an earlier detector and were not re-measured.
+  - *Stage 4.* DENTEX firing rate 0.75% on 164 images; external 2.17% pooled, per hospital with
+    intervals, and the unexplained test4 denominator stated.
+- **Metrics — the one new check.** The 1,200 CariesXrays images against every other corpus in
+  the project: **0 byte-identical** to any of Tufts (1,000), DENTEX `disease/` (250), DENTEX
+  enumeration (685 files), Kaggle dual (500) or Ningxia (1,640); nearest image by a 256-bit
+  difference hash 42, 50, 46, 45 and 45 bits respectively. The manuscript's "verified
+  leakage-free, both byte-wise and perceptually" had been established for the 1,500-image
+  sample; it now holds for the cohort actually scored.
+  `outputs/stage1_switch/cariesxrays_1200_leak_check.json`.
+- **Verification.**
+  - `verify_paper_numbers.py`: **191 numeric claims, all present** (it was 127). It asserts by
+    presence, so a number typed in two places is only checked once: of eight deliberately wrong
+    digits, it caught the four that occur once and missed the four that occur again elsewhere.
+    Every repeated quantity was therefore also listed by pattern and read for a second
+    spelling; none was found. The checker's limit is unchanged from before and worth knowing.
+  - Built with tectonic 0.17 (XeTeX), which this machine now has. With a Times clone loaded for
+    non-pdfLaTeX engines — a five-line conditional in the preamble that pdfLaTeX never enters —
+    the *previous* manuscript builds to 14 pages, the same as the committed pdfLaTeX PDF, and
+    the rebuilt one to **15 pages**, with no undefined reference or citation and one overfull
+    box of 4 pt. `paper/main.pdf` is that build. `paper/main.bbl` is unchanged: the same
+    references are cited.
+  - `pytest tests` 174 passed; all eleven invariants hold.
+- **Not changed, deliberately.** The title. The author block and every mandatory statement.
+  The claim about the 49 surveyed papers. The bone-loss branch's place in the paper and the
+  words "domain shift" and "did not transfer" — whether it stays is the authors' decision; what
+  was corrected, because the sentences were being retyped anyway, is that the Data section and
+  one limitation no longer say its split was image-level.
+- **Still to do before this manuscript is a submission.** A pdfLaTeX build on the Windows
+  machine, and `paper/paper.txt`, a `pdftotext` dump that this machine cannot regenerate and
+  which is now stale. The Docker image. Everything in `SUBMISSION_TODO.md` §2. The manuscript is
+  one page longer than it was, against venues that already capped below it.
+- **Key decision or insight:** rebuilding on the new front end did not make the paper's
+  argument weaker; it moved it. The claim is no longer that a constant beats the pipeline at
+  home. It is that beating it at home, with a detector that has seen the corpus, told us
+  nothing about the four hospitals where the two cannot be told apart.
+- **Source:** `paper/main.tex`, `paper/main.pdf`, `paper/fig_{baselines,stage2,coverage,boneloss}.png`;
+  `scripts/verify_paper_numbers.py`; `scripts/figures/make_baseline_figure.py`,
+  `make_boneloss_paper_figure.py`; `outputs/param_counts/param_counts.json`.

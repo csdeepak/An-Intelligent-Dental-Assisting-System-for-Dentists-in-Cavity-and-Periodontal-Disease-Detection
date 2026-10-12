@@ -2,6 +2,7 @@
   "pre_registration": "outputs/stage1_switch/PRE_REGISTRATION.md",
   "frozen_at_commit": "c139779",
   "amendment_1_commit": "85df6ff",
+  "amendment_2_commit": "d78f502",
   "n_boot": 10000,
   "seed": 42,
   "method": "paired cluster bootstrap over images, 95% percentile interval; every difference between detectors is against the same-machine models/11 control",
@@ -1562,6 +1563,148 @@
       ],
       "excludes_zero": false,
       "frac_resamples_le_0": 0.8518
+    },
+    "per_hospital": {
+      "test1": {
+        "images": 320,
+        "control_vs_other_machine_pp": -0.06,
+        "delta_arm3c_minus_m11": {
+          "delta_pp": 0.57,
+          "ci95_pp": [
+            -0.12,
+            1.27
+          ],
+          "excludes_zero": false,
+          "frac_resamples_le_0": 0.0548
+        },
+        "m11": {
+          "affected_teeth": 3289,
+          "affected_teeth_flagged": 77,
+          "flag_rate": {
+            "value": 0.0234,
+            "ci95": [
+              0.0176,
+              0.0297
+            ]
+          }
+        },
+        "arm3c": {
+          "affected_teeth": 3538,
+          "affected_teeth_flagged": 103,
+          "flag_rate": {
+            "value": 0.0291,
+            "ci95": [
+              0.0223,
+              0.0365
+            ]
+          }
+        }
+      },
+      "test2": {
+        "images": 297,
+        "control_vs_other_machine_pp": 0.04,
+        "delta_arm3c_minus_m11": {
+          "delta_pp": -0.79,
+          "ci95_pp": [
+            -1.34,
+            -0.28
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.9991
+        },
+        "m11": {
+          "affected_teeth": 2458,
+          "affected_teeth_flagged": 35,
+          "flag_rate": {
+            "value": 0.0142,
+            "ci95": [
+              0.009,
+              0.0202
+            ]
+          }
+        },
+        "arm3c": {
+          "affected_teeth": 2834,
+          "affected_teeth_flagged": 18,
+          "flag_rate": {
+            "value": 0.0064,
+            "ci95": [
+              0.0034,
+              0.0096
+            ]
+          }
+        }
+      },
+      "test3": {
+        "images": 50,
+        "control_vs_other_machine_pp": -0.29,
+        "delta_arm3c_minus_m11": {
+          "delta_pp": -1.34,
+          "ci95_pp": [
+            -4.08,
+            0.95
+          ],
+          "excludes_zero": false,
+          "frac_resamples_le_0": 0.8594
+        },
+        "m11": {
+          "affected_teeth": 415,
+          "affected_teeth_flagged": 22,
+          "flag_rate": {
+            "value": 0.053,
+            "ci95": [
+              0.031,
+              0.08
+            ]
+          }
+        },
+        "arm3c": {
+          "affected_teeth": 454,
+          "affected_teeth_flagged": 18,
+          "flag_rate": {
+            "value": 0.0396,
+            "ci95": [
+              0.0203,
+              0.0636
+            ]
+          }
+        }
+      },
+      "test4": {
+        "images": 69,
+        "control_vs_other_machine_pp": 0.34,
+        "delta_arm3c_minus_m11": {
+          "delta_pp": 1.36,
+          "ci95_pp": [
+            -2.89,
+            7.43
+          ],
+          "excludes_zero": false,
+          "frac_resamples_le_0": 0.2938
+        },
+        "m11": {
+          "affected_teeth": 630,
+          "affected_teeth_flagged": 31,
+          "flag_rate": {
+            "value": 0.0492,
+            "ci95": [
+              0.0308,
+              0.0696
+            ]
+          }
+        },
+        "arm3c": {
+          "affected_teeth": 223,
+          "affected_teeth_flagged": 14,
+          "flag_rate": {
+            "value": 0.0628,
+            "ci95": [
+              0.0249,
+              0.1212
+            ]
+          }
+        }
+      }
     }
   },
   "H_parameter_counts": {
@@ -1579,6 +1722,169 @@
       "caries_path_default": 72987956,
       "caries_path_gate_variant": 58854243
     }
+  },
+  "I_dentex_numbering_taxonomy": {
+    "control_gate": {
+      "other_machine": {
+        "correct": 546,
+        "not_detected": 275,
+        "off_by_one": 89,
+        "same_quadrant_far": 10,
+        "mirror_lr": 8,
+        "wrong_arch": 6,
+        "other": 2
+      },
+      "largest_bucket_gap_teeth": 3
+    },
+    "m11": {
+      "correct": 547,
+      "not_detected": 273,
+      "off_by_one": 92,
+      "same_quadrant_far": 8,
+      "mirror_lr": 8,
+      "wrong_arch": 6,
+      "other": 2,
+      "detected": 663,
+      "wrong_code": 116,
+      "off_by_one_share_of_wrong_codes": 0.7931,
+      "wrong_quadrant": 16,
+      "wrong_quadrant_share_of_detected": 0.0241
+    },
+    "arm3c": {
+      "correct": 869,
+      "not_detected": 4,
+      "off_by_one": 51,
+      "same_quadrant_far": 6,
+      "mirror_lr": 2,
+      "wrong_arch": 2,
+      "other": 2,
+      "detected": 932,
+      "wrong_code": 63,
+      "off_by_one_share_of_wrong_codes": 0.8095,
+      "wrong_quadrant": 6,
+      "wrong_quadrant_share_of_detected": 0.0064
+    }
+  },
+  "J_dentex_numbering_coverage": {
+    "control_gate": {
+      "other_machine": {
+        "full": 0.826,
+        "at_75": 0.8851,
+        "gain_pp": 5.91,
+        "op_coverage": 0.9077,
+        "op_accuracy": 0.8467
+      },
+      "gaps_pp": {
+        "full": -0.1,
+        "at_75": -0.78,
+        "op_coverage": 0.48,
+        "op_accuracy": -0.21,
+        "gain": -0.69
+      }
+    },
+    "m11": {
+      "teeth": 663,
+      "accuracy_full_coverage": 0.825,
+      "accuracy_at_90": 0.8442,
+      "accuracy_at_75": 0.8773,
+      "accuracy_at_50": 0.9094,
+      "gain_at_75_pp": 5.22,
+      "gain_at_75_ci95_pp": [
+        3.49,
+        7.3
+      ],
+      "shuffled_control_gain_pp": -0.06,
+      "threshold": 0.3,
+      "coverage_at_threshold": 0.9125,
+      "accuracy_at_threshold": 0.8446,
+      "retained_at_threshold_of_936_present": 0.6464,
+      "retained_at_75_of_936_present": 0.5312
+    },
+    "arm3c": {
+      "teeth": 932,
+      "accuracy_full_coverage": 0.9324,
+      "accuracy_at_90": 0.9547,
+      "accuracy_at_75": 0.98,
+      "accuracy_at_50": 0.9893,
+      "gain_at_75_pp": 4.76,
+      "gain_at_75_ci95_pp": [
+        3.29,
+        6.54
+      ],
+      "shuffled_control_gain_pp": -0.06,
+      "threshold": 0.3,
+      "coverage_at_threshold": 0.9614,
+      "accuracy_at_threshold": 0.9408,
+      "retained_at_threshold_of_936_present": 0.9573,
+      "retained_at_75_of_936_present": 0.7468
+    }
+  },
+  "K_dentex_stage4_firing": {
+    "manuscript_figure_not_a_gate": "2 of 299 teeth on 12 images, bbox detector, 24-25 Aug 2026",
+    "m11": {
+      "images": 164,
+      "teeth_detected": 3607,
+      "stage4_flagged": 29,
+      "images_with_a_flag": 22,
+      "firing_rate": {
+        "value": 0.008,
+        "ci95": [
+          0.0048,
+          0.0118
+        ]
+      },
+      "subset_of_12_images": {
+        "images": 12,
+        "teeth_detected": 289,
+        "stage4_flagged": 2
+      }
+    },
+    "arm3c": {
+      "images": 164,
+      "teeth_detected": 4512,
+      "stage4_flagged": 34,
+      "images_with_a_flag": 27,
+      "firing_rate": {
+        "value": 0.0075,
+        "ci95": [
+          0.0048,
+          0.0106
+        ]
+      },
+      "subset_of_12_images": {
+        "images": 12,
+        "teeth_detected": 355,
+        "stage4_flagged": 3
+      }
+    },
+    "delta_arm3c_minus_m11": {
+      "delta_pp": -0.05,
+      "ci95_pp": [
+        -0.41,
+        0.32
+      ],
+      "excludes_zero": false,
+      "frac_resamples_le_0": 0.5981
+    }
+  },
+  "M_tufts_test_box_map": {
+    "controlB": {
+      "box_map50": 0.7233,
+      "training_machine": 0.7243,
+      "difference_pp": -0.1,
+      "box_map50_95": 0.271,
+      "precision": 0.71,
+      "recall": 0.6942
+    },
+    "arm3c": {
+      "box_map50": 0.5873,
+      "training_machine": 0.5852,
+      "difference_pp": 0.21,
+      "box_map50_95": 0.2097,
+      "precision": 0.5931,
+      "recall": 0.6374
+    },
+    "arm3c_minus_controlB_pp": -13.6
   },
   "S1": {
     "delta_pp": 10.4,

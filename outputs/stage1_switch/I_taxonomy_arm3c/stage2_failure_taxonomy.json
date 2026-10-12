@@ -1,0 +1,97 @@
+{
+  "n_gt_teeth": 936,
+  "source": "outputs/stage1_switch/B_dentex_arm3c/stage2_rows_head.json",
+  "categories": {
+    "correct": 869,
+    "wrong_arch": 2,
+    "off_by_one": 51,
+    "not_detected": 4,
+    "other": 2,
+    "mirror_lr": 2,
+    "same_quadrant_far": 6
+  },
+  "n_detected": 932,
+  "n_wrong_code": 63,
+  "off_by_one_direction": {
+    "mesial (-1)": 29,
+    "distal (+1)": 22
+  },
+  "by_position": {
+    "1": {
+      "correct": 62,
+      "mirror_lr": 2,
+      "off_by_one": 5
+    },
+    "2": {
+      "correct": 55,
+      "off_by_one": 4,
+      "other": 1,
+      "same_quadrant_far": 2
+    },
+    "3": {
+      "correct": 34,
+      "off_by_one": 1,
+      "same_quadrant_far": 1
+    },
+    "4": {
+      "correct": 47,
+      "off_by_one": 4,
+      "same_quadrant_far": 1,
+      "not_detected": 1
+    },
+    "5": {
+      "correct": 94,
+      "same_quadrant_far": 2,
+      "off_by_one": 2
+    },
+    "6": {
+      "correct": 202,
+      "off_by_one": 10,
+      "wrong_arch": 1,
+      "not_detected": 1,
+      "other": 1
+    },
+    "7": {
+      "correct": 145,
+      "off_by_one": 13,
+      "not_detected": 1
+    },
+    "8": {
+      "correct": 230,
+      "wrong_arch": 1,
+      "off_by_one": 12,
+      "not_detected": 1
+    }
+  },
+  "by_quadrant": {
+    "1": {
+      "correct": 183,
+      "off_by_one": 17,
+      "wrong_arch": 1,
+      "same_quadrant_far": 1,
+      "not_detected": 1
+    },
+    "2": {
+      "correct": 171,
+      "off_by_one": 8,
+      "same_quadrant_far": 4,
+      "not_detected": 1
+    },
+    "3": {
+      "correct": 274,
+      "wrong_arch": 1,
+      "not_detected": 2,
+      "off_by_one": 11,
+      "other": 1,
+      "mirror_lr": 1,
+      "same_quadrant_far": 1
+    },
+    "4": {
+      "correct": 241,
+      "off_by_one": 15,
+      "mirror_lr": 1,
+      "other": 1
+    }
+  },
+  "note": "computed from an already-saved evaluation; no inference re-run, no test data re-touched"
+}

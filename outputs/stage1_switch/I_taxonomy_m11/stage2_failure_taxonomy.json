@@ -1,0 +1,107 @@
+{
+  "n_gt_teeth": 936,
+  "source": "outputs/stage1_switch/B_dentex_m11/stage2_rows_head.json",
+  "categories": {
+    "correct": 547,
+    "not_detected": 273,
+    "off_by_one": 92,
+    "wrong_arch": 6,
+    "other": 2,
+    "mirror_lr": 8,
+    "same_quadrant_far": 8
+  },
+  "n_detected": 663,
+  "n_wrong_code": 116,
+  "off_by_one_direction": {
+    "mesial (-1)": 53,
+    "distal (+1)": 39
+  },
+  "by_position": {
+    "1": {
+      "correct": 49,
+      "not_detected": 8,
+      "off_by_one": 6,
+      "other": 1,
+      "mirror_lr": 5
+    },
+    "2": {
+      "correct": 40,
+      "off_by_one": 8,
+      "not_detected": 12,
+      "other": 1,
+      "same_quadrant_far": 1
+    },
+    "3": {
+      "not_detected": 14,
+      "correct": 18,
+      "off_by_one": 3,
+      "same_quadrant_far": 1
+    },
+    "4": {
+      "not_detected": 29,
+      "correct": 15,
+      "off_by_one": 7,
+      "mirror_lr": 2
+    },
+    "5": {
+      "not_detected": 31,
+      "correct": 48,
+      "off_by_one": 17,
+      "mirror_lr": 1,
+      "same_quadrant_far": 1
+    },
+    "6": {
+      "correct": 141,
+      "not_detected": 54,
+      "off_by_one": 15,
+      "wrong_arch": 3,
+      "same_quadrant_far": 2
+    },
+    "7": {
+      "correct": 103,
+      "not_detected": 38,
+      "off_by_one": 18
+    },
+    "8": {
+      "correct": 133,
+      "not_detected": 87,
+      "off_by_one": 18,
+      "wrong_arch": 3,
+      "same_quadrant_far": 3
+    }
+  },
+  "by_quadrant": {
+    "1": {
+      "correct": 122,
+      "off_by_one": 28,
+      "not_detected": 48,
+      "wrong_arch": 3,
+      "same_quadrant_far": 1,
+      "mirror_lr": 1
+    },
+    "2": {
+      "correct": 108,
+      "off_by_one": 21,
+      "not_detected": 51,
+      "wrong_arch": 1,
+      "same_quadrant_far": 3
+    },
+    "3": {
+      "correct": 165,
+      "not_detected": 97,
+      "off_by_one": 23,
+      "other": 2,
+      "mirror_lr": 3,
+      "same_quadrant_far": 1
+    },
+    "4": {
+      "not_detected": 77,
+      "correct": 152,
+      "off_by_one": 20,
+      "wrong_arch": 2,
+      "mirror_lr": 4,
+      "same_quadrant_far": 3
+    }
+  },
+  "note": "computed from an already-saved evaluation; no inference re-run, no test data re-touched"
+}

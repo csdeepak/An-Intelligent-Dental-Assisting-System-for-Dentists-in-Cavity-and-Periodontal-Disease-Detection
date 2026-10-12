@@ -62,6 +62,13 @@ implementation, and three figures that had been mis-rounded by one digit were co
 development-data headline reverses** (`RESULTS_LOG` 2026-10-11i,
 `docs/session-memory/2026-10-11i-gate-vs-constant-and-submission-list.md`). §2.2, §3 and §4 edited;
 `docs/paper/SUBMISSION_TODO.md` rewritten (§3 item 12 closed).
+**11 Oct, late — option A taken: five more rows measured and the manuscript rebuilt on the
+current front end** (`RESULTS_LOG` 2026-10-11j, -k,
+`docs/session-memory/2026-10-11j-option-a-rows-and-manuscript-rebuild.md`). §1, §2.1, §3, §4
+and §8 edited.
+**12 Oct — publishability council** (`docs/session-memory/2026-10-12-publishability-council.md`):
+nothing is left to implement; the paper is not submittable as it stands and about even odds as a
+six-page caries-only cut. Verdict at the end of §3's implementation block.
 
 > **Windows clone, 6 Sep 2026 — the Tufts crop corpus was cut from the wrong frame, and is now
 > rebuilt.** It scored 11.5% crop-level FDI-exact where the published number is 71.5%, with correct
@@ -129,10 +136,13 @@ development-data headline reverses** (`RESULTS_LOG` 2026-10-11i,
 > metrics (F1 +4.27 pp [+1.58, +7.05]; lesion agreement +17.12 pp [+12.15, +21.89]), where
 > `main.tex` says the constant "scored highest". On Ningxia and CariesXrays that comparison did
 > not move.
-> **Three things are now out of step and a reader must know which:** (1) `paper/main.tex`, its
-> PDF, `verify_paper_numbers.py` and `outputs/param_counts/` all describe the *previous* front
-> end; (2) the Docker image predates the change; (3) every number in §2.2 and the Lever B table
-> in §2.4 was measured with the previous front end. `models/11` is retained, hash-pinned and
+> **The manuscript was rebuilt on the current front end the same night** (`RESULTS_LOG`
+> 2026-10-11k): `paper/main.tex`, its PDF, four figures, `verify_paper_numbers.py` (191 claims)
+> and `outputs/param_counts/` now describe the pipeline as it ships. **What is still out of
+> step:** (1) the PDF was built here with tectonic, not yet with pdfLaTeX on the other machine,
+> and `paper/paper.txt` is a stale text dump; (2) the Docker image predates the change;
+> (3) every number in §2.2 and the Lever B table in §2.4 below is the previous front end's,
+> kept as the record of what was published before. `models/11` is retained, hash-pinned and
 > selectable with `--detector`, so all of those still reproduce. The repo owner and the mentor
 > have not been consulted.
 
@@ -171,17 +181,20 @@ cohorts. Both threads are in the manuscript.
 ## 1. Where we are
 
 **Since 11 Oct 2026 the pipeline's tooth detector is the multi-corpus model, and the manuscript
-described in this paragraph still reports the previous one — see the 11 Oct evening note above.**
+was rebuilt on it the same day — see the 11 Oct evening note above.**
 
-The six-stage pipeline runs end to end on CPU alone (2.39 s/image as published; 1.70 s/image
-with the current default on the macOS clone), is deployed in a Streamlit +
+The six-stage pipeline runs end to end on CPU alone (1.70 s/image on the macOS clone), is
+deployed in a Streamlit +
 Docker demo, and has been evaluated on **six independent cohorts**: DENTEX (development), four
 Ningxia hospitals, and the CariesXrays benchmark. Every reported number traces to a saved
-artefact — `scripts/verify_paper_numbers.py` asserts **127 manuscript claims** against those
+artefact — `scripts/verify_paper_numbers.py` asserts **191 manuscript claims** against those
 artefacts and all pass; `pytest` is **174/174**; `verify_invariants.py` all hold. The manuscript
-(`paper/main.tex`) compiles clean: **14 pages, 0 errors, 0 undefined references**, two small
-pre-existing overfull hboxes (cosmetic, not content). Its core finding — a tooth-level score
-cannot distinguish a real detector from an anatomical prior — held up under six cohorts, two
+(`paper/main.tex`) compiles clean under tectonic: **15 pages, 0 errors, 0 undefined
+references**, one 4 pt overfull box; a pdfLaTeX build is still owed. Its core finding — a
+tooth-level score
+cannot distinguish a real detector from an anatomical prior — now reads: the pipeline clears
+the image-blind floor on its development corpus, with a detector trained there, and cannot be
+told from it at four external hospitals. It held up under six cohorts, two
 metric families, and a VLM control; the project's response to it (Lever B, below) is now folded
 into the paper as a positive, pre-registered result. **What remains is still not experiments, but it is
 more than paperwork (10 Oct): manuscript corrections, a decision on the bone-loss branch, a venue
@@ -218,9 +231,9 @@ failed ones).
 | **Caries path only (1,2,3a,3b), default** | | **72.99 M** | |
 | Caries path only, gate variant | | 58.85 M | |
 
-With the previous detector the four totals were 97.65 / 83.52 / 75.29 / 61.16 M — the figures
-the manuscript and `outputs/param_counts/param_counts.json` still carry; the current ones are in
-`outputs/stage1_switch/H_params_arm3c/param_counts.json`.
+With the previous detector the four totals were 97.65 / 83.52 / 75.29 / 61.16 M
+(`outputs/stage1_switch/H_params_m11/param_counts.json`). The manuscript and
+`outputs/param_counts/param_counts.json` carry the current ones since 11 Oct.
 
 Speed: **2.39 s/image on CPU** as published (previous front end, other machine); on the macOS
 clone, CPU, 1.45 s/image with the previous detector and 1.70 with the current one. No GPU needed
@@ -500,12 +513,13 @@ switch, what it left open, and what is parked.** Councilled 11 Oct (`docs/sessio
      51,227,097 bytes with the pinned sha256, and a checkout of that commit containing tracked
      files only runs the default pipeline (`RESULTS_LOG` 2026-10-11h). History now keeps that
      file for good. It was pushed before item 1 was recorded as done.
-  3. **Decide which front end the manuscript reports** (`PAPER_MATERIAL.md` §8.30 and §9).
-     `main.tex` describes `models/11` throughout. Authors and mentor.
-  4. **On the Windows machine:** rebuild `main.tex` and its PDF to match item 3; then switch
-     `scripts/count_model_params.py`'s first checkpoint, regenerate
-     `outputs/param_counts/param_counts.json` and bring `verify_paper_numbers.py` along; rebuild
-     and smoke-test the Docker image.
+  3. ~~Decide which front end the manuscript reports~~ — **decided 11 Oct by the decision
+     owner: the current one.** Five further rows were measured for it under Amendment 2
+     (`RESULTS_LOG` 2026-10-11j) and `main.tex`, four figures, the number checker and the
+     parameter counts were rebuilt (2026-10-11k). **The mentor has not seen the new headline.**
+  4. **On the Windows machine:** build `main.tex` with pdfLaTeX and compare with the tectonic
+     PDF committed here (15 pages); regenerate `paper/paper.txt`; rebuild and smoke-test the
+     Docker image.
   5. **The Kaggle "dual-labeled" licence.** arm3c was trained on that set and its authors state
      no licence. If it cannot be cleared before submission the remedy is a detector trained
      without it — a new decision with its own record.
@@ -514,6 +528,28 @@ switch, what it left open, and what is parked.** Councilled 11 Oct (`docs/sessio
   given no code rose from 26 to 65 on Tufts; a redo of the numbering error breakdown under the
   current front end; a Tufts box-mAP re-measurement.
 - **Never for this paper:** a new position-digit model or a retrained detector.
+
+**Is anything left to implement, and will it be published? Councilled 12 Oct, three seats**
+(`docs/session-memory/2026-10-12-publishability-council.md`). No model was run.
+
+- **Implementation: stop (3 of 3).** No new model, no third change of default, no further pass
+  over Ningxia. Not the reject option, not lesion-detector calibration, not the Kaggle-free
+  detector as a new default, not a second seed now.
+- **One optional measurement:** tooth numbering on UFBA-425, the only corpus with tooth labels
+  that neither the detector nor the numbering head trained on. CPU, an hour or two, its own
+  pre-registration, hash-checked against the training corpora first. Not needed for a
+  conference paper.
+- **Strict opinion.** As it stands the manuscript is not submittable: 15 pages, no authors, no
+  statements, and a co-author and a mentor who have not seen its headline. As a six-page
+  caries-only cut with the corrections in `docs/paper/SUBMISSION_TODO.md` §1a, the members put a
+  CONECCT-class Indian IEEE conference at 35–65% per submission and a journal at JBHI's level
+  under 20%. **NCC 2027 (16 Oct) is not realistic.** These are judgements, not measured rates.
+- **What decides the grade is not in the repo:** the date by which publication must be
+  "secured" and what that word means, and whether the chosen edition is indexed. Both have been
+  open since 6 Sep.
+- **Eight defects in the rebuilt manuscript** were found and verified; the most serious is that
+  the paper says Ningxia was "never tuned against" without saying how often it was scored or
+  that the detector was chosen with its Ningxia result in view. All are edits.
 
 **What items 3–5 found (`RESULTS_LOG` 2026-10-11, `PAPER_MATERIAL.md` §8.29).** The constant
 and the *gate* pipeline cannot be told apart on F1. The *adopted* lesion detector beats the
@@ -582,7 +618,7 @@ depends on this.
 | **IRB paperwork** | Not started. Longest lead time of anything open. Needed only if clinic data is ever used in a result. |
 | **Is the Tufts mirror-numbering finding novel?** Not established — the source paper (Panetta et al., IEEE JBHI 2022) is paywalled and unread. | Needs someone with IEEE Xplore access; a 5-minute read, not a research task |
 | **Real Tufts pixels are embedded in 7 tracked notebooks on `origin/main`.** Deferred — repo is confirmed private, so this is not an active leak, but must be resolved (strip outputs, or a coordinated history rewrite) before this repo or any fork is ever made public. | Deferred by explicit prior decision; revisit before public release |
-| **Which front end does the manuscript report? It now decides the paper's headline.** Under the new front end the pipeline scores above the image-blind constant on DENTEX on both metrics, so "the constant scored highest" is true only of the previous one; the external results are the same either way (`RESULTS_LOG` 2026-10-11i). The pipeline default changed on 11 Oct; `paper/main.tex` describes the previous detector in every table. Rebuild the paper on the new front end, stating that the change went against two pre-registered verdicts — or report the previous front end and say the released default differs (`PAPER_MATERIAL.md` §8.30). | Changes the paper's tables and one of its claims; authors and mentor |
+| **DECIDED 11 Oct — the manuscript reports the current front end, and was rebuilt on it. What remains is for the mentor to read the new headline.** The row as it stood: Which front end does the manuscript report? It now decides the paper's headline. Under the new front end the pipeline scores above the image-blind constant on DENTEX on both metrics, so "the constant scored highest" is true only of the previous one; the external results are the same either way (`RESULTS_LOG` 2026-10-11i). The pipeline default changed on 11 Oct; `paper/main.tex` describes the previous detector in every table. Rebuild the paper on the new front end, stating that the change went against two pre-registered verdicts — or report the previous front end and say the released default differs (`PAPER_MATERIAL.md` §8.30). | Changes the paper's tables and one of its claims; authors and mentor |
 | **The Stage-1 switch was made without the repo owner or the mentor.** It overrides two pre-registered verdicts, re-scored the locked Ningxia cohort, and put a 51 MB file into git history for good (`arm3c_best.pt`, pushed 11 Oct in `7dd3ff4`). Reverting the default is still one line; the file stays in history either way. Whether either of them has been told since is not recorded in this repo. | They own the repo and the supervision |
 | **The Kaggle "dual-labeled" licence is unstated, and the default detector was trained on it.** Acceptable for an ablation; a publication question for a shipped default. | Needs a person to ask the dataset's authors, or a decision to retrain without it |
 | **`models/11` (53 MB) is committed to git, over the ~50 MB rule-4 line, and git history keeps it forever.** Deferred by the 3 Sep handoff decision (needed for a working fresh-clone demo). To undo: `git rm --cached`, restore `.gitignore`, re-host on Drive. | Revisit before any public release |
@@ -774,6 +810,10 @@ different machine than the one searched.
 - **Docker:** Desktop is installed on this machine; its daemon was not running when last checked
   (4 Sep). `docker build` has never actually executed end-to-end here — treat "verified" claims
   from before that check with caution until it's actually run once.
+- **LaTeX on the macOS clone:** tectonic 0.17 (Homebrew, installed 11 Oct). `cd paper &&
+  tectonic main.tex --outdir <somewhere>`; it is XeTeX, so `main.tex` loads a Times clone for
+  non-pdfLaTeX engines, and with that the page count matches pdfLaTeX's on the previous
+  manuscript (14). It is a compile check and a readable PDF, not the production build.
 - **LaTeX:** MiKTeX 25.12 on Windows. `latexmk` is installed but cannot run (no Perl script
   engine on this machine) — use `pdflatex -interaction=nonstopmode main.tex`, twice, instead.
 

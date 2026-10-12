@@ -62,7 +62,37 @@ def check(label, needle, source):
         bad.append(f"  FAIL {label:52s} {needle!r}\n       source: {source}")
 
 
-# ---------------------------------------------------------------- the ladder
+# ====================================================================================
+# REBUILT 11 Oct 2026 with the manuscript, on the current Stage-1 detector (arm3c).
+# Every pipeline number is asserted against outputs/stage1_switch/ -- one front end,
+# one machine (RESULTS_LOG 2026-10-11g to -j). What does not depend on the tooth
+# detector is asserted against the artefact it always came from: the constant and the
+# VLMs (outputs/c1_vlm/), the caries gate's calibration and coverage on held-out crops,
+# and Lever B's adoption evidence, which the manuscript quotes as the previous front
+# end's and which must stay exactly as it was scored.
+# ====================================================================================
+SW = "outputs/stage1_switch/"
+RES = load(SW + "stage1_switch_results.json")
+NEW = "arm3c"
+
+
+def sgn(x, places=2):
+    """A stored difference the way the manuscript prints it: sign always shown."""
+    return f"{x:+.{places}f}"
+
+
+def ci(d):
+    lo, hi = d["ci95_pp"]
+    return f"[{sgn(lo)}, {sgn(hi)}]"
+
+
+def flip(d):
+    """The same paired difference with the arms swapped."""
+    lo, hi = d["ci95_pp"]
+    return {"delta_pp": -d["delta_pp"], "ci95_pp": [-hi, -lo]}
+
+
+# ---------------------------------------------------------------- the ladder (Table IV)
 # `row`, not `r` -- `r` is the rounding helper above, and shadowing it here would be
 # invisible (comprehension scope keeps it working) right up until someone edits this line.
 comp = {row["arm"]: row for row in load("outputs/c1_vlm/c1_comparison.json")["results"]}
@@ -73,12 +103,38 @@ oracle = next(b for b in const_file["constant_baselines"]
               if b["baseline"].startswith("ORACLE"))
 S = "outputs/c1_vlm/"
 
-for name, row in (("constant", held), ("pipeline", comp["pipeline"]),
-                  ("vlm-32b", comp["vlm_32b_0shot"]),
-                  ("vlm-7b", comp["vlm_7b_0shot_rerun"]),
-                  ("oracle", oracle)):
+for name, row in (("constant", held), ("vlm-32b", comp["vlm_32b_0shot"]),
+                  ("vlm-7b", comp["vlm_7b_0shot_rerun"]), ("oracle", oracle)):
     for metric in ("precision", "recall", "f1"):
-        check(f"Table I {name} {metric}", f"{row[metric]:.3f}", S)
+        check(f"Table IV {name} {metric}", f"{row[metric]:.3f}", S)
+
+# The two pipeline rows: from the counts, never from the stored 4-dp fields.
+F1 = RES["D_fdi_set_f1"]
+for method in ("gate", "lesion-detector"):
+    a = F1[method][NEW]
+    tp, fp, fn = a["tp"], a["fp"], a["fn"]
+    assert tp + fn == held["tp"] + held["fn"], f"{method}: not scored on the same ground truth"
+    check(f"Table IV pipeline ({method}) precision", r(tp / (tp + fp), 3), SW + "D_fdiset")
+    check(f"Table IV pipeline ({method}) recall", r(tp / (tp + fn), 3), SW + "D_fdiset")
+    check(f"Table IV pipeline ({method}) F1", r(2 * tp / (2 * tp + fp + fn), 3), SW + "D_fdiset")
+    d = F1[method]["deltas"]["arm3c_minus_constant"]
+    check(f"pipeline ({method}) - constant, F1", sgn(d["delta_pp"]), SW + "results")
+    check(f"pipeline ({method}) - constant, F1 CI", ci(d), SW + "results")
+    assert d["excludes_zero"] and d["delta_pp"] > 0, \
+        f"{method}: the manuscript says the pipeline is above the constant on DENTEX F1"
+g = F1["gate"][NEW]
+check("teeth named by the gate pipeline", f"{g['tp'] + g['fp']:,}", SW + "D_fdiset")
+check("teeth named by the constant", f"{held['tp'] + held['fp']:,}", S)
+ld = F1["lesion-detector"][NEW]
+assert 2 * (ld["tp"] + ld["fp"]) < held["tp"] + held["fp"], "prose: 'fewer than half as many teeth'"
+
+# The constant against the two VLMs: outputs/caries_intervals (RESULTS_LOG 2026-10-11).
+m1 = load("outputs/caries_intervals/caries_intervals.json")["m1_f1_gap"]["deltas"]
+for name in ("vlm_32b", "vlm_7b"):
+    d = m1[f"constant_minus_{name}"]
+    check(f"constant - {name}, F1", sgn(d["delta_pp"]), "caries_intervals")
+    check(f"constant - {name}, F1 CI", ci(d), "caries_intervals")
+    assert d["excludes_zero"], f"prose says the constant outscored {name}"
 
 # 477 annotated carious teeth = tp + fn for any arm scored on the same GT
 check("477 affected teeth", f"{held['tp'] + held['fn']}", S + " held-out tp+fn")
@@ -91,63 +147,91 @@ for code in ("16", "17", "26", "27", "36", "37", "46", "47"):
     if code not in held["baseline"]:
         bad.append(f"  FAIL constant set missing {code} in {held['baseline']}")
 
-# --------------------------------------------------------- lesion localisation
+# --------------------------------------------------- lesion localisation (Table V)
 # The *_agreement fields in these artefacts are stored to 4 dp. Formatting a stored
 # 4-dp value to 3 dp rounds a rounded number, and the binary double breaks the tie
-# downward: 0.4885 formats as "0.488" while the underlying 234/479 is 0.488518, which
-# rounds to 0.489. That is how the manuscript carried 0.488 in Table II, Table IV and
-# the abstract until 4 Sep 2026. Round once, from the integer counts, using r().
-for tag, name in (("constant-molars", "constant"), ("pipeline", "pipeline"),
-                  ("all-teeth", "ceiling")):
-    j = load(f"outputs/lesion_loc_{tag}/lesion_localization.json")
-    check(f"Table II {name} agreement",
-          r(j["n_lesions_matched"] / j["n_lesions"], 3), tag)
-    check(f"Table II {name} teeth flagged",
-          f"{j['n_predicted_positive_teeth']:,}", tag)
-    check(f"Table II {name} match rate",
-          r(j["n_predicted_positive_matched_to_a_lesion"]
-            / j["n_predicted_positive_teeth"], 3), tag)
-lesions = load("outputs/lesion_loc_pipeline/lesion_localization.json")
-check("479 annotated lesions", f"{lesions['n_lesions']}", "lesion_loc_pipeline")
+# downward. Round once, from the integer counts, using r().
+flagged = {}
+for tag, name in (("constant-molars", "constant"), ("pipeline", "gate pipeline"),
+                  ("lesion-detector", "lesion-detector pipeline"), ("all-teeth", "ceiling")):
+    j = load(f"{SW}C_dentex_{tag}_{NEW}/lesion_localization.json")
+    assert j["n_images"] == 164 and j["n_lesions"] == 479, f"{tag}: not the 164-image cohort"
+    flagged[tag] = j["n_predicted_positive_teeth"]
+    check(f"Table V {name} agreement", r(j["n_lesions_matched"] / j["n_lesions"], 3), tag)
+    check(f"Table V {name} teeth flagged", f"{flagged[tag]:,}", tag)
+    check(f"Table V {name} match rate",
+          r(j["n_predicted_positive_matched_to_a_lesion"] / flagged[tag], 3), tag)
+check("479 annotated lesions", "479", SW + "C_dentex")
+DX = RES["C_dentex_lesion_agreement"]["pooled"]["deltas"]
+d = DX[f"{NEW}: pipeline_minus_constant-molars"]
+check("DENTEX gate - constant", f"{d['delta_pp']:.2f} percentage", SW + "results")
+check("DENTEX gate - constant CI", ci(d), SW + "results")
+d = DX[f"{NEW}: lesion-detector_minus_constant-molars"]
+check("DENTEX lesion detector - constant", sgn(d["delta_pp"]), SW + "results")
+check("DENTEX lesion detector - constant CI", ci(d), SW + "results")
+assert not d["excludes_zero"], "prose reports DENTEX as a tie for the lesion detector"
+d = DX[f"{NEW}: lesion-detector_minus_pipeline"]
+check("DENTEX lesion detector - gate", sgn(d["delta_pp"]), SW + "results")
+check("DENTEX lesion detector - gate CI", ci(d), SW + "results")
+check("gate flags more teeth than the constant by",
+      f"{(flagged['pipeline'] / flagged['constant-molars'] - 1) * 100:.0f}%", "recomputed")
 
-# ------------------------------------------------------------------- external
+
+# ------------------------------------------------------------- external (Table VI)
 def ext(d):
-    return load(f"outputs/{d}/ningxia_external.json")["by_category_split"]
+    return load(f"{SW}{d}/ningxia_external.json")["by_category_split"]
 
 
-ep, ec = ext("ningxia_pipeline"), ext("ningxia_constant-molars")
+ep, ec = ext(f"F_ningxia_caries_pipeline_{NEW}"), ext(f"F_ningxia_caries_constant-molars_{NEW}")
 sites = sorted(ep)
+swing = []
 for s in sites:
     tag = s.split("/")[-1]
-    # From counts, not the stored 4-dp field -- see the note above Table II.
-    check(f"Table III {tag} pipeline",
-          r(ep[s]["lesions_covered"] / ep[s]["lesions"], 3), "ningxia_pipeline")
-    check(f"Table III {tag} constant",
-          r(ec[s]["lesions_covered"] / ec[s]["lesions"], 3), "ningxia_constant-molars")
-    check(f"Table III {tag} lesions", f"{ep[s]['lesions']:,}", "ningxia_pipeline")
+    p_, c_ = ep[s]["lesions_covered"] / ep[s]["lesions"], ec[s]["lesions_covered"] / ec[s]["lesions"]
+    check(f"Table VI {tag} pipeline", r(p_, 3), "F_ningxia_caries_pipeline")
+    check(f"Table VI {tag} constant", r(c_, 3), "F_ningxia_caries_constant-molars")
+    check(f"Table VI {tag} lesions", f"{ep[s]['lesions']:,}", "F_ningxia_caries_pipeline")
+    check(f"Table VI {tag} delta", "$" + ("+" if c_ >= p_ else "-") + r(abs(c_ - p_) * 100, 1) + "$",
+          "recomputed from counts")
+    swing.append((c_ - p_) * 100)
+check("per-site swing", f"{max(swing) - min(swing):.0f}-point range", "recomputed")
 tot = sum(ep[s]["lesions"] for s in sites)
 check("external total lesions", f"{tot:,}", "sum over four sites")
 check("external total images", f"{sum(ep[s]['images'] for s in sites)}", "sum")
-check("pooled pipeline",
-      r(sum(ep[s]["lesions_covered"] for s in sites) / tot, 3), "recomputed")
-check("pooled constant",
-      r(sum(ec[s]["lesions_covered"] for s in sites) / tot, 3), "recomputed")
+check("pooled pipeline", r(sum(ep[s]["lesions_covered"] for s in sites) / tot, 3), "recomputed")
+check("pooled constant", r(sum(ec[s]["lesions_covered"] for s in sites) / tot, 3), "recomputed")
+NX = RES["F_ningxia_caries_lesion_agreement"]
+d = flip(NX["pooled"]["deltas"][f"{NEW}: pipeline_minus_constant-molars"])
+check("pooled constant - pipeline", "$" + sgn(d["delta_pp"]) + "$", SW + "results")
+check("pooled constant - pipeline CI", ci(d), SW + "results")
+assert d["ci95_pp"][0] < 0 < d["ci95_pp"][1], "prose says the two are indistinguishable pooled"
 
 # ------------------------------------------------------------------- stage 2
-s2 = load("outputs/stage2_segdet/stage2_summary_head.json")
-tax = load("outputs/stage2_taxonomy/stage2_failure_taxonomy.json")
-check("Stage-2 end-to-end", r(s2["fdi_exact_of_all"]*100, 1) + "%", "stage2_segdet")
-check("Stage-2 of detected", r(s2["fdi_exact_of_detected"]*100, 1) + "%", "stage2_segdet")
-check("never detected", r((1-s2["recall"])*100, 1) + "%", "stage2_segdet")
-check("detection recall", r(s2["recall"]*100, 1) + "%", "stage2_segdet")
+s2 = load(f"{SW}B_dentex_{NEW}/stage2_summary_head.json")
+tax = load(f"{SW}I_taxonomy_{NEW}/stage2_failure_taxonomy.json")
+check("Stage-2 end-to-end", r(s2["fdi_exact_of_all"]*100, 1) + "%", "B_dentex")
+check("Stage-2 of detected", r(s2["fdi_exact_of_detected"]*100, 1) + "%", "B_dentex")
+check("never detected", r((1-s2["recall"])*100, 1) + "%", "B_dentex")
+check("detection recall", r(s2["recall"]*100, 1) + "%", "B_dentex")
 check("correct teeth", f"{tax['categories']['correct']}", "taxonomy")
-check("GT teeth", f"{s2['n_gt_teeth']}", "stage2_segdet")
+check("GT teeth", f"{s2['n_gt_teeth']}", "B_dentex")
 check("detected teeth", f"{tax['n_detected']}", "taxonomy")
-check("wrong codes", f"{tax['n_wrong_code']}", "taxonomy")
+check("wrong codes", f"of {tax['n_wrong_code']} incorrect codes", "taxonomy")
 check("off-by-one", f"{tax['categories']['off_by_one']}", "taxonomy")
-quad_err = (tax["categories"]["wrong_arch"] + tax["categories"]["mirror_lr"]
-            + tax["categories"]["other"])
-check("quadrant-level errors", f"{quad_err}", "taxonomy wrong_arch+mirror+other")
+check("off-by-one share", r(tax["categories"]["off_by_one"] / tax["n_wrong_code"] * 100, 1) + "%",
+      "taxonomy")
+quad_err = (tax["categories"].get("wrong_arch", 0) + tax["categories"].get("mirror_lr", 0)
+            + tax["categories"].get("other", 0))
+check("quadrant-level errors", f"only {quad_err} of {tax['n_detected']}", "taxonomy")
+B = RES["B_dentex_numbering"][NEW]["end_to_end"]["ci95"]
+check("Stage-2 end-to-end CI", f"[{r(B[0]*100, 1)}, {r(B[1]*100, 1)}]", SW + "results")
+t2 = load(f"{SW}A_tufts_{NEW}/stage2_summary_head.json")
+check("Tufts end-to-end", r(t2["fdi_exact_of_all"]*100, 1) + "%", "A_tufts")
+check("Tufts detection recall", r(t2["recall"]*100, 1) + "%", "A_tufts")
+check("Tufts of detected", r(t2["fdi_exact_of_detected"]*100, 1) + "%", "A_tufts")
+check("Tufts GT teeth", f"{t2['n_gt_teeth']:,}", "A_tufts")
+A = RES["A_tufts_numbering"][NEW]["end_to_end"]["ci95"]
+check("Tufts end-to-end CI", f"[{r(A[0]*100, 1)}, {r(A[1]*100, 1)}]", SW + "results")
 
 # --------------------------------------------------------------- calibration
 cal = load("outputs/calibration/caries_gate_calibration_test.json")
@@ -163,103 +247,122 @@ check("caries-gate test n", f"{cal['n']}", "calibration_test")
 check("caries prevalence", f"{cal['prevalence']:.3f}", "calibration_test")
 
 # --------------------------------------------------------- selective prediction
+# Numbering: the current detector's rows. Caries gate: held-out crops, no detector involved.
+c4n = load(f"{SW}J_coverage_{NEW}/c4_coverage_accuracy.json")["stage2"]
 c4 = load("outputs/c4_abstention/c4_coverage_accuracy.json")
-check("numbering full coverage", f"{c4['stage2']['accuracy_full_coverage']:.3f}", "c4")
-check("numbering at 75%", f"{c4['stage2']['at_75']['accuracy']:.3f}", "c4")
-check("numbering gain", f"{c4['stage2']['gain_at_75']['gain_pp']:.2f}", "c4")
+check("numbering full coverage", f"{c4n['accuracy_full_coverage']:.3f}", "J_coverage")
+check("numbering at 75%", f"{c4n['at_75']['accuracy']:.3f}", "J_coverage")
+check("numbering gain", f"{c4n['gain_at_75']['gain_pp']:.2f}", "J_coverage")
+check("numbering gain CI", "[" + ", ".join(sgn(v) for v in c4n["gain_at_75"]["ci95_pp"]) + "]",
+      "J_coverage")
+check("numbering gain clusters", f"{c4n['gain_at_75']['n_images']} image clusters", "J_coverage")
+check("numbering shuffled control", sgn(c4n["gain_at_75"]["shuffled_control_gain_pp"]), "J_coverage")
 check("gate full coverage",
       f"{c4['caries_gate']['accuracy_full_coverage']:.3f}", "c4")
 check("gate at 75%", f"{c4['caries_gate']['at_75']['accuracy']:.3f}", "c4")
 check("gate gain", f"{c4['caries_gate']['gain_at_75']['gain_pp']:.2f}", "c4")
 check("pre-registered coverage",
-      r(c4["stage2"]["operating_point"]["coverage"]*100, 1) + "%", "c4")
-check("pre-registered accuracy",
-      f"{c4['stage2']['operating_point']['accuracy']:.3f}", "c4")
-check("90%-coverage accuracy", f"{c4['stage2']['at_90']['accuracy']:.3f}", "c4")
+      r(c4n["operating_point"]["coverage"]*100, 1) + "%", "J_coverage")
+check("pre-registered accuracy", f"{c4n['operating_point']['accuracy']:.3f}", "J_coverage")
+check("90%-coverage accuracy", f"{c4n['at_90']['accuracy']:.3f}", "J_coverage")
+check("75% of detections, over teeth present",
+      r(0.75 * s2["recall"] * 100, 1) + "% of the teeth", "recomputed")
 
 # ------------------------------------------------------------- VLM + hardware
 v32 = load("outputs/c1_vlm/arm_vlm_32b_0shot.json")
 v7 = load("outputs/c1_vlm/arm_vlm_7b_0shot_rerun.json")
-pipe = load("outputs/c1_vlm/arm_pipeline.json")
+pipe = load(f"{SW}D_fdiset_lesion-detector_{NEW}/arm_pipeline_lesion_detector.json")
 check("32B params", f"{v32['params_billion']:.2f} B", "arm_vlm_32b")
 check("7B params", f"{v7['params_billion']:.2f} B", "arm_vlm_7b")
 check("peak VRAM", r(v32["peak_vram_gb"], 1) + " GB", "arm_vlm_32b")
-check("CPU latency", f"{pipe['mean_latency_s']:.2f} s", "arm_pipeline")
+check("CPU latency", r(pipe["mean_latency_s"], 2) + " s", "D_fdiset_lesion-detector")
 ctl32 = load("outputs/c1_vlm/control_pixels_32b.json")
 ctl7 = load("outputs/c1_vlm/control_pixels_7b.json")
 check("32B answer to blank", ctl32["answers"]["blank"], "control_pixels_32b")
 check("32B answer to noise", ctl32["answers"]["noise"], "control_pixels_32b")
 check("7B answer to noise", ctl7["answers"]["noise"], "control_pixels_7b")
 
-# ------------------------------------------------------------------ bone loss
-bl = ext("ningxia_external_segdet")
-sens = [bl[f"periodontitis/test{i}"]["affected_tooth_sensitivity"] for i in range(1, 5)]
-check("bone-loss external range",
-      r(min(sens)*100, 1) + "--" + r(max(sens)*100, 1) + "%", "ningxia_external_segdet")
+# ------------------------------------------------------------------ Stage 4
+G = RES["G_ningxia_stage4_flag"]
 
-# ----------------------------------------- Tufts detector recall + 590/591 leak (4 Sep 2026)
-# Asserts primary_result only. The AP-reproduction diagnostic in the same artefact is
-# deliberately not asserted here -- it never converged on the published 0.8100 and is not
-# quoted as a number in the manuscript, only described in prose as an attempt that did not
-# succeed (scripts/eval/tufts_detector_ap_bootstrap.py's own docstring has the full story).
-tap = load("outputs/tufts_detector_ap_ci/tufts_detector_ap_ci.json")["primary_result"]
-check("Tufts detector recall @ conf=0.25", r(tap["recall_all_150"] * 100, 1) + "%",
-      "tufts_detector_ap_ci.json")
-check("Tufts detector recall CI", f"{r(tap['ci95'][0]*100,1)}, {r(tap['ci95'][1]*100,1)}",
-      "tufts_detector_ap_ci.json")
-recall_no_leak = tap["leak_impact"]["recall_without_leak_149_images"]
-check("Tufts detector recall without leak", r(recall_no_leak * 100, 1) + "%",
-      "tufts_detector_ap_ci.json")
-delta_pp = (recall_no_leak - tap["recall_all_150"]) * 100
-sign = "-" if delta_pp < 0 else "+"
-check("Tufts detector leak delta", f"${sign}{r(abs(delta_pp), 2)}$", "tufts_detector_ap_ci.json")
 
-# Bootstrap CIs added 4 Sep 2026 -- closes the "Ningxia periodontitis has no interval" gap
-# (bootstrap_ci.py's own former "not_covered" note). Read from the bootstrap artefact, not
-# recomputed here, so a re-run with a different seed/n_boot would be caught as drift.
-bci = load("outputs/bootstrap_ci/bootstrap_ci.json")
-PERIO_SITE = {"test1": "1.8--3.0", "test2": "0.9--2.0", "test3": "3.0--8.7", "test4": "2.7--6.6"}
-for m in bci["metrics"]:
-    if not m["metric"].startswith("periodontitis sensitivity"):
-        continue
-    lo, hi = m["ci95"]
-    if "pooled" in m["metric"]:
-        check("periodontitis sensitivity pooled CI",
-              f"{r(lo*100,1)}, {r(hi*100,1)}", "bootstrap_ci.json")
-        check("periodontitis sensitivity pooled point", r(m["point"]*100, 1) + "%",
-              "bootstrap_ci.json")
-    else:
-        site = m["metric"].rsplit(" ", 1)[-1]
-        check(f"periodontitis sensitivity {site} CI", PERIO_SITE[site], "bootstrap_ci.json")
+def pct_ci(e):
+    return f"[{r(e['ci95'][0]*100, 2)}, {r(e['ci95'][1]*100, 2)}]"
 
-# ------------------------------------------------------- parameter counts
-# Counted from the checkpoints on 28 Aug 2026; see docs/paper/REBUILD_AUDIT.md.
-# --------------------------------------------------- CariesXrays (Table IV)
-# Sixth cohort, frozen pipeline. Both arms scored the SAME seed-fixed random draw,
-# so the paired delta below is recomputed here rather than copied from the manuscript.
-cx_p = load("outputs/cariesxrays_external_rand/cariesxrays_external_pipeline.json")
-cx_c = load("outputs/cariesxrays_external_rand/cariesxrays_external_constant-molars.json")
+
+rates = []
+for site, v in G["per_hospital"].items():
+    a = v[NEW]
+    rate = a["affected_teeth_flagged"] / a["affected_teeth"]
+    rates.append(rate)
+    check(f"Stage 4 {site}", r(rate*100, 2) + "% " + pct_ci(a["flag_rate"]), SW + "results")
+check("Stage 4 external range", r(min(rates)*100, 2) + "--" + r(max(rates)*100, 2) + "%",
+      SW + "results")
+g = G[NEW]
+check("Stage 4 pooled", r(g["affected_teeth_flagged"] / g["affected_teeth"] * 100, 2) + "%",
+      SW + "results")
+check("Stage 4 pooled CI", f"{r(g['flag_rate']['ci95'][0]*100, 2)}, {r(g['flag_rate']['ci95'][1]*100, 2)}",
+      SW + "results")
+check("Stage 4 pooled counts",
+      f"{g['affected_teeth_flagged']} of {g['affected_teeth']:,} after", SW + "results")
+check("Stage 4 previous-detector counts",
+      f"{G['m11']['affected_teeth_flagged']} flagged of {G['m11']['affected_teeth']:,}", SW + "results")
+t4 = G["per_hospital"]["test4"]
+check("Stage 4 test4 affected teeth, current", f"{t4[NEW]['affected_teeth']} affected teeth", SW + "results")
+check("Stage 4 test4 affected teeth, previous", f"found {t4['m11']['affected_teeth']}", SW + "results")
+K = RES["K_dentex_stage4_firing"][NEW]
+check("Stage 4 DENTEX firing rate", r(K["stage4_flagged"] / K["teeth_detected"] * 100, 2) + "%",
+      SW + "K_dentex_stage4")
+check("Stage 4 DENTEX counts", f"{K['stage4_flagged']} of {K['teeth_detected']:,}", SW + "K_dentex_stage4")
+
+# ------------------------------------------ the tooth detector's registered guard
+M = RES["M_tufts_test_box_map"]
+check("Tufts box mAP, current detector", r(M["arm3c"]["box_map50"], 3), SW + "M_tufts_map")
+check("Tufts box mAP, Tufts-only control", r(M["controlB"]["box_map50"], 3), SW + "M_tufts_map")
+check("Tufts box mAP gap", f"{-M['arm3c_minus_controlB_pp']:.1f} points", SW + "M_tufts_map")
+assert M["arm3c"]["box_map50"] < M["controlB"]["box_map50"] - 0.04, \
+    "the manuscript says the registered Tufts guard was missed"
+# what moved when only the tooth detector changed
+check("numbering change with the detector",
+      sgn(RES["B_dentex_numbering"]["deltas"]["end_to_end_arm3c_minus_m11"]["delta_pp"]), SW + "results")
+check("external gate agreement change with the detector",
+      sgn(NX["pooled"]["deltas"]["pipeline: arm3c_minus_m11"]["delta_pp"]), SW + "results")
+for key in ("C_dentex_lesion_agreement", "E_cariesxrays_lesion_agreement",
+            "F_ningxia_caries_lesion_agreement"):
+    check(f"constant's change with the detector ({key[:1]})",
+          sgn(RES[key]["pooled"]["deltas"]["constant-molars: arm3c_minus_m11"]["delta_pp"]),
+          SW + "results")
+
+# --------------------------------------------------- three cohorts (Table VII)
+cx_p = load(f"{SW}E_cariesxrays_pipeline_{NEW}/cariesxrays_external_pipeline.json")
+cx_c = load(f"{SW}E_cariesxrays_constant-molars_{NEW}/cariesxrays_external_constant-molars.json")
 assert cx_p["counts"]["lesions"] == cx_c["counts"]["lesions"], "arms are not paired"
-check("CariesXrays lesions", f"{cx_p['counts']['lesions']:,}", "cariesxrays_external_rand")
-check("CariesXrays images", f"{cx_p['n_images_scored']:,}", "cariesxrays_external_rand")
-check("CariesXrays pipeline", f"{cx_p['agreement_covered']:.3f}", "cariesxrays_external_rand")
-check("CariesXrays constant", f"{cx_c['agreement_covered']:.3f}", "cariesxrays_external_rand")
-check("CariesXrays delta pp",
-      f"{(cx_c['agreement_covered'] - cx_p['agreement_covered']) * 100:.1f}", "recomputed")
-check("CariesXrays pipeline match rate",
-      f"{cx_p['match_rate_DIAGNOSTIC_not_precision']:.3f}", "cariesxrays_external_rand")
-check("CariesXrays constant match rate",
-      f"{cx_c['match_rate_DIAGNOSTIC_not_precision']:.3f}", "cariesxrays_external_rand")
-# the constant flags more teeth -- the manuscript states 64%, recompute it
-_fl_p = cx_p["counts"]["teeth_flagged"]; _fl_c = cx_c["counts"]["teeth_flagged"]
+check("CariesXrays lesions", f"{cx_p['counts']['lesions']:,}", "E_cariesxrays")
+check("CariesXrays images", f"{cx_p['n_images_scored']:,}", "E_cariesxrays")
+check("CariesXrays pipeline",
+      r(cx_p["counts"]["lesions_covered"] / cx_p["counts"]["lesions"], 3), "E_cariesxrays")
+check("CariesXrays constant",
+      r(cx_c["counts"]["lesions_covered"] / cx_c["counts"]["lesions"], 3), "E_cariesxrays")
+CXD = RES["E_cariesxrays_lesion_agreement"]["pooled"]["deltas"]
+d = flip(CXD[f"{NEW}: pipeline_minus_constant-molars"])
+check("CariesXrays constant - pipeline", f"{d['delta_pp']:.2f} percentage", SW + "results")
+check("CariesXrays constant - pipeline CI", ci(d), SW + "results")
+for arm, j in (("pipeline", cx_p), ("constant", cx_c)):
+    check(f"CariesXrays {arm} hit rate",
+          r(j["counts"]["flagged_hitting_a_lesion"] / j["counts"]["teeth_flagged"], 3), "E_cariesxrays")
 check("CariesXrays constant flags more by",
-      f"{(_fl_c / _fl_p - 1) * 100:.0f}%", "recomputed")
+      f"{(cx_c['counts']['teeth_flagged'] / cx_p['counts']['teeth_flagged'] - 1) * 100:.0f}%",
+      "recomputed")
+d = flip(DX[f"{NEW}: pipeline_minus_constant-molars"])
+check("Table VII DENTEX constant - pipeline", sgn(d["delta_pp"]) + "\\ " + ci(d), SW + "results")
 
-# ------------------------------------- Lever B: Stage 3a reformulation (Table V)
+# ------------------------------------- Lever B: Stage 3a reformulation (Table VIII)
 # The acceptance bar was frozen at commit ef3f453 before any arm was trained
 # (outputs/lever_B_lesion_caries_path/PRE_REGISTRATION.md Sec 5/6). Assert the verdict
 # itself, not only the numbers: a manuscript that claims the rule was met must not
-# outlive an artefact that says it was not.
+# outlive an artefact that says it was not. The verdict belongs to the PREVIOUS front
+# end, and the manuscript quotes its three differences as such; they are asserted here
+# against the acceptance file exactly as before.
 lb_p = load("outputs/lever_b_eval/acceptance_rule_B-pooled.json")
 lb_s = load("outputs/lever_b_eval/acceptance_rule_B-single.json")
 assert lb_p["sec6_rule_met"], "acceptance rule NOT met -- the manuscript claims it is"
@@ -268,81 +371,83 @@ assert sorted(lb_p["sec6_winning_cohorts"]) == ["cariesxrays", "ningxia"], \
 
 
 def pp(x):
-    """Percentage-point delta the way the table writes it, sign always shown."""
+    """Percentage-point delta the way the adoption sentence writes it, sign always shown."""
     return ("+" if x >= 0 else "-") + r(abs(x), 1)
 
 
-# Point estimates are recomputed from the raw per-arm outputs rather than read from
-# the acceptance file, whose values are already rounded to 4 dp: Ningxia's 0.500494
-# is stored there as 0.5005, and rounding that again to 3 dp gives 0.501, a digit
-# that exists nowhere in the evaluation. Round once, from the counts.
-def agreement(rel):
-    """Cohort-level lesion agreement, over three different output schemas."""
-    d = load(rel)
-    if "n_lesions" in d:                                    # lesion_localization.py
-        return d["n_lesions_matched"] / d["n_lesions"]
-    if "counts" in d:                                       # cariesxrays_external.py
-        return d["counts"]["lesions_covered"] / d["counts"]["lesions"]
-    splits = d["by_category_split"].values()                # ningxia_external.py
-    return (sum(s["lesions_covered"] for s in splits)
-            / sum(s["lesions"] for s in splits))
-
-
-LEVER_B = {
-    "DENTEX": ("outputs/lever_b_eval/dentex_{}/lesion_localization.json",
-               {"gate": "pipeline", "constant": "constant", "lesion": "lesion_b_pooled",
-                "single": "lesion_b_single"}, "dentex"),
-    "Ningxia": ("outputs/lever_b_eval/ningxia_{}/ningxia_external.json",
-                {"gate": "pipeline", "constant": "constant", "lesion": "lesion_b_pooled",
-                 "single": "lesion_b_single"}, "ningxia"),
-}
-for cohort, (tpl, arms, key) in LEVER_B.items():
-    for name in ("gate", "constant", "lesion"):
-        check(f"Lever B {cohort} {name}", r(agreement(tpl.format(arms[name])), 3),
-              f"lever_b_eval/{arms[name]}")
-# CariesXrays arms live in two directories: the three comparators were scored in the
-# B-single pass and reused unchanged, since the gate and the constant do not depend
-# on which lesion arm is being tested.
-CX = "outputs/cariesxrays_external_lever_b_b_{}/cariesxrays_external_{}.json"
-for name, (arm, dec) in {"gate": ("single", "pipeline"),
-                         "constant": ("single", "constant-molars"),
-                         "lesion": ("pooled", "lesion-detector")}.items():
-    check(f"Lever B CariesXrays {name}", r(agreement(CX.format(arm, dec)), 3),
-          f"cariesxrays_external_lever_b_b_{arm}")
-
 for cohort, key in (("DENTEX", "dentex"), ("CariesXrays", "cariesxrays"),
                     ("Ningxia", "ningxia")):
-    c = lb_p["cohorts"][key]
-    d = c["acceptance"]["lesion-detector_minus_constant-molars"]
+    d = lb_p["cohorts"][key]["acceptance"]["lesion-detector_minus_constant-molars"]
     lo, hi = d["ci95_pp"]
-    check(f"Lever B {cohort} delta pp", pp(d["delta_pp"]), "acceptance_rule_B-pooled")
-    check(f"Lever B {cohort} delta CI", f"[{pp(lo)}, {pp(hi)}]", "acceptance_rule_B-pooled")
-    # Not a volume effect: the detector must flag no more teeth than the constant.
-    rate_lesion = c["arms"]["lesion-detector"]["mean_predicted_positive_per_image"]
-    assert rate_lesion <= c["arms"]["constant-molars"]["mean_predicted_positive_per_image"], \
-        f"{cohort}: detector now flags MORE teeth than the constant -- prose says fewer"
+    check(f"Lever B adoption, {cohort} delta pp", pp(d["delta_pp"]), "acceptance_rule_B-pooled")
+    check(f"Lever B adoption, {cohort} delta CI", f"[{pp(lo)}, {pp(hi)}]",
+          "acceptance_rule_B-pooled")
 
-# The single-corpus arm, quoted in the prose as the transfer failure.
+# The single-corpus arm, quoted in the prose as the transfer failure, and the pooled
+# arm's CariesXrays figure beside it -- both scored when the rule was applied.
 for cohort, key in (("DENTEX", "dentex"), ("CariesXrays", "cariesxrays"),
                     ("Ningxia", "ningxia")):
     a = lb_s["cohorts"][key]["arms"]["lesion-detector"]
     lo, hi = a["ci95"]
     check(f"Lever B single-corpus {cohort} CI", f"[{r(lo, 3)}, {r(hi, 3)}]",
           "acceptance_rule_B-single")
+_cxl = load("outputs/cariesxrays_external_lever_b_b_pooled/cariesxrays_external_lesion-detector.json")
+check("Lever B pooled arm on CariesXrays, at adoption",
+      r(_cxl["counts"]["lesions_covered"] / _cxl["counts"]["lesions"], 3),
+      "cariesxrays_external_lever_b_b_pooled")
 
-for cohort, key in (("CariesXrays", "cariesxrays"), ("Ningxia", "ningxia")):
-    for arm in ("lesion-detector", "constant-molars"):
-        rate = lb_p["cohorts"][key]["arms"][arm]["mean_predicted_positive_per_image"]
-        check(f"Lever B {cohort} {arm} teeth/image", r(rate, 2), "acceptance_rule_B-pooled")
 
-# ----------------------------------------------- Parameter counts (Table I)
-# These were hardcoded literals until 4 Sep 2026, carrying a provenance label they
-# did not earn. They are now derived by scripts/count_model_params.py, which states
-# one counting rule and applies it to every checkpoint -- see that file for why the
-# old table mixed two rules. Stage 3a has two implementations since the Lever B
-# adoption, so both totals are asserted; a table that reports only one of them will
-# fail here, which is the point.
+# Table VIII itself: the three arms under the current detector, from the counts.
+def agreement(rel):
+    """Cohort-level lesion agreement and teeth flagged, over three output schemas."""
+    d = load(rel)
+    if "n_lesions" in d:                                    # lesion_localization.py
+        return d["n_lesions_matched"] / d["n_lesions"], d["n_predicted_positive_teeth"], d["n_images"]
+    if "counts" in d:                                       # cariesxrays_external.py
+        c = d["counts"]
+        return c["lesions_covered"] / c["lesions"], c["teeth_flagged"], c["images"]
+    splits = list(d["by_category_split"].values())          # ningxia_external.py
+    return (sum(s["lesions_covered"] for s in splits) / sum(s["lesions"] for s in splits),
+            sum(s["predicted_positive"] for s in splits), sum(s["images"] for s in splits))
+
+
+T8 = {"DENTEX": ("C_dentex_{dec}_{det}/lesion_localization.json", "C_dentex_lesion_agreement"),
+      "CariesXrays": ("E_cariesxrays_{dec}_{det}/cariesxrays_external_{dec}.json",
+                      "E_cariesxrays_lesion_agreement"),
+      "Ningxia": ("F_ningxia_caries_{dec}_{det}/ningxia_external.json",
+                  "F_ningxia_caries_lesion_agreement")}
+for cohort, (tpl, key) in T8.items():
+    per_image = {}
+    for name, dec in (("gate", "pipeline"), ("constant", "constant-molars"),
+                      ("lesion", "lesion-detector")):
+        agr, n_flag, n_img = agreement(SW + tpl.format(dec=dec, det=NEW))
+        per_image[name] = n_flag / n_img
+        check(f"Table VIII {cohort} {name}", r(agr, 3), SW + tpl.format(dec=dec, det=NEW))
+    d = RES[key]["pooled"]["deltas"][f"{NEW}: lesion-detector_minus_constant-molars"]
+    check(f"Table VIII {cohort} delta", sgn(d["delta_pp"]) + "\\ " + ci(d), SW + "results")
+    # Not a volume effect: the detector must flag fewer teeth than the constant.
+    assert per_image["lesion"] < per_image["constant"], \
+        f"{cohort}: detector now flags MORE teeth than the constant -- prose says fewer"
+    if cohort != "DENTEX":
+        assert d["excludes_zero"] and d["delta_pp"] > 0, f"{cohort}: prose says the detector is ahead"
+        check(f"Table VIII {cohort} lesion detector teeth/image", r(per_image["lesion"], 2), "recomputed")
+        check(f"Table VIII {cohort} constant teeth/image", r(per_image["constant"], 2), "recomputed")
+d = NX["pooled"]["deltas"][f"{NEW}: pipeline_minus_constant-molars"]
+check("Ningxia gate ahead of the constant by", f"${d['delta_pp']:.2f}$ points ahead", SW + "results")
+d = NX["pooled"]["deltas"][f"{NEW}: lesion-detector_minus_constant-molars"]
+check("Ningxia detector ahead of the constant by", f"${d['delta_pp']:.2f}$ points", SW + "results")
+for site in ("test1", "test2", "test3", "test4"):
+    d = NX[site]["deltas"][f"{NEW}: lesion-detector_minus_constant-molars"]
+    check(f"Lever B per hospital, {site}", "$" + sgn(d["delta_pp"]) + "$ $" + ci(d) + "$", SW + "results")
+    assert d["excludes_zero"] == (site != "test1"), f"{site}: prose says separated everywhere but test1"
+
+# ----------------------------------------------- Parameter counts (Table II)
+# Derived by scripts/count_model_params.py, which states one counting rule and applies
+# it to every checkpoint. Stage 3a has two implementations since the Lever B adoption,
+# so both totals are asserted. Regenerated 11 Oct 2026 for the current Stage-1 detector.
 pc = load("outputs/param_counts/param_counts.json")
+assert "arm3c_best.pt" in pc["checkpoints"]["stage1_detector"], \
+    "param_counts.json was not counted with the current Stage-1 detector"
 _P, _T = pc["params"], pc["totals"]
 SRC = "outputs/param_counts (torch.load over models/*/)"
 for label, key in (("stage-1 detector params", "stage1_detector"),
@@ -355,6 +460,9 @@ for label, key in (("total params (default)", "total_default"),
                    ("caries-path params (default)", "caries_path_default"),
                    ("caries-path params (gate variant)", "caries_path_gate_variant")):
     check(label, f"{r(_T[key] / 1e6, 2)} M", SRC)
+check("VLM / pipeline parameter ratio",
+      f"roughly {round(v32['params_billion'] * 1e9 / _T['caries_path_default'], -1):.0f} in parameter count",
+      "recomputed")
 
 print("\n".join(ok))
 if bad:

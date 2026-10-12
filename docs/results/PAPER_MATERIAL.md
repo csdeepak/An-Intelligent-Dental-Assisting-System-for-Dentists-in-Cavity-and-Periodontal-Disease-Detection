@@ -2586,6 +2586,14 @@ differs. Either way the claim is the authors' to choose.
 - **Two open items a reviewer can raise:** the Kaggle "dual-labeled" set, part of arm3c's
   training data, states no licence; and the Tufts box-mAP guard figures were not re-measured.
 
+**Measured afterwards for the rebuild** (`RESULTS_LOG` 2026-10-11j). Numbering errors under
+the current detector are still mostly benign — 51 of 63 wrong codes off by one, 6 of 932
+detected teeth in a wrong quadrant. Declining the least-confident quarter still raises numbering
+accuracy, 0.932 → 0.980 (+4.76 pp [+3.29, +6.54]), and the registered 0.30 threshold now keeps
+96.1% of detected teeth. Stage 4 fires on 0.75% of DENTEX teeth. **The Tufts cost, like for
+like, is −13.6 pp of box mAP** (0.723 for a Tufts-only control → 0.587, one label frame, one
+machine); the 0.810 → 0.585 used above compares two protocols and should not be quoted.
+
 Source: `outputs/stage1_switch/stage1_switch_results.json`;
 `scripts/eval/stage1_switch_intervals.py`;
 `docs/session-memory/2026-10-11g-detector-switch-matrix-and-flip.md`.
@@ -2606,8 +2614,11 @@ For whoever drafts the actual paper. Tick items off here as they land.
       affiliations, ethics, data availability with licences, code availability, funding, conflict
       of interest, author contributions, and acknowledgments including the AI-use disclosure IEEE
       requires.
-- [ ] **Decide which front end the manuscript reports, and make every table say so** (§8.30,
-      11 Oct 2026). **This decides whether the abstract's first result is true of the system
+- [x] **Decide which front end the manuscript reports, and make every table say so** (§8.30,
+      11 Oct 2026). **Decided 11 Oct: the current one. `main.tex` was rebuilt the same day**
+      (`RESULTS_LOG` 2026-10-11k): every table and the headline re-stated, the override of the
+      registered guard written into §Data, 191 numbers asserted, 15 pages under tectonic. Left:
+      a pdfLaTeX build and `paper.txt` on the Windows machine. The original item read: **This decides whether the abstract's first result is true of the system
       described:** on DENTEX the constant no longer leads the pipeline under the new front end
       (`RESULTS_LOG` 2026-10-11i). The table-by-table list is in
       `docs/paper/SUBMISSION_TODO.md`. `main.tex` describes the Tufts-only seg detector throughout; the pipeline
