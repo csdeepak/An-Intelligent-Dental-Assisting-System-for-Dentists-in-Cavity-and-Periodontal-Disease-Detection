@@ -364,3 +364,30 @@ whatever it gives.** No row touches Ningxia.
 **Forbidden,** in addition to §8: a second pass over UFBA-425 with another confidence, image
 size, interpolation or aspect ratio; reporting the secondary treatment without the primary;
 re-drawing row N's categories or row O's set after seeing them; any run on Ningxia.
+
+## Amendment 4 — gate P2 corrected after it stopped row P (12 October 2026, 19:05 IST)
+
+**What happened.** Gate P1 passed: the scorer with the UFBA loader reproduces row A's saved rows
+byte for byte. Gate P3 passed: no UFBA-425 image is byte-identical to, or within Hamming
+distance 62 of, any of 1,000 Tufts, 10,515 DENTEX or 500 Kaggle images. **Gate P2 failed, 404 of
+425 images (95.1%) against 99%, and the row stopped before any model was run.**
+`outputs/stage1_switch/P_ufba_gates_v1_failed/` keeps that output.
+
+**Why, from the label files alone.** All 21 failing images lack labelled teeth in one arch or on
+one side, so one or both of the comparisons Amendment 3 wrote down has nothing to compare, and
+the gate counted "undefined" as "inconsistent". Of the 419 images where at least one comparison
+is defined, 419 satisfy every defined one. Six images label teeth on one side of one arch only
+and define neither. No image is reversed.
+
+**State when written.** No output of either detector on any UFBA-425 image exists. Rows N and O
+have been read (they do not involve UFBA-425). The decision owner chose to amend and run.
+
+**Gate P2, as it now stands.** For each image, each comparison is evaluated only if both of its
+sides have a labelled tooth: quadrants 1 and 4 left of quadrants 2 and 3; quadrants 1 and 2
+above quadrants 3 and 4. An image passes if every comparison it defines holds. **At least 99% of
+the images that define a comparison must pass.** Images that define none are counted and
+reported, and stay in the scored cohort: a radiograph with few teeth is still a radiograph, and
+dropping it would select the cohort on its content.
+
+Nothing else in Amendment 3 changes: the 425 images, both image treatments, the order of the
+detectors, the single pass, the metrics and the wording.
