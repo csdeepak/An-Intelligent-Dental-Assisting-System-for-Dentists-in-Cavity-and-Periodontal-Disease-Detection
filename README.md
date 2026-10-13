@@ -50,7 +50,7 @@ Detect every tooth · number it in FDI notation · classify two pathologies per 
 > | A readable one-page overview — what was done, results, limitations, what's next | [`PROJECT_OVERVIEW.html`](PROJECT_OVERVIEW.html) — a **6 Sep 2026 snapshot**, not kept in sync; open in a browser (3-theme toggle). Internal / pre-submission. |
 > | What are the current numbers? | [`docs/results/model_metrics.md`](docs/results/model_metrics.md) |
 > | Full technical story + honest limitations (the paper is written from this) | [`docs/results/PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) |
-> | Why is it like this? What happened when? | [`docs/results/RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) — 155 dated entries, append-only |
+> | Why is it like this? What happened when? | [`docs/results/RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) — 156 dated entries, append-only |
 > | What should I work on? | [`docs/research/PUBLICATION_TODO.md`](docs/research/PUBLICATION_TODO.md), sequenced by [`MASTER_PLAN_2026H2.md`](docs/research/MASTER_PLAN_2026H2.md) |
 > | How is the documentation laid out? | [`docs/README.md`](docs/README.md) |
 > | What does the code do? | [`src/README.md`](src/README.md), [`scripts/README.md`](scripts/README.md) |
@@ -159,7 +159,7 @@ pipeline, and it follows directly from anatomy — see
 | 3a | **Caries lesion detector** — YOLOv11l *(default since 4 Sep 2026, Lever B)* | Full OPG | lesion boxes → tooth | ✅ `caries-lesion-detector-yolo11l-leverb-bpooled-v1.0`. Tooth-level lesion agreement beats both the caries gate **and** an image-blind molar constant on **2 of 3** external cohorts (CariesXrays 68.4%, Ningxia 50.0%; DENTEX a statistical **tie**, 45.5%). First mechanism in this project to beat that constant anywhere. |
 | 3a′ | **Caries gate** — ResNet18 *(retained variant, `--caries-method gate`)* | Tight 1.0× crop | caries / healthy | ✅ `caries-gate-resnet18-v3.0`. Held-out **P 0.398 / R 0.740**, **AP 0.550** against a 0.147 chance line (3.7× chance). Rebuilt on 5,366 real healthy teeth; in-pipeline caries rate **84.9% → 19.1%**. Every pre-4-Sep caries number was measured on it. |
 | 3b | **Caries depth** — ResNet18 | Tight 1.0× crop | caries / deep_caries | ✅ acc **0.81**, macro F1 **0.77** (133 val crops). Validation only — no held-out test split exists for this head yet. Unchanged by Lever B — runs on teeth the lesion detector or gate flags. |
-| 4a | **Bone-loss gate** — ResNet18 + focal loss | Expanded 1.5×W / 2.0×H crop | Present / Absent | ✅ macro F1 **0.9233**, sens 83.05%, spec 99.53% (1,558 val crops at real 4% prevalence). **Collapses out of domain** — see [C2](#c2--external-validation-on-four-hospitals). |
+| 4a | **Abnormality flag** (the field is still named `bone_loss`) — ResNet18 + focal loss, retrained with a radiograph-level split, default since 13 Oct 2026 | Expanded 1.5×W / 2.0×H crop | Flagged / not | ⚠️ **Test sensitivity 27.5%** [18.3, 38.0] at **95.9% specificity** on 143 Tufts radiographs (11–27% across three seeds). Not a periodontal finding; no external figure. The model it replaced reported macro F1 0.9233 on radiographs it had trained on and finds 7.6% held out — `RESULTS_LOG` 2026-10-13, -13b, -13c. |
 | 4b | **Bone-loss severity** — ResNet18 + focal loss | Same expanded crop | Mild / Moderate / Severe | ✅ macro F1 **0.7208** — but on **52 val crops**. Provisional. |
 | — | *CEJ bone-level estimation (classical CV)* | Expanded crop | bone loss % | 🔬 **Negative result.** 15.1% exact agreement, 61.6% within ±1 class. **Not in the pipeline**, reported as a negative result. |
 | 5 | **Fusion, flags, assessability** | All tooth outputs | Fused per-tooth record | ✅ Positional-alignment guard + confidence gating. Abstains below `ASSESSABILITY_MIN_FDI_CONFIDENCE = 0.30` → 90.8% coverage at 0.847 accuracy. |
@@ -195,7 +195,8 @@ against those artefacts, so numeric drift fails loudly.
 | **Caries lesion detector (Stage-3a default, Lever B)** | DENTEX / CariesXrays / Ningxia | frozen, tooth-level lesion agreement | DENTEX **45.5%** (tie), CariesXrays **68.4%** (win), Ningxia **50.0%** (win) — beats both the gate and the image-blind constant on 2 of 3 |
 | Caries gate v3.0 *(retained variant)* | DENTEX | held-out test (863 crops) | P **0.398** / R **0.740**, AP **0.550**, ECE 0.136 |
 | Caries depth (caries vs deep) | DENTEX | val (133) | acc **0.81**, macro F1 **0.77** |
-| Bone-loss binary | Tufts | val (1,558, real prevalence) | macro F1 **0.9233** |
+| Stage 4a abnormality flag (default since 13 Oct) | Tufts | test (143 radiographs, 3,892 teeth) | sensitivity **27.5%**, specificity 95.9% |
+| Stage 4a, previous checkpoint | Tufts | val (1,558 crops, **not held out**) | macro F1 0.9233; held out: sensitivity 7.6% |
 | Bone-loss severity (3-class) | Tufts | val (52) | macro F1 **0.7208** |
 | **C1 — VLM baseline** | DENTEX | 164 leak-free | ours **F1 0.294** vs Qwen2.5-VL-32B **0.246** — and vs an image-blind constant **0.320** that beats both |
 | **C2 — external validation** | Ningxia ×4 hospitals | locked, evaluated once | caries agreement **40.8%** pooled vs **44.3%** internal |
@@ -563,7 +564,7 @@ Each of those four rows is a bug that was found the hard way. See
     ├── architecture/            ← pipeline diagrams (+ drawio source)
     ├── results/
     │   ├── PAPER_MATERIAL.md    ← ★ master paper-writing document
-    │   ├── RESULTS_LOG.md       ← append-only journal, 155 entries
+    │   ├── RESULTS_LOG.md       ← append-only journal, 156 entries
     │   ├── model_metrics.md     ← one-page scoreboard
     │   ├── METHODOLOGY_CHANGELOG.md
     │   └── figures/paper/       ← 17 paper/review figures

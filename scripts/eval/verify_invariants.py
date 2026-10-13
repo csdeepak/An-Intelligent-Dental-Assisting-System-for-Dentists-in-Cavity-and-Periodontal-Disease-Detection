@@ -108,6 +108,11 @@ def inv_weight_hashes():
          "models/03_bone_loss_model_training_notebook_models/run_summary.txt"),
         ("models/04_bone_loss_severity_notebook_models/bone_loss_severity_resnet18_best.pth",
          "models/04_bone_loss_severity_notebook_models/run_summary.txt"),
+        # Stage 4a as of 13 Oct 2026: retrained with a radiograph-level split and adopted as the
+        # pipeline default (RESULTS_LOG 2026-10-13b, -c). models/03 above stays pinned: every
+        # Stage-4 number published before that date used it.
+        ("models/18_bone_loss_radiograph_split/seed42_best.pth",
+         "models/18_bone_loss_radiograph_split/run_summary.txt"),
     ]
     out = []
     for w, s in pairs:
@@ -318,19 +323,37 @@ def inv_stage4_report_wording():
     which leaves the caveat as the only thing telling a reader what the field is. So it is
     checked: present in every report, and rendered by the app rather than left in the JSON --
     until 11 Oct 2026 the app showed a "Bone loss" column and no Stage-4 caveat at all.
+
+    Since 13 Oct 2026 the caveat follows the binary weights that are loaded (BONE_LOSS_PROFILES,
+    RESULTS_LOG 2026-10-13c), as the detector's figures do. So this checks three things: every
+    profile, the unregistered one included, says the field is not a periodontal finding; the
+    checkpoint whose 0.923 was validation on its own training radiographs still says so; and
+    whatever the default is has a profile and the report carries it.
     """
     import numpy as np
     sys.path.insert(0, str(REPO_ROOT))
-    from scripts.run_inference import SCHEMA_VERSION, build_report
-    rep = build_report("x", np.zeros((8, 8, 3), np.uint8), [], [], [], [], [],
-                       {"caries": {"method": "lesion-detector"}})
+    from scripts.run_inference import (BONE_LOSS_PROFILES, DEF_BONE_LOSS, SCHEMA_VERSION,
+                                       UNREGISTERED_BONE_LOSS, build_report, file_sha256)
     assert float(SCHEMA_VERSION.split("/")[1]) >= 1.2, f"schema went backwards: {SCHEMA_VERSION}"
-    text = rep["limitations"]["bone_loss_label_and_validation"].lower()
-    for needle in ("abnormality", "not as a periodontal", "not a held-out"):
-        assert needle in text, f"the Stage-4 caveat lost its '{needle}' statement"
+    for prof in (*BONE_LOSS_PROFILES.values(), UNREGISTERED_BONE_LOSS):
+        text = " ".join(prof["label_and_validation"].lower().split())
+        for needle in ("abnormality", "not as a periodontal"):
+            assert needle in text, f"{prof['tag']}: the Stage-4 caveat lost its '{needle}' statement"
+    previous = BONE_LOSS_PROFILES["c52f7f484076a2a2c3c144c3351912b118b6b0d56fc51ba1b4296e6ce6213db1"]
+    assert "not a held-out" in previous["label_and_validation"].lower(), \
+        "the previous Stage-4a checkpoint's caveat lost its 'not a held-out' statement"
     app = (REPO_ROOT / "app.py").read_text(encoding="utf-8")
     assert "lim['bone_loss_label_and_validation']" in app, "app.py does not render the caveat"
-    return f"{SCHEMA_VERSION}; caveat in every report and rendered by app.py"
+    if not DEF_BONE_LOSS.exists():
+        return f"SKIP {DEF_BONE_LOSS.name} (not on this machine)"
+    sha = file_sha256(str(DEF_BONE_LOSS))
+    prof = BONE_LOSS_PROFILES.get(sha)
+    assert prof, f"DEF_BONE_LOSS {DEF_BONE_LOSS.name} ({sha[:12]}…) has no BONE_LOSS_PROFILES entry"
+    rep = build_report("x", np.zeros((8, 8, 3), np.uint8), [], [], [], [], [],
+                       {"caries": {"method": "lesion-detector"}, "bone_loss": {"sha256_binary": sha}})
+    assert rep["limitations"]["bone_loss_label_and_validation"] == prof["label_and_validation"], \
+        "the report does not carry the default checkpoint's caveat"
+    return f"{SCHEMA_VERSION}; {prof['tag']}; caveat follows the weights and is rendered by app.py"
 
 
 # ---------------------------------------------------------------- Stage-2 numbers

@@ -44,7 +44,7 @@ CHECKPOINTS = [
     ("stage3a_lesion",        "models/16_lever_b_pooled/lever_b_pooled_yolo11l-2/weights/best.pt"),
     ("stage3a_gate_variant",  "models/09_caries_gate_v3/caries_gate_v3.pth"),
     ("stage3b_caries_sev",    "models/07_caries_cascade/phase2_final_bundle.pth"),
-    ("stage4a_bone_gate",     "models/03_bone_loss_model_training_notebook_models/bone_loss_resnet18_best.pth"),
+    ("stage4a_bone_gate",     "models/18_bone_loss_radiograph_split/seed42_best.pth"),
     ("stage4b_bone_sev",      "models/04_bone_loss_severity_notebook_models/bone_loss_severity_resnet18_best.pth"),
 ]
 

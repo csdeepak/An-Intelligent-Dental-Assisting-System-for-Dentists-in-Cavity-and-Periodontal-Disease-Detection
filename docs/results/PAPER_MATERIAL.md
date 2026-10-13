@@ -2759,8 +2759,7 @@ flag, not a periodontal one.
 ### 8.35 Stage 4a retrained by radiograph — a matched pair, and how little a single seed says
 
 *13 Oct 2026. `RESULTS_LOG` 2026-10-13b. Pre-registered:
-`outputs/bone_loss_eval/v2_retrain/PRE_REGISTRATION.md`. Not adopted; the pipeline ships
-`models/03`.*
+`outputs/bone_loss_eval/v2_retrain/PRE_REGISTRATION.md`. Adopted the same night — §8.36.*
 
 **One variable changed.** The same ResNet18 and the same recipe, with the training and test
 teeth taken from different radiographs and all 678 training-split radiographs used:
@@ -2789,6 +2788,30 @@ external figure exists for the retrained model.
 
 **What it cannot say.** That Stage 4 detects periodontal bone loss; that the retrained model is
 what the pipeline ships, unless it is adopted; anything about it on Ningxia.
+
+---
+
+### 8.36 The Stage-4a default changed — what the pipeline ships and what the manuscript still describes
+
+*13 Oct 2026, night. `RESULTS_LOG` 2026-10-13c. The decision owner's decision.*
+
+**What ships.** The model of §8.35, seed 42: trained with the split made by radiograph, test
+sensitivity 27.5% [18.31, 37.98] at 95.9% specificity, 11.0–27.5% across three seeds. The
+previous checkpoint is retained and reachable.
+
+**What did not change.** The label. It is an abnormality-proximity flag.
+
+**What it has no figure for.** Anything outside Tufts. The 2.17% on Ningxia periodontitis and
+the 0.75% firing on DENTEX are the previous checkpoint's. The new one fires on 6.1% of DENTEX
+teeth [5.08, 7.14], which is a rate and not an accuracy.
+
+**A weakness made visible.** Stage 4b grades the severity of whatever Stage 4a flags. It was
+validated on 52 crops and never tested. On DENTEX it now grades 274 teeth where it graded 34,
+and calls 261 of them Moderate or Severe. Nothing supports those grades.
+
+**The manuscript is now behind the pipeline on this branch.** Its Stage-4 description, its data
+table and its bone-loss subsection describe the previous model. `SUBMISSION_TODO.md` §2 item 3
+has the rewritten paragraph.
 
 ---
 
@@ -3113,3 +3136,7 @@ goes between them.
 **13 Oct 2026 (evening) — to write, from §8.35:** the matched pair for the bone-loss paragraph
 (83% → 3.4% → 27.5%), with all three seeds; and, in the Limitations, that this is the only
 branch for which seed-to-seed spread was measured.
+
+**13 Oct 2026 (night) — to write, from §8.36:** the Stage-4 text wherever the manuscript
+describes the shipped model; the severity model as unvalidated; and a line that the Ningxia
+periodontitis figure belongs to the checkpoint the pipeline no longer ships.

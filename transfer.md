@@ -83,8 +83,11 @@ its crop-level validation set** (`RESULTS_LOG` 2026-10-13,
 `docs/session-memory/2026-10-13-bone-loss-heldout-score.md`). The 0.923 was the split. §2.5 and
 §3 edited.
 **13 Oct, evening — Stage 4a retrained with a radiograph-level split: 27.5% test sensitivity at
-95.9% specificity, 11–27% across three seeds; eligible, not adopted** (`RESULTS_LOG`
+95.9% specificity, 11–27% across three seeds; eligible** (`RESULTS_LOG`
 2026-10-13b, `docs/session-memory/2026-10-13b-stage4a-retrain.md`). §2.5 and §3 edited.
+**13 Oct, night — the retrained model ADOPTED as the Stage-4a default by the decision owner**
+(`RESULTS_LOG` 2026-10-13c, `docs/session-memory/2026-10-13c-stage4a-adoption.md`). Report
+schema 1.4. §2.1, §2.5, §3, §4 and §8 edited.
 
 > **Windows clone, 6 Sep 2026 — the Tufts crop corpus was cut from the wrong frame, and is now
 > rebuilt.** It scored 11.5% crop-level FDI-exact where the published number is 71.5%, with correct
@@ -240,7 +243,8 @@ failed ones).
 | 3a Caries localisation **(default)** | YOLOv11l lesion detector | 25.31 M | `models/16_lever_b_pooled/.../best.pt` |
 | 3a Caries gate **(retained variant, `--caries-method gate`)** | ResNet18 | 11.18 M | `models/09_caries_gate_v3/` |
 | 3b Caries severity | ResNet18 | 11.18 M | `models/07_caries_cascade/` |
-| 4a Bone-loss gate | ResNet18 | 11.18 M | `models/03_bone_loss_model_training_notebook_models/` |
+| 4a Abnormality flag **(default since 13 Oct)** — the field is still named `bone_loss` | ResNet18, retrained with a radiograph-level split | 11.18 M | `models/18_bone_loss_radiograph_split/seed42_best.pth` |
+| 4a (previous default, retained, `--bone-loss`) | ResNet18, crop-level split | 11.18 M | `models/03_bone_loss_model_training_notebook_models/` |
 | 4b Bone-loss severity | ResNet18 | 11.18 M | `models/04_bone_loss_severity_notebook_models/` |
 | **Total (default)** | | **95.34 M** | |
 | Total (gate variant) | | 81.21 M | |
@@ -386,7 +390,7 @@ again not separated from the constant at test1.
 |---|---|---|
 | Score | **0.923 macro-F1** (1,558 crops, 4% prevalence) — crop-level validation, **not held out** | pooled **2.4%** [2.0, 2.9] sensitivity |
 | **Held out, 13 Oct** | **sensitivity 7.6%** [5.19, 10.47], specificity 98.7%, macro-F1 0.542 — 821 Tufts radiographs outside training, 946 positive teeth | — |
-| **Retrained by radiograph, 13 Oct — not adopted** | test **sensitivity 27.5%** [18.31, 37.98], specificity 95.9%, macro-F1 0.611 (seed 42); 16.5% and 11.0% for seeds 43 and 44 — 143 test radiographs, 182 positive teeth | none; Ningxia is not read |
+| **Retrained by radiograph, 13 Oct — the pipeline default since that night** | test **sensitivity 27.5%** [18.31, 37.98], specificity 95.9%, macro-F1 0.611 (seed 42); 16.5% and 11.0% for seeds 43 and 44 — 143 test radiographs, 182 positive teeth | none; Ningxia is not read |
 
 Per-site external: test1 2.4% [1.8,3.0], test2 1.4% [0.9,2.0], test3 5.6% [3.0,8.7], test4 4.6%
 [2.7,6.6] (n=736 images total; CI closed 4 Sep, see §2.7). DENTEX firing rate 0.7%. Two
@@ -677,9 +681,19 @@ councilled on how** (`RESULTS_LOG` 2026-10-12c,
   radiographs (+0.1049 [+0.0186, +0.2051]).
 - **It is weak in absolute terms**: one labelled tooth in four, about one false flag per
   radiograph, ROC area 0.69, and an operating point that moves with the seed.
-- **NOT ADOPTED. `DEF_BONE_LOSS` is unchanged.** Adoption is the decision owner's and is its own
-  step: hash pin, tag, a `.gitignore` exception for a 45 MB file, scoreboard, report text,
-  Docker. The three checkpoints are git-ignored and exist only on the macOS clone.
+- **ADOPTED 13 Oct, night, by the decision owner (`RESULTS_LOG` 2026-10-13c).** `DEF_BONE_LOSS`
+  is `models/18_bone_loss_radiograph_split/seed42_best.pth`, tag
+  `abnormality-flag-resnet18-radiograph-split-v2.0`, hash-pinned. The previous checkpoint runs
+  with `--bone-loss`, and reproduces its earlier output exactly. A report's Stage-4 text now
+  follows the weights loaded (schema 1.4).
+- **On DENTEX the new default flags 6.1% of teeth (274 of 4,512) [5.08, 7.14]**, against 0.75%
+  before; nothing outside the Stage-4 field moved. **It has no Ningxia figure** — the 2.17%
+  is the previous checkpoint's.
+- **Open after adoption:** the 44.8 MB weight file must be committed (the `.gitignore`
+  exception is in place) or a fresh clone cannot run the pipeline; the severity model now
+  grades eight times as many DENTEX teeth and has never been tested; `main.tex` still
+  describes the previous model; the Docker image is three changes behind. Seeds 43 and 44
+  stay git-ignored on the macOS clone.
 - **Still not run:** BRAR, for a periodontal label.
 - **For the capstone report and a journal version, not the six pages:** a patient-level grading
   experiment on BRAR against majority-class and age-only baselines. Needs permission to
@@ -757,6 +771,7 @@ depends on this.
 | **Is the Tufts mirror-numbering finding novel?** Not established — the source paper (Panetta et al., IEEE JBHI 2022) is paywalled and unread. | Needs someone with IEEE Xplore access; a 5-minute read, not a research task |
 | **Real Tufts pixels are embedded in 7 tracked notebooks on `origin/main`.** Deferred — repo is confirmed private, so this is not an active leak, but must be resolved (strip outputs, or a coordinated history rewrite) before this repo or any fork is ever made public. | Deferred by explicit prior decision; revisit before public release |
 | **DECIDED 11 Oct — the manuscript reports the current front end, and was rebuilt on it. What remains is for the mentor to read the new headline.** The row as it stood: Which front end does the manuscript report? It now decides the paper's headline. Under the new front end the pipeline scores above the image-blind constant on DENTEX on both metrics, so "the constant scored highest" is true only of the previous one; the external results are the same either way (`RESULTS_LOG` 2026-10-11i). The pipeline default changed on 11 Oct; `paper/main.tex` describes the previous detector in every table. Rebuild the paper on the new front end, stating that the change went against two pre-registered verdicts — or report the previous front end and say the released default differs (`PAPER_MATERIAL.md` §8.30). | Changes the paper's tables and one of its claims; authors and mentor |
+| **The Stage-4a default was changed on 13 Oct without the repo owner or the mentor.** The retrained model met a pre-registered eligibility rule and the previous checkpoint is retained; reverting is one line. It puts a 44.8 MB file into git once committed, and changes what the demo shows: about eight times as many Stage-4 flags on DENTEX, each with a severity grade from a model that has never been tested (`RESULTS_LOG` 2026-10-13c). | They own the repo and the supervision |
 | **The Stage-1 switch was made without the repo owner or the mentor.** It overrides two pre-registered verdicts, re-scored the locked Ningxia cohort, and put a 51 MB file into git history for good (`arm3c_best.pt`, pushed 11 Oct in `7dd3ff4`). Reverting the default is still one line; the file stays in history either way. Whether either of them has been told since is not recorded in this repo. | They own the repo and the supervision |
 | **The Kaggle "dual-labeled" licence is unstated, and the default detector was trained on it.** Acceptable for an ablation; a publication question for a shipped default. | Needs a person to ask the dataset's authors, or a decision to retrain without it |
 | **`models/11` (53 MB) is committed to git, over the ~50 MB rule-4 line, and git history keeps it forever.** Deferred by the 3 Sep handoff decision (needed for a working fresh-clone demo). To undo: `git rm --cached`, restore `.gitignore`, re-host on Drive. | Revisit before any public release |
@@ -912,7 +927,10 @@ says otherwise.
 5. `python scripts/run_inference.py --image <any_opg.png> --output report.json` → should
    complete and name `models/15_detector_multicorpus_leverA/arm3c_best.pt` (Stage 1 default,
    tag `tooth-detector-multicorpus-1024-v1.0`), `models/16_lever_b_pooled` (Stage 3a default) and
-   `models/10_fdi_head_dentex_tufts_v2` (Stage 2 default) in the report's `models` block.
+   `models/10_fdi_head_dentex_tufts_v2` (Stage 2 default) in the report's `models` block, and
+   since 13 Oct `models/18_bone_loss_radiograph_split/seed42_best.pth` under `bone_loss`
+   (tag `abnormality-flag-resnet18-radiograph-split-v2.0`, schema `opg-report/1.4`). **That
+   file is in git only once the 13 Oct adoption has been committed — check `git ls-files`.**
    arm3c's weights are in git since `7dd3ff4` (11 Oct), so a clone has them; this step was
    verified on a checkout holding tracked files only (`RESULTS_LOG` 2026-10-11h).
 

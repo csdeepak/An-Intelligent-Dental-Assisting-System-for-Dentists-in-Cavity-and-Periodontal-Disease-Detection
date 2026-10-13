@@ -62,7 +62,10 @@ models/*.pt
 models/*.onnx
 # Stage 4a retrained with a radiograph-level split (13 Oct 2026): three seeds, ~45 MB each.
 # Ablation weights until a recorded adoption decision; histories and the prior are tracked.
+# Seed 42 was adopted as DEF_BONE_LOSS the same evening (RESULTS_LOG 2026-10-13c) and is
+# committed, like every other DEF_* checkpoint, so a fresh clone runs the pipeline. 44.8 MB.
 models/18_bone_loss_radiograph_split/*.pth
+!models/18_bone_loss_radiograph_split/seed42_best.pth
 models/*.pkl
 models/checkpoints/
 # YOLO detector weights are ~51 MB each (GitHub warns above 50 MB): kept on local

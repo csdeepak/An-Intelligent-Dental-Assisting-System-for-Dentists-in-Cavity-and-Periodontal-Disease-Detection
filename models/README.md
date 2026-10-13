@@ -31,7 +31,7 @@ One numbered directory per trained stage, each with a `*summary*.txt` beside the
 | `07_caries_cascade/` | Stage 3 — caries cascade, ResNet18 ×2 | 5 `.pth` (43 MB each) | **Partly** — the two bundles are tracked; the three lineage checkpoints are not. See below. |
 | `09_caries_gate_v3/` | Stage 3 — **the gate the pipeline actually uses**, retrained with a real negative class (5,366 healthy teeth) | 1 `.pth` (43 MB) | **Committed 3 Sep 2026** (same size as the tracked `10` head; SHA-256 `8f4a99ba…`). `isotonic_calibrator.json` + reports were always tracked. |
 | `03_bone_loss_model_training_notebook_models/` | Stage 4a — bone-loss binary | `bone_loss_resnet18_{best,final}.pth` | **Yes** |
-| `18_bone_loss_radiograph_split/` | Stage 4a retrained with a radiograph-level split, three seeds — **ablation, eligible, not adopted** (13 Oct 2026). Test sensitivity 27.5% / 16.5% / 11.0% against the shipped model's 3.4% | `seed{42,43,44}_best.pth` | No — git-ignored, macOS clone only; histories, logs and `run_summary.txt` are tracked |
+| `18_bone_loss_radiograph_split/` | Stage 4a retrained with a radiograph-level split, three seeds. **`seed42_best.pth` is the pipeline default since 13 Oct 2026** (`DEF_BONE_LOSS`). Test sensitivity 27.5% / 16.5% / 11.0% against the previous model's 3.4% | `seed{42,43,44}_best.pth` | `seed42_best.pth` **yes** (44.8 MB, `.gitignore` exception); seeds 43 and 44 no — git-ignored, macOS clone only |
 | `04_bone_loss_severity_notebook_models/` | Stage 4b — bone-loss severity | `bone_loss_severity_resnet18_best.pth` | **Yes** |
 | `05_cej_estimation_v2_models/` | Exploratory CEJ (negative result, not in the pipeline) | summary only | n/a |
 | `08_fdi_enumeration_head/` | Stage 2 — FDI head **v1.0** (DENTEX only). Superseded as the pipeline default 26 Aug, **retained and still hash-pinned** — every Stage-2 number published before that date was measured on it. | `enumeration_head_best.pth` (43 MB) | **Yes** |
@@ -75,7 +75,8 @@ One numbered directory per trained stage, each with a `*summary*.txt` beside the
 | `caries-gate-resnet18-v3.0` | Stage 3 gate (pipeline default until 4 Sep 2026; retained, `--caries-method gate`) | 25 Aug 2026 — `09_caries_gate_v3/run_summary.txt` |
 | `fdi-enumeration-head-resnet18-v1.0` | Stage 2 numbering (DENTEX only) | 22 Aug 2026 — `08_fdi_enumeration_head/run_summary.txt` |
 | `fdi-enumeration-head-resnet18-v2.0` | Stage 2 numbering (DENTEX + Tufts, **pipeline default**) | 26 Aug 2026 — `10_fdi_head_dentex_tufts_v2/run_summary.txt` |
-| `bone-loss-binary-resnet18-v1.0` | Stage 4a bone loss present/absent (**pipeline default**) | 27 Aug 2026 — `03_bone_loss_model_training_notebook_models/run_summary.txt` |
+| `abnormality-flag-resnet18-radiograph-split-v2.0` | Stage 4a abnormality flag (**pipeline default since 13 Oct 2026**, `DEF_BONE_LOSS`) | Trained and adopted 13 Oct 2026 — `18_bone_loss_radiograph_split/run_summary.txt`, `RESULTS_LOG.md` 2026-10-13b/c |
+| `bone-loss-binary-resnet18-v1.0` | Stage 4a (pipeline default until 13 Oct 2026; retained, `--bone-loss`) | 27 Aug 2026 — `03_bone_loss_model_training_notebook_models/run_summary.txt` |
 | `bone-loss-severity-resnet18-v1.0` | Stage 4b severity Mild/Moderate/Severe (**pipeline default**) | 27 Aug 2026 — `04_bone_loss_severity_notebook_models/run_summary.txt` |
 | `caries-lesion-detector-yolo11l-cariesxrays-v1.0` | Lever 2 — CariesXrays lesion detector (**benchmark only, not in the pipeline directly; reused as Lever B's B-single arm**) | 2 Sep 2026 — `14_cariesxrays_lever2/run_summary.txt` |
 | `caries-lesion-detector-yolo11l-leverb-bpooled-v1.0` | Stage 3 caries (**pipeline default since 4 Sep 2026**, `DEF_CARIES_LESION_MODEL`) | 4 Sep 2026 — `16_lever_b_pooled/run_summary.txt`, `RESULTS_LOG.md` 2026-09-04h |

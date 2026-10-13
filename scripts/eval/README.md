@@ -149,7 +149,9 @@ scores the mirrored August rebuild and is not the way to measure this model.
 with a radiograph-level split (`scripts/tufts/train_bone_loss_v2.py`): three seeds and the
 shipped model on the 143 test radiographs, a tooth-position prior, and the two-part
 eligibility rule. `score` refuses to run twice. Result: 27.5% sensitivity at 95.9%
-specificity for seed 42; eligible; not adopted. `RESULTS_LOG` 2026-10-13b.
+specificity for seed 42; eligible. `RESULTS_LOG` 2026-10-13b. **Adopted as the default the
+same night;** `dentex` re-measures Stage-4 firing on the 164 DENTEX images with the previous
+checkpoint as a control (34 → 274 of 4,512 teeth). `RESULTS_LOG` 2026-10-13c.
 
 ---
 

@@ -105,7 +105,9 @@ folder outside git. Git has tracked `_repo_archive/ARCHIVE_MANIFEST.md` at the r
   to undo. This does not open the door to committing other weights — `models/06`, the
   `models/{13,15,17}` ablation weights, and anything new stay out. **11 Oct 2026:** one file
   under `models/15`, `arm3c_best.pt` (51 MB), became the Stage-1 default and is committed for
-  the same reason; `controlB` and `arm4c` beside it stay out.)*
+  the same reason; `controlB` and `arm4c` beside it stay out. **13 Oct 2026:**
+  `models/18_bone_loss_radiograph_split/seed42_best.pth` (44.8 MB) became the Stage-4a default
+  and is committed likewise; `seed43` and `seed44` beside it stay out.)*
 - **No new file paths containing spaces.** `notebooks/Bone Loss/` was renamed to
   `notebooks/bone_loss/` for exactly this reason.
 - **Do not "fix" a stale status table by guessing.** Verify against notebook outputs and
@@ -145,7 +147,9 @@ The only durable facts worth repeating here, because they shape almost every tas
 - **Model weights live under `models/<NN>_<name>/`, and which checkpoint is the pipeline
   default changes** — the Stage-2 head became v2.0 on 26 Aug, the Stage-3a caries default
   became the lesion detector (`models/16_lever_b_pooled/`) on 4 Sep, and the Stage-1 detector
-  became the multi-corpus model (`models/15_…/arm3c_best.pt`) on 11 Oct, each with its
+  became the multi-corpus model (`models/15_…/arm3c_best.pt`) on 11 Oct, and the Stage-4a
+  model became one retrained with a radiograph-level split
+  (`models/18_bone_loss_radiograph_split/seed42_best.pth`) on 13 Oct, each with its
   predecessor retained and hash-pinned. Read `models/README.md` and the `DEF_*` defaults in
   `run_inference.py` rather than assuming, and check `git ls-files` before telling anyone a
   fresh clone has a given `DEF_*` checkpoint. The superseded detector (`models/06`) and the

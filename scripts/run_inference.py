@@ -54,14 +54,17 @@ written into every report rather than left to a footnote:
     against an 11.7% annotated floor at 0.40 held-out precision; pass it for reproducibility of
     every pre-4-Sep number.
   * THE "BONE LOSS" FIELD IS AN ABNORMALITY-PROXIMITY FLAG, NOT A PERIODONTAL FINDING (found
-    10 Oct 2026, RESULTS_LOG 2026-10-10). Stage 4 was trained to flag tooth crops that overlap
-    a Tufts expert ABNORMALITY mask, and the radiographs behind its positive class are described
-    as apical lesions, sclerosis and cysts -- none as periodontal bone loss. Its in-domain score
-    (macro-F1 0.923) is not a held-out estimate either: validation and training crops came from
-    the same radiographs. On 821 Tufts radiographs that supplied no training crop it finds 7.6%
-    of the teeth carrying its own label (72 of 946) at 98.7% specificity (RESULTS_LOG
-    2026-10-13). The field names are unchanged so consumers do not break; the report's
-    `limitations` block says what they mean.
+    10 Oct 2026, RESULTS_LOG 2026-10-10). Stage 4 is trained to flag tooth crops that overlap
+    a Tufts expert ABNORMALITY mask, and the radiographs behind that label are described as
+    apical lesions, sclerosis and cysts -- none as periodontal bone loss. Since 13 Oct 2026 the
+    default binary model is one retrained with the split made by radiograph: on 143 Tufts test
+    radiographs it finds 27.5% of the teeth carrying its label at 95.9% specificity, and 11% to
+    27% across three training runs (RESULTS_LOG 2026-10-13b, -c). The model it replaced, whose
+    0.923 macro-F1 was validation on its own training radiographs and which finds 7.6% held
+    out, is retained: pass `--bone-loss models/03_bone_loss_model_training_notebook_models/
+    bone_loss_resnet18_best.pth` for any Stage-4 number published before that date. The field
+    names are unchanged so consumers do not break; the report's `limitations` block says what
+    they mean, for whichever checkpoint ran.
 
 Neither branch is fixable-to-perfect at this layer, and neither field is a diagnosis. They are
 surfaced so the report cannot be quoted as more than it is.
@@ -89,7 +92,12 @@ sys.path.insert(0, str(REPO_ROOT))
 # accuracy figures in `limitations` now follow the weights actually loaded (DETECTOR_PROFILES
 # below). For a detector with no profile those two figures are null -- the one change a
 # consumer can notice, and only on a non-default `--detector`. RESULTS_LOG 2026-10-11e.
-SCHEMA_VERSION = "opg-report/1.3"
+# 1.4 (13 Oct 2026): `models.bone_loss` gained `sha256_binary`, and its `tag_binary`,
+# `validation_split` and `class_order_note`, with the two bone-loss texts in `limitations`, now
+# follow the binary weights actually loaded (BONE_LOSS_PROFILES below). Additive: nothing was
+# renamed or removed. The Stage-4a default changed the same day, so the per-tooth `bone_loss`
+# VALUES differ from a 1.3 report of the same image. RESULTS_LOG 2026-10-13c.
+SCHEMA_VERSION = "opg-report/1.4"
 
 # Measured Stage-1/Stage-2 performance, stamped into every report's "limitations" block so a
 # report always carries the accuracy of the pipeline that produced it.
@@ -273,8 +281,112 @@ CARIES_NEGATIVE_ASSUMPTION = {
         "lesion the annotators missed is a false negative in training and in the "
         "reported precision. Unmeasurable inside DENTEX."),
 }
-DEF_BONE_LOSS = REPO_ROOT / "models/03_bone_loss_model_training_notebook_models/bone_loss_resnet18_best.pth"
+DEF_BONE_LOSS = REPO_ROOT / "models/18_bone_loss_radiograph_split/seed42_best.pth"
 DEF_BONE_SEVERITY = REPO_ROOT / "models/04_bone_loss_severity_notebook_models/bone_loss_severity_resnet18_best.pth"
+
+# What is known about each Stage-4a (binary) checkpoint, keyed by the sha256 of its weights, so
+# that the tag and the figures stamped into a report belong to the model that produced it -- the
+# arrangement DETECTOR_PROFILES already gives Stage 1. The default changed on 13 Oct 2026
+# (RESULTS_LOG 2026-10-13b, -c). The checkpoint it replaced is retained, and every Stage-4 number
+# published before that date used it:
+#   --bone-loss models/03_bone_loss_model_training_notebook_models/bone_loss_resnet18_best.pth
+# A checkpoint with no entry gets an "unregistered" tag and no figure -- add its entry only from a
+# measurement of it.
+BONE_LOSS_PROFILES = {
+    "e4bc874423e7c17752bb949d510862e4b4fd618f9a7602a95743663a3c27a0b2": {
+        "tag": "abnormality-flag-resnet18-radiograph-split-v2.0",
+        "label_and_validation": (
+            "Read every 'bone_loss' field in this report as an ABNORMALITY-PROXIMITY FLAG, not as "
+            "a periodontal finding. Stage 4 is trained to flag tooth crops that overlap a Tufts "
+            "expert abnormality mask, and the radiographs behind that label are described by that "
+            "expert as apical lesions, sclerosis and cysts -- none as periodontal bone loss. This "
+            "checkpoint was trained with the split made by radiograph and scored once on 143 "
+            "Tufts test radiographs that no model in this pipeline trained on: it found 27.5% of "
+            "the teeth carrying its label (50 of 182; 95% interval 18.3 to 38.0) at 95.9% "
+            "specificity -- about one labelled tooth in four, about one false flag per "
+            "radiograph, and one flag in four correct. Two further training runs of the same "
+            "recipe gave 16.5% and 11.0%, so the operating point depends on the run. Expect this "
+            "flag to miss most of what it is trained to mark and to be wrong more often than "
+            "right. The field names are kept so existing consumers do not break. RESULTS_LOG "
+            "2026-10-13b; 2026-10-10 and 2026-10-13 for the checkpoint it replaced."),
+        "transfer": (
+            "This Stage-4 model was trained on TUFTS radiographs and is applied here to whatever "
+            "image is supplied. It has no figure with ground truth on any other source. On 164 "
+            "DENTEX images it flags 6.1% of detected teeth (274 of 4,512; the checkpoint it "
+            "replaced flagged 0.75%) -- a firing rate, not a sensitivity, because DENTEX carries "
+            "no ground truth for this label. The 2.2% affected-tooth sensitivity against the "
+            "Ningxia periodontitis masks belongs to the checkpoint it replaced, and Ningxia has "
+            "not been scored with this one. The severity grade attached to a flagged tooth comes "
+            "from a separate model validated on 52 crops; on those DENTEX images it called 261 "
+            "of the 274 flagged teeth Moderate or Severe, and that grade is not validated. A "
+            "'normal' field is weak evidence, not a negative finding, and says nothing about "
+            "periodontal status. RESULTS_LOG 2026-10-13c."),
+        "validation_split": (
+            "binary: the frozen split_v1 by radiograph -- trained on 678 Tufts radiographs, "
+            "checkpoint chosen on 145 others, scored once on 143 test radiographs: sensitivity "
+            "0.275 (50/182), specificity 0.959 (3558/3710); 0.165 and 0.110 for two further "
+            "training runs of the same recipe. RESULTS_LOG 2026-10-13b. "
+            "severity: image-level, 32 training / 9 validation radiographs (unchanged)."),
+        "class_order_note": (
+            "binary class order [normal, bone_loss]: index 1 is the positive label by "
+            "construction (scripts/tufts/train_bone_loss_v2.py trains on labels 0/1) and the "
+            "test pass scored it as such. The checkpoint is a bare state_dict and carries no "
+            "class_to_idx. See models/18_bone_loss_radiograph_split/run_summary.txt."),
+    },
+    "c52f7f484076a2a2c3c144c3351912b118b6b0d56fc51ba1b4296e6ce6213db1": {
+        "tag": "bone-loss-binary-resnet18-v1.0",
+        "label_and_validation": (
+            "Read every 'bone_loss' field in this report as an ABNORMALITY-PROXIMITY FLAG, "
+            "not as a periodontal finding. Stage 4 was trained to flag tooth crops that "
+            "overlap a Tufts expert abnormality mask, and the radiographs behind its "
+            "positive class are described by that expert as apical lesions, sclerosis and "
+            "cysts -- none as periodontal bone loss. Its reported in-domain score (macro-F1 "
+            "0.923) is not a held-out estimate: the validation crops came from the same "
+            "radiographs as the training crops. Scored once on 821 Tufts radiographs that "
+            "supplied no training crop, it found 7.6% of the teeth carrying its own label "
+            "(72 of 946; 95% interval 5.2 to 10.5) at 98.7% specificity -- so expect this "
+            "flag to miss most of what it was trained to mark, on any image. The field "
+            "names are kept so existing consumers do not break. RESULTS_LOG 2026-10-10, "
+            "2026-10-13."),
+        "transfer": (
+            "The Stage-4 models were trained on TUFTS radiographs and are applied here to "
+            "whatever image is supplied; on DENTEX they fire on 0.7% of teeth (2/299) with "
+            "0.93-0.999 confidence in 'normal', and against the Ningxia periodontitis masks "
+            "they reach 2.4% affected-tooth sensitivity. That was first read as domain "
+            "shift. It is at least partly a label mismatch, and since 13 Oct 2026 the model "
+            "is known to miss 92% of its own label on held-out Tufts radiographs as well -- "
+            "see bone_loss_label_and_validation -- so a 'normal' field is weak evidence, "
+            "not a negative finding, and says nothing about periodontal status."),
+        "validation_split": (
+            "binary: crop-level 20% split, all 143 validation radiographs also "
+            "supply training crops, so 0.9233 is not a held-out estimate. Held "
+            "out, 821 Tufts radiographs outside training (13 Oct 2026): "
+            "sensitivity 0.076 (72/946), specificity 0.987. "
+            "severity: image-level, 32 training / 9 validation radiographs."),
+        "class_order_note": (
+            "binary class order [normal, bone_loss] confirmed two independent "
+            "ways (27 Aug 2026): FocalLoss alpha ratio 2.258/0.642 = 3.5171 "
+            "matches the class-count ratio 2500/711 = 3.5162 to 0.03%, so index "
+            "0 is the majority class; and training_summary.txt labels its own "
+            "scores 'F1 Normal (cls 0)' / 'F1 Diseased (cls 1)'. The checkpoint "
+            "still carries no class_to_idx -- the order is corroborated, not "
+            "stored. See models/03_.../run_summary.txt."),
+    },
+}
+UNREGISTERED_BONE_LOSS = {
+    "tag": None,
+    "label_and_validation": (
+        "Read every 'bone_loss' field in this report as an ABNORMALITY-PROXIMITY FLAG, not as a "
+        "periodontal finding. No sensitivity or specificity has been measured for the binary "
+        "checkpoint that produced this report: its weights have no entry in BONE_LOSS_PROFILES. "
+        "Figures quoted elsewhere for Stage 4 belong to a different checkpoint and do not apply "
+        "here."),
+    "transfer": (
+        "No figure exists for this Stage-4 checkpoint on any source. A 'normal' field is weak "
+        "evidence, not a negative finding, and says nothing about periodontal status."),
+    "validation_split": "binary: unknown -- unregistered checkpoint.",
+    "class_order_note": "binary class order assumed [normal, bone_loss]; not verified for this checkpoint.",
+}
 
 # A tooth is reported as assessable only if Stage 2 is confident about WHICH tooth it is.
 # Findings on a misnumbered tooth are worse than no findings, so this gates the whole record.
@@ -328,6 +440,8 @@ def build_report(image_path, img_bgr, boxes, confs, fdi_assign, caries, bone, me
     codes = [t["fdi"] for t in teeth if t["fdi"] is not None]
     det_profile = DETECTOR_PROFILES.get(meta.get("detector", {}).get("sha256"),
                                         UNREGISTERED_DETECTOR)
+    bone_profile = BONE_LOSS_PROFILES.get(meta.get("bone_loss", {}).get("sha256_binary"),
+                                          UNREGISTERED_BONE_LOSS)
     return {
         "schema_version": SCHEMA_VERSION,
         "generated": datetime.now().isoformat(timespec="seconds"),
@@ -352,28 +466,8 @@ def build_report(image_path, img_bgr, boxes, confs, fdi_assign, caries, bone, me
             "caries_presumed_negative_assumption": (
                 CARIES_NEGATIVE_ASSUMPTION["lesion-detector"] if meta["caries"].get("method") ==
                 "lesion-detector" else CARIES_NEGATIVE_ASSUMPTION["gate"]),
-            "bone_loss_label_and_validation": (
-                "Read every 'bone_loss' field in this report as an ABNORMALITY-PROXIMITY FLAG, "
-                "not as a periodontal finding. Stage 4 was trained to flag tooth crops that "
-                "overlap a Tufts expert abnormality mask, and the radiographs behind its "
-                "positive class are described by that expert as apical lesions, sclerosis and "
-                "cysts -- none as periodontal bone loss. Its reported in-domain score (macro-F1 "
-                "0.923) is not a held-out estimate: the validation crops came from the same "
-                "radiographs as the training crops. Scored once on 821 Tufts radiographs that "
-                "supplied no training crop, it found 7.6% of the teeth carrying its own label "
-                "(72 of 946; 95% interval 5.2 to 10.5) at 98.7% specificity -- so expect this "
-                "flag to miss most of what it was trained to mark, on any image. The field "
-                "names are kept so existing consumers do not break. RESULTS_LOG 2026-10-10, "
-                "2026-10-13."),
-            "bone_loss_domain_shift": (
-                "The Stage-4 models were trained on TUFTS radiographs and are applied here to "
-                "whatever image is supplied; on DENTEX they fire on 0.7% of teeth (2/299) with "
-                "0.93-0.999 confidence in 'normal', and against the Ningxia periodontitis masks "
-                "they reach 2.4% affected-tooth sensitivity. That was first read as domain "
-                "shift. It is at least partly a label mismatch, and since 13 Oct 2026 the model "
-                "is known to miss 92% of its own label on held-out Tufts radiographs as well -- "
-                "see bone_loss_label_and_validation -- so a 'normal' field is weak evidence, "
-                "not a negative finding, and says nothing about periodontal status."),
+            "bone_loss_label_and_validation": bone_profile["label_and_validation"],
+            "bone_loss_domain_shift": bone_profile["transfer"],
             "not_clinically_validated": True,
         },
     }
@@ -530,6 +624,8 @@ def run_pipeline(img_bgr, models, device, paths, image_label="image", imgsz=1024
     bone = run_bone_loss(models["bbin"], models["bsev"], img_bgr, boxes, device)
 
     det_sha = file_sha256(str(paths["detector"]))
+    bone_sha = file_sha256(str(paths["bone_loss"]))
+    bone_profile = BONE_LOSS_PROFILES.get(bone_sha, UNREGISTERED_BONE_LOSS)
     meta = {
         "detector": {"weights": str(paths["detector"]), "sha256": det_sha,
                      "tag": (DETECTOR_PROFILES[det_sha]["tag"] if det_sha in DETECTOR_PROFILES
@@ -540,28 +636,17 @@ def run_pipeline(img_bgr, models, device, paths, image_label="image", imgsz=1024
                      "one_to_one": one_to_one, "assignment": assignment,
                      "crop_expand": [1.5, 1.5]},
         "caries": caries_meta,
-        "bone_loss": {"binary": str(paths["bone_loss"]), "severity": str(paths["bone_severity"]),
+        "bone_loss": {"binary": str(paths["bone_loss"]), "sha256_binary": bone_sha,
+                      "severity": str(paths["bone_severity"]),
                       "crop_expand": [1.5, 2.0], "severity_classes": BONE_LOSS_SEVERITY_CLASSES,
-                      "tag_binary": "bone-loss-binary-resnet18-v1.0",
+                      "tag_binary": bone_profile["tag"] or f"unregistered-{bone_sha[:8]}",
                       "tag_severity": "bone-loss-severity-resnet18-v1.0",
                       "label_definition": (
                           "positive = the tooth crop overlaps a Tufts expert ABNORMALITY mask "
-                          "(overlap > 0.01). Not a periodontal bone-loss label; the tags above "
-                          "are historical names. RESULTS_LOG 2026-10-10."),
-                      "validation_split": (
-                          "binary: crop-level 20% split, all 143 validation radiographs also "
-                          "supply training crops, so 0.9233 is not a held-out estimate. Held "
-                          "out, 821 Tufts radiographs outside training (13 Oct 2026): "
-                          "sensitivity 0.076 (72/946), specificity 0.987. "
-                          "severity: image-level, 32 training / 9 validation radiographs."),
-                      "class_order_note": (
-                          "binary class order [normal, bone_loss] confirmed two independent "
-                          "ways (27 Aug 2026): FocalLoss alpha ratio 2.258/0.642 = 3.5171 "
-                          "matches the class-count ratio 2500/711 = 3.5162 to 0.03%, so index "
-                          "0 is the majority class; and training_summary.txt labels its own "
-                          "scores 'F1 Normal (cls 0)' / 'F1 Diseased (cls 1)'. The checkpoint "
-                          "still carries no class_to_idx -- the order is corroborated, not "
-                          "stored. See models/03_.../run_summary.txt.")},
+                          "(overlap > 0.01). Not a periodontal bone-loss label; the field names "
+                          "and the severity tag are historical. RESULTS_LOG 2026-10-10."),
+                      "validation_split": bone_profile["validation_split"],
+                      "class_order_note": bone_profile["class_order_note"]},
     }
 
     log("stage 5–6 — fusion and report …")

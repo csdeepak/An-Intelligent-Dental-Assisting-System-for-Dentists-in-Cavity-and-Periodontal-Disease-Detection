@@ -8768,3 +8768,65 @@ manuscript now carries is from 2026-10-11g, -i and -j — and one new check, on 
   seed 43 the machine ran on a nearly flat battery, so the epoch times recorded for seeds 43
   and 44 are not a timing result. Not measured: the retrained model's firing rate on DENTEX;
   the severity model on the teeth the retrained model flags.
+
+## 2026-10-13c — the Stage-4a default changed to the model retrained by radiograph; DENTEX firing re-measured
+
+- **What was done:** The decision owner said to adopt the retrained model as the default.
+  Recorded first as Amendment 1 of `outputs/bone_loss_eval/v2_retrain/PRE_REGISTRATION.md`
+  (commit `9df2f7b`), which says what adoption consists of and registers the one pipeline figure
+  it makes stale. Then: `DEF_BONE_LOSS` changed; the report's Stage-4 tag and limitation text
+  made to follow whichever binary weights are loaded; the hash pinned; the parameter counts
+  regenerated; the Stage-4 firing rate on DENTEX re-measured with the previous checkpoint as a
+  control. **This is the decision owner's decision.** The mentor and the repo owner have not
+  been told.
+- **Dataset / config:** `models/18_bone_loss_radiograph_split/seed42_best.pth`, sha256
+  `e4bc874423e7c17752bb949d510862e4b4fd618f9a7602a95743663a3c27a0b2`, tag `abnormality-flag-resnet18-radiograph-split-v2.0`. It was the seed fixed in
+  advance and it met the registered eligibility rule (`RESULTS_LOG` 2026-10-13b). The previous
+  checkpoint (`models/03_…/bone_loss_resnet18_best.pth`, `c52f7f48…213db1`,
+  `bone-loss-binary-resnet18-v1.0`) is retained, hash-pinned, and runs with `--bone-loss`.
+  Stage 4b, the severity model, is unchanged. DENTEX: the 164 leak-free `disease/` images
+  through the pipeline as shipped, current tooth detector, CPU.
+- **Metrics:**
+  - **The default's own figures are those of 2026-10-13b**, Tufts test: sensitivity 27.5% (50 of
+    182) [18.31, 37.98], specificity 95.9%, 11.0–27.5% across three seeds.
+  - **Stage-4 firing on DENTEX, 164 images, 4,512 detected teeth.** Control, the previous
+    checkpoint: **34 flagged — exactly the 34 of 11 Oct.** The new default: **274 flagged, 6.1%**
+    [5.08, 7.14]; difference +5.32 pp [+4.34, +6.39]. Images with at least one flag: 27 before,
+    113 now. A firing rate, not a sensitivity and not a false-positive rate: DENTEX has no
+    ground truth for this label.
+  - **Severity of the flagged teeth, from the unchanged Stage 4b.** Previous: 21 Severe, 11
+    Moderate, 2 Mild. Now: 141 Severe, 120 Moderate, 13 Mild.
+  - **Integrity.** On every one of the 164 images, every per-tooth field outside `bone_loss` is
+    identical between the two runs. Run with `--bone-loss` on the previous checkpoint, the
+    pipeline gives the per-tooth output and the limitation text it gave before the change.
+  - **Unchanged:** every parameter total (both models are the same ResNet18: 95,343,545 for the
+    default pipeline); every caries and numbering figure.
+- **Key decision or insight:**
+  1. **The pipeline now ships a Stage-4a model with a held-out figure of its own**, in place of
+     one known to find 3 to 8% of its label. The figure is modest and the report says so in the
+     words a reader will see: one labelled tooth in four, about one false flag per radiograph,
+     the operating point dependent on the training run.
+  2. **It is still an abnormality-proximity flag.** Nothing about the label changed. The tag no
+     longer says "bone-loss".
+  3. **It has no external figure and Ningxia will not give it one.** The 2.17% on Ningxia
+     periodontitis is the previous checkpoint's, and every place that quotes it must say so.
+  4. **The severity model is now asked about eight times as many teeth on DENTEX, and calls 95%
+     of them Moderate or Severe.** That model was validated on 52 crops and has never had a
+     held-out test. Its grades were always unvalidated; they are now far more visible in the
+     demo. The report's text says so. Whether the overlay should keep printing a severity is a
+     decision that has not been made.
+  5. **A report's Stage-4 text now follows the weights**, as its detector text has since
+     11 Oct. A checkpoint with no profile gets an "unregistered" tag and no figure. Report
+     schema 1.4.
+- **Source:** `scripts/run_inference.py` (`DEF_BONE_LOSS`, `BONE_LOSS_PROFILES`, schema 1.4);
+  `scripts/eval/verify_invariants.py`; `scripts/count_model_params.py`,
+  `outputs/param_counts/param_counts.json`; `.gitignore`;
+  `outputs/bone_loss_eval/v2_retrain/{dentex_firing.json,dentex_stdout.log}`
+  (`scripts/eval/bone_loss_v2_eval.py dentex`); `tests/test_bone_loss_v2.py`. 184 tests pass,
+  all invariants hold, 191 manuscript numbers still match.
+- **Follow-ups:** the weight file (44.8 MB) must be committed for a fresh clone to run — the
+  `.gitignore` exception is in place and the commit is the user's. `paper/main.tex` describes
+  the previous model throughout its Stage-4 text; `docs/paper/SUBMISSION_TODO.md` §2 item 3
+  lists what changes. The Docker image is now three changes behind. The root `README.md`'s
+  banner image still shows 0.9233. Tell the mentor and the repo owner. Decide whether the
+  overlay keeps a severity grade.

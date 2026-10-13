@@ -6,6 +6,7 @@ and Sec 6 (the eligibility rule E1 and E2). Nothing here changes a default.
 
     python scripts/eval/bone_loss_v2_eval.py score    # the 143 test radiographs; refuses twice
     python scripts/eval/bone_loss_v2_eval.py report   # recompute the summary from the saved rows
+    python scripts/eval/bone_loss_v2_eval.py dentex   # Amendment 1: Stage-4 firing on DENTEX, once
 """
 
 import argparse
@@ -184,7 +185,68 @@ def report():
     return 0
 
 
+def dentex():
+    """Amendment 1: Stage-4 flags on the 164 DENTEX images through the pipeline as shipped, the
+    previous checkpoint first (it must reproduce 34 of 4,512), then the adopted default. A firing
+    rate: DENTEX has no ground truth for this label."""
+    out = OUT / "dentex_firing.json"
+    if out.exists():
+        raise SystemExit(f"REFUSED: {out} exists; this is run once")
+    from collections import Counter
+
+    import cv2
+    import torch
+    from bone_loss_heldout import WEIGHTS as PREVIOUS
+    from bootstrap_ci import cluster_bootstrap, ratio
+    from c1_vlm_baseline import DEF_DISEASE, load_gt
+    from caries_intervals import delta
+    from scripts.run_inference import DEF_BONE_LOSS, load_models, run_pipeline
+
+    stems = sorted(load_gt(DEF_DISEASE))                      # the 164 leak-free images
+    reports = {}
+    for name, weights in (("previous", PREVIOUS), ("default", DEF_BONE_LOSS)):
+        models, device, paths = load_models(bone_loss=weights, device=torch.device("cpu"))
+        reports[name] = {}
+        for stem in stems:
+            img = cv2.imread(str(DEF_DISEASE / "input" / f"{stem}.png"), cv2.IMREAD_COLOR)
+            reports[name][stem] = run_pipeline(img, models, device, paths, image_label=stem, verbose=False)
+        got = (sum(r["summary"]["bone_loss_positive"] for r in reports[name].values()),
+               sum(r["summary"]["teeth_detected"] for r in reports[name].values()))
+        print(f"{name}: {got[0]} of {got[1]} detected teeth flagged, {len(stems)} images "
+              f"({reports[name][stems[0]]['models']['bone_loss']['tag_binary']})", flush=True)
+        if name == "previous" and got != (34, 4512):
+            raise SystemExit(f"STOP -- the control gives {got}, not the 34 of 4,512 of 11 Oct")
+
+    rest = lambda rep: [{k: v for k, v in t.items() if k != "bone_loss"} for t in rep["teeth"]]
+    untouched = all(rest(reports["previous"][s]) == rest(reports["default"][s]) for s in stems)
+    rows = {name: [{"image": s, "teeth_detected": r["summary"]["teeth_detected"],
+                    "flagged": r["summary"]["bone_loss_positive"]} for s, r in reps.items()]
+            for name, reps in reports.items()}
+    rate = ratio("flagged", "teeth_detected")
+    res = {"pre_registration": "outputs/bone_loss_eval/v2_retrain/PRE_REGISTRATION.md, Amendment 1",
+           "n_images": len(stems), "device": "cpu", "control_reproduces_34_of_4512": True,
+           "every_field_outside_bone_loss_identical": bool(untouched)}
+    for name, rws in rows.items():
+        pt, lo, hi, _ = cluster_bootstrap(rws, rate, N_BOOT, np.random.default_rng(SEED))
+        flagged_teeth = [t for r in reports[name].values() for t in r["teeth"]
+                         if t["bone_loss"]["finding"] == "bone_loss"]
+        res[name] = {"sha256": reports[name][stems[0]]["models"]["bone_loss"]["sha256_binary"],
+                     "tag": reports[name][stems[0]]["models"]["bone_loss"]["tag_binary"],
+                     "teeth_detected": sum(r["teeth_detected"] for r in rws),
+                     "flagged": sum(r["flagged"] for r in rws),
+                     "images_with_a_flag": sum(r["flagged"] > 0 for r in rws),
+                     "firing_rate": {"value": round(pt, 4), "ci95": [round(lo, 4), round(hi, 4)]},
+                     "severity_of_flagged_teeth": dict(Counter(t["bone_loss"]["severity"] for t in flagged_teeth))}
+    res["default_minus_previous"] = delta(rows["previous"], rows["default"], rate)
+    res["per_image"] = [{"image": a["image"], "teeth_detected": a["teeth_detected"],
+                         "flagged_previous": a["flagged"], "flagged_default": b["flagged"]}
+                        for a, b in zip(rows["previous"], rows["default"])]
+    out.write_text(json.dumps(res, indent=2) + "\n")
+    print(json.dumps({k: v for k, v in res.items() if k != "per_image"}, indent=2))
+    return 0 if untouched else 1
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("step", choices=("score", "report"))
-    sys.exit({"score": score, "report": report}[ap.parse_args().step]())
+    ap.add_argument("step", choices=("score", "report", "dentex"))
+    sys.exit({"score": score, "report": report, "dentex": dentex}[ap.parse_args().step]())

@@ -103,3 +103,13 @@ HELD OUT -- 13 October 2026 (RESULTS_LOG 2026-10-13)
     F1 macro      0.5419                    95% CI [0.5247, 0.5612]
   The label is overlap with a Tufts expert abnormality mask, not periodontal bone loss.
   Do not quote 0.9233 without this.
+
+--------------------------------------------------------------------------------
+SUPERSEDED AS THE PIPELINE DEFAULT -- 13 October 2026 (RESULTS_LOG 2026-10-13c)
+--------------------------------------------------------------------------------
+  DEF_BONE_LOSS is now models/18_bone_loss_radiograph_split/seed42_best.pth, the same
+  architecture retrained with the split made by radiograph. This checkpoint is retained,
+  unchanged and hash-pinned, and runs with
+    --bone-loss models/03_bone_loss_model_training_notebook_models/bone_loss_resnet18_best.pth
+  Every Stage-4 number published before that date, the Ningxia 2.17% included, is this
+  checkpoint's.

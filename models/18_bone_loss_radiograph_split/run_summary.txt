@@ -1,10 +1,14 @@
 ================================================================================
 18_bone_loss_radiograph_split -- Stage 4a retrained with a radiograph-level split
 ================================================================================
-Status:   ABLATION, ELIGIBLE to replace the shipped Stage-4a model under a pre-registered rule.
-          NOT ADOPTED. `scripts/run_inference.py` DEF_BONE_LOSS still points at
-          models/03_bone_loss_model_training_notebook_models/bone_loss_resnet18_best.pth.
-          Adoption is the decision owner's, and would be its own recorded step.
+Status:   seed42_best.pth is the PIPELINE DEFAULT for Stage 4a since 13 October 2026
+          (`scripts/run_inference.py` DEF_BONE_LOSS; tag
+          abnormality-flag-resnet18-radiograph-split-v2.0; RESULTS_LOG 2026-10-13c). Adopted
+          by the decision owner after it met the pre-registered eligibility rule below.
+          The previous default, models/03_.../bone_loss_resnet18_best.pth, is retained and
+          runs with --bone-loss. Seeds 43 and 44 are ablation weights.
+          NOTE: the sections below were written before adoption and are left as written;
+          the ADOPTION section at the foot of this file is the later record.
 Date:     13 October 2026
 Pre-reg:  outputs/bone_loss_eval/v2_retrain/PRE_REGISTRATION.md (commits 0993d4a, d8dff27)
 Log:      docs/results/RESULTS_LOG.md 2026-10-13b
@@ -48,7 +52,7 @@ every diseased crop once and 3.5 normals for each, redrawn every epoch (1,585 + 
 the original kept one fixed set of 2,500 normals.
 
 --------------------------------------------------------------------------------
-WEIGHTS (44.8 MB each, gitignored -- ablation weights until an adoption decision)
+WEIGHTS (44.8 MB each; seed 42 is committed via a .gitignore exception, 43 and 44 are not)
 --------------------------------------------------------------------------------
 seed42_best.pth  sha256 e4bc874423e7c17752bb949d510862e4b4fd618f9a7602a95743663a3c27a0b2
   best epoch 16 of 26. Validation macro-F1 0.5681, sensitivity 36/140, specificity 3429/3650.
@@ -122,3 +126,22 @@ Run notes. The first launch was stopped after two minutes, before any epoch had 
 or any file but tooth_prior.json written, because its log was buffered; it was relaunched
 unchanged with live logging. During seed 43 the machine was on a nearly flat battery and some
 epochs took minutes; the `seconds` recorded for seeds 43 and 44 are not a timing result.
+
+--------------------------------------------------------------------------------
+ADOPTION (13 October 2026, night) -- RESULTS_LOG 2026-10-13c
+--------------------------------------------------------------------------------
+Recorded as Amendment 1 of the pre-registration (commit 9df2f7b) before it was done.
+DEF_BONE_LOSS -> seed42_best.pth; report schema opg-report/1.4; the report's Stage-4 tag and
+limitation text follow the binary weights loaded (BONE_LOSS_PROFILES in run_inference.py).
+
+Stage-4 firing on the 164 DENTEX images, 4,512 detected teeth, pipeline as shipped, CPU:
+  previous checkpoint (control)   34 flagged   0.75%   -- exactly the 34 of 11 Oct
+  seed42_best.pth                274 flagged   6.07%   95% CI [5.08, 7.14]
+  difference                     +5.32 pp [+4.34, +6.39]; images with a flag 27 -> 113
+A firing rate, not a sensitivity: DENTEX has no ground truth for this label.
+Every per-tooth field outside `bone_loss` is identical between the two runs.
+
+Stage 4b (severity, unchanged, validated on 52 crops, never tested) now grades those 274
+teeth: 141 Severe, 120 Moderate, 13 Mild. Those grades are not validated.
+
+No Ningxia figure exists for this checkpoint. The 2.17% belongs to models/03.

@@ -3,9 +3,14 @@
 Current best numbers only. One table per model, nothing else. For how a number was
 obtained see `PAPER_MATERIAL.md`; for when and why it changed see `RESULTS_LOG.md`.
 
-**Last updated:** 2026-10-13 (evening) — **Stage 4a retrained with a radiograph-level split:
+**Last updated:** 2026-10-13 (night) — **Stage 4a default changed** to the model retrained
+with a radiograph-level split (`models/18_bone_loss_radiograph_split/seed42_best.pth`), by
+the decision owner (`RESULTS_LOG` 2026-10-13c). Its DENTEX firing rate is 6.1%; the previous
+checkpoint's 0.75% and its Ningxia 2.17% are the previous checkpoint's.
+
+**Earlier that evening:** **Stage 4a retrained with a radiograph-level split:
 test sensitivity 27.5% at 95.9% specificity for the seed fixed in advance, 11–27% across three
-seeds; eligible to replace the shipped model, not adopted** (`RESULTS_LOG` 2026-10-13b).
+seeds; eligible to replace the shipped model** (`RESULTS_LOG` 2026-10-13b).
 
 **Earlier that day:** 2026-10-13 — **Stage 4a now has a held-out figure: sensitivity 7.6%,
 specificity 98.7%, on 821 Tufts radiographs it never trained on** (`RESULTS_LOG` 2026-10-13;
@@ -121,6 +126,11 @@ Per hospital under arm3c: 2.91% [2.23, 3.65], 0.64% [0.34, 0.96], 3.96% [2.03, 6
 6.28% [2.49, 12.12] — the last on 223 affected teeth where the previous detector found 630,
 unexplained. **On DENTEX**, 164 images: 0.80% (29 of 3,607 detected teeth) → **0.75%** (34 of
 4,512); −0.05 pp [−0.41, +0.32]. `RESULTS_LOG` 2026-10-11j.
+
+*13 Oct 2026: everything in the paragraph above is the **previous** Stage-4a checkpoint.* The
+default since that date flags **6.1% of DENTEX teeth (274 of 4,512) [5.08, 7.14]**, +5.32 pp
+[+4.34, +6.39] over the previous one on the same images, and has **no Ningxia figure**
+(`RESULTS_LOG` 2026-10-13c).
 
 **Numbering errors, DENTEX, 936 teeth** (`RESULTS_LOG` 2026-10-11j; in-domain for arm3c).
 
@@ -676,9 +686,17 @@ severity head. Validation-only; no held-out test split for Phase 2 exists yet.
 
 ## Stage 4a — Bone loss binary · ResNet18 + Focal Loss · Tufts
 
+**The pipeline default since 13 Oct 2026 is the retrained model** —
+`models/18_bone_loss_radiograph_split/seed42_best.pth`, tag
+`abnormality-flag-resnet18-radiograph-split-v2.0`, SHA-256
+`e4bc874423e7c17752bb949d510862e4b4fd618f9a7602a95743663a3c27a0b2`. Its figures are the "Retrained, seed 42"
+row further down this section: **test sensitivity 27.5% [18.31, 37.98], specificity 95.9%**.
+It is an abnormality flag, not a periodontal one, and has no external figure. The checkpoint
+described next was the default until then and is retained (`--bone-loss`).
+
 Frozen and tagged 27 Aug 2026 as `bone-loss-binary-resnet18-v1.0`, SHA-256
 `c52f7f484076a2a2c3c144c3351912b118b6b0d56fc51ba1b4296e6ce6213db1`
-(`bone_loss_resnet18_best.pth`, the pipeline default — `bone_loss_resnet18_final.pth` is a
+(`bone_loss_resnet18_best.pth`, the pipeline default until 13 Oct 2026 — `bone_loss_resnet18_final.pth` is a
 different file and is **not** used). Class order is `[normal, bone_loss]`, confirmed two
 independent ways — `models/03_.../run_summary.txt`.
 
@@ -702,7 +720,8 @@ side scores average precision 0.0675 and ROC area 0.636; model minus prior +0.02
 mask the model is not separated from that prior on either. The label is abnormality proximity,
 not periodontal bone loss.
 
-**Retrained with a radiograph-level split — 13 Oct 2026, ABLATION, eligible, NOT adopted**
+**Retrained with a radiograph-level split — 13 Oct 2026; seed 42 ADOPTED as the default the
+same night (`RESULTS_LOG` 2026-10-13c)**
 (`RESULTS_LOG` 2026-10-13b, `models/18_bone_loss_radiograph_split/`). Same architecture and
 recipe, split by radiograph (678 / 145 / 143), three seeds. Test, 143 radiographs, 3,892 teeth,
 182 diseased.
@@ -716,8 +735,9 @@ recipe, split by radiograph (678 / 145 / 143), three seeds. Test, 143 radiograph
 
 Tooth-position prior: average precision 0.0804. Registered eligibility rule, seed 42: F1 above
 the shipped model **+0.2135 [+0.1305, +0.2954]**; average precision above the prior within
-masked radiographs **+0.1049 [+0.0186, +0.2051]**. Both pass, on all three seeds. **The
-pipeline default is unchanged.** Still an abnormality flag; no external figure.
+masked radiographs **+0.1049 [+0.0186, +0.2051]**. Both pass, on all three seeds. Seed 42 is
+the pipeline default; seeds 43 and 44 are ablation weights. Still an abnormality flag; no
+external figure.
 
 Validation, 1,558 crops at real-world prevalence (1,499 normal / 59 diseased).
 
@@ -787,7 +807,7 @@ claim C3). Image in, per-tooth JSON + overlay out, through all six stages.
 | | |
 |---|---|
 | Caries-positive (pipeline default, v3 gate) | 57 (19.1%), was 254 (84.9%) pre-fix |
-| Bone-loss-positive (Stage-4 flags) | 2 (0.7%) — near-inert off-Tufts. Recorded here as domain shift; since 10 Oct 2026 read as at least partly a label mismatch (`RESULTS_LOG` 2026-10-10). From report schema 1.2 (11 Oct) the report and the app label this an abnormality-proximity flag, not a periodontal finding |
+| Bone-loss-positive (Stage-4 flags) | *(previous Stage-4a checkpoint; the default since 13 Oct 2026 flags 6.1% of teeth on the 164 DENTEX images)* 2 (0.7%) — near-inert off-Tufts. Recorded here as domain shift; since 10 Oct 2026 read as at least partly a label mismatch (`RESULTS_LOG` 2026-10-10). From report schema 1.2 (11 Oct) the report and the app label this an abnormality-proximity flag, not a periodontal finding |
 | Duplicate FDI codes | 0 / 299 |
 
 **Lesion-localisation agreement — 25 Aug 2026** (`scripts/eval/lesion_localization.py`,

@@ -50,3 +50,20 @@ def test_validation_threshold_maximises_f1():
     p = np.array([0.1, 0.2, 0.6, 0.55, 0.9])
     # at 0.55: TP 2, FP 1 -> F1 0.8; at 0.9: TP 1, FP 0 -> 2/3; at 0.6: TP 1, FP 1 -> 0.5
     assert best_f1_threshold(y, p) == (0.55, 0.8)
+
+
+def test_stage4a_default_is_registered_and_the_previous_checkpoint_keeps_its_profile():
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from scripts import run_inference as ri
+    new = "e4bc874423e7c17752bb949d510862e4b4fd618f9a7602a95743663a3c27a0b2"
+    old = "c52f7f484076a2a2c3c144c3351912b118b6b0d56fc51ba1b4296e6ce6213db1"
+    assert set(ri.BONE_LOSS_PROFILES) == {new, old}
+    assert ri.DEF_BONE_LOSS.name == "seed42_best.pth"
+    assert ri.BONE_LOSS_PROFILES[new]["tag"] != ri.BONE_LOSS_PROFILES[old]["tag"]
+    assert "27.5%" in ri.BONE_LOSS_PROFILES[new]["label_and_validation"]
+    assert "7.6%" in ri.BONE_LOSS_PROFILES[old]["label_and_validation"]
+    # an unknown checkpoint claims no figure, and every profile says it is not periodontal
+    assert "No sensitivity" in ri.UNREGISTERED_BONE_LOSS["label_and_validation"]
+    for prof in (*ri.BONE_LOSS_PROFILES.values(), ri.UNREGISTERED_BONE_LOSS):
+        assert "not as a periodontal finding" in " ".join(prof["label_and_validation"].split())
+        assert set(prof) == {"tag", "label_and_validation", "transfer", "validation_split", "class_order_note"}
