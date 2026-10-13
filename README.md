@@ -50,7 +50,7 @@ Detect every tooth · number it in FDI notation · classify two pathologies per 
 > | A readable one-page overview — what was done, results, limitations, what's next | [`PROJECT_OVERVIEW.html`](PROJECT_OVERVIEW.html) — a **6 Sep 2026 snapshot**, not kept in sync; open in a browser (3-theme toggle). Internal / pre-submission. |
 > | What are the current numbers? | [`docs/results/model_metrics.md`](docs/results/model_metrics.md) |
 > | Full technical story + honest limitations (the paper is written from this) | [`docs/results/PAPER_MATERIAL.md`](docs/results/PAPER_MATERIAL.md) |
-> | Why is it like this? What happened when? | [`docs/results/RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) — 151 dated entries, append-only |
+> | Why is it like this? What happened when? | [`docs/results/RESULTS_LOG.md`](docs/results/RESULTS_LOG.md) — 154 dated entries, append-only |
 > | What should I work on? | [`docs/research/PUBLICATION_TODO.md`](docs/research/PUBLICATION_TODO.md), sequenced by [`MASTER_PLAN_2026H2.md`](docs/research/MASTER_PLAN_2026H2.md) |
 > | How is the documentation laid out? | [`docs/README.md`](docs/README.md) |
 > | What does the code do? | [`src/README.md`](src/README.md), [`scripts/README.md`](scripts/README.md) |
@@ -563,7 +563,7 @@ Each of those four rows is a bug that was found the hard way. See
     ├── architecture/            ← pipeline diagrams (+ drawio source)
     ├── results/
     │   ├── PAPER_MATERIAL.md    ← ★ master paper-writing document
-    │   ├── RESULTS_LOG.md       ← append-only journal, 151 entries
+    │   ├── RESULTS_LOG.md       ← append-only journal, 154 entries
     │   ├── model_metrics.md     ← one-page scoreboard
     │   ├── METHODOLOGY_CHANGELOG.md
     │   └── figures/paper/       ← 17 paper/review figures
@@ -834,9 +834,9 @@ exist. The full 25-item treatment is [`PAPER_MATERIAL.md`](docs/results/PAPER_MA
 
 | # | Limitation | Status |
 |---|---|---|
-| 1 | **The bone-loss branch does not generalise.** 0.9233 in-domain → 0.7% firing on DENTEX → 2.4% affected-tooth sensitivity on Ningxia. | **Decided limitation, reported not fixed.** The shared-root-cause hypothesis was tested and falsified; DENTEX has no bone-loss labels, so the combined-training lever never existed. |
+| 1 | **The bone-loss branch does not work on radiographs it did not train on.** Measured 13 Oct 2026, pre-registered: on 821 held-out Tufts radiographs it finds 7.6% of the teeth carrying its own label [5.19, 10.47], at 98.7% specificity (`RESULTS_LOG` 2026-10-13). Its 0.9233 was validation on the training radiographs. The row as it stood: 0.9233 in-domain → 0.7% firing on DENTEX → 2.4% affected-tooth sensitivity on Ningxia. | **Decided limitation, reported not fixed.** The shared-root-cause hypothesis was tested and falsified; DENTEX has no bone-loss labels, so the combined-training lever never existed. |
 | 2 | **Caries precision is 0.40** — roughly six of ten positives are wrong. | Improved from a 7.3× over-call to 1.6×, not solved. 96.5% of false positives are *healthy* teeth, not other pathology — which rules out the obvious remedy. |
-| 3 | **The tooth detector is only measured where it was trained.** Since 11 Oct 2026 it finds 99.6% of DENTEX teeth and 89.3% of Tufts teeth — both corpora it trained on — and its Tufts box mAP@0.5 is 0.585, below the 0.810 of the model it replaced. With the previous detector recall on DENTEX was 70.6%. | Changed by decision against two pre-registered verdicts, then re-measured. No cross-domain numbering figure exists. |
+| 3 | **The tooth detector is only measured where it was trained.** Since 11 Oct 2026 it finds 99.6% of DENTEX teeth and 89.3% of Tufts teeth — both corpora it trained on — and its Tufts box mAP@0.5 is 0.585, below the 0.810 of the model it replaced. With the previous detector recall on DENTEX was 70.6%. | Changed by decision against two pre-registered verdicts, then re-measured. On UFBA-425, which it did not train on, the pipeline numbers 44.5% of teeth correctly on the square export as distributed and 77.2% with the images widened to a panoramic shape (12 Oct, `RESULTS_LOG` 2026-10-12b). |
 | 4 | **Severity heads rest on tiny validation sets** — 52 crops (bone loss), 133 (caries depth). | Provisional. The 0.72 target was met by 0.0008 on 52 samples. |
 | 5 | **Tooth-level scores are base-rate dominated** — an image-blind molar constant beats the pipeline on FDI-set F1 (C1) *and* on caries lesion agreement across three cohorts (Δ up to **+0.252** on CariesXrays, 3,421 lesions). | Reported as the headline finding, not buried. This is what the paper is *about*. |
 | 6 | **The caries gate is miscalibrated** (ECE 0.136, systematically overconfident). | Isotonic fixes it to 0.043, applied to reported confidence only; verdicts unchanged so published numbers stay valid. |

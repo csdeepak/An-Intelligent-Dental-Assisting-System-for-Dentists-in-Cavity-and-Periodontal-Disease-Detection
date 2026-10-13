@@ -1,7 +1,8 @@
 #!/bin/bash
 # Every command of the pre-registered re-measurement matrix (PRE_REGISTRATION.md Sec 4).
 # Usage: bash outputs/stage1_switch/run_matrix.sh <row> [m11|arm3c]
-#        rows: A B C D E H, then F and G last. With no detector named, models/11 runs first,
+#        rows: A B C D E H, then F and G last; I J K M (Amendment 2); P (Amendment 3; N and O
+#        are analyses in stage1_switch_intervals.py and run nothing). With no detector named, models/11 runs first,
 #        then arm3c. Each run gets its own directory and its stdout is kept beside the result.
 # A run whose directory already exists is refused: no row is re-run (PRE_REGISTRATION.md Sec 8).
 set -euo pipefail
@@ -186,6 +187,88 @@ res = {"weights": str(w), "sha256": hashlib.sha256(w.read_bytes()).hexdigest(),
 (out / "tufts_test_map.json").write_text(json.dumps(res, indent=2) + "\n")
 print(json.dumps(res, indent=2))
 PYEOF
+  done
+}
+
+row_P() {  # UFBA-425 numbering (Amendment 3). Gates P2 and P3 first; then each image treatment,
+           # models/11 before arm3c. Gate P1 (the scorer still reproduces row A) is run by hand first.
+  local g="$OUT/P_ufba_gates"
+  if [ ! -e "$g" ]; then
+    mkdir -p "$g"
+    echo "[$(date '+%H:%M:%S')] $g"
+    $PY - "$g" > "$g/stdout.log" 2>&1 <<'PYEOF'
+import hashlib, json, sys
+from pathlib import Path
+import cv2
+import numpy as np
+out, ufba = Path(sys.argv[1]), Path("data/ufba425")
+
+# P2 -- handedness, from the labels alone (as corrected by Amendment 4): quadrants 1,4 left of
+# 2,3 and quadrants 1,2 above 3,4, each compared only where both of its sides have a tooth.
+ok = bad = undefined = 0
+for f in sorted((ufba / "boundinng_boxes").glob("*.txt")):
+    q = {1: [], 2: [], 3: [], 4: []}
+    for line in f.read_text().splitlines():
+        p = line.split()
+        if len(p) < 5:
+            continue
+        v = [float(x) for x in p[1:]]
+        cx, cy = (v[0], v[1]) if len(v) == 4 else (np.mean(v[0::2]), np.mean(v[1::2]))
+        q[int(p[0]) // 8 + 1].append((cx, cy))
+    m = lambda qs, i: np.mean([c[i] for k in qs for c in q[k]]) if any(q[k] for k in qs) else None
+    tests = [a < b for a, b in ((m((1, 4), 0), m((2, 3), 0)), (m((1, 2), 1), m((3, 4), 1)))
+             if a is not None and b is not None]
+    if not tests:
+        undefined += 1
+    else:
+        ok, bad = ok + all(tests), bad + (not all(tests))
+p2 = {"images": ok + bad + undefined, "define_a_comparison": ok + bad, "consistent": ok,
+      "define_none": undefined, "share": ok / (ok + bad), "pass": ok / (ok + bad) >= 0.99}
+
+# P3 -- leakage: MD5 and a 256-bit difference hash against every training-side corpus on disk.
+def dhash(path):
+    g = cv2.imread(str(path), cv2.IMREAD_GRAYSCALE)
+    if g is None:
+        return None
+    s = cv2.resize(g, (17, 16), interpolation=cv2.INTER_AREA)
+    return np.packbits(s[:, 1:] > s[:, :-1])                      # 256 bits -> 32 bytes
+
+def files(root):
+    return sorted(p for p in Path(root).rglob("*") if p.suffix.lower() in (".jpg", ".jpeg", ".png"))
+
+corpora = {"Tufts radiographs": "_repo_archive/datasets_workspace/Radiographs",
+           "DENTEX, every release folder": Path.home() / "Downloads/Capstone/DENTEX",
+           "Kaggle dual": "data/kaggle_dual/images1"}
+mine = files(ufba / "numbering_xrays")
+my_md5 = {hashlib.md5(p.read_bytes()).hexdigest(): p.stem for p in mine}
+my_hash = np.array([dhash(p) for p in mine])
+POP = np.array([bin(i).count("1") for i in range(256)], dtype=np.uint16)
+excluded, p3 = set(), {}
+for name, root in corpora.items():
+    theirs = files(root)
+    same = {my_md5[h] for h in (hashlib.md5(p.read_bytes()).hexdigest() for p in theirs) if h in my_md5}
+    th = np.array([h for h in (dhash(p) for p in theirs) if h is not None])
+    dist = POP[my_hash[:, None, :] ^ th[None, :, :]].sum(-1)        # 425 x N Hamming distances
+    near = {mine[i].stem for i in np.where(dist.min(1) <= 10)[0]}
+    p3[name] = {"images": len(theirs), "byte_identical": len(same), "within_hamming_10": len(near),
+                "min_hamming_of_256": int(dist.min())}
+    excluded |= same | near
+res = {"P2_handedness": p2, "P3_leakage": p3, "excluded": sorted(excluded),
+       "pass": bool(p2["pass"] and len(excluded) <= 20)}
+(out / "gates.json").write_text(json.dumps(res, indent=2) + "\n")
+(out / "excluded.json").write_text(json.dumps(sorted(excluded)) + "\n")
+print(json.dumps(res, indent=2))
+sys.exit(0 if res["pass"] else 1)
+PYEOF
+  fi
+  $PY -c "import json, sys; sys.exit(0 if json.load(open('$g/gates.json'))['pass'] else 1)"
+  # 0 = the 640x640 export as distributed (primary). 1.76664 = 1991:1127, a sensitivity analysis.
+  for treat in asis:0 wide:1.76664; do
+    for det in $DETS; do
+      run "P_ufba_${treat%%:*}_$det" $PY scripts/eval/validate_fdi_assignment_tufts.py \
+        --ufba data/ufba425 --exclude "$g/excluded.json" --aspect "${treat##*:}" \
+        --weights "$(det_path $det)" --head-weights $HEAD
+    done
   done
 }
 

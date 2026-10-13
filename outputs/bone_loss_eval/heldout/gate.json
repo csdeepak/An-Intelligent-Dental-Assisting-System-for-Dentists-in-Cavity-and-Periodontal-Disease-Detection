@@ -1,0 +1,24 @@
+{
+  "pre_registration": "outputs/bone_loss_eval/heldout/PRE_REGISTRATION.md",
+  "note": "training-side figures; a harness check, never a result",
+  "G1_labels": {
+    "radiographs": 145,
+    "regenerated_crops": 3906,
+    "clean_manifest_rows": 2131,
+    "found": 2131,
+    "same_label": 2127,
+    "found_share": 1.0,
+    "same_label_share": 0.998122946973252,
+    "pass": true
+  },
+  "G2_model": {
+    "clean_val_positives": 35,
+    "found": 29,
+    "reference_found": 29,
+    "clean_val_normals": 750,
+    "false_positives": 2,
+    "specificity": 0.9973333333333333,
+    "pass": true
+  },
+  "pass": true
+}

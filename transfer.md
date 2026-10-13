@@ -73,6 +73,15 @@ six-page caries-only cut. Verdict at the end of §3's implementation block.
 (`docs/session-memory/2026-10-12b-stage-metrics-council.md`, `RESULTS_LOG` 2026-10-12): no
 stage is both cleanly external and strong; that does not touch the paper's thesis. One cohort
 was mis-described in the manuscript. Three small measurements recommended, none run. §3 edited.
+**12 Oct, evening — the three measurements run (rows N, O, P), and the bone-loss branch kept**
+(`RESULTS_LOG` 2026-10-12b, -c,
+`docs/session-memory/2026-10-12c-bone-loss-council-and-rows-nop.md`): numbering on an unseen
+corpus is 44.5%; the decision owner keeps Stage 4 in the paper, re-described. §2.3, §2.5 and §3
+edited.
+**13 Oct — Stage 4a scored on radiographs it never trained on: sensitivity 7.6%, against 83% on
+its crop-level validation set** (`RESULTS_LOG` 2026-10-13,
+`docs/session-memory/2026-10-13-bone-loss-heldout-score.md`). The 0.923 was the split. §2.5 and
+§3 edited.
 
 > **Windows clone, 6 Sep 2026 — the Tufts crop corpus was cut from the wrong frame, and is now
 > rebuilt.** It scored 11.5% crop-level FDI-exact where the published number is 71.5%, with correct
@@ -306,7 +315,9 @@ machine, 11 Oct (`RESULTS_LOG` 2026-10-11g):**
 
 Tufts: −1.30 pp [−4.64, +2.26], not separable — more teeth found (+6.89 pp), numbered worse
 (−7.52 pp). DENTEX: +34.40 pp [+30.29, +38.54] on held-out images of a corpus the current
-detector trained on. **The current front end has no cross-domain numbering figure.** The
+detector trained on. **On UFBA-425, which neither model trained on, the current front end
+numbers 44.5% of teeth correctly [42.39, 46.62] on the export as distributed, and 77.2% with the
+images widened to a panoramic shape (`RESULTS_LOG` 2026-10-12b).** The
 published DENTEX figures for the previous front end (other machine) are 70.6% / 82.6% / 58.3%;
 its error breakdown — 77.4% of remaining errors off-by-one within the correct quadrant, 2.4% of
 detected teeth in the wrong quadrant — has not been redone for the current one.
@@ -370,7 +381,8 @@ again not separated from the constant at test1.
 
 | | In-domain (Tufts) | External (4 Ningxia hospitals) |
 |---|---|---|
-| Score | **0.923 macro-F1** (1,558 crops, 4% prevalence) | pooled **2.4%** [2.0, 2.9] sensitivity |
+| Score | **0.923 macro-F1** (1,558 crops, 4% prevalence) — crop-level validation, **not held out** | pooled **2.4%** [2.0, 2.9] sensitivity |
+| **Held out, 13 Oct** | **sensitivity 7.6%** [5.19, 10.47], specificity 98.7%, macro-F1 0.542 — 821 Tufts radiographs outside training, 946 positive teeth | — |
 
 Per-site external: test1 2.4% [1.8,3.0], test2 1.4% [0.9,2.0], test3 5.6% [3.0,8.7], test4 4.6%
 [2.7,6.6] (n=736 images total; CI closed 4 Sep, see §2.7). DENTEX firing rate 0.7%. Two
@@ -384,7 +396,8 @@ whose 143 radiographs all also supply training crops. It reproduces (49/59 on th
 crops, 7 Sep), and that is all that can be said for it. The "diseased" class is "overlaps a
 Tufts expert abnormality mask" — apical lesions, sclerosis, cysts — not periodontal bone loss, so
 the external collapse in the table above is at least partly a label mismatch rather than a
-failure to transfer. Whether this branch stays in the paper is §3 item 5.
+failure to transfer. **Decided 12 Oct by the decision owner: the branch stays in the paper,
+re-described** (§3; `RESULTS_LOG` 2026-10-12c).
 
 ### 2.6 All levers attempted — outcomes
 
@@ -466,7 +479,7 @@ compliance breaches (§4). Nothing has been committed to this repository since 7
 | 2 | Authors and affiliations, still `Unknown` in `main.tex` | You | **Open** |
 | 3 | Title / thesis / whether the abstract's "four things a constant cannot do" becomes five | You | **Open, deliberately untouched** — Lever B's localisation result arguably earns a fifth axis, but that's a thesis-scope call, not an engineering one |
 | 4 | Four compliance blockers (§4) | Account owner | **Open**, two are live breaches |
-| 5 | Bone-loss branch: cut it from the manuscript, or keep it re-described (§2.5, `PAPER_MATERIAL.md` §8.28) | You / mentor | **Open — a decision, 10 Oct.** The CI gap this row used to track is moot: that validation set shares every radiograph with training |
+| 5 | Bone-loss branch: cut it from the manuscript, or keep it re-described (§2.5, `PAPER_MATERIAL.md` §8.28) | You / mentor | **Decided 12 Oct by the decision owner: keep, re-described** (`RESULTS_LOG` 2026-10-12c). The mentor has not been asked. The CI gap this row used to track is moot: that validation set shares every radiograph with training |
 | 6 | Docker rebuild (image predates the Lever B caries-method wiring) | Anyone | **Done 7 Sep 2026** on the Windows machine, built and smoke-tested (`RESULTS_LOG` 2026-09-07c) |
 | 7 | Retire or mark-superseded `docs/paper/{manuscript.md,draft_spine.md}` | Anyone | **Done 6 Sep 2026** — both now open with a banner naming their stale numbers (gate-only Stage 3a, 0.488, 61.2 M) and pointing at `paper/main.tex`; kept per rule 3. `docs/README.md` says quote `main.tex`, never these |
 | 8 | `docs/research/{PUBLICATION_TODO.md,MASTER_PLAN_2026H2.md}` | Anyone | Not re-synced with this file's current state — their own status blocks predate Lever B entirely; treat this file as authoritative until they're refreshed |
@@ -507,7 +520,8 @@ switch, what it left open, and what is parked.** Councilled 11 Oct (`docs/sessio
   (2026-10-11g). The numbers are in §2.3 and §2.4.
 - **What the switch did not settle.** Tufts end to end is "not separable", with an interval
   reaching −4.64 pp and accuracy on detected teeth down 7.5 pp. Both numbering cohorts are now
-  in the detector's training distribution, so the pipeline has no cross-domain numbering figure.
+  in the detector's training distribution. *(12 Oct: a figure on an unseen corpus now exists —
+  44.5% on UFBA-425; see the rows N, O, P block below.)*
   The Tufts box-mAP guard figures (0.810 → 0.585) were not re-measured and neither guard is
   claimed met. Lever B was adopted under the previous front end.
 - **Still to do for the switch, in order:**
@@ -580,8 +594,7 @@ switch, what it left open, and what is parked.** Councilled 11 Oct (`docs/sessio
   study, the reject option and a retrained detector are all refused again: the first cannot be
   scored externally, the second has no clean development split, the last two orphan every
   Ningxia figure.
-- **Recommended, none run, each estimation-only with its own pre-registration and the user's
-  go-ahead:**
+- **Recommended that morning — all three were run that evening, see the next block:**
   1. From saved rows, minutes: on the 164 DENTEX images, the lesion detector's flagged teeth
      by tooth type and by label category (caries, other finding, labelled healthy,
      unannotated), beside the constant's. One reviewer has already looked at the tooth-type
@@ -599,6 +612,67 @@ switch, what it left open, and what is parked.** Councilled 11 Oct (`docs/sessio
   checkpoint is verified before loading; an unreadable image is skipped silently in
   `lesion_localization.py`. Not verified by the chair beyond the first.
 
+**Rows N, O, P — run 12 Oct on the decision owner's instruction** (`RESULTS_LOG` 2026-10-12b;
+Amendments 3 and 4 of `outputs/stage1_switch/PRE_REGISTRATION.md`, commits `f5d7f29` and
+`f75e81f`, both local and unpushed when written). Estimates only; no default changed.
+
+- **Numbering on a corpus neither model trained on (UFBA-425, 425 images, 11,591 teeth): 44.5%
+  end to end [42.39, 46.62], recall 66.6%.** That is on the square 640×640 export as
+  distributed, the registered figure. Widened to a panoramic shape — a sensitivity analysis on
+  an unverified aspect ratio — it is 77.2% [75.19, 79.14], recall 95.6%.
+- **On that corpus the adopted detector is ahead of the one it replaced by +23.86 pp
+  [+21.96, +25.77]** (+25.96 pp widened). The first evidence on the switch that is not in-domain.
+- **The constant's eight codes, Tufts:** 92.0% [89.58, 94.06] sit on a true first or second
+  molar; it reaches 81.7% [77.72, 85.35] of them. Precision is 2.72 pp lower than under the
+  previous detector, and 621 boxes sit on no labelled tooth.
+- **What the lesion detector flags on DENTEX:** 624 codes, 43.9% carious, 14.4% on a tooth with
+  another finding, 41.7% unannotated; 71.6% molars. The constant: 1,312, 21.8%, all molars.
+- **The cohort has no tooth labelled healthy**, so the measurement that was registered as
+  primary — the flag rate on healthy teeth — could not be made. All 91 healthy labels are on the
+  86 excluded images.
+- **Row P stopped itself once**, on a flaw in its own label-orientation gate, before any model
+  ran; the gate was amended and the row then ran. Both gate outputs are kept.
+- Manuscript edits these call for: `docs/paper/SUBMISSION_TODO.md` §1a, rows l to n.
+- **Nothing further is recommended on the caries or numbering side.**
+
+**The bone-loss branch stays in the paper — decided 12 Oct by the decision owner, then
+councilled on how** (`RESULTS_LOG` 2026-10-12c,
+`docs/session-memory/2026-10-12c-bone-loss-council-and-rows-nop.md`, `PAPER_MATERIAL.md` §8.33).
+
+- **It cannot be improved into a periodontal model on the data it has.** The label is the
+  fault. A periodontal claim needs a periodontal label.
+- **Two sources of such labels exist.** The Ningxia periodontitis training split (2,000 images,
+  region masks; on a pen drive, and locked by the never-train rule). BRAR (*Scientific Data*
+  2025; 1,104 patients, CC BY 4.0, patient-level grades; **not downloaded, every fact about its
+  files unverified**).
+- **In the paper (3 of 3):** re-described as an abnormality-proximity classifier validated at
+  crop level; 0.923, "domain shift" and "did not transfer" leave. Draft paragraph in
+  `SUBMISSION_TODO.md` §2 item 3.
+- **Run 13 Oct, pre-registered (`RESULTS_LOG` 2026-10-13, `PAPER_MATERIAL.md` §8.34):** the
+  frozen Stage 4a scored once on every tooth of 821 Tufts radiographs that supplied no training
+  or validation crop. **Sensitivity 7.6% (72 of 946) [5.19, 10.47]; specificity 98.7%
+  [98.43, 98.88]; macro-F1 0.542.** Its crop-level validation figures were 83.1%, 99.5% and
+  0.923. The gate passed first: 2,127 of 2,131 manifest labels regenerated, and 29 of 35 clean
+  validation positives found, as on the other machine.
+- **What that says.** The 0.923 was the split. The classifier learned its training teeth and
+  marks one in thirteen of its own label elsewhere in the same source. It beats a tooth-position
+  prior by 2.8 points of average precision over all radiographs, and is not separated from one
+  within the radiographs that carry a mask.
+- **The external figures no longer need explaining as shift or as label mismatch.** The model
+  fails on its own label at home.
+- **In the paper:** the branch stays, with this figure. Draft paragraph in
+  `SUBMISSION_TODO.md` §2 item 3. It is a second instance of the paper's argument.
+- **Not run, each a new decision:** retraining Stage 4 with a radiograph-level split on all
+  1,000 radiographs — 339 carry a mask; the shipped model's positives came from 41 — which
+  would be a new default and still an abnormality flag; BRAR, for a periodontal label.
+- **For the capstone report and a journal version, not the six pages:** a patient-level grading
+  experiment on BRAR against majority-class and age-only baselines. Needs permission to
+  download.
+- **Parked:** a per-tooth classifier trained on the Ningxia training split. One seat for, one
+  against; it needs the house rule changed, the pen drive, and the mentor.
+- **Still unasked:** whether the mentor requires the paper to cover periodontal disease.
+  Neither the grade table nor the department guidelines does.
+
 **What items 3–5 found (`RESULTS_LOG` 2026-10-11, `PAPER_MATERIAL.md` §8.29).** The constant
 and the *gate* pipeline cannot be told apart on F1. The *adopted* lesion detector beats the
 constant on that same metric, on DENTEX, and is separated from it at three of the four Ningxia
@@ -612,9 +686,9 @@ Put new artefacts under `outputs/lever_b_eval/` and `outputs/c1_vlm/`, which are
 whitelisted in `.gitignore`; anything elsewhere under `outputs/` is ignored and the paper-number
 verifier would then fail on the other machine.
 
-**Deferred until after submission:** a leak-free in-domain score of the frozen Stage 4a on the
-roughly 290 never-used Tufts radiographs with a non-empty expert mask (journal and capstone value
-only); an invariant that training and validation manifests share no radiograph; the `--tag` /
+**Deferred until after submission:** ~~a leak-free in-domain score of the frozen Stage 4a on the
+roughly 290 never-used Tufts radiographs with a non-empty expert mask~~ (**done 13 Oct**, on all
+855 radiographs outside training, not only the 290 with a mask: sensitivity 7.6%); an invariant that training and validation manifests share no radiograph; the `--tag` /
 `--out` fix in `ningxia_external.py`, before the next Ningxia run. **Refused:** retraining
 Stage 4 on a clean split (it would validate the wrong label cleanly, and re-pin hashes, parameter
 counts and the Docker image); the DENTEX periapical test; a new periodontal corpus; a

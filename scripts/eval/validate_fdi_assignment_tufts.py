@@ -31,6 +31,10 @@ Usage:
     python scripts/eval/validate_fdi_assignment_tufts.py --limit 8 --save-viz     # eyeball
     python scripts/eval/validate_fdi_assignment_tufts.py                          # deployed detector
     python scripts/eval/validate_fdi_assignment_tufts.py --weights models/15_detector_multicorpus_leverA/arm3c_best.pt --out outputs/stage2_tufts_arm3c
+
+`--ufba DIR` scores UFBA-425 instead (outputs/stage1_switch/PRE_REGISTRATION.md, Amendment 3,
+row P): same detector call, head, matcher and report; only the image list and the ground-truth
+loader change. Without it nothing here differs from the Tufts run.
 """
 
 import argparse
@@ -104,6 +108,26 @@ def load_tufts_gt(objects, img_w):
     return out
 
 
+def load_ufba_gt(label_path, img_w, img_h):
+    """UFBA-425 YOLO label file -> [{fdi, bbox(x1y1x2y2), centroid}], in img_w x img_h pixels.
+    Class c is FDI (c // 8 + 1) * 10 + (c % 8 + 1). Five of the 11,591 lines are polygons
+    (class, then x y pairs); those take the polygon's bounding box."""
+    out = []
+    for line in Path(label_path).read_text().splitlines():
+        p = line.split()
+        if len(p) < 5:
+            continue
+        c, v = int(p[0]), [float(x) for x in p[1:]]
+        if len(v) == 4:
+            xs, ys = (v[0] - v[2] / 2, v[0] + v[2] / 2), (v[1] - v[3] / 2, v[1] + v[3] / 2)
+        else:
+            xs, ys = v[0::2], v[1::2]
+        x1, y1, x2, y2 = min(xs) * img_w, min(ys) * img_h, max(xs) * img_w, max(ys) * img_h
+        out.append({"fdi": (c // 8 + 1) * 10 + (c % 8 + 1), "bbox": [x1, y1, x2, y2],
+                    "centroid": [(x1 + x2) / 2, (y1 + y2) / 2]})
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--images", type=Path, default=DEF_IMAGES)
@@ -125,6 +149,14 @@ def main():
                          "detector boxes and the SAME head forward pass, so a paired bootstrap "
                          "over images measures the assignment and nothing else (Lever C, "
                          "outputs/lever_C_fdi_structural_postproc/PRE_REGISTRATION.md).")
+    ap.add_argument("--ufba", type=Path, default=None,
+                    help="score UFBA-425 under this directory (numbering_xrays/ + boundinng_boxes/) "
+                         "instead of Tufts")
+    ap.add_argument("--exclude", type=Path, default=None,
+                    help="with --ufba: JSON list of image stems to leave out (the leak gate's output)")
+    ap.add_argument("--aspect", type=float, default=0.0,
+                    help="with --ufba: widen each image to this width/height before anything runs. "
+                         "0 scores the 640x640 export as distributed")
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--save-viz", action="store_true")
     ap.add_argument("--viz-n", type=int, default=12)
@@ -133,17 +165,22 @@ def main():
     import torch
     from ultralytics import YOLO
 
-    split_of = {Path(r["filename"]).stem: r["split"].strip()
-                for r in csv.DictReader(open(args.split))}
-    leaked = leaked_test_stems(args.images, split_of)
-    records = {Path(r["External ID"]).stem: r["Label"]["objects"]
-               for r in json.loads(args.bbox.read_text())}
-    test_stems = sorted(s for s, sp in split_of.items()
-                        if sp == args.split_name and s not in leaked and s in records)
+    if args.ufba:
+        leaked = set(json.loads(args.exclude.read_text())) if args.exclude else set()
+        test_stems = sorted(p.stem for p in (args.ufba / "numbering_xrays").glob("*.jpg")
+                            if p.stem not in leaked)
+    else:
+        split_of = {Path(r["filename"]).stem: r["split"].strip()
+                    for r in csv.DictReader(open(args.split))}
+        leaked = leaked_test_stems(args.images, split_of)
+        records = {Path(r["External ID"]).stem: r["Label"]["objects"]
+                   for r in json.loads(args.bbox.read_text())}
+        test_stems = sorted(s for s, sp in split_of.items()
+                            if sp == args.split_name and s not in leaked and s in records)
     if args.limit:
         test_stems = test_stems[:args.limit]
-    print(f"Tufts {args.split_name} images: {len(test_stems)}  ({len(leaked)} excluded as train duplicates: "
-          f"{sorted(leaked) or 'none'})")
+    print(f"{'UFBA-425' if args.ufba else 'Tufts ' + args.split_name} images: {len(test_stems)}  "
+          f"({len(leaked)} excluded as train duplicates: {sorted(leaked) or 'none'})")
 
     dev = torch.device("cuda" if torch.cuda.is_available()
                        else "mps" if torch.backends.mps.is_available() else "cpu")
@@ -166,12 +203,16 @@ def main():
     struct_diag = {}
     n_viz = 0
     for i, stem in enumerate(test_stems, 1):
-        img = cv2.imread(str(args.images / f"{stem}.JPG"))
+        img = cv2.imread(str(args.ufba / "numbering_xrays" / f"{stem}.jpg" if args.ufba
+                             else args.images / f"{stem}.JPG"))
         if img is None:
             print(f"  WARNING unreadable: {stem}")
             continue
+        if args.ufba and args.aspect:
+            img = cv2.resize(img, (round(img.shape[0] * args.aspect), img.shape[0]))
         H, W = img.shape[:2]
-        gt = load_tufts_gt(records[stem], W)
+        gt = (load_ufba_gt(args.ufba / "boundinng_boxes" / f"{stem}.txt", W, H) if args.ufba
+              else load_tufts_gt(records[stem], W))
         if not gt:
             continue
         boxes, confs = detect_upright(model, img, imgsz=args.imgsz, conf=args.conf,
@@ -268,7 +309,8 @@ def main():
                    "assignment": arm,
                    "conf": args.conf, "det_nms_iou": args.det_iou, "imgsz": args.imgsz,
                    "min_iou": args.min_iou, "one_to_one": True,
-                   "excluded_leaked": sorted(leaked)}
+                   "excluded_leaked": sorted(leaked),
+                   **({"corpus": "ufba425", "aspect": args.aspect} if args.ufba else {})}
         (args.out / f"stage2_rows_head{suffix}.json").write_text(json.dumps(arows, indent=1) + "\n")
         (args.out / f"stage2_per_image_head{suffix}.json").write_text(json.dumps(aimgs, indent=1) + "\n")
         (args.out / f"stage2_summary_head{suffix}.json").write_text(json.dumps(summary, indent=2) + "\n")

@@ -3,8 +3,9 @@
 
 Pre-registration: outputs/stage1_switch/PRE_REGISTRATION.md, frozen at commit c139779 before any
 run was made, with Amendment 1 (commit 85df6ff, row G's control gate) committed before any
-Ningxia run, and Amendment 2 (rows I to M, for rebuilding the manuscript) before any of those. Every gate, comparison and the one stop rule below is fixed there; read it before
-changing anything here.
+Ningxia run, Amendment 2 (rows I to M, for rebuilding the manuscript) before any of those, and
+Amendment 3 (rows N, O, P; commit f5d7f29) before any of those. Every gate, comparison and the
+one stop rule below is fixed there; read it before changing anything here.
 
 Nothing here runs a model -- `outputs/stage1_switch/run_matrix.sh <row>` does. A row is reported
 once both detectors have run it. Its arm3c files are not opened until the models/11 control has
@@ -16,12 +17,13 @@ passed its gate (Sec 3), and a failed gate stops the script.
 import json
 import subprocess
 import sys
+from collections import Counter, defaultdict
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT / "scripts" / "eval"))
 from bootstrap_ci import cluster_bootstrap, load_stage2, ratio  # noqa: E402
-from c1_vlm_baseline import DEF_DISEASE, load_gt, score  # noqa: E402
+from c1_vlm_baseline import DEF_DISEASE, LABEL_RE, load_gt, score  # noqa: E402
 from caries_intervals import CONSTANT, N_BOOT, SEED, delta, f1, load_arm, prf, show  # noqa: E402
 from lever_b_bootstrap import load_normalised  # noqa: E402
 
@@ -468,6 +470,202 @@ def row_m():
     return res
 
 
+MOLARS = {int(c) for c in CONSTANT}      # the constant's eight codes
+TOOTH_TYPE = {1: "incisor", 2: "incisor", 3: "canine", 4: "premolar", 5: "premolar",
+              6: "molar", 7: "molar", 8: "molar"}
+
+
+def row_n():
+    """What the caries stage flags on DENTEX, from the sets row D saved. No inference."""
+    name = {"lesion-detector": "arm_pipeline_lesion_detector.json", "gate": "arm_pipeline.json"}
+    path = {m: OUT / f"D_fdiset_{m}_arm3c" / f for m, f in name.items()}
+    if not all(q.exists() for q in path.values()):
+        return None
+    print("\nRow N -- what the caries stage flags, 164 DENTEX images, arm3c front end")
+    gt = load_gt(DEF_DISEASE)
+    gate(len(gt) == 164, f"row N: {len(gt)} leak-free images, expected 164")
+    arms = {"constant": {stem: CONSTANT for stem in gt},
+            **{m: load_arm(q, gt) for m, q in path.items()}}
+    want = {"constant": (286, 1026, 191), "lesion-detector": (274, 350, 203), "gate": (365, 1172, 112)}
+    for a, pred in arms.items():
+        s = score(gt, pred, a)
+        gate((s["tp"], s["fp"], s["fn"]) == want[a], f"row N: {a} gives {s['tp']}/{s['fp']}/{s['fn']}")
+    print("  gate: all three arms reproduce row D's tp/fp/fn")
+
+    labels = {}                               # image -> code -> the class ids annotated on it
+    for stem in gt:
+        by = defaultdict(set)
+        shapes = json.loads((DEF_DISEASE / "label" / f"{stem}.json").read_text(encoding="utf-8"))
+        for s in shapes.get("shapes", []):
+            m = LABEL_RE.match(s["label"])
+            if m:
+                by[m.group(3)].add(m.group(1))
+        labels[stem] = by
+
+    def category(classes):
+        return ("caries" if "1" in classes else "other finding" if classes - {"0"}
+                else "labelled healthy" if classes else "no annotation")
+
+    healthy = {stem: {c for c, k in labels[stem].items() if k == {"0"}} for stem in gt}
+    n_healthy = sum(len(h) for h in healthy.values())
+    n_healthy8 = sum(len(h & CONSTANT) for h in healthy.values())
+    res = {"labelled_healthy_teeth": n_healthy, "labelled_healthy_at_the_eight_codes": n_healthy8,
+           "images_with_a_labelled_healthy_tooth": sum(1 for h in healthy.values() if h)}
+    print(f"  labelled-healthy teeth: {n_healthy} on {res['images_with_a_labelled_healthy_tooth']} "
+          f"images; {n_healthy8} at the constant's eight codes")
+    rows, rows8 = {}, {}
+    for a, pred in arms.items():
+        cats = Counter(category(labels[stem].get(c, set())) for stem in gt for c in pred[stem])
+        gate(cats["caries"] == want[a][0], f"row N: {a} carious flagged codes != tp")
+        types = defaultdict(Counter)
+        for stem in gt:
+            for c in pred[stem]:
+                k = types[TOOTH_TYPE.get(int(c) % 10, "other")]
+                k["flagged"] += 1
+                k["carious"] += "1" in labels[stem].get(c, set())
+        total = sum(cats.values())
+        res[a] = {"flagged_codes": total, "by_category": dict(cats),
+                  "by_tooth_type": {k: {**v, "carious_share": round(v["carious"] / v["flagged"], 4)}
+                                    for k, v in sorted(types.items())},
+                  "molar_share_of_flagged": round(types["molar"]["flagged"] / total, 4)}
+        rows[a] = [{"image": s, "healthy": len(h), "flagged": len(h & pred[s])}
+                   for s, h in sorted(healthy.items()) if h]
+        rows8[a] = [{"image": s, "healthy": len(h & CONSTANT), "flagged": len(h & CONSTANT & pred[s])}
+                    for s, h in sorted(healthy.items()) if h & CONSTANT]
+        print(f"  {a:16s} {total:5d} codes: " + ", ".join(f"{k} {v}" for k, v in cats.most_common())
+              + f"   | molar share {res[a]['molar_share_of_flagged']:.4f}")
+        for k, v in res[a]["by_tooth_type"].items():
+            print(f"      {k:9s} flagged {v['flagged']:4d}  carious {v['carious']:4d}  ({v['carious_share']:.4f})")
+    rate = ratio("flagged", "healthy")
+    for key, rws, n, floor in (("flag_rate_on_labelled_healthy", rows, n_healthy, 30),
+                               ("flag_rate_on_labelled_healthy_at_the_eight_codes", rows8, n_healthy8, 10)):
+        out = {a: {"flagged": sum(r["flagged"] for r in r_), "teeth": n} for a, r_ in rws.items()}
+        for a in out:
+            out[a]["rate"] = round(out[a]["flagged"] / n, 4) if n else None
+        if n >= floor:
+            for a in out:
+                out[a].update(est(rws[a], rate))
+            out["deltas"] = {"lesion-detector_minus_constant": delta(rws["constant"], rws["lesion-detector"], rate),
+                             "lesion-detector_minus_gate": delta(rws["gate"], rws["lesion-detector"], rate)}
+        else:
+            out["note"] = f"fewer than {floor} teeth: counts only, no interval (Amendment 3)"
+        res[key] = out
+        print(f"  {key}: " + "  ".join(f"{a} {out[a]['flagged']}/{n}" for a in arms)
+              + ("" if n >= floor else f"   ({out['note']})"))
+        for k, d in out.get("deltas", {}).items():
+            show(f"    {k.replace('_minus_', ' - ')}", d)
+    r8 = res["flag_rate_on_labelled_healthy_at_the_eight_codes"]["lesion-detector"]["rate"]
+    drop = res["lesion-detector"]["molar_share_of_flagged"] >= 0.90 or (r8 is not None and r8 >= 0.40)
+    res["wording_rule"] = {"sentence": "paper/main.tex 447-449, 'cannot score well by reproducing a prior'",
+                           "molar_share_at_least_0.90": res["lesion-detector"]["molar_share_of_flagged"] >= 0.90,
+                           "healthy_flag_rate_at_eight_codes_at_least_0.40": bool(r8 is not None and r8 >= 0.40),
+                           "sentence_is_deleted": bool(drop)}
+    print(f"  wording rule: the sentence is {'DELETED' if drop else 'kept, with these figures beside it'}")
+    return res
+
+
+def row_o():
+    """How well the constant's eight codes are placed, from the rows rows A and B saved."""
+    keys = ("coded_m", "coded_m_true", "coded_m_exact", "true_m", "true_m_reached")
+    stats = {"placement_precision": ratio("coded_m_true", "coded_m"),
+             "placement_exact": ratio("coded_m_exact", "coded_m"),
+             "reach": ratio("true_m_reached", "true_m")}
+    res = {}
+    for row, cohort, want in (("A", "tufts", (3760, 2438)), ("B", "dentex", (936, 547))):
+        d = {det: OUT / f"{row}_{cohort}_{det}" for det in DETS}
+        if not all((q / "stage2_rows_head.json").exists() for q in d.values()):
+            return None
+        print(f"\nRow O -- placement of the constant's eight codes, {cohort}"
+              + (" (secondary: finding-bearing teeth only, in-domain for arm3c)" if row == "B" else ""))
+        res[cohort], rows = {"deltas": {}}, {}
+        for det in DETS:
+            raw = json.loads((d[det] / "stage2_rows_head.json").read_text())
+            if det == "m11":
+                got = (len(raw), sum(1 for r in raw if r["detected"] and r["pred_fdi"] == r["gt_fdi"]))
+                gate(got == want, f"row O {cohort} control: teeth/correct {got} != {want}")
+            by, dest = defaultdict(Counter), Counter()
+            for r in raw:
+                c = by[r["image"]]
+                true_m = r["gt_fdi"] in MOLARS
+                coded_m = bool(r["detected"]) and r["pred_fdi"] in MOLARS
+                c["coded_m"] += coded_m
+                c["coded_m_true"] += coded_m and true_m
+                c["coded_m_exact"] += coded_m and r["pred_fdi"] == r["gt_fdi"]
+                c["true_m"] += true_m
+                c["true_m_reached"] += true_m and coded_m
+                if true_m and not coded_m:
+                    f = r["pred_fdi"]
+                    dest["not detected" if not r["detected"] else "given no code" if f is None
+                         else "third molar" if f % 10 == 8 else "premolar" if f % 10 in (4, 5)
+                         else "other code"] += 1
+            rows[det] = [dict({k: int(c[k]) for k in keys}, image=img) for img, c in sorted(by.items())]
+            per_image = json.loads((d[det] / "stage2_per_image_head.json").read_text())
+            surplus = sum(q["n_det"] for q in per_image) - sum(1 for r in raw if r["detected"])
+            tot = {k: sum(r[k] for r in rows[det]) for k in keys}
+            res[cohort][det] = {**tot, "true_m_not_reached": dict(dest),
+                                "boxes_matched_to_no_tooth": surplus,
+                                **{k: est(rows[det], s) for k, s in stats.items()}}
+            print(f"  {det:6s} precision {tot['coded_m_true']}/{tot['coded_m']} = "
+                  f"{res[cohort][det]['placement_precision']['value']:.4f}   exact "
+                  f"{tot['coded_m_exact']}/{tot['coded_m']}   reach {tot['true_m_reached']}/{tot['true_m']} = "
+                  f"{res[cohort][det]['reach']['value']:.4f}   unreached: {dict(dest)}   "
+                  f"boxes on no tooth: {surplus}")
+        new = paired(rows["m11"], rows["arm3c"])
+        for k, s in stats.items():
+            res[cohort]["deltas"][f"{k}_arm3c_minus_m11"] = delta(rows["m11"], new, s)
+            show(f"{k}  arm3c - m11", res[cohort]["deltas"][f"{k}_arm3c_minus_m11"])
+    return res
+
+
+def row_p():
+    """UFBA-425: a corpus neither the detector nor the numbering head trained on."""
+    treat = {"asis": 0.0, "wide": 1.76664}
+    d = {(t, det): OUT / f"P_ufba_{t}_{det}" for t in treat for det in DETS}
+    gates = OUT / "P_ufba_gates" / "gates.json"
+    if not gates.exists() or not all((q / "stage2_summary_head.json").exists() for q in d.values()):
+        return None
+    print("\nRow P -- numbering on UFBA-425 (no model here trained on it)")
+    g = json.loads(gates.read_text())
+    gate(g["pass"], "row P: the handedness or leakage gate did not pass")
+    print(f"  gates: handedness {g['P2_handedness']['consistent']}/{g['P2_handedness']['define_a_comparison']} images that define a comparison; "
+          f"{len(g['excluded'])} images excluded as duplicates of a training-side corpus")
+    stats = {"end_to_end": ratio("exact", "gt"), "recall": ratio("detected", "gt"),
+             "exact_of_detected": ratio("exact", "detected"),
+             "quadrant_correct_of_detected": ratio("quadrant", "detected")}
+    res = {"gates": g}
+    for t, aspect in treat.items():
+        print(f"  images {'as distributed, 640x640 (PRIMARY)' if t == 'asis' else 'widened to 1991:1127 (sensitivity only)'}")
+        res[t], rows = {"deltas": {}}, {}
+        for det in DETS:
+            s = json.loads((d[t, det] / "stage2_summary_head.json").read_text())
+            gate(WEIGHTS[det] in s["detector"] and s.get("corpus") == "ufba425"
+                 and abs(s["aspect"] - aspect) < 1e-9, f"row P: {d[t, det].name} is not {det} / {t}")
+            by = defaultdict(Counter)
+            for r in json.loads((d[t, det] / "stage2_rows_head.json").read_text()):
+                c, hit = by[r["image"]], bool(r["detected"]) and r["pred_fdi"] is not None
+                c["gt"] += 1
+                c["detected"] += bool(r["detected"])
+                c["exact"] += hit and r["pred_fdi"] == r["gt_fdi"]
+                c["quadrant"] += hit and r["pred_fdi"] // 10 == r["gt_fdi"] // 10
+            rows[det] = [dict({k: int(c[k]) for k in ("gt", "detected", "exact", "quadrant")}, image=img)
+                         for img, c in sorted(by.items())]
+            res[t][det] = {"images": len(rows[det]), "teeth": sum(r["gt"] for r in rows[det]),
+                           "detected": sum(r["detected"] for r in rows[det]),
+                           "correct": sum(r["exact"] for r in rows[det]),
+                           **{k: est(rows[det], st) for k, st in stats.items()}}
+            e = res[t][det]
+            print(f"    {det:6s} end-to-end {e['end_to_end']['value']:.4f} {e['end_to_end']['ci95']}  "
+                  f"recall {e['recall']['value']:.4f}  of detected {e['exact_of_detected']['value']:.4f}  "
+                  f"quadrant {e['quadrant_correct_of_detected']['value']:.4f}  "
+                  f"({e['correct']} of {e['teeth']} teeth, {e['images']} images)")
+        gate(res[t]["m11"]["teeth"] == res[t]["arm3c"]["teeth"], f"row P {t}: the detectors saw different teeth")
+        new = paired(rows["m11"], rows["arm3c"])
+        for k, st in stats.items():
+            res[t]["deltas"][f"{k}_arm3c_minus_m11"] = delta(rows["m11"], new, st)
+            show(f"  {k}  arm3c - m11", res[t]["deltas"][f"{k}_arm3c_minus_m11"])
+    return res
+
+
 def main():
     toy = [{"image": "a", "n_lesions": 2, "n_matched": 1}, {"image": "b", "n_lesions": 2, "n_matched": 2}]
     assert paired(toy, toy[::-1]) == toy and delta(toy, toy, AGREEMENT)["delta_pp"] == 0.0
@@ -485,7 +683,7 @@ def main():
 
     results = {"pre_registration": "outputs/stage1_switch/PRE_REGISTRATION.md",
                "frozen_at_commit": "c139779", "amendment_1_commit": "85df6ff",
-               "amendment_2_commit": "d78f502",
+               "amendment_2_commit": "d78f502", "amendment_3_commit": "f5d7f29",
                "n_boot": N_BOOT, "seed": SEED,
                "method": "paired cluster bootstrap over images, 95% percentile interval; every "
                          "difference between detectors is against the same-machine models/11 control",
@@ -498,6 +696,7 @@ def main():
     results.update(D_fdi_set_f1=row_d(), G_ningxia_stage4_flag=row_g(), H_parameter_counts=row_h())
     results.update(I_dentex_numbering_taxonomy=row_i(), J_dentex_numbering_coverage=row_j(),
                    K_dentex_stage4_firing=row_k(), M_tufts_test_box_map=row_m())
+    results.update(N_dentex_flagged_teeth=row_n(), O_constant_placement=row_o(), P_ufba_numbering=row_p())
 
     print("\nS1 -- the one result that stops the switch (Sec 5)")
     if s1_rows["E"] and s1_rows["F"]:

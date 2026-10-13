@@ -1,0 +1,297 @@
+{
+  "pre_registration": "outputs/bone_loss_eval/heldout/PRE_REGISTRATION.md",
+  "committed_at": "570925c",
+  "weights_sha256": "c52f7f484076a2a2c3c144c3351912b118b6b0d56fc51ba1b4296e6ce6213db1",
+  "label": "crop overlaps a Tufts expert abnormality mask by more than 1% -- not periodontal bone loss",
+  "method": "radiograph-cluster bootstrap, 10000 resamples, seed 42, percentile",
+  "dropped_twins": [
+    "1008",
+    "591"
+  ],
+  "near_duplicates": [],
+  "tooth_position_prior": {
+    "fitted_on_teeth": 2131,
+    "overall_share": 0.0695
+  },
+  "crop_level_validation_reference": {
+    "sensitivity": "49/59",
+    "specificity": "1492/1499",
+    "macro_f1": 0.9233,
+    "held_out": false
+  },
+  "all": {
+    "radiographs": 821,
+    "teeth": 21956,
+    "positive_teeth": 946,
+    "prevalence": 0.04308617234468938,
+    "confusion": {
+      "tp": 72,
+      "fp": 281,
+      "fn": 874,
+      "tn": 20729
+    },
+    "flag_nothing": {
+      "sensitivity": 0.0,
+      "specificity": 1.0
+    },
+    "flag_everything": {
+      "sensitivity": 1.0,
+      "specificity": 0.0,
+      "ppv": 0.04308617234468938
+    },
+    "sensitivity": {
+      "value": 0.0761,
+      "ci95": [
+        0.0519,
+        0.1047
+      ],
+      "resamples_used": 10000
+    },
+    "specificity": {
+      "value": 0.9866,
+      "ci95": [
+        0.9843,
+        0.9888
+      ],
+      "resamples_used": 10000
+    },
+    "ppv": {
+      "value": 0.204,
+      "ci95": [
+        0.1419,
+        0.273
+      ],
+      "resamples_used": 10000
+    },
+    "f1_diseased": {
+      "value": 0.1109,
+      "ci95": [
+        0.0765,
+        0.149
+      ],
+      "resamples_used": 10000
+    },
+    "macro_f1": {
+      "value": 0.5419,
+      "ci95": [
+        0.5247,
+        0.5612
+      ],
+      "resamples_used": 10000
+    },
+    "average_precision": {
+      "value": 0.0956,
+      "ci95": [
+        0.0741,
+        0.1259
+      ],
+      "resamples_used": 10000
+    },
+    "roc_auc": {
+      "value": 0.6437,
+      "ci95": [
+        0.612,
+        0.6748
+      ],
+      "resamples_used": 10000
+    },
+    "prior_average_precision": {
+      "value": 0.0675,
+      "ci95": [
+        0.0573,
+        0.0786
+      ],
+      "resamples_used": 10000
+    },
+    "prior_roc_auc": {
+      "value": 0.6364,
+      "ci95": [
+        0.608,
+        0.6651
+      ],
+      "resamples_used": 10000
+    },
+    "ap_model_minus_prior": {
+      "value": 0.0281,
+      "ci95": [
+        0.0084,
+        0.0564
+      ],
+      "resamples_used": 10000
+    },
+    "auc_model_minus_prior": {
+      "value": 0.0073,
+      "ci95": [
+        -0.0374,
+        0.0502
+      ],
+      "resamples_used": 10000
+    }
+  },
+  "mask_non_empty": {
+    "radiographs": 282,
+    "teeth": 7060,
+    "positive_teeth": 946,
+    "prevalence": 0.1339943342776204,
+    "confusion": {
+      "tp": 72,
+      "fp": 101,
+      "fn": 874,
+      "tn": 6013
+    },
+    "flag_nothing": {
+      "sensitivity": 0.0,
+      "specificity": 1.0
+    },
+    "flag_everything": {
+      "sensitivity": 1.0,
+      "specificity": 0.0,
+      "ppv": 0.1339943342776204
+    },
+    "sensitivity": {
+      "value": 0.0761,
+      "ci95": [
+        0.0521,
+        0.1034
+      ],
+      "resamples_used": 10000
+    },
+    "specificity": {
+      "value": 0.9835,
+      "ci95": [
+        0.9787,
+        0.9878
+      ],
+      "resamples_used": 10000
+    },
+    "ppv": {
+      "value": 0.4162,
+      "ci95": [
+        0.3136,
+        0.5207
+      ],
+      "resamples_used": 10000
+    },
+    "f1_diseased": {
+      "value": 0.1287,
+      "ci95": [
+        0.0901,
+        0.171
+      ],
+      "resamples_used": 10000
+    },
+    "macro_f1": {
+      "value": 0.5268,
+      "ci95": [
+        0.5071,
+        0.5485
+      ],
+      "resamples_used": 10000
+    },
+    "average_precision": {
+      "value": 0.2329,
+      "ci95": [
+        0.1946,
+        0.2766
+      ],
+      "resamples_used": 10000
+    },
+    "roc_auc": {
+      "value": 0.6245,
+      "ci95": [
+        0.5941,
+        0.6546
+      ],
+      "resamples_used": 10000
+    },
+    "prior_average_precision": {
+      "value": 0.2205,
+      "ci95": [
+        0.1955,
+        0.2486
+      ],
+      "resamples_used": 10000
+    },
+    "prior_roc_auc": {
+      "value": 0.6581,
+      "ci95": [
+        0.6282,
+        0.6885
+      ],
+      "resamples_used": 10000
+    },
+    "ap_model_minus_prior": {
+      "value": 0.0125,
+      "ci95": [
+        -0.026,
+        0.0542
+      ],
+      "resamples_used": 10000
+    },
+    "auc_model_minus_prior": {
+      "value": -0.0336,
+      "ci95": [
+        -0.0762,
+        0.0084
+      ],
+      "resamples_used": 10000
+    }
+  },
+  "mask_empty": {
+    "radiographs": 539,
+    "teeth": 14896,
+    "positive_teeth": 0,
+    "prevalence": 0.0,
+    "confusion": {
+      "tp": 0,
+      "fp": 180,
+      "fn": 0,
+      "tn": 14716
+    },
+    "flag_nothing": {
+      "sensitivity": 0.0,
+      "specificity": 1.0
+    },
+    "flag_everything": {
+      "sensitivity": 1.0,
+      "specificity": 0.0,
+      "ppv": 0.0
+    },
+    "sensitivity": {
+      "value": null,
+      "note": "fewer than 30 positive teeth: no interval (Sec 6)"
+    },
+    "specificity": {
+      "value": 0.9879,
+      "ci95": [
+        0.9853,
+        0.9904
+      ],
+      "resamples_used": 10000
+    },
+    "ppv": {
+      "value": 0.0,
+      "ci95": [
+        0.0,
+        0.0
+      ],
+      "resamples_used": 10000
+    },
+    "f1_diseased": {
+      "value": 0.0,
+      "ci95": [
+        0.0,
+        0.0
+      ],
+      "resamples_used": 10000
+    },
+    "macro_f1": {
+      "value": 0.497,
+      "ci95": [
+        0.4963,
+        0.4976
+      ],
+      "resamples_used": 10000
+    }
+  }
+}

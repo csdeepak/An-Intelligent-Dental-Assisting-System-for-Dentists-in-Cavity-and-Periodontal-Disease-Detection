@@ -3,6 +3,7 @@
   "frozen_at_commit": "c139779",
   "amendment_1_commit": "85df6ff",
   "amendment_2_commit": "d78f502",
+  "amendment_3_commit": "f5d7f29",
   "n_boot": 10000,
   "seed": 42,
   "method": "paired cluster bootstrap over images, 95% percentile interval; every difference between detectors is against the same-machine models/11 control",
@@ -1885,6 +1886,587 @@
       "recall": 0.6374
     },
     "arm3c_minus_controlB_pp": -13.6
+  },
+  "N_dentex_flagged_teeth": {
+    "labelled_healthy_teeth": 0,
+    "labelled_healthy_at_the_eight_codes": 0,
+    "images_with_a_labelled_healthy_tooth": 0,
+    "constant": {
+      "flagged_codes": 1312,
+      "by_category": {
+        "other finding": 88,
+        "caries": 286,
+        "no annotation": 938
+      },
+      "by_tooth_type": {
+        "molar": {
+          "flagged": 1312,
+          "carious": 286,
+          "carious_share": 0.218
+        }
+      },
+      "molar_share_of_flagged": 1.0
+    },
+    "lesion-detector": {
+      "flagged_codes": 624,
+      "by_category": {
+        "other finding": 90,
+        "no annotation": 260,
+        "caries": 274
+      },
+      "by_tooth_type": {
+        "canine": {
+          "flagged": 15,
+          "carious": 5,
+          "carious_share": 0.3333
+        },
+        "incisor": {
+          "flagged": 21,
+          "carious": 6,
+          "carious_share": 0.2857
+        },
+        "molar": {
+          "flagged": 447,
+          "carious": 207,
+          "carious_share": 0.4631
+        },
+        "premolar": {
+          "flagged": 141,
+          "carious": 56,
+          "carious_share": 0.3972
+        }
+      },
+      "molar_share_of_flagged": 0.7163
+    },
+    "gate": {
+      "flagged_codes": 1537,
+      "by_category": {
+        "other finding": 165,
+        "caries": 365,
+        "no annotation": 1007
+      },
+      "by_tooth_type": {
+        "canine": {
+          "flagged": 60,
+          "carious": 5,
+          "carious_share": 0.0833
+        },
+        "incisor": {
+          "flagged": 72,
+          "carious": 4,
+          "carious_share": 0.0556
+        },
+        "molar": {
+          "flagged": 1023,
+          "carious": 291,
+          "carious_share": 0.2845
+        },
+        "premolar": {
+          "flagged": 382,
+          "carious": 65,
+          "carious_share": 0.1702
+        }
+      },
+      "molar_share_of_flagged": 0.6656
+    },
+    "flag_rate_on_labelled_healthy": {
+      "constant": {
+        "flagged": 0,
+        "teeth": 0,
+        "rate": null
+      },
+      "lesion-detector": {
+        "flagged": 0,
+        "teeth": 0,
+        "rate": null
+      },
+      "gate": {
+        "flagged": 0,
+        "teeth": 0,
+        "rate": null
+      },
+      "note": "fewer than 30 teeth: counts only, no interval (Amendment 3)"
+    },
+    "flag_rate_on_labelled_healthy_at_the_eight_codes": {
+      "constant": {
+        "flagged": 0,
+        "teeth": 0,
+        "rate": null
+      },
+      "lesion-detector": {
+        "flagged": 0,
+        "teeth": 0,
+        "rate": null
+      },
+      "gate": {
+        "flagged": 0,
+        "teeth": 0,
+        "rate": null
+      },
+      "note": "fewer than 10 teeth: counts only, no interval (Amendment 3)"
+    },
+    "wording_rule": {
+      "sentence": "paper/main.tex 447-449, 'cannot score well by reproducing a prior'",
+      "molar_share_at_least_0.90": false,
+      "healthy_flag_rate_at_eight_codes_at_least_0.40": false,
+      "sentence_is_deleted": false
+    }
+  },
+  "O_constant_placement": {
+    "tufts": {
+      "deltas": {
+        "placement_precision_arm3c_minus_m11": {
+          "delta_pp": -2.72,
+          "ci95_pp": [
+            -4.53,
+            -1.01
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.9989
+        },
+        "placement_exact_arm3c_minus_m11": {
+          "delta_pp": -3.41,
+          "ci95_pp": [
+            -6.17,
+            -0.69
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.994
+        },
+        "reach_arm3c_minus_m11": {
+          "delta_pp": -1.81,
+          "ci95_pp": [
+            -4.45,
+            0.84
+          ],
+          "excludes_zero": false,
+          "frac_resamples_le_0": 0.9132
+        }
+      },
+      "m11": {
+        "coded_m": 828,
+        "coded_m_true": 784,
+        "coded_m_exact": 746,
+        "true_m": 939,
+        "true_m_reached": 784,
+        "true_m_not_reached": {
+          "not detected": 101,
+          "third molar": 30,
+          "premolar": 13,
+          "given no code": 7,
+          "other code": 4
+        },
+        "boxes_matched_to_no_tooth": 368,
+        "placement_precision": {
+          "value": 0.9469,
+          "ci95": [
+            0.9295,
+            0.9623
+          ]
+        },
+        "placement_exact": {
+          "value": 0.901,
+          "ci95": [
+            0.8724,
+            0.9265
+          ]
+        },
+        "reach": {
+          "value": 0.8349,
+          "ci95": [
+            0.7953,
+            0.8705
+          ]
+        }
+      },
+      "arm3c": {
+        "coded_m": 834,
+        "coded_m_true": 767,
+        "coded_m_exact": 723,
+        "true_m": 939,
+        "true_m_reached": 767,
+        "true_m_not_reached": {
+          "not detected": 92,
+          "third molar": 40,
+          "premolar": 27,
+          "other code": 3,
+          "given no code": 10
+        },
+        "boxes_matched_to_no_tooth": 621,
+        "placement_precision": {
+          "value": 0.9197,
+          "ci95": [
+            0.8958,
+            0.9406
+          ]
+        },
+        "placement_exact": {
+          "value": 0.8669,
+          "ci95": [
+            0.8312,
+            0.8991
+          ]
+        },
+        "reach": {
+          "value": 0.8168,
+          "ci95": [
+            0.7772,
+            0.8535
+          ]
+        }
+      }
+    },
+    "dentex": {
+      "deltas": {
+        "placement_precision_arm3c_minus_m11": {
+          "delta_pp": 5.62,
+          "ci95_pp": [
+            2.45,
+            9.09
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0003
+        },
+        "placement_exact_arm3c_minus_m11": {
+          "delta_pp": 8.24,
+          "ci95_pp": [
+            3.77,
+            12.89
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
+        "reach_arm3c_minus_m11": {
+          "delta_pp": 26.47,
+          "ci95_pp": [
+            21.55,
+            31.69
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        }
+      },
+      "m11": {
+        "coded_m": 292,
+        "coded_m_true": 264,
+        "coded_m_exact": 244,
+        "true_m": 374,
+        "true_m_reached": 264,
+        "true_m_not_reached": {
+          "not detected": 92,
+          "third molar": 9,
+          "premolar": 8,
+          "other code": 1
+        },
+        "boxes_matched_to_no_tooth": 2944,
+        "placement_precision": {
+          "value": 0.9041,
+          "ci95": [
+            0.8662,
+            0.9386
+          ]
+        },
+        "placement_exact": {
+          "value": 0.8356,
+          "ci95": [
+            0.7829,
+            0.8845
+          ]
+        },
+        "reach": {
+          "value": 0.7059,
+          "ci95": [
+            0.6514,
+            0.7569
+          ]
+        }
+      },
+      "arm3c": {
+        "coded_m": 378,
+        "coded_m_true": 363,
+        "coded_m_exact": 347,
+        "true_m": 374,
+        "true_m_reached": 363,
+        "true_m_not_reached": {
+          "third molar": 4,
+          "premolar": 4,
+          "not detected": 2,
+          "other code": 1
+        },
+        "boxes_matched_to_no_tooth": 3580,
+        "placement_precision": {
+          "value": 0.9603,
+          "ci95": [
+            0.9385,
+            0.9796
+          ]
+        },
+        "placement_exact": {
+          "value": 0.918,
+          "ci95": [
+            0.8806,
+            0.9524
+          ]
+        },
+        "reach": {
+          "value": 0.9706,
+          "ci95": [
+            0.953,
+            0.9861
+          ]
+        }
+      }
+    }
+  },
+  "P_ufba_numbering": {
+    "gates": {
+      "P2_handedness": {
+        "images": 425,
+        "define_a_comparison": 419,
+        "consistent": 419,
+        "define_none": 6,
+        "share": 1.0,
+        "pass": true
+      },
+      "P3_leakage": {
+        "Tufts radiographs": {
+          "images": 1000,
+          "byte_identical": 0,
+          "within_hamming_10": 0,
+          "min_hamming_of_256": 62
+        },
+        "DENTEX, every release folder": {
+          "images": 10515,
+          "byte_identical": 0,
+          "within_hamming_10": 0,
+          "min_hamming_of_256": 62
+        },
+        "Kaggle dual": {
+          "images": 500,
+          "byte_identical": 0,
+          "within_hamming_10": 0,
+          "min_hamming_of_256": 69
+        }
+      },
+      "excluded": [],
+      "pass": true
+    },
+    "asis": {
+      "deltas": {
+        "end_to_end_arm3c_minus_m11": {
+          "delta_pp": 23.86,
+          "ci95_pp": [
+            21.96,
+            25.77
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
+        "recall_arm3c_minus_m11": {
+          "delta_pp": 27.5,
+          "ci95_pp": [
+            25.5,
+            29.45
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
+        "exact_of_detected_arm3c_minus_m11": {
+          "delta_pp": 14.04,
+          "ci95_pp": [
+            11.81,
+            16.19
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
+        "quadrant_correct_of_detected_arm3c_minus_m11": {
+          "delta_pp": 2.68,
+          "ci95_pp": [
+            1.96,
+            3.41
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        }
+      },
+      "m11": {
+        "images": 425,
+        "teeth": 11591,
+        "detected": 4532,
+        "correct": 2392,
+        "end_to_end": {
+          "value": 0.2064,
+          "ci95": [
+            0.1967,
+            0.216
+          ]
+        },
+        "recall": {
+          "value": 0.391,
+          "ci95": [
+            0.3794,
+            0.4025
+          ]
+        },
+        "exact_of_detected": {
+          "value": 0.5278,
+          "ci95": [
+            0.5097,
+            0.5462
+          ]
+        },
+        "quadrant_correct_of_detected": {
+          "value": 0.9398,
+          "ci95": [
+            0.933,
+            0.9463
+          ]
+        }
+      },
+      "arm3c": {
+        "images": 425,
+        "teeth": 11591,
+        "detected": 7719,
+        "correct": 5158,
+        "end_to_end": {
+          "value": 0.445,
+          "ci95": [
+            0.4239,
+            0.4662
+          ]
+        },
+        "recall": {
+          "value": 0.6659,
+          "ci95": [
+            0.6457,
+            0.6859
+          ]
+        },
+        "exact_of_detected": {
+          "value": 0.6682,
+          "ci95": [
+            0.6493,
+            0.6869
+          ]
+        },
+        "quadrant_correct_of_detected": {
+          "value": 0.9666,
+          "ci95": [
+            0.9621,
+            0.9709
+          ]
+        }
+      }
+    },
+    "wide": {
+      "deltas": {
+        "end_to_end_arm3c_minus_m11": {
+          "delta_pp": 25.96,
+          "ci95_pp": [
+            24.3,
+            27.6
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
+        "recall_arm3c_minus_m11": {
+          "delta_pp": 20.14,
+          "ci95_pp": [
+            18.85,
+            21.51
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
+        "exact_of_detected_arm3c_minus_m11": {
+          "delta_pp": 12.84,
+          "ci95_pp": [
+            11.21,
+            14.4
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        },
+        "quadrant_correct_of_detected_arm3c_minus_m11": {
+          "delta_pp": 1.86,
+          "ci95_pp": [
+            1.33,
+            2.38
+          ],
+          "excludes_zero": true,
+          "frac_resamples_le_0": 0.0
+        }
+      },
+      "m11": {
+        "images": 425,
+        "teeth": 11591,
+        "detected": 8747,
+        "correct": 5940,
+        "end_to_end": {
+          "value": 0.5125,
+          "ci95": [
+            0.4935,
+            0.5307
+          ]
+        },
+        "recall": {
+          "value": 0.7546,
+          "ci95": [
+            0.7404,
+            0.7682
+          ]
+        },
+        "exact_of_detected": {
+          "value": 0.6791,
+          "ci95": [
+            0.6606,
+            0.6972
+          ]
+        },
+        "quadrant_correct_of_detected": {
+          "value": 0.9423,
+          "ci95": [
+            0.9371,
+            0.9471
+          ]
+        }
+      },
+      "arm3c": {
+        "images": 425,
+        "teeth": 11591,
+        "detected": 11082,
+        "correct": 8949,
+        "end_to_end": {
+          "value": 0.7721,
+          "ci95": [
+            0.7519,
+            0.7914
+          ]
+        },
+        "recall": {
+          "value": 0.9561,
+          "ci95": [
+            0.9492,
+            0.9625
+          ]
+        },
+        "exact_of_detected": {
+          "value": 0.8075,
+          "ci95": [
+            0.7898,
+            0.8246
+          ]
+        },
+        "quadrant_correct_of_detected": {
+          "value": 0.9608,
+          "ci95": [
+            0.9561,
+            0.9654
+          ]
+        }
+      }
+    }
   },
   "S1": {
     "delta_pp": 10.4,

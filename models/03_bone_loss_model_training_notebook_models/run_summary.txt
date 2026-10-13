@@ -91,3 +91,15 @@ SOURCE
   training_summary.txt, training_history.json (this directory)
   notebooks/bone_loss/
   RESULTS_LOG.md 2026-08-25d (Ningxia), 2026-08-24f (DENTEX in-pipeline)
+
+--------------------------------------------------------------------------------
+HELD OUT -- 13 October 2026 (RESULTS_LOG 2026-10-13)
+--------------------------------------------------------------------------------
+  The figures above are validation on the training radiographs. This checkpoint, scored
+  once under outputs/bone_loss_eval/heldout/PRE_REGISTRATION.md on 821 Tufts radiographs
+  that supplied no training or validation crop (21,956 teeth, 946 positive):
+    sensitivity   0.0761  (72 / 946)        95% CI [0.0519, 0.1047]
+    specificity   0.9866  (20,729 / 21,010) 95% CI [0.9843, 0.9888]
+    F1 macro      0.5419                    95% CI [0.5247, 0.5612]
+  The label is overlap with a Tufts expert abnormality mask, not periodontal bone loss.
+  Do not quote 0.9233 without this.

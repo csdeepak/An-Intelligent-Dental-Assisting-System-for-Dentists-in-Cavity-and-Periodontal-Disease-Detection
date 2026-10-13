@@ -3,7 +3,16 @@
 Current best numbers only. One table per model, nothing else. For how a number was
 obtained see `PAPER_MATERIAL.md`; for when and why it changed see `RESULTS_LOG.md`.
 
-**Last updated:** 2026-10-11 — **Stage 1 default changed** to the multi-corpus detector
+**Last updated:** 2026-10-13 — **Stage 4a now has a held-out figure: sensitivity 7.6%,
+specificity 98.7%, on 821 Tufts radiographs it never trained on** (`RESULTS_LOG` 2026-10-13;
+Stage 4a section below). Its 0.9233 was a product of the crop-level split.
+
+**Before that:** 2026-10-12 — three estimates added to the first section: numbering on an
+unseen corpus, placement of the constant's codes, and what the caries stage flags
+(`RESULTS_LOG` 2026-10-12b). **The bone-loss branch stays in the paper by the decision owner's
+choice (2026-10-12c); its numbers below are unchanged and its caveats stand.**
+
+**Before that:** 2026-10-11 — **Stage 1 default changed** to the multi-corpus detector
 (arm3c); the re-measured numbers are in the first section below, and everything further down
 that says "pipeline" is the previous front end unless labelled. `RESULTS_LOG.md` 2026-10-11f
 (the decision), 2026-10-11g (the measurement), 2026-10-11h (three rounding corrections),
@@ -50,8 +59,8 @@ in this file was measured with the previous front end unless it says otherwise.*
 
 Tufts end to end: −1.30 pp [−4.64, +2.26], **not separable**; recall +6.89 pp, accuracy on
 detected teeth −7.52 pp, both separated. DENTEX: +34.40 pp [+30.29, +38.54], on held-out images
-of a corpus the detector was trained on. **There is no cross-domain numbering figure for the
-current default.** Tufts test box mAP@0.5, measured 3 Sep and not re-measured: 0.810 → 0.585.
+of a corpus the detector was trained on. **On a corpus neither model trained on the figure is
+44.5% (UFBA-425, table further down this section).** Tufts test box mAP@0.5, measured 3 Sep and not re-measured: 0.810 → 0.585.
 
 **Caries, lesion agreement** — (teeth flagged) beside each figure; agreement rises with flagged
 area. The default caries path is the lesion detector.
@@ -133,6 +142,41 @@ and does not depend on the tooth detector.
 0.723, **arm3c 0.587**: −13.6 pp. This is the like-for-like cost. The 0.810 → 0.585 quoted
 elsewhere in this file sets a segmentation model on polygon labels against a detection model
 on box labels. Lever A's Guard 2 failed on this figure and still does.
+
+**Numbering on a corpus neither model trained on — UFBA-425, 425 images, 11,591 teeth**
+(`RESULTS_LOG` 2026-10-12b; single pass; a square 640×640 re-export).
+
+| Images | Detector | Recall | Of detected | **End to end** | 95% CI |
+|---|---|---|---|---|---|
+| As distributed — the registered figure | previous (`models/11`) | 39.1% | 52.8% | 20.6% | [19.67, 21.60] |
+| | **arm3c (default)** | 66.6% | 66.8% | **44.5%** | [42.39, 46.62] |
+| Widened to 1991:1127 — sensitivity only, aspect unverified | previous | 75.5% | 67.9% | 51.2% | [49.35, 53.07] |
+| | arm3c | 95.6% | 80.8% | 77.2% | [75.19, 79.14] |
+
+arm3c − previous, end to end: **+23.86 pp [+21.96, +25.77]** as distributed, +25.96 pp [+24.30,
++27.60] widened. Not comparable cohort-for-cohort with the Tufts and DENTEX rows above.
+
+**Placement of the constant's eight codes, Tufts test** (`RESULTS_LOG` 2026-10-12b). Precision:
+of teeth the pipeline codes as a first or second molar, the share that are one. Reach: of true
+first and second molars, the share so coded.
+
+| Detector | Precision | Reach | Boxes on no labelled tooth |
+|---|---|---|---|
+| previous | 94.7% [92.95, 96.23] | 83.5% [79.53, 87.05] | 368 |
+| **arm3c** | **92.0%** [89.58, 94.06] | **81.7%** [77.72, 85.35] | 621 |
+
+Precision −2.72 pp [−4.53, −1.01]; reach −1.81 pp [−4.45, +0.84], not separated.
+
+**What the caries stage flags, 164 DENTEX images, arm3c** (`RESULTS_LOG` 2026-10-12b).
+
+| Arm | Flagged codes | Caries | Another finding | No annotation | Molar share |
+|---|---|---|---|---|---|
+| Constant | 1,312 | 21.8% | 6.7% | 71.5% | 100% |
+| Retired gate | 1,537 | 23.7% | 10.7% | 65.5% | 66.6% |
+| **Lesion detector** | 624 | 43.9% | 14.4% | 41.7% | 71.6% |
+
+"No annotation" is not "healthy". The cohort holds no tooth labelled healthy, so no
+false-positive rate on healthy teeth can be given.
 
 **Size** — Stage 1 27,617,459 → 25,311,251; default pipeline 97,649,753 → **95,343,545**.
 
@@ -634,6 +678,26 @@ Frozen and tagged 27 Aug 2026 as `bone-loss-binary-resnet18-v1.0`, SHA-256
 different file and is **not** used). Class order is `[normal, bone_loss]`, confirmed two
 independent ways — `models/03_.../run_summary.txt`.
 
+**Held out — measured 13 Oct 2026, pre-registered (`RESULTS_LOG` 2026-10-13,
+`outputs/bone_loss_eval/heldout/`).** The frozen model, scored once on 821 Tufts radiographs
+that supplied no training or validation crop: 21,956 teeth, 946 positive (4.3%). **This is the
+current number for this model.** The validation table below it is kept as what was reported.
+
+| Metric | Held out, test | 95% CI | Crop-level validation |
+|---|---|---|---|
+| **Sensitivity** | **7.6%** (72 / 946) | [5.19, 10.47] | 83.05% |
+| **Specificity** | **98.7%** (20,729 / 21,010) | [98.43, 98.88] | 99.53% |
+| Precision, diseased | 20.4% (72 / 353) | [14.19, 27.30] | 87.50% |
+| Macro F1 | 0.542 | [0.5247, 0.5612] | 0.9233 |
+| Average precision | 0.0956 | [0.0741, 0.1259] | — |
+| ROC area | 0.644 | [0.6120, 0.6748] | — |
+
+Confusion: TN 20,729 · FP 281 · FN 874 · TP 72. A tooth-position prior fitted on the training
+side scores average precision 0.0675 and ROC area 0.636; model minus prior +0.0281
+[+0.0084, +0.0564] and +0.0073 [−0.0374, +0.0502]. Within the 282 radiographs that carry a
+mask the model is not separated from that prior on either. The label is abnormality proximity,
+not periodontal bone loss.
+
 Validation, 1,558 crops at real-world prevalence (1,499 normal / 59 diseased).
 
 > **⚠️ Not a held-out estimate — found 10 Oct 2026, `RESULTS_LOG` 2026-10-10.** This validation
@@ -641,7 +705,7 @@ Validation, 1,558 crops at real-world prevalence (1,499 normal / 59 diseased).
 > `PAPER_MATERIAL.md` §6.3 describes. All 143 of its radiographs also supply training crops, and
 > 46 of the 59 diseased crops share their tooth with a training positive. The numbers below are
 > what was measured, and they reproduce (49/59, `RESULTS_LOG` 2026-09-07); how far they exceed a
-> leak-free estimate is unmeasured. **The diseased class is also not periodontal bone loss.** It
+> leak-free estimate **was measured on 13 Oct 2026: sensitivity 7.6% held out, table above**. **The diseased class is also not periodontal bone loss.** It
 > is "overlaps a Tufts expert abnormality mask", and the 41 radiographs supplying every diseased
 > crop are described by the expert as apical lesions, sclerosis and cysts — none as periodontal
 > bone loss. Stage 4b below is built from the same crops; its split has not been audited.
@@ -780,7 +844,10 @@ also resolved the documented `590.JPG`/`591.JPG` train-test leak: its effect on 
 two bone-loss ResNet18 classifiers — the only candidate per-item dataset on this machine
 (`outputs/bone_loss_eval/bone_loss_val_nonjittered.json`) is flagged `DIVERGENT — do not use` by
 its own creator, and the original un-rotated Tufts radiographs needed to redo it properly were
-searched for directly and confirmed absent (not merely assumed absent).
+searched for directly and confirmed absent (not merely assumed absent). *(13 Oct 2026: absent
+from the Windows machine. All 1,000 are on the macOS clone, with the expert masks and the
+tooth boxes, under `_repo_archive/datasets_workspace/` — `PAPER_MATERIAL.md` §8.28, §8.33.
+The block is lifted; the held-out measurement was made on 13 Oct — Stage 4a section.)*
 
 ---
 

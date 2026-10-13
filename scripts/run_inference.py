@@ -58,7 +58,9 @@ written into every report rather than left to a footnote:
     a Tufts expert ABNORMALITY mask, and the radiographs behind its positive class are described
     as apical lesions, sclerosis and cysts -- none as periodontal bone loss. Its in-domain score
     (macro-F1 0.923) is not a held-out estimate either: validation and training crops came from
-    the same radiographs. The field names are unchanged so consumers do not break; the report's
+    the same radiographs. On 821 Tufts radiographs that supplied no training crop it finds 7.6%
+    of the teeth carrying its own label (72 of 946) at 98.7% specificity (RESULTS_LOG
+    2026-10-13). The field names are unchanged so consumers do not break; the report's
     `limitations` block says what they mean.
 
 Neither branch is fixable-to-perfect at this layer, and neither field is a diagnosis. They are
@@ -172,9 +174,12 @@ DETECTOR_PROFILES = {
             "Detection recall and FDI accuracy are measured on DENTEX disease/ (164 held-out "
             "images, 936 GT teeth), 11 Oct 2026 (RESULTS_LOG 2026-10-11g). DENTEX is "
             "IN-DOMAIN for this detector, which was trained on Tufts, DENTEX and a third "
-            "corpus. On the held-out Tufts test split the same pipeline scores 89.3% / 63.5%, "
-            "and no figure exists for a source it was not trained on -- do not read 92.8% as "
-            "what to expect on a new radiograph. A missed tooth is absent from this report; a "
+            "corpus. On the held-out Tufts test split the same pipeline scores 89.3% / 63.5%. On "
+            "UFBA-425, the one corpus neither this detector nor the numbering head trained on, "
+            "it scores 66.6% / 44.5% on the square 640x640 export as distributed and 95.6% / "
+            "77.2% with each image widened to a panoramic aspect ratio (RESULTS_LOG "
+            "2026-10-12b) -- do not read 92.8% as what to expect on a new radiograph. A missed "
+            "tooth is absent from this report; a "
             "misnumbered tooth carries correct findings under the wrong FDI code."),
     },
 }
@@ -354,16 +359,21 @@ def build_report(image_path, img_bgr, boxes, confs, fdi_assign, caries, bone, me
                 "positive class are described by that expert as apical lesions, sclerosis and "
                 "cysts -- none as periodontal bone loss. Its reported in-domain score (macro-F1 "
                 "0.923) is not a held-out estimate: the validation crops came from the same "
-                "radiographs as the training crops. The field names are kept so existing "
-                "consumers do not break. RESULTS_LOG 2026-10-10."),
+                "radiographs as the training crops. Scored once on 821 Tufts radiographs that "
+                "supplied no training crop, it found 7.6% of the teeth carrying its own label "
+                "(72 of 946; 95% interval 5.2 to 10.5) at 98.7% specificity -- so expect this "
+                "flag to miss most of what it was trained to mark, on any image. The field "
+                "names are kept so existing consumers do not break. RESULTS_LOG 2026-10-10, "
+                "2026-10-13."),
             "bone_loss_domain_shift": (
                 "The Stage-4 models were trained on TUFTS radiographs and are applied here to "
                 "whatever image is supplied; on DENTEX they fire on 0.7% of teeth (2/299) with "
                 "0.93-0.999 confidence in 'normal', and against the Ningxia periodontitis masks "
                 "they reach 2.4% affected-tooth sensitivity. That was first read as domain "
-                "shift. It is at least partly a label mismatch -- see "
-                "bone_loss_label_and_validation -- so a 'normal' field is weak evidence, not a "
-                "negative finding, and says nothing about periodontal status."),
+                "shift. It is at least partly a label mismatch, and since 13 Oct 2026 the model "
+                "is known to miss 92% of its own label on held-out Tufts radiographs as well -- "
+                "see bone_loss_label_and_validation -- so a 'normal' field is weak evidence, "
+                "not a negative finding, and says nothing about periodontal status."),
             "not_clinically_validated": True,
         },
     }
@@ -540,7 +550,9 @@ def run_pipeline(img_bgr, models, device, paths, image_label="image", imgsz=1024
                           "are historical names. RESULTS_LOG 2026-10-10."),
                       "validation_split": (
                           "binary: crop-level 20% split, all 143 validation radiographs also "
-                          "supply training crops, so 0.9233 is not a held-out estimate. "
+                          "supply training crops, so 0.9233 is not a held-out estimate. Held "
+                          "out, 821 Tufts radiographs outside training (13 Oct 2026): "
+                          "sensitivity 0.076 (72/946), specificity 0.987. "
                           "severity: image-level, 32 training / 9 validation radiographs."),
                       "class_order_note": (
                           "binary class order [normal, bone_loss] confirmed two independent "

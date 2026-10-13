@@ -60,7 +60,8 @@ data/
 │                                      train.txt + test_*.txt; ./-relative paths. Geometry gate IoU 1.0000.
 │                                      Rotated corpora capped 1600px/q85 (3 Sep upload-size fix). Tar = 467 MB.
 │                                      rebuild scripts/yolo/build_multicorpus_detector_v2_dataset.py
-├── ufba425/                    51 MB  [Lever A corpus #4] figshare 10.6084/m9.figshare.29827475, CC BY 4.0.
+├── ufba425/                    51 MB  [Lever A corpus #4; since 12 Oct also the unseen-corpus numbering eval,
+│                                      row P] figshare 10.6084/m9.figshare.29827475, CC BY 4.0.
 │                                      425 imgs numbering_xrays/ + boundinng_boxes/ (YOLO txt) + metadata.csv
 │                                      (per-tooth FDI). 640×640 square Roboflow export — aspect-distorted.
 ├── cariesxrays_det/          ~4 GB    [Lever 2] CariesXrays VOC→YOLO detect set — 4,800/1,200,

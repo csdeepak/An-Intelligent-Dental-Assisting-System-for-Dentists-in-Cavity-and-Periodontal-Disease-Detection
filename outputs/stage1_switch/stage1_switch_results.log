@@ -154,6 +154,56 @@ Row M -- Tufts test box mAP@0.5, 150 images, detector label frame
   controlB mAP@0.5 0.7233   (training machine 0.7243, -0.10 pp)
   arm3c    mAP@0.5 0.5873   (training machine 0.5852, +0.21 pp)
 
+Row N -- what the caries stage flags, 164 DENTEX images, arm3c front end
+  gate: all three arms reproduce row D's tp/fp/fn
+  labelled-healthy teeth: 0 on 0 images; 0 at the constant's eight codes
+  constant          1312 codes: no annotation 938, caries 286, other finding 88   | molar share 1.0000
+      molar     flagged 1312  carious  286  (0.2180)
+  lesion-detector    624 codes: caries 274, no annotation 260, other finding 90   | molar share 0.7163
+      canine    flagged   15  carious    5  (0.3333)
+      incisor   flagged   21  carious    6  (0.2857)
+      molar     flagged  447  carious  207  (0.4631)
+      premolar  flagged  141  carious   56  (0.3972)
+  gate              1537 codes: no annotation 1007, caries 365, other finding 165   | molar share 0.6656
+      canine    flagged   60  carious    5  (0.0833)
+      incisor   flagged   72  carious    4  (0.0556)
+      molar     flagged 1023  carious  291  (0.2845)
+      premolar  flagged  382  carious   65  (0.1702)
+  flag_rate_on_labelled_healthy: constant 0/0  lesion-detector 0/0  gate 0/0   (fewer than 30 teeth: counts only, no interval (Amendment 3))
+  flag_rate_on_labelled_healthy_at_the_eight_codes: constant 0/0  lesion-detector 0/0  gate 0/0   (fewer than 10 teeth: counts only, no interval (Amendment 3))
+  wording rule: the sentence is kept, with these figures beside it
+
+Row O -- placement of the constant's eight codes, tufts
+  m11    precision 784/828 = 0.9469   exact 746/828   reach 784/939 = 0.8349   unreached: {'not detected': 101, 'third molar': 30, 'premolar': 13, 'given no code': 7, 'other code': 4}   boxes on no tooth: 368
+  arm3c  precision 767/834 = 0.9197   exact 723/834   reach 767/939 = 0.8168   unreached: {'not detected': 92, 'third molar': 40, 'premolar': 27, 'other code': 3, 'given no code': 10}   boxes on no tooth: 621
+  placement_precision  arm3c - m11               -2.72 pp  [  -4.53,   -1.01]  excludes 0
+  placement_exact  arm3c - m11                   -3.41 pp  [  -6.17,   -0.69]  excludes 0
+  reach  arm3c - m11                             -1.81 pp  [  -4.45,   +0.84]  INCLUDES 0
+
+Row O -- placement of the constant's eight codes, dentex (secondary: finding-bearing teeth only, in-domain for arm3c)
+  m11    precision 264/292 = 0.9041   exact 244/292   reach 264/374 = 0.7059   unreached: {'not detected': 92, 'third molar': 9, 'premolar': 8, 'other code': 1}   boxes on no tooth: 2944
+  arm3c  precision 363/378 = 0.9603   exact 347/378   reach 363/374 = 0.9706   unreached: {'third molar': 4, 'premolar': 4, 'not detected': 2, 'other code': 1}   boxes on no tooth: 3580
+  placement_precision  arm3c - m11               +5.62 pp  [  +2.45,   +9.09]  excludes 0
+  placement_exact  arm3c - m11                   +8.24 pp  [  +3.77,  +12.89]  excludes 0
+  reach  arm3c - m11                            +26.47 pp  [ +21.55,  +31.69]  excludes 0
+
+Row P -- numbering on UFBA-425 (no model here trained on it)
+  gates: handedness 419/419 images that define a comparison; 0 images excluded as duplicates of a training-side corpus
+  images as distributed, 640x640 (PRIMARY)
+    m11    end-to-end 0.2064 [0.1967, 0.216]  recall 0.3910  of detected 0.5278  quadrant 0.9398  (2392 of 11591 teeth, 425 images)
+    arm3c  end-to-end 0.4450 [0.4239, 0.4662]  recall 0.6659  of detected 0.6682  quadrant 0.9666  (5158 of 11591 teeth, 425 images)
+    end_to_end  arm3c - m11                     +23.86 pp  [ +21.96,  +25.77]  excludes 0
+    recall  arm3c - m11                         +27.50 pp  [ +25.50,  +29.45]  excludes 0
+    exact_of_detected  arm3c - m11              +14.04 pp  [ +11.81,  +16.19]  excludes 0
+    quadrant_correct_of_detected  arm3c - m11    +2.68 pp  [  +1.96,   +3.41]  excludes 0
+  images widened to 1991:1127 (sensitivity only)
+    m11    end-to-end 0.5125 [0.4935, 0.5307]  recall 0.7546  of detected 0.6791  quadrant 0.9423  (5940 of 11591 teeth, 425 images)
+    arm3c  end-to-end 0.7721 [0.7519, 0.7914]  recall 0.9561  of detected 0.8075  quadrant 0.9608  (8949 of 11591 teeth, 425 images)
+    end_to_end  arm3c - m11                     +25.96 pp  [ +24.30,  +27.60]  excludes 0
+    recall  arm3c - m11                         +20.14 pp  [ +18.85,  +21.51]  excludes 0
+    exact_of_detected  arm3c - m11              +12.84 pp  [ +11.21,  +14.40]  excludes 0
+    quadrant_correct_of_detected  arm3c - m11    +1.86 pp  [  +1.33,   +2.38]  excludes 0
+
 S1 -- the one result that stops the switch (Sec 5)
   lesion-detector path, arm3c - m11, E + F      +10.40 pp  [  +8.71,  +12.09]  excludes 0
   lower bound +8.71 pp against -2.0 pp: S1 does not fire

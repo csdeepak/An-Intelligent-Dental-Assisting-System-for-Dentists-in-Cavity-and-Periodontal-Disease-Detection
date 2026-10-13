@@ -1,0 +1,32 @@
+{
+  "P2_handedness": {
+    "images": 425,
+    "define_a_comparison": 419,
+    "consistent": 419,
+    "define_none": 6,
+    "share": 1.0,
+    "pass": true
+  },
+  "P3_leakage": {
+    "Tufts radiographs": {
+      "images": 1000,
+      "byte_identical": 0,
+      "within_hamming_10": 0,
+      "min_hamming_of_256": 62
+    },
+    "DENTEX, every release folder": {
+      "images": 10515,
+      "byte_identical": 0,
+      "within_hamming_10": 0,
+      "min_hamming_of_256": 62
+    },
+    "Kaggle dual": {
+      "images": 500,
+      "byte_identical": 0,
+      "within_hamming_10": 0,
+      "min_hamming_of_256": 69
+    }
+  },
+  "excluded": [],
+  "pass": true
+}

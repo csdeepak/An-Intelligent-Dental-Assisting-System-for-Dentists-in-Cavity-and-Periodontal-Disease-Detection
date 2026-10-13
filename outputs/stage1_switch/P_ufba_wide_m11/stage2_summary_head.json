@@ -1,0 +1,34 @@
+{
+  "n_gt_teeth": 11591,
+  "n_images": 425,
+  "recall": 0.7546372185316194,
+  "fdi_exact_of_detected": 0.6790899737052704,
+  "fdi_exact_of_all": 0.5124665688896558,
+  "quadrant_correct_of_detected": 0.9422659197439122,
+  "mean_detections_per_image": 23.818823529411766,
+  "duplicate_fdi_codes": 0,
+  "flag_counts": {
+    "reassigned_by_one_to_one": 1790,
+    "low_confidence": 1551,
+    "unassigned_no_code_left": 40
+  },
+  "structural_diagnostics": {
+    "n_groups": 1629,
+    "n_overfull": 201,
+    "n_no_anchor": 0,
+    "n_teeth": 10123,
+    "n_anchor_teeth": 6835,
+    "n_movable_teeth": 1411
+  },
+  "detector": "models/11_yolo_seg_tufts_r1/best.pt",
+  "head": "models/10_fdi_head_dentex_tufts_v2/enumeration_head_best.pth",
+  "assignment": "hungarian",
+  "conf": 0.25,
+  "det_nms_iou": 0.5,
+  "imgsz": 1024,
+  "min_iou": 0.3,
+  "one_to_one": true,
+  "excluded_leaked": [],
+  "corpus": "ufba425",
+  "aspect": 1.76664
+}

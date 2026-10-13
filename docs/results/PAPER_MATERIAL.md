@@ -2632,6 +2632,130 @@ no clinician reference.
 
 ---
 
+### 8.32 Three estimates that bound what the caries tables rest on
+
+*12 Oct 2026. `RESULTS_LOG` 2026-10-12b. Pre-registered as Amendments 3 and 4 of
+`outputs/stage1_switch/PRE_REGISTRATION.md`. Estimates; no default can change on them.*
+
+**Numbering on unseen data is low.** On UFBA-425, the one corpus with tooth labels that neither
+the detector nor the numbering head trained on, the pipeline numbers 44.5% of 11,591 teeth
+correctly [42.39, 46.62], finding 66.6% of them. That corpus is a square 640×640 re-export of
+panoramic images. Widened to a panoramic shape the same images give 77.2% [75.19, 79.14] and
+95.6% recall. The first figure is the registered one. The second was registered as a sensitivity
+analysis and rests on an aspect ratio that was not verified for these files. Write both, in that
+order, and do not write either as "accurate".
+
+**The adopted detector is ahead on that corpus.** +23.86 pp [+21.96, +25.77] over the detector
+it replaced, as distributed; +25.96 pp widened. It is the only evidence about the switch that is
+not in-domain for the adopted detector. It does not reverse the two registered verdicts the
+switch went against.
+
+**The constant is a pipeline-placed heuristic, and here is how well it is placed.** On Tufts,
+92.0% [89.58, 94.06] of the codes it flags sit on a true first or second molar, and it reaches
+81.7% [77.72, 85.35] of them. Both are a little lower than under the previous detector
+(precision −2.72 pp [−4.53, −1.01]). There are 621 detector boxes on no labelled tooth; their
+codes were not saved. In every lesion-agreement table the constant must be described as placed
+by the pipeline's own boxes and numbering, with these two figures beside it.
+
+**What the lesion detector flags.** 624 tooth codes on 164 DENTEX images: 43.9% on a carious
+tooth, 14.4% on a tooth with another annotated finding, 41.7% on a tooth with no annotation.
+71.6% are molars. The constant: 1,312 codes, 21.8% carious, all molars. The sentence that a
+lesion-placing model "cannot score well by reproducing a prior over tooth positions" survives its
+registered rule, and should carry these figures: the detector concentrates on molars almost as
+much as the gate does (66.6%), with twice the carious share.
+
+**No specificity-type figure exists on DENTEX and none can be made from the scored cohort.** The
+164 images contain no tooth labelled healthy. All 91 healthy labels in the release are on the 86
+images excluded as training duplicates.
+
+---
+
+### 8.33 The bone-loss branch stays — what it can and cannot be called
+
+*12 Oct 2026. `RESULTS_LOG` 2026-10-12c. Decision by the decision owner, against the earlier
+councils' advice; one more council was asked only how.*
+
+**The decision.** Stage 4 stays in the paper. §8.28's two facts are unchanged by it: the 0.923
+is validation on the training radiographs, and the positive class is proximity to a Tufts expert
+abnormality mask.
+
+**Why more training cannot fix it.** The fault is the label, not the fit. A cleaner split would
+give a clean number for the wrong thing. A periodontal claim needs a periodontal label.
+
+**Where such labels are.**
+
+| Source | Label | Status |
+|---|---|---|
+| Ningxia, periodontitis training split | 2,000 images, expert region masks | Public; not on this machine (11.2 GB on a pen drive, left there on purpose). The house rule forbids training on Ningxia. About a third of detected teeth fall inside the region at three of four hospitals, and no patient is healthy, so a per-tooth label from it is largely geometry |
+| BRAR (Xia et al., *Scientific Data* 2025) | 1,104 patients, bone loss over root length at the worst tooth, divided by age, in three grades | CC BY 4.0, open, **not downloaded**. Patient-level, one hospital, no boxes. Published baseline 63.3% accuracy. Because age is in the label, an age-only predictor is an image-blind baseline for it |
+
+`main.tex` 1273–1275 says no second annotated periodontal corpus exists in this project. Reword
+it: none was used.
+
+**What the paper may say** (council, 3 of 3): a second branch, trained on Tufts tooth crops
+labelled by overlap with an expert abnormality mask, ships in the pipeline; its in-domain figure
+comes from a crop-level split and is not reported as performance; on 736 Ningxia periodontitis
+images it flagged 2.17% of affected teeth (153 of 7,049), which a label mismatch predicts without
+any domain shift; no periodontal claim is made.
+
+**What it must not say:** "detects periodontal bone loss"; 0.923 as performance; "domain shift"
+or "did not transfer" for this branch; "two independent external datasets agree"; any severity,
+stage or grade claim; the keyword "periodontal bone loss".
+
+*(13 Oct: item 1 below was run — §8.34. Sensitivity 7.6% held out.)*
+
+**What would make it stronger, in order of cost.** (1) The frozen classifier scored once on the
+290 Tufts radiographs that carry an expert mask and supplied no training crop: its first
+held-out figure, for the label it was trained on. Pre-registration and go-ahead needed. (2) A
+patient-level grading experiment on BRAR against majority-class and age-only baselines — the
+paper's own argument on a second disease. For the capstone report and a journal version; the
+council did not want it inside six pages. (3) A per-tooth classifier trained on the Ningxia
+training split: one seat for, one against, parked.
+
+---
+
+### 8.34 Stage 4a held out — the 0.923 was the split
+
+*13 Oct 2026. `RESULTS_LOG` 2026-10-13. Pre-registered:
+`outputs/bone_loss_eval/heldout/PRE_REGISTRATION.md`. One pass; nothing trained or tuned.*
+
+**The measurement.** The frozen classifier on every tooth of 821 Tufts radiographs that supplied
+no training or validation crop — 21,956 teeth, 946 carrying its own label (overlap with the
+expert abnormality mask above 1%):
+
+| | Held out | Crop-level validation |
+|---|---|---|
+| Sensitivity | **7.6%** (72 of 946) [5.19, 10.47] | 83.1% (49 of 59) |
+| Specificity | 98.7% [98.43, 98.88] | 99.5% |
+| Macro-F1 | 0.542 [0.5247, 0.5612] | 0.923 |
+
+**What it means.** The classifier learned its training teeth. Every validation radiograph was
+also a training radiograph, and most validation positives were the jittered or clean sibling of
+a training positive (§8.28). Away from those teeth it marks one in thirteen. §8.28 said the
+excess of 0.923 over a leak-free figure was unmeasured; this is the measurement.
+
+**Against an image-blind baseline.** A score that knows only the tooth's title reaches average
+precision 0.0675 and ROC area 0.636. The model: 0.0956 and 0.644. The difference in average
+precision is +0.0281 [+0.0084, +0.0564] over all radiographs and is not separated from zero
+within the radiographs that carry a mask; the ROC area is not separated anywhere.
+
+**What this does to §8.13 and §8.33.** The external figures — 2.17% on Ningxia, 0.75% firing
+on DENTEX — were read as domain shift, then as label mismatch. The model fails on its own
+label inside its own source, so neither reading is needed and neither is shown.
+
+**How to write it** (registered, §7 of the pre-registration): the held-out sensitivity and
+specificity with their intervals; the label called abnormality proximity; the crop-level figures
+named as such; the difference given without an adjective. Not "periodontal", not "bone loss" as
+a finding, not "domain shift". It is a second instance of the paper's own argument: a tooth-level
+score that was made by how it was measured.
+
+**What it does not show.** That a ResNet18 cannot learn this label. The shipped model saw
+positives from 41 radiographs; 339 of the 1,000 carry a mask. A model trained with a
+radiograph-level split on all of them has not been tried, and would still be an abnormality
+flag, not a periodontal one.
+
+---
+
 ## 9. What's not yet written — checklist
 
 For whoever drafts the actual paper. Tick items off here as they land.
@@ -2937,3 +3061,15 @@ listed in full in `RESULTS_LOG.md` 2026-08-28; the ones that touch *this* docume
 **Left for the next session:** the manuscript is **12 pages against ISBI's 4**. It was written
 as a complete, self-explaining document by request; the cut is venue-specific and should not
 be done by re-compressing prose written to be clear. Decide the venue first.
+
+**12 Oct 2026 — to write, from §8.32 and §8.33:** the UFBA-425 numbering sentence in place of
+"we have none on unseen data"; the constant's placement precision and reach beside every
+lesion-agreement table; the flagged-teeth breakdown beside the sentence at `main.tex` 447–449;
+the bone-loss branch re-described, with the list of what it must not say; and the reworded
+"no second annotated periodontal corpus" sentence. Line-by-line: `docs/paper/SUBMISSION_TODO.md`
+§1a rows k to n and §2 item 3.
+
+**13 Oct 2026 — to write, from §8.34:** the bone-loss paragraph with the held-out figure
+(draft in `docs/paper/SUBMISSION_TODO.md` §2 item 3); and wherever the abstract, the
+discussion or the figure caption sets 0.923 against an external figure, the held-out 7.6%
+goes between them.
