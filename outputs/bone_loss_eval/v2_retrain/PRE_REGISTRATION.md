@@ -1,6 +1,6 @@
 # Pre-registration — Stage 4a retrained with a radiograph-level split
 
-Written 14 October 2026, before any crop of the new training set has been cut and before any
+Written 13 October 2026, before any crop of the new training set has been cut and before any
 model has been trained. The commit that adds this file is the record of when.
 
 ## 0. Compact
@@ -9,7 +9,7 @@ model has been trained. The commit that adds this file is the record of when.
 |---|---|
 | **Goal** | Find out whether the Stage-4a architecture can learn its label when it is trained and tested on different radiographs. The shipped model cannot be said to: held out, it finds 7.6% of its own label (`docs/results/RESULTS_LOG.md` 2026-10-13) |
 | **Who cares** | Anyone reading the per-tooth flag in the report or the demo; a reviewer reading the bone-loss paragraph |
-| **Decision owner** | The user. On 14 Oct he chose this option ("retrain with a proper radiograph-level split on all 1,000 radiographs") |
+| **Decision owner** | The user. On 13 Oct he chose this option ("retrain with a proper radiograph-level split on all 1,000 radiographs") |
 | **What the model changes** | One per-tooth field, shown as `ABN` on the overlay |
 | **The label, unchanged** | "The crop overlaps a Tufts expert abnormality mask by more than 1%." **Not periodontal bone loss.** A better model for this label is a better abnormality flag and nothing else (`PAPER_MATERIAL.md` §8.28) |
 | **Success** | On test radiographs: better than the shipped model, and better than a score that knows only the tooth's position (§6) |
