@@ -54,9 +54,11 @@ def overlap_ratio(mask, cx1, cy1, cx2, cy2):
     return float(np.count_nonzero(m > 0)) / m.size if m.size else 0.0
 
 
-def clean_crops(stem, objects):
+def clean_crops(stem, objects, jitter=None):
     """Every clean crop of one radiograph, as the notebook built them (cells 9, 14, 18).
-    Yields (row, 224x224 grey crop); row = {stem, tooth, label, overlap, mask_empty}."""
+    Yields (row, 224x224 grey crop); row = {stem, tooth, label, overlap, mask_empty}.
+    `jitter(x, y, w, h, img_w, img_h) -> (x, y, w, h)` moves each box first; it is only used to
+    build the retraining set (scripts/tufts/train_bone_loss_v2.py) and is off for every score."""
     img = cv2.imread(str(SRC / "Radiographs" / f"{stem}.JPG"), cv2.IMREAD_GRAYSCALE)
     mask = cv2.imread(str(SRC / "Expert/mask" / f"{stem}.JPG"), cv2.IMREAD_GRAYSCALE)
     if img is None or mask is None:
@@ -71,6 +73,8 @@ def clean_crops(stem, objects):
         x, y, w, h = x1, y1, x2 - x1, y2 - y1
         if w < MIN_DIM or h < MIN_DIM:
             continue
+        if jitter is not None:
+            x, y, w, h = jitter(x, y, w, h, img_w, img_h)
         cx1, cy1, cx2, cy2 = expanded_box(x, y, w, h, img_w, img_h)
         if cx2 - cx1 < MIN_DIM or cy2 - cy1 < MIN_DIM:
             continue
@@ -96,16 +100,17 @@ def load_sources():
     return records, used, clean
 
 
-def load_scorer():
+def load_scorer(weights=WEIGHTS, sha256=SHA256):
     """-> f(list of 224x224 grey crops) = P(diseased) for each: three identical channels,
-    ImageNet normalisation -- what the training notebook's validation transform gave the model."""
+    ImageNet normalisation -- what the training notebook's validation transform gave the model.
+    The default is the shipped, pinned checkpoint; sha256=None skips the pin for another one."""
     import torch
     from src.classifiers import BONE_LOSS_CLASSES, IMAGENET_MEAN, IMAGENET_STD, load_classifier
 
-    if hashlib.sha256(WEIGHTS.read_bytes()).hexdigest() != SHA256:
-        raise SystemExit(f"{WEIGHTS} is not the pinned checkpoint")
+    if sha256 is not None and hashlib.sha256(Path(weights).read_bytes()).hexdigest() != sha256:
+        raise SystemExit(f"{weights} is not the pinned checkpoint")
     device = torch.device("cpu")                       # registered: CPU
-    model, _ = load_classifier(WEIGHTS, 2, device)     # returns the model in eval mode
+    model, _ = load_classifier(weights, 2, device)     # returns the model in eval mode
     pos = BONE_LOSS_CLASSES.index("bone_loss")
     mean = torch.tensor(IMAGENET_MEAN).view(1, 3, 1, 1)
     std = torch.tensor(IMAGENET_STD).view(1, 3, 1, 1)

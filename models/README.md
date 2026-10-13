@@ -31,6 +31,7 @@ One numbered directory per trained stage, each with a `*summary*.txt` beside the
 | `07_caries_cascade/` | Stage 3 — caries cascade, ResNet18 ×2 | 5 `.pth` (43 MB each) | **Partly** — the two bundles are tracked; the three lineage checkpoints are not. See below. |
 | `09_caries_gate_v3/` | Stage 3 — **the gate the pipeline actually uses**, retrained with a real negative class (5,366 healthy teeth) | 1 `.pth` (43 MB) | **Committed 3 Sep 2026** (same size as the tracked `10` head; SHA-256 `8f4a99ba…`). `isotonic_calibrator.json` + reports were always tracked. |
 | `03_bone_loss_model_training_notebook_models/` | Stage 4a — bone-loss binary | `bone_loss_resnet18_{best,final}.pth` | **Yes** |
+| `18_bone_loss_radiograph_split/` | Stage 4a retrained with a radiograph-level split, three seeds — **ablation, eligible, not adopted** (13 Oct 2026). Test sensitivity 27.5% / 16.5% / 11.0% against the shipped model's 3.4% | `seed{42,43,44}_best.pth` | No — git-ignored, macOS clone only; histories, logs and `run_summary.txt` are tracked |
 | `04_bone_loss_severity_notebook_models/` | Stage 4b — bone-loss severity | `bone_loss_severity_resnet18_best.pth` | **Yes** |
 | `05_cej_estimation_v2_models/` | Exploratory CEJ (negative result, not in the pipeline) | summary only | n/a |
 | `08_fdi_enumeration_head/` | Stage 2 — FDI head **v1.0** (DENTEX only). Superseded as the pipeline default 26 Aug, **retained and still hash-pinned** — every Stage-2 number published before that date was measured on it. | `enumeration_head_best.pth` (43 MB) | **Yes** |

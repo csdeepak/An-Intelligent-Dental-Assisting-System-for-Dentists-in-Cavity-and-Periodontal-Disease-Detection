@@ -82,6 +82,9 @@ edited.
 its crop-level validation set** (`RESULTS_LOG` 2026-10-13,
 `docs/session-memory/2026-10-13-bone-loss-heldout-score.md`). The 0.923 was the split. §2.5 and
 §3 edited.
+**13 Oct, evening — Stage 4a retrained with a radiograph-level split: 27.5% test sensitivity at
+95.9% specificity, 11–27% across three seeds; eligible, not adopted** (`RESULTS_LOG`
+2026-10-13b, `docs/session-memory/2026-10-13b-stage4a-retrain.md`). §2.5 and §3 edited.
 
 > **Windows clone, 6 Sep 2026 — the Tufts crop corpus was cut from the wrong frame, and is now
 > rebuilt.** It scored 11.5% crop-level FDI-exact where the published number is 71.5%, with correct
@@ -383,6 +386,7 @@ again not separated from the constant at test1.
 |---|---|---|
 | Score | **0.923 macro-F1** (1,558 crops, 4% prevalence) — crop-level validation, **not held out** | pooled **2.4%** [2.0, 2.9] sensitivity |
 | **Held out, 13 Oct** | **sensitivity 7.6%** [5.19, 10.47], specificity 98.7%, macro-F1 0.542 — 821 Tufts radiographs outside training, 946 positive teeth | — |
+| **Retrained by radiograph, 13 Oct — not adopted** | test **sensitivity 27.5%** [18.31, 37.98], specificity 95.9%, macro-F1 0.611 (seed 42); 16.5% and 11.0% for seeds 43 and 44 — 143 test radiographs, 182 positive teeth | none; Ningxia is not read |
 
 Per-site external: test1 2.4% [1.8,3.0], test2 1.4% [0.9,2.0], test3 5.6% [3.0,8.7], test4 4.6%
 [2.7,6.6] (n=736 images total; CI closed 4 Sep, see §2.7). DENTEX firing rate 0.7%. Two
@@ -662,9 +666,21 @@ councilled on how** (`RESULTS_LOG` 2026-10-12c,
   fails on its own label at home.
 - **In the paper:** the branch stays, with this figure. Draft paragraph in
   `SUBMISSION_TODO.md` §2 item 3. It is a second instance of the paper's argument.
-- **Not run, each a new decision:** retraining Stage 4 with a radiograph-level split on all
-  1,000 radiographs — 339 carry a mask; the shipped model's positives came from 41 — which
-  would be a new default and still an abnormality flag; BRAR, for a periodontal label.
+- **Retrained 13 Oct, evening, on the decision owner's choice (`RESULTS_LOG` 2026-10-13b,
+  `PAPER_MATERIAL.md` §8.35, `models/18_bone_loss_radiograph_split/run_summary.txt`).** Same
+  architecture and recipe, the frozen `split_v1` by radiograph (678 / 145 / 143), three seeds,
+  pre-registered, trained on the Mac. **Test: sensitivity 27.5% (50 of 182) [18.31, 37.98] at
+  95.9% specificity for seed 42, the seed fixed in advance; 16.5% and 11.0% for the other two.**
+  The shipped model on the same split: 3.4%.
+- **It passes the registered eligibility rule on all three seeds** — F1 above the shipped model
+  (+0.2135 [+0.1305, +0.2954]) and average precision above a tooth-position prior within masked
+  radiographs (+0.1049 [+0.0186, +0.2051]).
+- **It is weak in absolute terms**: one labelled tooth in four, about one false flag per
+  radiograph, ROC area 0.69, and an operating point that moves with the seed.
+- **NOT ADOPTED. `DEF_BONE_LOSS` is unchanged.** Adoption is the decision owner's and is its own
+  step: hash pin, tag, a `.gitignore` exception for a 45 MB file, scoreboard, report text,
+  Docker. The three checkpoints are git-ignored and exist only on the macOS clone.
+- **Still not run:** BRAR, for a periodontal label.
 - **For the capstone report and a journal version, not the six pages:** a patient-level grading
   experiment on BRAR against majority-class and age-only baselines. Needs permission to
   download.

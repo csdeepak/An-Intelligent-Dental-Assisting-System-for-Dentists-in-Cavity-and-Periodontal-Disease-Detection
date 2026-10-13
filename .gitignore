@@ -60,6 +60,9 @@ data/*.json
 models/*.pth
 models/*.pt
 models/*.onnx
+# Stage 4a retrained with a radiograph-level split (13 Oct 2026): three seeds, ~45 MB each.
+# Ablation weights until a recorded adoption decision; histories and the prior are tracked.
+models/18_bone_loss_radiograph_split/*.pth
 models/*.pkl
 models/checkpoints/
 # YOLO detector weights are ~51 MB each (GitHub warns above 50 MB): kept on local

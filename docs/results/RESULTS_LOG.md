@@ -8682,3 +8682,89 @@ manuscript now carries is from 2026-10-11g, -i and -j — and one new check, on 
   retraining Stage 4 with a radiograph-level split on all 1,000 radiographs (339 carry a mask;
   the shipped model's positives came from 41); a periodontal-label experiment
   on BRAR. Why the original build used 145 radiographs is still not recorded.
+
+## 2026-10-13b — Stage 4a retrained with a radiograph-level split: better than the shipped model and than a tooth-position prior on test, on all three seeds; weak in absolute terms; not adopted
+
+- **What was done:** The decision owner chose to retrain Stage 4a properly. Pre-registered in
+  `outputs/bone_loss_eval/v2_retrain/PRE_REGISTRATION.md` (commit `0993d4a`, 13 Oct 18:10; a
+  second commit, `d8dff27`, corrects a date I mistyped in it) before any crop was cut: the
+  split, the recipe, three seeds, the test protocol, and a two-part rule for whether the result
+  would be **eligible** to replace the shipped model. Three harness checks passed first. Three
+  models were trained on this Mac (MPS, no rental) and the test split was read once. **No
+  default changed**; `DEF_BONE_LOSS` still points at `models/03`.
+- **Dataset / config:** the frozen `split_v1` by radiograph — **678 train / 145 validation / 143
+  test** after dropping 590 (test, a byte-identical twin of a training radiograph), 1008 and the
+  32 radiographs with no tooth box. Crops and labels by the construction notebook's recipe as
+  gated on 13 Oct. Training set 36,360 crops (every tooth clean and once jittered), 1,585
+  diseased; validation 3,790 clean crops, 140 diseased; **test 3,892 clean crops, 182
+  diseased.** The original recipe — ResNet18 from ImageNet, focal loss γ 2, Adam 1e-4, batch
+  32, best validation macro-F1, at most 50 epochs — with three registered differences: the
+  split, 678 training radiographs instead of 111, and normals redrawn every epoch at 3.5 to 1.
+  Seeds 42, 43, 44; seed 42 fixed in advance as the one that would ship. Intervals: cluster
+  bootstrap over radiographs, 10,000 resamples, seed 42.
+- **Metrics:**
+  - **Validation, at each seed's best epoch.** Macro-F1 0.5681 (epoch 16 of 26), 0.5803 (24 of
+    34), 0.5968 (45 of 50, stopped by the epoch cap). In every run the training loss falls to
+    0.004–0.010 while validation macro-F1 never passes 0.60.
+  - **Test, 143 radiographs, argmax decision.**
+
+    | Seed | Sensitivity | Specificity | Precision | F1, diseased | Macro-F1 | Average precision | ROC area | False flags per radiograph |
+    |---|---|---|---|---|---|---|---|---|
+    | **42** | **27.5%** (50 of 182) [18.31, 37.98] | **95.9%** (3,558 of 3,710) [94.99, 96.75] | 24.8% | 0.2604 [0.1774, 0.3376] | 0.6110 [0.5688, 0.6508] | 0.1833 [0.1131, 0.2739] | 0.6871 | 1.06 |
+    | 43 | 16.5% (30 of 182) | 98.1% (3,638 of 3,710) | 29.4% | 0.2113 | 0.5907 | 0.1533 | 0.6837 | 0.50 |
+    | 44 | 11.0% (20 of 182) | 98.6% (3,659 of 3,710) | 28.2% | 0.1581 | 0.5649 | 0.1610 | 0.6869 | 0.36 |
+
+  - **The shipped model on the same split**, over the 125 test radiographs it never trained on
+    (3,431 teeth, 175 diseased): sensitivity 3.4% (6 of 175) [1.16, 6.04], specificity 98.8%
+    (3,216 of 3,256), F1 0.0543, average precision 0.0842 — not separated from the
+    tooth-position prior's 0.0895 (−0.0052 [−0.0413, +0.0375]).
+  - **Against an image-blind baseline** (the diseased share for each tooth title among 18,180
+    clean training teeth). Average precision on test 0.0804; seed 42 minus prior **+0.1029
+    [+0.0377, +0.1913]**. Within the 48 test radiographs that carry a mask: 0.3504 against
+    0.2455.
+  - **The registered eligibility rule, seed 42.** E1, F1 of the diseased class, retrained minus
+    shipped on the same 3,431 teeth: **+0.2135 [+0.1305, +0.2954] — pass.** E2, average
+    precision, retrained minus prior within masked radiographs: **+0.1049 [+0.0186, +0.2051] —
+    pass.** Seeds 43 and 44 pass both: E1 +0.1351 [+0.0720, +0.2045] and +0.1047 [+0.0405,
+    +0.1735]; E2 +0.0951 [+0.0219, +0.1849] and +0.0954 [+0.0272, +0.1661].
+  - **Retrained minus shipped, same teeth, seed 42:** sensitivity +23.43 pp [+14.61, +33.96];
+    specificity −2.73 pp [−3.65, −1.82]; average precision +0.1019 [+0.0359, +0.1831]; ROC area
+    +0.0604 [−0.0065, +0.1359], not separated.
+  - **Secondary, not shipped.** The threshold chosen on validation for seed 42, 0.4655, gives
+    53 of 182 and 3,524 of 3,710 on test, F1 0.2518 — no better than 0.5.
+- **Key decision or insight:**
+  1. **The split was the main thing wrong with the shipped model, and fixing it makes the
+     recipe learn something.** On radiographs none of the models trained on, the retrained
+     model beats the shipped one and beats a tooth-position prior, on every seed. The shipped
+     one does not beat the prior on this split either.
+  2. **What it learns is modest.** Seed 42 finds about one labelled tooth in four at about one
+     false flag per radiograph; one flag in four is right. ROC area 0.69. Every run memorises
+     its training crops. Nothing here is a reliable flag.
+  3. **The operating point moves with the seed; the ranking does not.** Sensitivity runs from
+     11.0% to 27.5% and specificity from 95.9% to 98.6% across three seeds, while average
+     precision stays within 0.153–0.183 and ROC area within 0.684–0.687. The seed that was
+     fixed in advance as the shipping one happens to be the most sensitive. A single-seed figure
+     for this branch would have misled in either direction.
+  4. **Eligible is not adopted.** The rule the registration fixed is met. Whether the pipeline
+     default changes is the decision owner's, and would be its own recorded step: a hash pin, a
+     tag, a 45 MB file in git, the scoreboard, the report text, the Docker image. The severity
+     model, which grades whatever Stage 4a flags, would be asked about nearly four times as
+     many teeth (176 flags against 46 on the same 125 radiographs).
+  5. **For the paper this is a matched pair with one variable changed:** 83% under a crop-level
+     split; 3.4% for that same model on test radiographs it had not seen; 27.5% [18.3, 38.0]
+     for the same architecture trained with the split done by radiograph. The label is still
+     abnormality proximity.
+  6. **No external figure exists for the retrained model**, and Ningxia cannot supply one. The
+     2.17% and 0.75% belong to the shipped model.
+- **Source:** `models/18_bone_loss_radiograph_split/{run_summary.txt,seed{42,43,44}_history.json,seed{42,43,44}_train.log,tooth_prior.json}`;
+  `outputs/bone_loss_eval/v2_retrain/{PRE_REGISTRATION.md,test_rows.json,test_summary.json,test_stdout.log}`;
+  `scripts/tufts/train_bone_loss_v2.py`; `scripts/eval/bone_loss_v2_eval.py`;
+  `tests/test_bone_loss_v2.py`. Every count, every point value and the three E1 intervals were
+  re-derived by separate code without scikit-learn: all match. The weights (44.8 MB each) are
+  git-ignored and exist only on the macOS clone.
+- **Follow-ups:** the adoption decision. Two run notes, neither touching a result: the first
+  launch was stopped after two minutes because its log was buffered and showed nothing — no
+  epoch had been printed and no model file written — and was relaunched unchanged; and during
+  seed 43 the machine ran on a nearly flat battery, so the epoch times recorded for seeds 43
+  and 44 are not a timing result. Not measured: the retrained model's firing rate on DENTEX;
+  the severity model on the teeth the retrained model flags.

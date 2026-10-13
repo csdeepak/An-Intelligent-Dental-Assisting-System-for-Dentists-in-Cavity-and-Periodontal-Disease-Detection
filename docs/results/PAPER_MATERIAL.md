@@ -2756,6 +2756,42 @@ flag, not a periodontal one.
 
 ---
 
+### 8.35 Stage 4a retrained by radiograph — a matched pair, and how little a single seed says
+
+*13 Oct 2026. `RESULTS_LOG` 2026-10-13b. Pre-registered:
+`outputs/bone_loss_eval/v2_retrain/PRE_REGISTRATION.md`. Not adopted; the pipeline ships
+`models/03`.*
+
+**One variable changed.** The same ResNet18 and the same recipe, with the training and test
+teeth taken from different radiographs and all 678 training-split radiographs used:
+
+| | Sensitivity for its own label | Measured on |
+|---|---|---|
+| Shipped model, crop-level split | 83.1% | its validation crops — radiographs it trained on |
+| Shipped model | 3.4% (6 of 175) | 125 test radiographs it never trained on |
+| Retrained, split by radiograph, seed 42 | **27.5%** (50 of 182) [18.31, 37.98], at 95.9% specificity | 143 test radiographs |
+
+**It is better, and it is not good.** On test it beats the shipped model (F1 +0.2135
+[+0.1305, +0.2954]) and a score that knows only the tooth's position (average precision 0.1833
+against 0.0804; within radiographs that carry a mask 0.3504 against 0.2455, +0.1049
+[+0.0186, +0.2051]). It finds about one labelled tooth in four at about one false flag per
+radiograph. ROC area 0.69. All three runs memorise their training crops.
+
+**Three seeds, three operating points.** Sensitivity 27.5%, 16.5%, 11.0%; specificity 95.9%,
+98.1%, 98.6%. Average precision 0.183, 0.153, 0.161 and ROC area 0.687, 0.684, 0.687. The models
+rank teeth alike and cut at different places. Report all three. Any one alone would misstate
+what the recipe gives — and every other model in this pipeline is one training run.
+
+**What the paper can say.** The crop-level split's 83% was 3.4% on unseen radiographs; with the
+split done by radiograph the same recipe reaches 27.5% [18.3, 38.0] at 95.9% specificity and
+exceeds an image-blind baseline; the label is proximity to an expert-marked abnormality; no
+external figure exists for the retrained model.
+
+**What it cannot say.** That Stage 4 detects periodontal bone loss; that the retrained model is
+what the pipeline ships, unless it is adopted; anything about it on Ningxia.
+
+---
+
 ## 9. What's not yet written — checklist
 
 For whoever drafts the actual paper. Tick items off here as they land.
@@ -3073,3 +3109,7 @@ the bone-loss branch re-described, with the list of what it must not say; and th
 (draft in `docs/paper/SUBMISSION_TODO.md` §2 item 3); and wherever the abstract, the
 discussion or the figure caption sets 0.923 against an external figure, the held-out 7.6%
 goes between them.
+
+**13 Oct 2026 (evening) — to write, from §8.35:** the matched pair for the bone-loss paragraph
+(83% → 3.4% → 27.5%), with all three seeds; and, in the Limitations, that this is the only
+branch for which seed-to-seed spread was measured.

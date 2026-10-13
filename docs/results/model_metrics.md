@@ -3,7 +3,11 @@
 Current best numbers only. One table per model, nothing else. For how a number was
 obtained see `PAPER_MATERIAL.md`; for when and why it changed see `RESULTS_LOG.md`.
 
-**Last updated:** 2026-10-13 — **Stage 4a now has a held-out figure: sensitivity 7.6%,
+**Last updated:** 2026-10-13 (evening) — **Stage 4a retrained with a radiograph-level split:
+test sensitivity 27.5% at 95.9% specificity for the seed fixed in advance, 11–27% across three
+seeds; eligible to replace the shipped model, not adopted** (`RESULTS_LOG` 2026-10-13b).
+
+**Earlier that day:** 2026-10-13 — **Stage 4a now has a held-out figure: sensitivity 7.6%,
 specificity 98.7%, on 821 Tufts radiographs it never trained on** (`RESULTS_LOG` 2026-10-13;
 Stage 4a section below). Its 0.9233 was a product of the crop-level split.
 
@@ -697,6 +701,23 @@ side scores average precision 0.0675 and ROC area 0.636; model minus prior +0.02
 [+0.0084, +0.0564] and +0.0073 [−0.0374, +0.0502]. Within the 282 radiographs that carry a
 mask the model is not separated from that prior on either. The label is abnormality proximity,
 not periodontal bone loss.
+
+**Retrained with a radiograph-level split — 13 Oct 2026, ABLATION, eligible, NOT adopted**
+(`RESULTS_LOG` 2026-10-13b, `models/18_bone_loss_radiograph_split/`). Same architecture and
+recipe, split by radiograph (678 / 145 / 143), three seeds. Test, 143 radiographs, 3,892 teeth,
+182 diseased.
+
+| Model | Sensitivity | Specificity | F1, diseased | Average precision | False flags / radiograph |
+|---|---|---|---|---|---|
+| Shipped (`models/03`), on the 125 test radiographs it never trained on | 3.4% (6 / 175) | 98.8% | 0.0543 | 0.0842 | 0.32 |
+| **Retrained, seed 42** | **27.5%** (50 / 182) [18.31, 37.98] | **95.9%** [94.99, 96.75] | 0.2604 | 0.1833 | 1.06 |
+| Retrained, seed 43 | 16.5% | 98.1% | 0.2113 | 0.1533 | 0.50 |
+| Retrained, seed 44 | 11.0% | 98.6% | 0.1581 | 0.1610 | 0.36 |
+
+Tooth-position prior: average precision 0.0804. Registered eligibility rule, seed 42: F1 above
+the shipped model **+0.2135 [+0.1305, +0.2954]**; average precision above the prior within
+masked radiographs **+0.1049 [+0.0186, +0.2051]**. Both pass, on all three seeds. **The
+pipeline default is unchanged.** Still an abnormality flag; no external figure.
 
 Validation, 1,558 crops at real-world prevalence (1,499 normal / 59 diseased).
 

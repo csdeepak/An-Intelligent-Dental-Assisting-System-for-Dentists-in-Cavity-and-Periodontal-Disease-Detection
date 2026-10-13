@@ -1,0 +1,124 @@
+================================================================================
+18_bone_loss_radiograph_split -- Stage 4a retrained with a radiograph-level split
+================================================================================
+Status:   ABLATION, ELIGIBLE to replace the shipped Stage-4a model under a pre-registered rule.
+          NOT ADOPTED. `scripts/run_inference.py` DEF_BONE_LOSS still points at
+          models/03_bone_loss_model_training_notebook_models/bone_loss_resnet18_best.pth.
+          Adoption is the decision owner's, and would be its own recorded step.
+Date:     13 October 2026
+Pre-reg:  outputs/bone_loss_eval/v2_retrain/PRE_REGISTRATION.md (commits 0993d4a, d8dff27)
+Log:      docs/results/RESULTS_LOG.md 2026-10-13b
+Hardware: Apple M4 Pro, MPS. No rental. torch 2.2.0, torchvision 0.17.0.
+Trainer:  scripts/tufts/train_bone_loss_v2.py     Test pass: scripts/eval/bone_loss_v2_eval.py
+
+THE LABEL IS NOT PERIODONTAL BONE LOSS. Positive = the tooth crop overlaps a Tufts expert
+ABNORMALITY mask by more than 1% (apical lesions, cysts, sclerosis). This is an abnormality
+flag. See PAPER_MATERIAL.md Sec 8.28.
+
+--------------------------------------------------------------------------------
+WHY THIS EXISTS
+--------------------------------------------------------------------------------
+The shipped model's 0.9233 macro-F1 was validation on its own training radiographs. Scored on
+821 Tufts radiographs it never trained on it finds 7.6% of its own label (RESULTS_LOG
+2026-10-13). This run asks whether the same architecture and recipe learn the label when the
+split is by radiograph and all the training-split radiographs are used.
+
+--------------------------------------------------------------------------------
+DATA
+--------------------------------------------------------------------------------
+Split     outputs/eda_tufts/split_v1.csv, by radiograph: 678 train / 145 val / 143 test after
+          dropping 590 (test, byte-identical to 591 in train), 1008 (twin of 1007, both train)
+          and the 32 radiographs with no tooth box.
+Crops     the construction notebook's recipe as rebuilt and gated on 13 Oct
+          (scripts/eval/bone_loss_heldout.py): 1.5x W / 2.0x H, 224x224 grey.
+Train     36,360 crops: every tooth's clean crop and one +-15% jittered crop (seed 42), each
+          labelled by its own overlap. 1,585 diseased.
+Val       3,790 clean crops, 140 diseased.
+Test      3,892 clean crops, 182 diseased. Read once, by the test pass only.
+
+--------------------------------------------------------------------------------
+RECIPE -- the original's (notebooks/bone_loss/03), three stated differences
+--------------------------------------------------------------------------------
+ResNet18, ImageNet weights, all layers trained. Focal loss, gamma 2.0, alpha [0.6428, 2.2502].
+Adam 1e-4, weight decay 1e-4, batch 32. ReduceLROnPlateau on validation macro-F1 (0.5, 5).
+At most 50 epochs, stop after 10 without improvement, keep the best validation macro-F1.
+Flip, rotation within 10 degrees, brightness x[0.8, 1.2], contrast x[0.9, 1.1].
+Differences: (1) split by radiograph; (2) 678 training radiographs, not 111; (3) an epoch is
+every diseased crop once and 3.5 normals for each, redrawn every epoch (1,585 + 5,548), where
+the original kept one fixed set of 2,500 normals.
+
+--------------------------------------------------------------------------------
+WEIGHTS (44.8 MB each, gitignored -- ablation weights until an adoption decision)
+--------------------------------------------------------------------------------
+seed42_best.pth  sha256 e4bc874423e7c17752bb949d510862e4b4fd618f9a7602a95743663a3c27a0b2
+  best epoch 16 of 26. Validation macro-F1 0.5681, sensitivity 36/140, specificity 3429/3650.
+  THE SEED FIXED IN ADVANCE as the one that would ship.
+seed43_best.pth  sha256 beaf3dae992fe49ff2dab7e8d4261e452d96526af7084a6a9ed3fb9858fd1cea
+  best epoch 24 of 34. Validation macro-F1 0.5803, sensitivity 23/140, specificity 3568/3650.
+seed44_best.pth  sha256 9c03a7546a8b2f2bc2df97569d8489095bb031d86dd2a9935787ccc294ea6215
+  best epoch 45 of 50 -- stopped by the 50-epoch cap, not by patience.
+  Validation macro-F1 0.5968, sensitivity 24/140, specificity 3593/3650.
+Bare state_dicts, class order [normal, diseased], loadable by src.classifiers.load_classifier.
+These files exist only on the macOS clone that trained them.
+
+All three runs drive the training loss to 0.004-0.010 while validation macro-F1 never passes
+0.60: the model fits its training crops far better than it generalises.
+
+--------------------------------------------------------------------------------
+RESULTS -- TEST, 143 radiographs, 3,892 teeth, 182 diseased; argmax decision
+--------------------------------------------------------------------------------
+                 sensitivity      specificity        PPV     F1 dis.  macro-F1   AP      ROC    false flags
+                                                                                                / radiograph
+seed 42          50/182 = 0.2747  3558/3710 = 0.9590  0.2475  0.2604   0.6110    0.1833  0.6871  1.06
+  95% CI         [0.1831,0.3798]  [0.9499,0.9675]             [0.1774,0.3376]    [0.1131,0.2739]
+seed 43          30/182 = 0.1648  3638/3710 = 0.9806  0.2941  0.2113   0.5907    0.1533  0.6837  0.50
+seed 44          20/182 = 0.1099  3659/3710 = 0.9863  0.2817  0.1581   0.5649    0.1610  0.6869  0.36
+
+The seeds rank teeth about equally well (AP 0.153-0.183, ROC 0.684-0.687). They differ in
+where the 0.5 decision falls: sensitivity 11% to 27%, specificity 95.9% to 98.6%.
+
+Shipped model, on the 125 test radiographs it never trained on (3,431 teeth, 175 diseased):
+                 6/175 = 0.0343   3216/3256 = 0.9877  0.1304  0.0543   0.5114    0.0842  0.6161  0.32
+
+Image-blind baseline: the diseased share for each tooth title among 18,180 clean training
+teeth. AP 0.0804 on test; 0.2455 within the 48 test radiographs that carry a mask.
+
+ELIGIBILITY RULE (pre-registration Sec 6), seed 42:
+  E1  F1 diseased, retrained minus shipped, same 3,431 teeth:
+      +0.2135 [+0.1305, +0.2954]                                   lower bound > 0   PASS
+  E2  AP, retrained minus tooth-position prior, masked radiographs:
+      0.3504 vs 0.2455, +0.1049 [+0.0186, +0.2051]                 lower bound > 0   PASS
+  Seeds 43 and 44 pass both as well: E1 +0.1351 [+0.0720, +0.2045] and +0.1047 [+0.0405,
+  +0.1735]; E2 +0.0951 [+0.0219, +0.1849] and +0.0954 [+0.0272, +0.1661].
+
+Against the shipped model on the same teeth, seed 42: sensitivity +23.43 pp [+14.61, +33.96];
+specificity -2.73 pp [-3.65, -1.82]; average precision +0.1019 [+0.0359, +0.1831].
+
+Secondary, not shipped: the validation-chosen threshold for seed 42, 0.4655, gives 53/182 and
+3524/3710 on test, F1 0.2518 -- no better than 0.5 (0.2604).
+
+--------------------------------------------------------------------------------
+WHAT THIS IS AND IS NOT
+--------------------------------------------------------------------------------
+It is evidence that, with a radiograph-level split and six times the radiographs, this recipe
+learns something the shipped model did not: it beats the shipped model and a tooth-position
+prior on radiographs none of them trained on, on all three seeds.
+It is weak in absolute terms. Seed 42 finds about one labelled tooth in four at about one false
+flag per radiograph. Which seed is trained moves sensitivity between 11% and 27%.
+It has no external figure and cannot get one from Ningxia, which is locked. The 2.17% on
+Ningxia and the 0.75% on DENTEX belong to the shipped model.
+It does not make Stage 4 periodontal.
+
+--------------------------------------------------------------------------------
+FILES
+--------------------------------------------------------------------------------
+seed{42,43,44}_best.pth        the checkpoints (gitignored)
+seed{42,43,44}_history.json    per-epoch loss, validation counts, lr, the recipe, the sha256
+seed{42,43,44}_train.log       the training console
+tooth_prior.json               the image-blind baseline, from clean training crops
+outputs/bone_loss_eval/v2_retrain/{test_rows.json,test_summary.json,test_stdout.log}
+
+Run notes. The first launch was stopped after two minutes, before any epoch had been printed
+or any file but tooth_prior.json written, because its log was buffered; it was relaunched
+unchanged with live logging. During seed 43 the machine was on a nearly flat battery and some
+epochs took minutes; the `seconds` recorded for seeds 43 and 44 are not a timing result.

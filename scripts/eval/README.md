@@ -145,6 +145,12 @@ the saved rows. Pre-registration and artefacts: `outputs/bone_loss_eval/heldout/
 sensitivity 7.6%, specificity 98.7%. `RESULTS_LOG` 2026-10-13. `bone_loss_eval.py`, beside it,
 scores the mirrored August rebuild and is not the way to measure this model.
 
+**`bone_loss_v2_eval.py`** (13 Oct) — the one test pass for the Stage-4a models retrained
+with a radiograph-level split (`scripts/tufts/train_bone_loss_v2.py`): three seeds and the
+shipped model on the 143 test radiographs, a tooth-position prior, and the two-part
+eligibility rule. `score` refuses to run twice. Result: 27.5% sensitivity at 95.9%
+specificity for seed 42; eligible; not adopted. `RESULTS_LOG` 2026-10-13b.
+
 ---
 
 **Publication target and grading criteria:** `../../transfer.md` §5.
