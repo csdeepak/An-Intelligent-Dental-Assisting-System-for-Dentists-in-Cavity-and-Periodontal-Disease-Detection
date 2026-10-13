@@ -739,6 +739,17 @@ masked radiographs **+0.1049 [+0.0186, +0.2051]**. Both pass, on all three seeds
 the pipeline default; seeds 43 and 44 are ablation weights. Still an abnormality flag; no
 external figure.
 
+**Read these as three runs, not one (`RESULTS_LOG` 2026-10-13d).** Pooled over the seeds,
+sensitivity is 18.3% (100 of 546). Seed 43's interval is [10.62, 23.78] and seed 44's
+[5.70, 17.42]; the second lies wholly below seed 42's, because an interval over radiographs
+says nothing about the training run. Of the teeth flagged, 24.8%, 29.4% and 28.2% carry the
+label (50 of 202, 30 of 102, 20 of 71). ROC area is 0.6871, 0.6837 and 0.6869 against the
+prior's 0.6625 — not separated (seed 42: +0.0246 [−0.0480, +0.1062]); average precision is
+what separates the model from the prior (+0.1029 [+0.0377, +0.1913] over all radiographs).
+The runs rank teeth equally well and differ in where the 0.5 cut falls. The crops scored were
+cut at annotated tooth boxes, not at the pipeline's detections: this is the classifier's
+figure, not the pipeline's.
+
 Validation, 1,558 crops at real-world prevalence (1,499 normal / 59 diseased).
 
 > **⚠️ Not a held-out estimate — found 10 Oct 2026, `RESULTS_LOG` 2026-10-10.** This validation
@@ -770,6 +781,17 @@ Confusion matrix: TN 1,492 · FP 7 · FN 10 · TP 49.
 Frozen and tagged 27 Aug 2026 as `bone-loss-severity-resnet18-v1.0`, SHA-256
 `fa93a5201833d8137bd2ae328d3afd63c2c1f9e4ac82a621d1b430a51eba8a4a`. Class order
 `[Mild, Moderate, Severe]` — `models/04_.../run_summary.txt`.
+
+> **⚠️ The labels are not mask overlap — found 13 Oct 2026, `RESULTS_LOG` 2026-10-13d.** The run
+> that produced these weights found no overlap column in its metadata and built a stand-in:
+> the standard deviation of each crop's grey levels, rescaled to 0.01–0.30 and cut at 0.05 and
+> 0.15 (`notebooks/bone_loss/04_bone_loss_severity.ipynb`, cell 5, whose saved output reads
+> "overlap column not found; building proxy overlap from image contrast"). **"Mild", "Moderate"
+> and "Severe" in the table below are low, middle and high crop contrast.** The split is by
+> radiograph, 32 training and 9 validation, which settles the audit left open in the Stage-4a
+> note above; two of the training radiographs and one of the validation radiographs are in the
+> Tufts test split. Nothing here is evidence about severity, extent or bone loss, and no
+> held-out test of this model against true overlap would be a test of what it learned.
 
 Validation, 52 crops. **Low support — treat as provisional.**
 

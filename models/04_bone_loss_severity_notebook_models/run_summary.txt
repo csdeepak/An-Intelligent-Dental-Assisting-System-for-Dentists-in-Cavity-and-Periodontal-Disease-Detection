@@ -20,6 +20,18 @@ Raw state_dict. No class_to_idx, no epoch, no metrics stored in the file.
 
 SEVERITY DEFINITION — a proxy, and it must be described as one
 --------------------------------------------------------------------------------
+CORRECTION, 13 Oct 2026 -- the paragraph below describes what the notebook was
+meant to do, not what the run that produced these weights did. That run found
+no overlap column in its metadata (columns: filename, label, stem, augmented),
+printed "overlap column not found; building proxy overlap from image
+contrast", and labelled every crop from the standard deviation of its grey
+levels, rescaled to 0.01-0.30 and cut at the same 0.05 / 0.15. The three
+classes are therefore LOW / MIDDLE / HIGH CROP CONTRAST. The saved manifests
+(data/tufts/severity_dataset/metadata/) carry that rescaled column. Two of the
+32 training radiographs (149, 192) and one of the 9 validation radiographs
+(249) are in the Tufts test split. Evidence: the saved output of cell 5 of
+notebooks/bone_loss/04_bone_loss_severity.ipynb. RESULTS_LOG 2026-10-13d.
+
 Labels come from the overlap ratio between the expert per-image bone-loss mask
 and the per-tooth crop, NOT from a clinical severity grading:
     Mild      overlap <= 0.05

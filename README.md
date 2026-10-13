@@ -800,7 +800,7 @@ supports, two crops of the same box.
 Expert mask blobs are tiny sparse lesion annotations (0.5–2% of an expanded crop), so
 IoU ≈ tiny/large ≈ 0 and *every* crop — true positives included — would be labelled negative.
 Threshold 0.01, defensible range 0.005–0.02. The same quantity doubles as the severity axis:
-mild ≤ 0.05, moderate 0.05–0.15, severe > 0.15.
+mild ≤ 0.05, moderate 0.05–0.15, severe > 0.15. *(Corrected 13 Oct 2026: the shipped severity model was not trained on this quantity. Its metadata had no overlap column and the notebook substituted crop contrast — `RESULTS_LOG` 2026-10-13d.)*
 
 **3 — Binary classification instead of severity segmentation.** U-Net was ruled out on evidence,
 not preference: expert masks encode **per-lesion instance IDs, not severity classes**; no

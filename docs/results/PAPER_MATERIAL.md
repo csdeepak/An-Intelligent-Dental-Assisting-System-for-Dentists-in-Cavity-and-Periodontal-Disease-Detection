@@ -2813,6 +2813,50 @@ and calls 261 of them Moderate or Severe. Nothing supports those grades.
 table and its bone-loss subsection describe the previous model. `SUBMISSION_TODO.md` §2 item 3
 has the rewritten paragraph.
 
+### 8.37 Stage 4b grades image contrast, and Stage 4a's figure is one run of three
+
+*13 Oct 2026, late. `RESULTS_LOG` 2026-10-13d. A third council on per-stage evidence, with an
+ML-engineering review. Nothing was run.*
+
+**Stage 4b.** The severity model was meant to learn three bands of mask-overlap ratio. The
+metadata it was given had no overlap column. The notebook substituted the standard deviation
+of each crop's grey levels, rescaled to the same 0.01–0.30 range, and printed one warning
+line. The model therefore sorts flagged crops into low, middle and high contrast, and the
+pipeline prints the result as Mild, Moderate or Severe. Its 0.72 validation macro-F1 on 52
+crops measures agreement with that contrast banding. Two of its 32 training radiographs and
+one of its 9 validation radiographs sit in the Tufts test split.
+
+**What the paper may say of it.** That a severity head is present in the released pipeline,
+that its training labels were a contrast stand-in and not the expert mask, and that it is not
+evaluated. No figure. This is stronger than "validated on 52 crops": the number it has is for
+a different quantity.
+
+**Stage 4a.** The seed fixed in advance gave 27.5% sensitivity; the other two gave 16.5% and
+11.0%, and the third run's interval does not reach the first's. The three runs' ROC areas lie
+within 0.004 of one another. So the sensitivity is where the 0.5 cut happened to fall in that
+run, and the interval printed beside it covers the sampling of radiographs
+only. Across runs: between a tenth and a quarter of labelled teeth found, about seven flags in
+ten false, 0.4 to 1.1 false flags per radiograph, a ranking separated from a tooth-position
+prior on average precision and not on ROC area. The classifier was scored on annotated tooth
+boxes; no figure exists for it on the pipeline's own detections.
+
+**Claim limits by stage, as the council set them.**
+
+| Stage | The sentence the evidence supports |
+|---|---|
+| 1 Detect | Finds 89.3% of teeth on Tufts test and 66.6% on a corpus it never saw; its Tufts box mAP of 0.587 is below the Tufts-only control's 0.723, and it was adopted over that registered guard |
+| 2 Number | 63.5% end to end on Tufts test and 44.5% on an unseen corpus; 92.8% is on the detector's own training corpus |
+| 3a Lesion detector | On development data, F1 0.498 against an image-blind constant's 0.320; one external cohort, +9.28 pp pooled, which also informed its adoption; no false-positive rate can be given |
+| 3a Retired gate | Macro-F1 0.695 on held-out crops, precision 0.40; the only caries evidence that is both external and untouched by a selection |
+| 3b Caries severity | Present; not evaluated |
+| 4a Abnormality flag | Not periodontal. Three runs found 11.0–27.5% of labelled teeth on held-out Tufts radiographs with about seven flags in ten false; no external figure |
+| 4b Severity of flagged teeth | Present; trained on a contrast stand-in; not evaluated |
+| 5–6 Report, app | Runs from a clean clone of the repository; a research demonstration |
+
+**What this does to the paper's argument.** Nothing new against it, and one more instance for
+it: a figure that looked like validation (0.72) was agreement with a quantity nobody intended
+to measure, and it survived six months because it was a plausible number in a plausible table.
+
 ---
 
 ## 9. What's not yet written — checklist
@@ -2829,6 +2873,10 @@ For whoever drafts the actual paper. Tick items off here as they land.
       affiliations, ethics, data availability with licences, code availability, funding, conflict
       of interest, author contributions, and acknowledgments including the AI-use disclosure IEEE
       requires.
+- [ ] **Describe Stage 4b as present and not evaluated, with its contrast stand-in stated, and
+      report Stage 4a as three runs with the share of flags that are correct** (§8.37, found
+      13 Oct 2026). No severity figure anywhere. Draft paragraph: `SUBMISSION_TODO.md` §1a
+      row p.
 - [x] **Decide which front end the manuscript reports, and make every table say so** (§8.30,
       11 Oct 2026). **Decided 11 Oct: the current one. `main.tex` was rebuilt the same day**
       (`RESULTS_LOG` 2026-10-11k): every table and the headline re-stated, the override of the

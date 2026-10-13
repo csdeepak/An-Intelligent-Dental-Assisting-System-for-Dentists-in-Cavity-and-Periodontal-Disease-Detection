@@ -8830,3 +8830,112 @@ manuscript now carries is from 2026-10-11g, -i and -j — and one new check, on 
   lists what changes. The Docker image is now three changes behind. The root `README.md`'s
   banner image still shows 0.9233. Tell the mentor and the repo owner. Decide whether the
   overlay keeps a severity grade.
+
+## 2026-10-13d — third per-stage council and an ML-engineering review: Stage 4b's severity labels were image contrast, not mask overlap; the Stage-4a figure is one run of three; no leak found in the retraining
+
+- **What was done:** The user asked again whether every stage's metrics, test metrics included,
+  are fit to publish, and for a plan of what is left to implement. Three independent read-only
+  council members (a referee, an experimental-design seat, a release-engineering seat) and the
+  `mle-reviewer` agent read the state after the changes of 12 and 13 Oct. The chair then checked
+  each serious finding against the files. **No model was run, no cohort was scored and no code
+  changed.** Documentation only.
+- **Dataset / config:** nothing new. Read: `notebooks/bone_loss/04_bone_loss_severity.ipynb`
+  with its saved outputs; `data/tufts/severity_dataset/metadata/{train,val}_metadata.csv`;
+  `outputs/eda_tufts/split_v1.csv`; `outputs/bone_loss_eval/v2_retrain/{test_rows.json,
+  test_summary.json}`; `scripts/run_inference.py`; `scripts/eval/verify_invariants.py`. Chair's
+  checks before the council: `pytest tests` 184 passed; all invariants hold; 191 manuscript
+  numbers match; an extract of commit `898abf4` holding tracked files only runs the default
+  pipeline (report schema 1.4, both current tags), on one image.
+- **Metrics:** no new measurement. Recounts from saved rows and from saved notebook output:
+  - **Stage 4b's labels.** The run that produced the shipped weights printed
+    `Columns available: ['filename', 'label', 'stem', 'augmented']` and
+    `Warning: overlap column not found; building proxy overlap from image contrast.` The
+    stand-in it built is the standard deviation of each crop's grey levels over 255, rescaled
+    between its 5th and 95th percentiles to 0.01–0.30, then cut at 0.05 and 0.15. Printed
+    range 0.0100–0.3000, median 0.1455; the true overlap's median, quoted in the same notebook,
+    is 0.07. 770 positive crops were labelled 107 / 289 / 374; 296 were found on disk; 244
+    training crops from 32 radiographs and 52 validation crops from 9; best epoch 2 of 14,
+    validation macro-F1 0.7208, between 0.468 and 0.721 over those epochs. The saved manifests
+    carry that 0.01–0.30 column. **The three classes are low, middle and high crop contrast.**
+  - **Stage 4b's radiographs against the frozen split.** Training: 27 in `train`, 3 in `val`,
+    2 in `test` (149, 192). Validation: 6 in `train`, 2 in `val`, 1 in `test` (249).
+  - **Stage 4a read as three runs** — test, 143 radiographs, 182 positive teeth lying in 44 of
+    them; 95 radiographs with an empty mask hold 2,663 of the 3,892 teeth. Sensitivity 50, 30
+    and 20 of 182: 27.5% [18.31, 37.98], 16.5% [10.62, 23.78], 11.0% [5.70, 17.42]; pooled 100
+    of 546, 18.3%. Share of flagged teeth that carry the label: 50 of 202, 30 of 102, 20 of 71
+    — 24.8%, 29.4%, 28.2%. False flags per radiograph 1.06, 0.50, 0.36. The three runs agree
+    on 14 of the 182. ROC area 0.6871, 0.6837, 0.6869 against the tooth-position prior's
+    0.6625; seed 42 minus prior +0.0246 [−0.0480, +0.1062], not separated. Average precision
+    0.1833, 0.1533, 0.1610 against 0.0804; seed 42 minus prior +0.1029 [+0.0377, +0.1913].
+    Validation macro-F1 0.5681, 0.5803, 0.5968: the seed fixed in advance has the lowest.
+  - **True overlap class of the 182 test positives:** 55 at or below 0.05, 63 up to 0.15, 64
+    above. Of the 202 test teeth the default flags, 152 carry no label and so have no class.
+- **Key decision or insight:**
+  1. **Stage 4b does not grade severity, extent or overlap.** It was trained to sort crops by
+     contrast, because the metadata it was given had no overlap column and the notebook
+     substituted one silently enough that nobody read the warning for six months. Every place
+     that says its labels come from the expert mask is wrong: `models/04_…/run_summary.txt`,
+     the root README, the Stage-4b table in `model_metrics.md`, and the report's own text,
+     which calls it "a separate model validated on 52 crops". "Unvalidated" understated it.
+     Found by the experimental-design seat; confirmed by the chair from the saved cell output
+     and the manifests.
+  2. **So a first test of Stage 4b was refused, not merely deferred.** Scoring it against the
+     true overlap of the test positives would test a label it never saw, on a split that holds
+     three of its own radiographs.
+  3. **"A Tufts test radiograph is unseen by every model in the pipeline" is false of Stage 4b.**
+     It is written in `outputs/bone_loss_eval/v2_retrain/PRE_REGISTRATION.md` (§1, "Split") and
+     repeated in the default report's text (`scripts/run_inference.py`, the
+     `label_and_validation` string). True of the retrained Stage 4a, which is what the
+     sentence was about.
+  4. **27.5% is one training run's operating point, and its interval does not say so.** The
+     interval resamples radiographs. Seed 44's whole interval lies below seed 42's. The runs
+     rank teeth equally well — ROC area within 0.004 of each other — and differ in where the
+     0.5 cut falls. What can be said of the method: it finds between a tenth and a quarter of
+     its label, seven flags in ten are false, its ranking is not separated from a
+     tooth-position prior on ROC area and is separated on average precision. The jittered
+     training crops are drawn with one fixed seed for all three runs, so the spread comes from
+     the last layer's initialisation, shuffling and augmentation only.
+  5. **No leak and no blocking defect was found in the retraining or its test pass** by the
+     reviewer or the referee: seed, checkpoint and threshold were not chosen on test; the
+     bootstraps resample radiographs and the paired differences share indices; the serving
+     crop matches the tested one by reading. Three qualifications. The classifier was scored
+     on crops cut at annotated tooth boxes, never at the pipeline's detections, so its figure
+     is the classifier's and not the pipeline's. The two scripts entered git at 20:10 on
+     13 Oct, eleven minutes after the test rows were written; the protocol document was
+     committed at 18:10, two minutes before training began. And adoption was decided with the
+     test result in view, which the amendment records.
+  6. **The default report's caries caveat is stale** (`scripts/run_inference.py`,
+     `CARIES_METHOD_CAVEATS`): it calls CariesXrays an external cohort, which is the lesion
+     detector's validation split (`RESULTS_LOG` 2026-10-12), and calls DENTEX a tie with the
+     gate, where under the current front end the gate is 20.67 pp higher.
+  7. **Two default checkpoints have no hash pin:** the lesion detector (`models/16`) and the
+     caries severity bundle (`models/07`). Eight files are pinned; these two are not among them.
+  8. **Verdicts (3 of 3).** Freeze: no new model, no new measurement, no second pass over the
+     Tufts test split, no pass over Ningxia. Refused: retraining Stage 4b, a second round on
+     Stage 4a (an ensemble of the saved probabilities would be arithmetic after the fact, not a
+     test), anything further for the lesion detector, BRAR for this paper. Must: decide what
+     the report does with the two severity grades; correct the stale texts; report Stage 4a
+     as three runs. Should: an exact-version lock file, the two missing pins, an invariant
+     that the split is disjoint, a pdfLaTeX build. **"Are all the metrics good" is still no,
+     as on 12 Oct.** What is achievable is that no sentence can be falsified from the repo.
+  9. **Dissent.** On the severity grades: hide both (design seat), label or hide (referee),
+     label only and do not hide (engineering seat, who had not seen finding 1). Chair: hide
+     the Stage-4b grade by default — it is a contrast grade under a clinical name — and keep
+     the Stage-3b output with a line saying it has no test. This changes what the demo shows
+     and is the decision owner's. On making silent skips loud: should (referee) against after
+     submission (engineering seat, who recounted 148 images and 479 lesions from the label
+     files against 17 saved outputs and found no figure moved). Chair: after submission.
+- **Source:** `notebooks/bone_loss/04_bone_loss_severity.ipynb` (cells 5, 8, 9, 16 and their
+  saved outputs); `data/tufts/severity_dataset/metadata/`; `outputs/eda_tufts/split_v1.csv`;
+  `outputs/bone_loss_eval/v2_retrain/{test_rows.json,test_summary.json}`;
+  `models/18_bone_loss_radiograph_split/run_summary.txt`; `scripts/run_inference.py`;
+  `scripts/eval/verify_invariants.py`; `git log` for the commit times.
+  `docs/session-memory/2026-10-13f-implementation-readiness-council.md` holds the council.
+- **Follow-ups:** the decision on the severity grades; one small code change with a schema
+  bump to 1.5 carrying the corrected report texts, the two pins and the split invariant — not
+  started, it needs the decision owner's go; the Stage-4 paragraph in
+  `docs/paper/SUBMISSION_TODO.md` §2 item 3 is superseded by §1a row p. Not verified by the
+  chair: that `weights_only=True` would load the five classifier checkpoints; the cause of one
+  unreadable image recorded at Ningxia test1 on the other machine; whether JPEG ringing in the
+  expert masks creates positives; near-duplicate radiographs across the retraining split
+  beyond the two byte-identical pairs already dropped.
