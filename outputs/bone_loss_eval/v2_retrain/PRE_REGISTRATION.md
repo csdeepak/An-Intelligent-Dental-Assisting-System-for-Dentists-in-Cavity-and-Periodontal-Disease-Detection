@@ -156,3 +156,38 @@ changing `DEF_BONE_LOSS` under this document.
 training histories under `models/18_bone_loss_radiograph_split/`; the weights stay out of git
 unless adopted. Per-tooth test rows and the summary under `outputs/bone_loss_eval/v2_retrain/`.
 Logged in `RESULTS_LOG.md`, `model_metrics.md` and `PAPER_MATERIAL.md` whatever it shows.
+
+## Amendment 1 — adoption, and the one pipeline figure it makes stale (13 October 2026)
+
+**State when written.** The test pass has run and is logged (`RESULTS_LOG` 2026-10-13b). Seed 42
+met both parts of §6, as did seeds 43 and 44. **The decision owner said on 13 Oct: adopt it as
+the default.** Nothing below has been run.
+
+**What adoption is.** `models/18_bone_loss_radiograph_split/seed42_best.pth`, sha256
+`e4bc874423e7c17752bb949d510862e4b4fd618f9a7602a95743663a3c27a0b2`, becomes `DEF_BONE_LOSS`, under
+the tag `abnormality-flag-resnet18-radiograph-split-v2.0`. The previous checkpoint stays where it
+is, hash-pinned, and runs with `--bone-loss`. The report's tag and its Stage-4 limitation text
+follow whichever binary weights are loaded. Seeds 43 and 44 remain ablation weights. Stage 4b,
+the severity model, is not changed.
+
+**What adoption does not give.** An external figure. Ningxia is locked and is not read; its
+2.17% is the previous model's and stays labelled so. Nothing periodontal.
+
+**One re-measurement, registered here: Stage-4 firing on DENTEX.** The scoreboard's 0.75% (34 of
+4,512 detected teeth, 164 images, `RESULTS_LOG` 2026-10-11j) belongs to the previous checkpoint.
+
+- The 164 leak-free DENTEX `disease/` images, through the pipeline as shipped, current tooth
+  detector, CPU.
+- **Control first:** the previous checkpoint, passed explicitly. It must flag exactly 34 of
+  4,512 detected teeth, as it did on this machine on 11 Oct. If it does not, stop.
+- **Then the new default.** Reported: flagged over detected teeth with a cluster interval over
+  images, the paired difference, images with at least one flag, and the severity class Stage 4b
+  gives each flagged tooth, as counts.
+- **Integrity check:** for every image, every per-tooth field outside `bone_loss` must be
+  identical between the two runs. Stage 4 is a branch; changing it must move nothing else.
+- **Already seen:** the previous checkpoint's 34 of 4,512; that the new model raises about four
+  times as many flags on Tufts test. **Not seen:** any output of the new model on DENTEX.
+- **Wording.** A firing rate. DENTEX carries no ground truth for this label, so it is neither a
+  sensitivity nor a false-positive rate, and a higher rate is not a better one.
+
+**Forbidden,** in addition to §9: choosing between the seeds again; any Ningxia run; a threshold.
