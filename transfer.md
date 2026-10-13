@@ -88,6 +88,11 @@ its crop-level validation set** (`RESULTS_LOG` 2026-10-13,
 **13 Oct, night — the retrained model ADOPTED as the Stage-4a default by the decision owner**
 (`RESULTS_LOG` 2026-10-13c, `docs/session-memory/2026-10-13c-stage4a-adoption.md`). Report
 schema 1.4. §2.1, §2.5, §3, §4 and §8 edited.
+**13 Oct, late — a council on which third-party agent skills would help the paper**
+(`docs/session-memory/2026-10-13d-ecc-skills-council.md`): almost none. Three research skills
+were installed on the macOS clone's own configuration, outside this repo. Nothing in the
+pipeline, the results or the manuscript changed. It surfaced one untracked item: the CLAIM 2024
+reporting checklist (`docs/paper/SUBMISSION_TODO.md` §3).
 
 > **Windows clone, 6 Sep 2026 — the Tufts crop corpus was cut from the wrong frame, and is now
 > rebuilt.** It scored 11.5% crop-level FDI-exact where the published number is 71.5%, with correct
