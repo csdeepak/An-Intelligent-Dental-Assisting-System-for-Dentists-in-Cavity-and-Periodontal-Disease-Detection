@@ -771,6 +771,10 @@ councilled on how** (`RESULTS_LOG` 2026-10-12c,
   7. When the six-page cut exists: point `scripts/verify_paper_numbers.py` at it and add the
      Stage-4a figures to its claims. It checks none of them today.
 - **Stop date for code: 20 Oct.** Nothing new is measured from today.
+- **The task-level plan for 14 Oct** — files, changes, checks, order, and six further small
+  defects found while reading the code (a stale numbering-head tag in every report among
+  them): `docs/session-memory/2026-10-13g-implementation-plan-for-14-oct.md`. Four questions
+  at its top need the decision owner's answer before the first edit.
 - **On the other machine:** the pdfLaTeX build is needed; the Docker rebuild is needed only if
   the paper mentions Docker.
 - **"Are all the metrics good?" No, as on 12 Oct.** Several are weak and two outputs are
