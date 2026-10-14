@@ -9073,3 +9073,64 @@ manuscript now carries is from 2026-10-11g, -i and -j — and one new check, on 
 - **Follow-ups:** the six-page cut carries this text; `paper/paper.txt` is still a stale text
   dump; pdfLaTeX build on the other machine; `SUBMISSION_TODO.md` §1a row i (CariesXrays "kept
   away from") is unchanged by this entry and still open.
+
+## 2026-10-14c — Manuscript rows a–n corrected; the Stage-4b retrain prepared, not run
+
+- **What was done:** The decision owner took the defaults of `2026-10-14d-plan-by-stage.md` for
+  D7–D9 and, for D10, asked whether Stage 4b could be retrained and said to proceed. (1) D7: the
+  open rows of `docs/paper/SUBMISSION_TODO.md` §1a corrected in the 15-page `paper/main.tex`.
+  (2) D8: one clause on the runtime. (3) D9: the README's sections C1–C4 left for after the cut.
+  (4) D10: a pre-registration, a training script, an evaluation script, tests and a pre-training
+  check for Stage 4b on bands of mask overlap — **nothing trained**: the protocol has to be
+  committed first. Narrative: `docs/session-memory/2026-10-14e-rows-and-4b-protocol.md`.
+- **Manuscript (rows):** a — Ningxia "scored in at least 25 recorded runs" (counted from the
+  `ningxia_external.json` outputs on this clone: 25 plus one smoke run; 20 of them are in git; the
+  other machine may hold more), its three non-test uses (the detector chosen with its result in
+  view, a veto in the detector's rule, one of three cohorts deciding the lesion detector's
+  adoption), and that the +9.28 pp lead is conditioned on that adoption; b — the 31-point range
+  anchored on test1 (+18.99 [+11.84, +26.32]) and test2 (−12.32 [−19.20, −5.01]), both separated;
+  c — a Limitations item that every model is one training run except Stage 4's three; d — "three
+  cohorts, one of them four hospitals"; e — the conclusion scoped to tooth-level classification,
+  and the four capabilities to numbering and the retained gate; f — DENTEX's two subsets; g — the
+  previous detector's Ningxia comparisons, +0.79 and +10.07 pp, in the Lever B section; h —
+  "almost always" and the 49-paper claims softened to observations; i — CariesXrays 1,200 named
+  the lesion detector's validation split in the text, `tab:data` and its footnotes; l — UFBA-425
+  numbering 44.5% [42.39, 46.62] (recall 66.6%) as distributed and 77.2% [75.19, 79.14] (recall
+  95.6%) widened, the detector difference +23.86 pp [+21.96, +25.77]; m — the constant's
+  placement, 92.0% [89.58, 94.06] and 81.7% [77.72, 85.35], and "image-blind" kept for the F1
+  constant only; n — the lesion detector's 624 flagged codes (43.9% carious, 71.6% molars) beside
+  the sentence its rule tested, and "no scored tooth is labelled healthy" in the Limitations.
+  Also "largely benign" → "mostly near misses" (the editorial claim the 14 Oct audit flagged on
+  the README graphic). D8: "1.70 s … measured with the Stage-4 severity grade computed … so the
+  figure is conservative". Rows j and k need nothing: Stage 3b carries no figure, and row k's
+  sentence left with the Stage-4 rewrite.
+- **Checks:** `verify_paper_numbers.py` **201 claims, no drift** (13 added for rows b, g, l, m, n;
+  two assertions: test1 and test2 separated, no scored tooth labelled healthy). Tectonic: 15
+  pages, 0 undefined references, the same 4.47 pt overfull box. `pytest` **197 passed** (3 new);
+  12 invariants.
+- **Stage 4b, prepared:** `outputs/bone_loss_eval/v3_severity/PRE_REGISTRATION.md`;
+  `scripts/tufts/train_bone_severity_v2.py` (`check`, `train --seed`);
+  `scripts/eval/bone_severity_v2_eval.py` (`score` once, `report`);
+  `tests/test_bone_severity_v2.py`. Label: the overlap ratio of the 1.5×W / 2.0×H crop with the
+  expert abnormality mask, cut at 0.05 / 0.15, on positives only — an extent band, not a severity.
+  Clean positives: train 246 / 295 / 242 (783 on 209 radiographs), val 41 / 57 / 42, test 55 / 63
+  / 64. Seeds 42, 43, 44, jitter drawn from each run's seed; seed 42 fixed as the candidate. Rule:
+  eligible if seed 42 minus an image-blind tooth-position prior has a lower 95% bound above zero.
+  No default change in the protocol. `check`: H1–H3 pass. `models/19_bone_severity_overlap/*.pth`
+  in `.gitignore`.
+- **One number, from the rehearsal of the scoring code (validation, not test):** the shipped
+  `models/04` head on the 140 validation positives scores macro-F1 **0.240** [0.155, 0.312] (200
+  resamples) against the true overlap bands, accuracy 0.279, quadratic kappa **−0.145** — worse than
+  chance; confusion (rows true band) [[2, 17, 22], [9, 24, 24], [4, 25, 13]]. Three of those 41
+  radiographs were in its own training set and two in its validation set.
+- **Key decision or insight:** the retrain is feasible and small (≈ 1,560 training crops per
+  epoch), and the old head demonstrably does not track the quantity it is named for. The
+  decision owner's go overrides the 12–13 Oct councils' refusal and their freeze on the Tufts test
+  split; committing the protocol is that authorisation. Even an eligible result grades only
+  teeth that carry the label, while about seven in ten flagged teeth do not.
+- **Source:** `paper/main.tex`, `scripts/verify_paper_numbers.py`,
+  `outputs/stage1_switch/stage1_switch_results.json` (rows N, O, P; F per hospital), the files
+  above.
+- **Follow-ups:** the user commits the protocol and scripts; then `train --seed 42/43/44` and
+  `score` once; then the log, `model_metrics.md` Stage 4b, `PAPER_MATERIAL.md` and the manuscript's
+  severity sentence.

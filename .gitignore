@@ -68,6 +68,8 @@ models/*.onnx
 # committed, like every other DEF_* checkpoint, so a fresh clone runs the pipeline. 44.8 MB.
 models/18_bone_loss_radiograph_split/*.pth
 !models/18_bone_loss_radiograph_split/seed42_best.pth
+# Stage 4b retrained on overlap bands (14 Oct 2026): weights stay local, histories are tracked.
+models/19_bone_severity_overlap/*.pth
 models/*.pkl
 models/checkpoints/
 # YOLO detector weights are ~51 MB each (GitHub warns above 50 MB): kept on local

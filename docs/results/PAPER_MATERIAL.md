@@ -2886,6 +2886,21 @@ variance; and every interval covers the sampling of radiographs only.
 
 ---
 
+### 8.39 The shipped Stage-4b head does not track mask overlap; a retrain is registered
+
+*14 Oct 2026, night. `RESULTS_LOG` 2026-10-14c.*
+
+Rehearsing the scoring code for a Stage-4b retrain, on validation positives only, the shipped head
+scored macro-F1 0.240 and quadratic kappa −0.145 against the true overlap bands: worse than chance,
+as a head trained on crop contrast should be (§8.37). The decision owner chose to retrain rather
+than remove it. The protocol fixes the bands (0.05 / 0.15), three seeds with their own jitter, an
+image-blind tooth-position prior as the comparator, and one test pass on 182 positive teeth. Two
+limits are fixed in advance and belong in any sentence about the result: the bands measure the
+extent of an expert-marked abnormality near a tooth, not a clinical severity; and the head grades
+only teeth that truly carry the label, while about seven in ten of the teeth Stage 4a flags do not.
+
+---
+
 ## 9. What's not yet written — checklist
 
 For whoever drafts the actual paper. Tick items off here as they land.

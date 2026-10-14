@@ -792,6 +792,13 @@ Frozen and tagged 27 Aug 2026 as `bone-loss-severity-resnet18-v1.0`, SHA-256
 `severity: null` and the flag `severity_withheld_contrast_proxy`; `--bone-severity-grade` restores
 the grade, flagged `severity_is_contrast_band_not_evaluated`. `RESULTS_LOG` 2026-10-14.
 
+**Against the bands it was named for (14 Oct 2026, validation, `RESULTS_LOG` 2026-10-14c):** on the
+140 positive teeth of the 145 validation radiographs, scored against their true mask-overlap band
+(≤ 0.05 / 0.05–0.15 / > 0.15), this head reaches macro-F1 **0.240** [0.155, 0.312] (200
+resamples), accuracy 0.279, quadratic kappa **−0.145** — worse than chance. Three of those 41
+radiographs were in its training set and two in its validation set. A retrain on the true bands is
+pre-registered (`outputs/bone_loss_eval/v3_severity/PRE_REGISTRATION.md`), not yet run.
+
 > **⚠️ The labels are not mask overlap — found 13 Oct 2026, `RESULTS_LOG` 2026-10-13d.** The run
 > that produced these weights found no overlap column in its metadata and built a stand-in:
 > the standard deviation of each crop's grey levels, rescaled to 0.01–0.30 and cut at 0.05 and

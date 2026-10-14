@@ -113,6 +113,12 @@ and §8 edited.
 (`RESULTS_LOG` 2026-10-14b, `docs/session-memory/2026-10-14c-manuscript-stage4.md`): Stage 4 is
 described by its label and reported as three held-out runs; no periodontal claim, no 0.923 as
 performance. 188 manuscript numbers checked; 15 pages. §1 and §3 edited.
+**14 Oct, night — `SUBMISSION_TODO.md` §1a rows a–n corrected in the 15-page text (201 numbers
+checked), and a Stage-4b retrain on true overlap bands prepared but not run** (`RESULTS_LOG`
+2026-10-14c, `docs/session-memory/2026-10-14e-rows-and-4b-protocol.md`). The protocol
+`outputs/bone_loss_eval/v3_severity/PRE_REGISTRATION.md` must be committed before any training;
+the commit is the decision owner's authorisation for one more pass over the Tufts test split.
+§1, §3 and §8 edited.
 
 > **Windows clone, 6 Sep 2026 — the Tufts crop corpus was cut from the wrong frame, and is now
 > rebuilt.** It scored 11.5% crop-level FDI-exact where the published number is 71.5%, with correct
@@ -231,8 +237,8 @@ The six-stage pipeline runs end to end on CPU alone (1.70 s/image on the macOS c
 deployed in a Streamlit +
 Docker demo, and has been evaluated on **six independent cohorts**: DENTEX (development), four
 Ningxia hospitals, and the CariesXrays benchmark. Every reported number traces to a saved
-artefact — `scripts/verify_paper_numbers.py` asserts **188 manuscript claims** (191 until the 14 Oct Stage-4 rewrite) against those
-artefacts and all pass; `pytest` is **194/194**; `verify_invariants.py` all twelve hold (14 Oct). The manuscript
+artefact — `scripts/verify_paper_numbers.py` asserts **201 manuscript claims** (14 Oct) against those
+artefacts and all pass; `pytest` is **197/197**; `verify_invariants.py` all twelve hold (14 Oct). The manuscript
 (`paper/main.tex`) compiles clean under tectonic: **15 pages, 0 errors, 0 undefined
 references**, one 4 pt overfull box; a pdfLaTeX build is still owed. Its core finding — a
 tooth-level score
@@ -806,6 +812,12 @@ councilled on how** (`RESULTS_LOG` 2026-10-12c,
   before submission (S1–S10, owner tasks O1–O5) and what to improve after it with its research
   basis (J1–J12): `docs/session-memory/2026-10-14d-plan-by-stage.md`. Next: S2–S5 in the
   15-page text, then the cut. Decisions D7–D10 at its end.
+- **14 Oct, night: S2–S5 and S9 done** (D7, D8 defaults); D9 deferred to after the cut. **D10:
+  the decision owner chose to retrain Stage 4b** rather than remove it. Protocol, scripts, tests
+  and the pre-training check are ready (`outputs/bone_loss_eval/v3_severity/`,
+  `scripts/tufts/train_bone_severity_v2.py`, `scripts/eval/bone_severity_v2_eval.py`). Next: the
+  user commits them; then three training runs and one test pass; then the log and the
+  manuscript's severity sentence.
 - **On the other machine:** the pdfLaTeX build is needed; the Docker rebuild is needed only if
   the paper mentions Docker.
 - **"Are all the metrics good?" No, as on 12 Oct.** Several are weak and two outputs are
@@ -1033,7 +1045,7 @@ says otherwise.
    working with numpy 2.x — see the numpy note below). For the exact stack behind the
    11–14 Oct figures (Python 3.12, torch 2.2.0): `pip install -r requirements-lock.txt`.
 2. Fetch the Drive-only checkpoints per `docs/EXTERNAL_DRIVE.md` (see table below for which).
-3. `python -m pytest tests/ -q` → should read **194 passed** (192 passed, 2 skipped where the
+3. `python -m pytest tests/ -q` → should read **197 passed** (195 passed, 2 skipped where the
    Tufts radiographs are absent).
 4. `python scripts/eval/verify_invariants.py` → should read **all invariants hold**.
 5. `python scripts/run_inference.py --image <any_opg.png> --output report.json` → should

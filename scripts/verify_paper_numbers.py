@@ -54,6 +54,11 @@ def load(rel):
     return json.loads((REPO / rel).read_text(encoding="utf-8"))
 
 
+def pct2(e):
+    """A [lo, hi] interval from fractions, as the manuscript prints it: two decimals, in %."""
+    return f"[{r(e['ci95'][0] * 100, 2)}, {r(e['ci95'][1] * 100, 2)}]"
+
+
 def check(label, needle, source):
     """Assert `needle` appears in the flattened manuscript."""
     if needle in FLAT:
@@ -467,6 +472,43 @@ for label, key in (("total params (default)", "total_default"),
 check("VLM / pipeline parameter ratio",
       f"roughly {round(v32['params_billion'] * 1e9 / _T['caries_path_default'], -1):.0f} in parameter count",
       "recomputed")
+
+# ------------------------------------------ SUBMISSION_TODO rows b, g, l, m, n (14 Oct 2026)
+# Added with the 15-page text's corrections (RESULTS_LOG 2026-10-14c); every value from the
+# 12 Oct measurements (rows N, O, P, RESULTS_LOG 2026-10-12b) and the Stage-1 re-measurement.
+FX = RES["F_ningxia_caries_lesion_agreement"]
+t1, t2 = (FX[s]["deltas"]["arm3c: pipeline_minus_constant-molars"] for s in ("test1", "test2"))
+assert t1["excludes_zero"] and t2["excludes_zero"], "the manuscript says both test1 and test2 are separated"
+check("31-point range anchors", f"{sgn(-t1['delta_pp'], 1)}$ points at test1 to ${sgn(-t2['delta_pp'], 1)}$ at test2",
+      SW + "results")
+fp = FX["pooled"]["deltas"]
+check("previous-detector Ningxia comparisons",
+      f"${sgn(fp['m11: pipeline_minus_constant-molars']['delta_pp'])}$ and "
+      f"${sgn(fp['m11: lesion-detector_minus_constant-molars']['delta_pp'])}$ points", SW + "results")
+NF = RES["N_dentex_flagged_teeth"]
+ld, cn = NF["lesion-detector"], NF["constant"]
+check("lesion detector flagged codes",
+      f"flags {ld['flagged_codes']} tooth codes, {r(ld['by_category']['caries'] / ld['flagged_codes'] * 100, 1)}% "
+      f"of them carious and {r(ld['molar_share_of_flagged'] * 100, 1)}% molars", SW + "N_dentex_flagged_teeth")
+check("constant flagged codes",
+      f"constant's {cn['flagged_codes']:,}, {r(cn['by_category']['caries'] / cn['flagged_codes'] * 100, 1)}% "
+      f"and {r(cn['molar_share_of_flagged'] * 100, 0)}%", SW + "N_dentex_flagged_teeth")
+assert NF["labelled_healthy_teeth"] == 0, "the manuscript says no scored tooth is labelled healthy"
+OC = RES["O_constant_placement"]["tufts"]["arm3c"]
+for key in ("placement_precision", "reach"):
+    e = OC[key]
+    check(f"constant placement, {key}",
+          f"{r(e['value'] * 100, 1)}% ${pct2(e)}$", SW + "O_constant_placement")
+PU = RES["P_ufba_numbering"]
+for mode in ("asis", "wide"):
+    a = PU[mode]["arm3c"]
+    check(f"UFBA-425 numbering, {mode}",
+          f"{r(a['end_to_end']['value'] * 100, 1)}%" , SW + "P_ufba_numbering")
+    check(f"UFBA-425 interval, {mode}", pct2(a["end_to_end"]), SW + "P_ufba_numbering")
+    check(f"UFBA-425 recall, {mode}", f"recall {r(a['recall']['value'] * 100, 1)}%", SW + "P_ufba_numbering")
+du = PU["asis"]["deltas"]["end_to_end_arm3c_minus_m11"]
+check("UFBA-425 detector difference",
+      f"${sgn(du['delta_pp'])}$ points $[{sgn(du['ci95_pp'][0])}, {sgn(du['ci95_pp'][1])}]$", SW + "P_ufba_numbering")
 
 print("\n".join(ok))
 if bad:

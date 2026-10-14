@@ -54,6 +54,10 @@ rebuilt the same day** (2026-10-11j for five further measurements, -k for the ma
 
 ### 1a. Defects in the rebuilt manuscript, found by the 12 Oct council
 
+**14 Oct, later: rows a–i and l–n are applied too** (`RESULTS_LOG` 2026-10-14c); row j needs
+nothing (Stage 3b carries no figure) and row k's sentence left with the Stage-4 rewrite. Only
+§2's items remain, plus the cut itself.
+
 **14 Oct: rows o–r, and §2 item 3, are applied to the 15-page `main.tex`** (`RESULTS_LOG`
 2026-10-14b): Stage 4 is described by its label, reported as three runs with the 248/1017 and
 shared-jitter disclosures, and Fig. 5 is the held-out figure. The six-page cut must carry them.
