@@ -62,6 +62,13 @@ nothing (Stage 3b carries no figure) and row k's sentence left with the Stage-4 
 2026-10-14b): Stage 4 is described by its label, reported as three runs with the 248/1017 and
 shared-jitter disclosures, and Fig. 5 is the held-out figure. The six-page cut must carry them.
 
+**14 Oct, late night: row o is superseded in part.** Stage 4b now has a registered test result
+(`RESULTS_LOG` 2026-10-14d, `PAPER_MATERIAL.md` §8.40): retrained on the true overlap bands, it does
+not beat an image-blind tooth-position prior. `main.tex` states it in the protocol's §8 wording,
+with the contrast-trained head's own figure, and no longer says "not evaluated". Row o's "no figure"
+no longer holds; its other point, no severity claim, does. The cut carries the sentence or drops
+Stage 4b.
+
 Each was checked against `main.tex` by the session chair
 (`docs/session-memory/2026-10-12-publishability-council.md`). All are edits; none needs a run.
 

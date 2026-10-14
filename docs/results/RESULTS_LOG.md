@@ -9134,3 +9134,74 @@ manuscript now carries is from 2026-10-11g, -i and -j — and one new check, on 
 - **Follow-ups:** the user commits the protocol and scripts; then `train --seed 42/43/44` and
   `score` once; then the log, `model_metrics.md` Stage 4b, `PAPER_MATERIAL.md` and the manuscript's
   severity sentence.
+
+## 2026-10-14d — Stage 4b retrained on overlap bands: three runs, one test pass, not eligible
+
+- **What was done:** Under `outputs/bone_loss_eval/v3_severity/PRE_REGISTRATION.md` (committed in
+  `dbc0024`, the decision owner's authorisation; protocol and code unchanged since), the Stage-4b
+  ResNet18 was trained on bands of mask overlap with the radiograph-level split — seeds 42, 43 and
+  44, each once, on the macOS clone (Apple M4 Pro, MPS, torch 2.2.0). The seven training records
+  were committed in `a6e837b` before the test pass. Then, on the decision owner's "score",
+  `scripts/eval/bone_severity_v2_eval.py score` ran once on the Tufts test positives. No default
+  changed; nothing touched Ningxia. Narrative:
+  `docs/session-memory/2026-10-14f-stage4b-retrain-result.md`.
+- **Dataset / config:** label = the share of the 1.5×W / 2.0×H tooth crop overlapping a Tufts
+  expert abnormality mask, cut at 0.05 / 0.15, on teeth whose overlap exceeds 0.01 — an extent
+  band of an expert-marked abnormality, not a clinical severity and not periodontal. `split_v1` by
+  radiograph (678 / 145 / 143). Train: 783 clean positives on 209 radiographs (246 / 295 / 242)
+  plus one ±15% jittered copy of every train tooth, kept if its own overlap exceeds 0.01, drawn
+  from the run's seed: 1,585 / 1,589 / 1,583 crops. Validation: 140 positives on 41 radiographs
+  (41 / 57 / 42). Test: 182 positives on 44 radiographs (55 / 63 / 64). ResNet18 (ImageNet),
+  class-weighted cross-entropy, Adam 1e-4, weight decay 1e-4, batch 32, ReduceLROnPlateau on
+  validation macro-F1, early stop after 10, best validation macro-F1 kept. Before training:
+  `check` H1–H3 pass, pytest 197, invariants 12, 201 claims.
+- **Metrics — validation (the checkpoint-selection set, 140 positives):** best macro-F1 seed 42
+  **0.4425** (epoch 3 of 13), seed 43 0.4738 (5 of 15), seed 44 0.4726 (13 of 23). Training loss
+  reached 0.02–0.09 in every run.
+- **Metrics — test (182 positives, 44 radiographs; radiograph-cluster bootstrap, 10,000
+  resamples, seed 42, percentile):**
+
+  | Arm | Macro-F1 [95% CI] | Accuracy | Quadratic κ | Recall ≤ 0.05 / 0.05–0.15 / > 0.15 |
+  |---|---|---|---|---|
+  | Seed 42 (the candidate, fixed in advance) | **0.2938** [0.2143, 0.3850] | 56/182 = 0.3077 | −0.0283 | 19/55, 29/63, 8/64 |
+  | Seed 43 | 0.3279 [0.2336, 0.4352] | 61/182 = 0.3352 | 0.0548 | 20/55, 28/63, 13/64 |
+  | Seed 44 | 0.3817 [0.3013, 0.4726] | 72/182 = 0.3956 | 0.1320 | 34/55, 25/63, 13/64 |
+  | `models/04` (shipped, contrast-trained) | 0.3657 [0.2949, 0.4280] | 73/182 = 0.4011 | 0.1065 | 7/55, 29/63, 37/64 |
+  | Tooth-position prior (image-blind) | **0.3344** [0.2723, 0.3967] | 61/182 = 0.3352 | 0.0568 | 19/55, 18/63, 24/64 |
+  | Majority band (0.05–0.15) | 0.1714 [0.1383, 0.2053] | 63/182 = 0.3462 | 0 | 0/55, 63/63, 0/64 |
+
+  Paired, same resamples: seed 42 − prior **−0.0405 [−0.1245, +0.0584]**; seed 42 − `models/04`
+  −0.0719 [−0.1717, +0.0511]; seed 42 − majority +0.1224 [+0.0522, +0.2010]. `models/04` on the
+  175 teeth of the 41 test radiographs it did not train on (149, 192 and 249 removed): macro-F1
+  0.3711, a point figure. **`eligible`: false.**
+- **Key decision or insight:** **Not eligible** under protocol §6: the lower bound of seed 42 −
+  prior is −0.1245, not above zero. Seed 42's point estimate is below the prior's, and **seed 43
+  also falls below the tooth prior** (0.3279 against 0.3344); seed 44 is above it (0.3817), with no
+  registered interval on that difference. Seed 42's kappa is −0.028, no ordinal agreement. The
+  three runs span 0.29–0.38, a spread larger than the gap between seed 42 and the prior. Seed 42
+  beats only the majority band. On this data (783 training positives) the architecture does not
+  learn the extent band beyond what tooth position predicts. `models/04` stays the shipped head,
+  withheld by default; with no eligible checkpoint there is no adoption question. Protocol §8's
+  wording, filled in: "Retrained on bands of the share of the tooth crop overlapping an
+  expert-marked abnormality — an extent band, not a severity — the head reached macro-F1 0.294
+  [0.214, 0.385] on 182 held-out positive teeth, against 0.334 for an image-blind tooth-position
+  prior; two further runs gave 0.328, below the prior, and 0.382. It grades only teeth that truly
+  carry the label; in the pipeline most flagged teeth do not."
+- **Disclosures:** the validation figures are maxima on the set that chose the checkpoint (seed
+  42: 0.4425 on validation, 0.2938 on test). Selection ran on MPS, the test pass on CPU. The tooth
+  prior breaks a tie by the band seen first, which touches 2 tooth titles (`26`, `K`) and 4 of the
+  182 test teeth. Seed 42 − `models/04` is computed on all 182 teeth, 7 of them on the 3
+  radiographs `models/04` trained on. `models/04` moved from 0.240 on validation (2026-10-14c, 200
+  resamples, not saved as an artefact) to 0.3657 on test: figures on 140–182 teeth from about 40
+  radiographs are noisy. The history files log each epoch's `lr` after the scheduler step (the
+  next epoch's rate). The raw Tufts data was read from the main macOS checkout through three
+  symlinks in the session's git worktree.
+- **Source:** `outputs/bone_loss_eval/v3_severity/{test_rows.json,test_summary.json,test_stdout.log}`;
+  `models/19_bone_severity_overlap/{seed42,seed43,seed44}_history.json`, `seed*_train.log`,
+  `run_summary.txt`. Every test figure above was re-derived from `test_rows.json` with
+  scikit-learn and matches `test_summary.json`. Manuscript: `paper/main.tex` (`sec:stage4`, the
+  system overview, the Limitations), five claims in `scripts/verify_paper_numbers.py`.
+- **Follow-ups:** the three weight files are local-only and gitignored
+  (`models/19_bone_severity_overlap/run_summary.txt` says where). The Tufts test split is now spent
+  for Stage 4b too. Whether the journal version keeps or removes the head (plan J11, D10) is the
+  decision owner's; this result is the case for removal.

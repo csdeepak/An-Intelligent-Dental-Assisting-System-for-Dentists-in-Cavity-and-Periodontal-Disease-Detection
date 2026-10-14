@@ -388,7 +388,8 @@ expert-marked abnormality (Section~\ref{sec:stage4}): it was built for periodont
 bone loss, but its training label is whether a tooth crop overlaps an expert's
 abnormality mask on Tufts, and we name it for that label. A second model, meant to
 grade the flagged teeth, was trained on bands of crop contrast instead; it ships
-withheld by default and is not evaluated here. Stage 3 was built as the same kind of
+withheld by default, and a retrain on the bands it was named for did not beat an
+image-blind tooth-position prior (Section~\ref{sec:stage4}). Stage 3 was built as the same kind of
 cascade---a binary gate on a tooth crop, then a severity head on the teeth it
 flags---and is reported that way throughout Section~\ref{sec:results}. It now defaults instead to a whole-image
 lesion detector, whose predicted lesion boxes are assigned to teeth before the same
@@ -1279,8 +1280,17 @@ covers the sampling of radiographs only. One of the 143 test radiographs is a
 re-rendered copy of a training radiograph; it holds no positive tooth. A second
 ResNet18, meant to grade the flagged teeth, was trained on bands of crop contrast,
 a stand-in for an overlap measurement its training data lacked; it is present in
-the released code, withheld from the report by default, and not evaluated. We
-make no periodontal claim.
+the released code and withheld from the report by default. Retrained on bands of
+the share of the tooth crop overlapping an expert-marked abnormality---an extent
+band, not a severity---the head reached macro-F1 0.294 [0.214, 0.385] on 182
+held-out positive teeth, against 0.334 for an image-blind tooth-position prior;
+two further runs gave 0.328, below the prior, and 0.382. It grades only teeth
+that truly carry the label; in the pipeline most flagged teeth do not. The rule
+registered before training, that this run beat the prior with a 95\,\% interval
+above zero, was not met (difference $-0.04$, interval $[-0.12, +0.06]$), so the
+grade stays withheld and no retrained head ships. The contrast-trained head
+scored 0.366 on the same teeth (0.371 without the three test radiographs it
+trained on). We make no periodontal claim.
 
 %% =====================================================================
 \section{Discussion}
@@ -1514,7 +1524,8 @@ Each item states what it prevents us from concluding.
         institution, three training runs that share their augmented crops, and
         annotated tooth boxes rather than the pipeline's own detections
         (Section~\ref{sec:stage4}). Its severity head was trained on crop
-        contrast and is not evaluated.
+        contrast and is withheld; retrained on the extent band it was named
+        for, it did not beat an image-blind tooth-position prior.
   \item \textbf{Every model is one training run}, except Stage 4's three. Every
         interval resamples images or radiographs, not training runs, so none of
         them covers training variance.

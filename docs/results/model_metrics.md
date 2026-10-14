@@ -796,8 +796,30 @@ the grade, flagged `severity_is_contrast_band_not_evaluated`. `RESULTS_LOG` 2026
 140 positive teeth of the 145 validation radiographs, scored against their true mask-overlap band
 (≤ 0.05 / 0.05–0.15 / > 0.15), this head reaches macro-F1 **0.240** [0.155, 0.312] (200
 resamples), accuracy 0.279, quadratic kappa **−0.145** — worse than chance. Three of those 41
-radiographs were in its training set and two in its validation set. A retrain on the true bands is
-pre-registered (`outputs/bone_loss_eval/v3_severity/PRE_REGISTRATION.md`), not yet run.
+radiographs were in its training set and two in its validation set. On the test split it scores
+0.3657 against the same bands (next paragraph).
+
+**Against the true bands on the Tufts test split, beside a retrain on them (14 Oct 2026, test,
+`RESULTS_LOG` 2026-10-14d).** 182 positive teeth on 44 test radiographs; band = the share of the
+tooth crop overlapping an expert abnormality mask, ≤ 0.05 / 0.05–0.15 / > 0.15 — an extent band,
+not a severity. Retrained heads: `models/19_bone_severity_overlap/`, three registered seeds, seed 42
+the candidate fixed in advance (`outputs/bone_loss_eval/v3_severity/PRE_REGISTRATION.md`).
+Radiograph-cluster bootstrap, 10,000 resamples.
+
+| Arm | Macro-F1 [95% CI] | Accuracy | Quadratic κ | Recall by band |
+|---|---|---|---|---|
+| Retrained, seed 42 (candidate) | **0.2938** [0.2143, 0.3850] | 0.3077 | −0.0283 | 19/55, 29/63, 8/64 |
+| Retrained, seed 43 | 0.3279 [0.2336, 0.4352] | 0.3352 | 0.0548 | 20/55, 28/63, 13/64 |
+| Retrained, seed 44 | 0.3817 [0.3013, 0.4726] | 0.3956 | 0.1320 | 34/55, 25/63, 13/64 |
+| `models/04` (this head, contrast-trained) | 0.3657 [0.2949, 0.4280] | 0.4011 | 0.1065 | 7/55, 29/63, 37/64 |
+| Tooth-position prior (image-blind) | **0.3344** [0.2723, 0.3967] | 0.3352 | 0.0568 | 19/55, 18/63, 24/64 |
+| Majority band | 0.1714 [0.1383, 0.2053] | 0.3462 | 0 | 0/55, 63/63, 0/64 |
+
+Seed 42 − tooth prior **−0.0405 [−0.1245, +0.0584]: not eligible** (protocol §6). Seed 42 −
+`models/04` −0.0719 [−0.1717, +0.0511]; − majority +0.1224 [+0.0522, +0.2010]. Seed 43 is below the
+prior too. `models/04` on the 175 teeth of radiographs it did not train on: 0.3711. Best validation
+macro-F1 of the retrained seeds: 0.4425, 0.4738, 0.4726. **No default changed:** `models/04` stays
+the shipped head, withheld by default.
 
 > **⚠️ The labels are not mask overlap — found 13 Oct 2026, `RESULTS_LOG` 2026-10-13d.** The run
 > that produced these weights found no overlap column in its metadata and built a stand-in:

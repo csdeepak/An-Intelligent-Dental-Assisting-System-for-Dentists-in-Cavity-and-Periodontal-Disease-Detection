@@ -325,6 +325,32 @@ D4 = load(V2 + "dentex_firing.json")["default"]
 check("Stage 4a DENTEX firing",
       f"{r(D4['flagged'] / D4['teeth_detected'] * 100, 1)}% of detected teeth "
       f"({D4['flagged']} of {D4['teeth_detected']:,})", V2 + "dentex_firing")
+# Stage 4b, added 14 Oct 2026 (RESULTS_LOG 2026-10-14d): the one registered test pass of the head
+# retrained on bands of mask overlap (outputs/bone_loss_eval/v3_severity/PRE_REGISTRATION.md).
+# Assert the verdict too: the manuscript says the registered rule was not met.
+V3 = "outputs/bone_loss_eval/v3_severity/"
+T3 = load(V3 + "test_summary.json")
+A3 = T3["arms"]
+assert not T3["eligible"], "the manuscript says the Stage-4b rule was not met"
+assert A3["pred_43"]["macro_f1"] < A3["pred_prior"]["macro_f1"] < A3["pred_44"]["macro_f1"], \
+    "the manuscript says seed 43, and not seed 44, is below the prior"
+lo3, hi3 = A3["pred_42"]["macro_f1_ci95"]
+check("Stage 4b seed 42",
+      f"macro-F1 {r(A3['pred_42']['macro_f1'], 3)} [{r(lo3, 3)}, {r(hi3, 3)}] on {T3['test_teeth']} "
+      f"held-out positive teeth", V3 + "test_summary")
+check("Stage 4b tooth prior",
+      f"against {r(A3['pred_prior']['macro_f1'], 3)} for an image-blind tooth-position prior", V3 + "test_summary")
+check("Stage 4b seeds 43 and 44",
+      f"two further runs gave {r(A3['pred_43']['macro_f1'], 3)}, below the prior, and "
+      f"{r(A3['pred_44']['macro_f1'], 3)}", V3 + "test_summary")
+d3 = T3["seed42_minus_prior"]
+check("Stage 4b seed 42 minus prior",
+      f"difference ${sgn(d3['value'])}$, interval $[{sgn(d3['ci95'][0])}, {sgn(d3['ci95'][1])}]$",
+      V3 + "test_summary")
+check("Stage 4b contrast-trained head",
+      f"scored {r(A3['pred_old']['macro_f1'], 3)} on the same teeth "
+      f"({r(T3['old_on_radiographs_it_did_not_train_on']['macro_f1'], 3)} without the three test radiographs",
+      V3 + "test_summary")
 
 # ------------------------------------------ the tooth detector's registered guard
 M = RES["M_tufts_test_box_map"]

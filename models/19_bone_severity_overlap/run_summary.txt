@@ -1,10 +1,11 @@
 ================================================================================
 19_bone_severity_overlap -- Stage 4b retrained on bands of mask overlap, split by radiograph
 ================================================================================
-Status:   Three registered training runs, each made once. NOT a pipeline default and not
-          proposed as one: models/04 stays behind --bone-severity-grade, and the report keeps
-          the Stage-4b grade withheld by default (D1, 14 Oct). Written BEFORE the test pass:
-          no model in this folder has produced a prediction on a test crop.
+Status:   Three registered training runs, each made once, then one test pass: NOT ELIGIBLE
+          (see RESULTS -- TEST at the foot). NOT a pipeline default and not proposed as one:
+          models/04 stays behind --bone-severity-grade, and the report keeps the Stage-4b
+          grade withheld by default (D1, 14 Oct). The sections down to RESULTS -- TEST were
+          written BEFORE the test pass and committed in a6e837b; they are left as written.
 Date:     14 October 2026
 Pre-reg:  outputs/bone_loss_eval/v3_severity/PRE_REGISTRATION.md, commit dbc0024 (the
           decision owner's authorisation). Protocol and code unchanged since: `git diff dbc0024
@@ -94,6 +95,10 @@ Where they are: on the macOS clone only, at
   /Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/.claude/worktrees/stage-4b-retrain-preflight-6d676a/models/19_bone_severity_overlap/seed{42,43,44}_best.pth
 That folder is a git worktree. Removing the worktree deletes them: copy them to the main
 checkout's models/19_bone_severity_overlap/ (also gitignored) before it is cleaned up.
+[Added after the test pass] Copied there on 14 Oct 2026, sha256 re-checked against the records
+above, so the kept copies are at
+  /Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/models/19_bone_severity_overlap/seed{42,43,44}_best.pth
+Not on the Windows clone, and not needed there: none of them is a default.
 
 Reading the curves: training loss falls to 0.02-0.09 in every run while validation macro-F1
 peaks at epochs 3, 5 and 13 and wanders between 0.34 and 0.47 -- the head fits its training
@@ -108,10 +113,31 @@ models/04 scored 0.240 [0.155, 0.312] in the rehearsal of 14 Oct (RESULTS_LOG 20
 were in models/04's own training set).
 
 --------------------------------------------------------------------------------
-RESULTS -- TEST
+RESULTS -- TEST (added after the pass; the sections above were written before it, at a6e837b)
 --------------------------------------------------------------------------------
-Not yet run. `bone_severity_v2_eval.py score` runs once, after the decision owner's go, and
-writes outputs/bone_loss_eval/v3_severity/{test_rows.json,test_summary.json,test_stdout.log}.
+14 Oct 2026, run once on the decision owner's "score". RESULTS_LOG 2026-10-14d.
+182 positive teeth on 44 test radiographs, bands 55 / 63 / 64. CPU. Radiograph-cluster
+bootstrap, 10,000 resamples, seed 42, percentile.
+
+                     macro-F1  95% CI            accuracy        q. kappa  recall by band
+seed 42 (candidate)  0.2938    [0.2143, 0.3850]  56/182 = 0.3077  -0.0283  19/55  29/63   8/64
+seed 43              0.3279    [0.2336, 0.4352]  61/182 = 0.3352   0.0548  20/55  28/63  13/64
+seed 44              0.3817    [0.3013, 0.4726]  72/182 = 0.3956   0.1320  34/55  25/63  13/64
+models/04            0.3657    [0.2949, 0.4280]  73/182 = 0.4011   0.1065   7/55  29/63  37/64
+tooth prior          0.3344    [0.2723, 0.3967]  61/182 = 0.3352   0.0568  19/55  18/63  24/64
+majority band        0.1714    [0.1383, 0.2053]  63/182 = 0.3462   0.0000   0/55  63/63   0/64
+
+Seed 42 minus tooth prior   -0.0405 [-0.1245, +0.0584]
+Seed 42 minus models/04     -0.0719 [-0.1717, +0.0511]
+Seed 42 minus majority      +0.1224 [+0.0522, +0.2010]
+models/04 on the 175 teeth of the 41 test radiographs it did not train on: 0.3711 (point).
+
+ELIGIBILITY (protocol Sec 6): lower bound of seed 42 minus the tooth prior > 0?  -0.1245.
+NOT ELIGIBLE. Seed 43 also falls below the tooth prior; seed 44 is above it, with no
+registered interval on that difference. Nothing is proposed for adoption.
+
+Source: outputs/bone_loss_eval/v3_severity/{test_rows.json,test_summary.json,test_stdout.log}.
+Every figure re-derived from test_rows.json with scikit-learn; all match.
 
 --------------------------------------------------------------------------------
 FILES

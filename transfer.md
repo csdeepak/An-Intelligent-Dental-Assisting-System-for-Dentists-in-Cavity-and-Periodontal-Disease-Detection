@@ -119,6 +119,12 @@ checked), and a Stage-4b retrain on true overlap bands prepared but not run** (`
 `outputs/bone_loss_eval/v3_severity/PRE_REGISTRATION.md` must be committed before any training;
 the commit is the decision owner's authorisation for one more pass over the Tufts test split.
 §1, §3 and §8 edited.
+**14 Oct, late night — Stage 4b retrained on the true overlap bands and tested once: NOT
+eligible** (`RESULTS_LOG` 2026-10-14d, `docs/session-memory/2026-10-14f-stage4b-retrain-result.md`).
+Three seeds trained once each on the Mac and frozen in `a6e837b`; seed 42 macro-F1 0.294
+[0.214, 0.385] against 0.334 for an image-blind tooth-position prior. No default changed; the grade
+stays withheld; `main.tex` states the result. §1, §3 and §8 edited (§8 now records what the
+Windows clone lacks for the Stage-4 scripts).
 
 > **Windows clone, 6 Sep 2026 — the Tufts crop corpus was cut from the wrong frame, and is now
 > rebuilt.** It scored 11.5% crop-level FDI-exact where the published number is 71.5%, with correct
@@ -237,7 +243,7 @@ The six-stage pipeline runs end to end on CPU alone (1.70 s/image on the macOS c
 deployed in a Streamlit +
 Docker demo, and has been evaluated on **six independent cohorts**: DENTEX (development), four
 Ningxia hospitals, and the CariesXrays benchmark. Every reported number traces to a saved
-artefact — `scripts/verify_paper_numbers.py` asserts **201 manuscript claims** (14 Oct) against those
+artefact — `scripts/verify_paper_numbers.py` asserts **206 manuscript claims** (14 Oct, late night) against those
 artefacts and all pass; `pytest` is **197/197**; `verify_invariants.py` all twelve hold (14 Oct). The manuscript
 (`paper/main.tex`) compiles clean under tectonic: **15 pages, 0 errors, 0 undefined
 references**, one 4 pt overfull box; a pdfLaTeX build is still owed. Its core finding — a
@@ -249,6 +255,12 @@ metric families, and a VLM control; the project's response to it (Lever B, below
 into the paper as a positive, pre-registered result. **What remains is still not experiments, but it is
 more than paperwork (10 Oct): manuscript corrections, a decision on the bone-loss branch, a venue
 commit with a real length cut, and the account-owner compliance actions. See §3.**
+
+**Stage 4b (14 Oct, late night):** retrained on the true overlap bands under a committed protocol
+and tested once — **not eligible**: seed 42 macro-F1 0.294 [0.214, 0.385] on 182 Tufts test
+positives against 0.334 for an image-blind tooth-position prior. The grade stays withheld, no
+default changed, and the manuscript says so. Every Stage-4 training and evaluation script needs the
+raw Tufts radiographs and masks, which only the macOS clone holds (§8).
 
 Full results ledger: **§2**. What's still open and who owns it: **§3–§4**. Publication target:
 **§5**. Where each fact in the codebase lives: **§7**. Machine/environment setup for a fresh
@@ -813,11 +825,17 @@ councilled on how** (`RESULTS_LOG` 2026-10-12c,
   basis (J1–J12): `docs/session-memory/2026-10-14d-plan-by-stage.md`. Next: S2–S5 in the
   15-page text, then the cut. Decisions D7–D10 at its end.
 - **14 Oct, night: S2–S5 and S9 done** (D7, D8 defaults); D9 deferred to after the cut. **D10:
-  the decision owner chose to retrain Stage 4b** rather than remove it. Protocol, scripts, tests
-  and the pre-training check are ready (`outputs/bone_loss_eval/v3_severity/`,
-  `scripts/tufts/train_bone_severity_v2.py`, `scripts/eval/bone_severity_v2_eval.py`). Next: the
-  user commits them; then three training runs and one test pass; then the log and the
-  manuscript's severity sentence.
+  the decision owner chose to retrain Stage 4b** rather than remove it. **Done 14 Oct, late
+  night — NOT eligible** (`RESULTS_LOG` 2026-10-14d, `PAPER_MATERIAL.md` §8.40). Protocol
+  committed (`dbc0024`); seeds 42, 43, 44 trained once each on the Mac, MPS, and frozen
+  (`a6e837b`); one test pass on 182 positives. Seed 42 macro-F1 0.2938 [0.2143, 0.3850] against
+  0.3344 for an image-blind tooth-position prior; seed 42 − prior −0.0405 [−0.1245, +0.0584];
+  seeds 43 and 44 gave 0.3279 (also below the prior) and 0.3817; the shipped contrast-trained head
+  0.3657. No default changed, the grade stays withheld, no adoption question. `main.tex` states
+  the result in the protocol's §8 wording (206 claims, 15 pages). The Tufts test split is now
+  spent for Stage 4b too. **Open:** whether the journal version keeps or removes the head — this
+  result is the case for removal; the decision owner's call. The three weight files are
+  local-only (`models/19_bone_severity_overlap/run_summary.txt`).
 - **On the other machine:** the pdfLaTeX build is needed; the Docker rebuild is needed only if
   the paper mentions Docker.
 - **"Are all the metrics good?" No, as on 12 Oct.** Several are weak and two outputs are
@@ -1037,7 +1055,9 @@ result** — DENTEX, Tufts, Ningxia (found at `D:\nangxia_dataset`, no copy need
 and every checkpoint except the two still noted below. The macOS machine (the collaborator's)
 independently has the same DENTEX/Tufts/Ningxia data and produced the Phase 0 / Lever A2 /
 Tufts-e2e work merged into this history; treat both as caught up unless a specific file check
-says otherwise.
+says otherwise. **Exception, verified 14 Oct 2026: the Windows clone cannot run the Stage-4
+training and evaluation scripts** — it lacks the raw Tufts radiographs and masks they read (below
+the raw-datasets table).
 
 ### Checklist: does a fresh clone actually run the pipeline
 
@@ -1076,11 +1096,40 @@ different machine than the one searched.
 |---|---|---|
 | DENTEX (full release + the subsets this repo uses) | `~/Downloads/Capstone/DENTEX/` (macOS) / `data/tufts/ZIP/...`-equivalent path (Windows) | Complete on both machines; subset map in `data/README.md` |
 | Tufts raw + rotated radiographs, frozen split | `data/tufts/ZIP/`, `outputs/eda_tufts/split_v1.csv` | Split is code-derived (`scripts/tufts/regenerate_split_v1.py`), reproduces byte-for-byte. Contains one documented leak (`590.JPG`/`591.JPG`) — resolved, see §2.7. **The original un-rotated radiographs are on the macOS clone** — all 1,000, 1615×840, at `_repo_archive/datasets_workspace/Radiographs/` (verified 10 Oct). This row used to say they were "confirmed absent from every machine checked"; the Mac had not been checked. |
-| **Tufts, as the Stage-4 scripts read it** — needed for the Stage-4a/4b training and evaluation (`train_bone_loss_v2.py`, `train_bone_severity_v2.py`, `bone_loss_v2_eval.py`, `bone_severity_v2_eval.py`), `tufts_split_near_duplicates.py` and `tests/test_crop_parity.py` | `_repo_archive/datasets_workspace/`: `Radiographs/<n>.JPG` (1,000 files, 118 MB), `Expert/mask/<n>.JPG` (1,000, 18 MB), `Segmentation/teeth_bbox.json` (1.5 MB). The path is fixed in `scripts/eval/bone_loss_heldout.py` (`SRC`) | Gitignored. Present on the macOS clone; the other machine's copy of this folder was partial in August (`_repo_archive/ARCHIVE_MANIFEST.md`). Obtain it under the Tufts licence and place it here — never through a public link (§4). Without it those scripts stop at the first read and the two crop-parity tests skip; inference, the paper-number check and the invariants (one part of "crop source frames" skips) do not need it. The tracked metadata the same scripts read is in `data/tufts/resampled_dataset/metadata/` (added 14 Oct 2026) |
+| **Tufts, as the Stage-4 scripts read it** — needed for the Stage-4a/4b training and evaluation (`train_bone_loss_v2.py`, `train_bone_severity_v2.py`, `bone_loss_v2_eval.py`, `bone_severity_v2_eval.py`), `tufts_split_near_duplicates.py` and `tests/test_crop_parity.py` | `_repo_archive/datasets_workspace/`: `Radiographs/<n>.JPG` (1,000 files, 118 MB), `Expert/mask/<n>.JPG` (1,000, 18 MB), `Segmentation/teeth_bbox.json` (1.5 MB). The path is fixed in `scripts/eval/bone_loss_heldout.py` (`SRC`) | Gitignored. Present on the macOS clone. **Not on the Windows clone** (verified 14 Oct; see below the table); its copy was already partial in August (`_repo_archive/ARCHIVE_MANIFEST.md`). Obtain it under the Tufts licence and place it here — never through a public link (§4). Without it those scripts stop at the first read and the two crop-parity tests skip; inference, the paper-number check and the invariants (one part of "crop source frames" skips) do not need it. The tracked metadata the same scripts read is in `data/tufts/resampled_dataset/metadata/` (added 14 Oct 2026) |
 | **Ningxia** | `D:\nangxia_dataset` (Windows, found 4 Sep, used in place) / `~/Downloads/Capstone/ningxia_local/` (macOS) | Locked external test data. **Never train or tune against it.** |
 | CariesXrays (~2 GB) | `data/cariesxrays_det/`-adjacent raw source | AAAI 2024. No LICENSE file ships with it; used under citation, recorded in `main.tex`. |
 | Clinic (SDH) data, 3,219 images (3,213 usable) | `D:\SDH dataset\dataset\` | **Contributes to no result. De-identification is void for this copy** (§4) — do not use until fixed. |
 | Kaggle dual-labelled (3rd FDI corpus) | `data/kaggle_dual/` | 499 usable images, ablation only (`models/12`) |
+
+### The Windows clone and the Stage-4 data — verified 14 Oct 2026, from Windows
+
+- `_repo_archive/datasets_workspace/` holds only scripts and notebooks (22 MB): no `Radiographs/`,
+  no `Expert/mask/`, no `Segmentation/`.
+- 104 of the 1,000 original radiographs are at `data/tufts/ZIP/Radiographs/Radiographs/`
+  (1615×840).
+- No `Expert/mask` JPEGs anywhere; only `data/tufts/ZIP/Expert/Expert/expert.json` (polygons).
+  Masks drawn from the polygons would not reproduce the JPEG masks' `> 0` overlap, so they are not
+  a substitute.
+- `teeth_bbox.json` is at `data/tufts/ZIP/Segmentation/Segmentation/`, md5 `8fb9182c…` — the
+  pinned file.
+- `data/tufts/ZIP/Radiographs_upright_fixed/` (1,000 files, 1615×840) is **not** the originals: 0
+  of the 104 are pixel-identical, mean |difference| 0.70 grey levels, up to 30. Not a substitute
+  for the Stage-4 scripts.
+- **So `train_bone_loss_v2.py`, `train_bone_severity_v2.py`, `bone_loss_v2_eval.py`,
+  `bone_severity_v2_eval.py`, `tufts_split_near_duplicates.py` and the crop-parity tests cannot run
+  on Windows** until `Radiographs/` and `Expert/mask/` are copied over by a signed-in transfer under
+  the Tufts licence — never the public Drive link (§4). Nothing that is left for the paper needs
+  them: the Stage-4a and 4b test passes are both made, and inference, the paper-number check and
+  the invariants run without them.
+- The Windows clone was 32 commits behind on 14 Oct; it is to be reconciled from Windows by
+  pulling once these commits are pushed.
+- JarvisLabs, re-checked 14 Oct from Windows: balance ₹1,148.78, no instance running or paused.
+- **On the macOS clone, a git worktree does not see this data** — it lives in the main checkout's
+  gitignored `_repo_archive/datasets_workspace/`. The 14 Oct Stage-4b session linked
+  `Radiographs`, `Expert` and `Segmentation` into its worktree and hid the links in
+  `.git/info/exclude`. The Stage-4b weights (`models/19_bone_severity_overlap/*.pth`) were written
+  inside that worktree; see that folder's `run_summary.txt` for where they are kept.
 
 ### Environment notes
 

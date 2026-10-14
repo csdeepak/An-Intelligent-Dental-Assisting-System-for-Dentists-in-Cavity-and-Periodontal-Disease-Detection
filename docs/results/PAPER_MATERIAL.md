@@ -642,6 +642,12 @@ enough to be uninformative.
 > Minor discrepancy for the record: `severity_summary.txt` lists F1 severe = 0.6957 while
 > the legacy report rounds it to 0.70. Use 0.6957.
 
+**Against the true overlap bands, on test (14 Oct 2026, `RESULTS_LOG` 2026-10-14d, §8.40).** The
+table above is the contrast-band validation of 27 Aug. Scored on 182 Tufts test positives against
+the bands it was named for, this head reaches macro-F1 0.3657 [0.2949, 0.4280]; a head retrained on
+those bands reaches 0.2938 [0.2143, 0.3850] (seed 42, fixed in advance; 0.3279 and 0.3817 for seeds
+43 and 44), against 0.3344 [0.2723, 0.3967] for an image-blind tooth-position prior. Not eligible.
+
 ### 7.5 Exploratory — CEJ-based bone level estimation
 
 | Metric | Value |
@@ -2901,6 +2907,47 @@ only teeth that truly carry the label, while about seven in ten of the teeth Sta
 
 ---
 
+### 8.40 Retrained on the bands it was named for, Stage 4b does not beat a tooth-position prior
+
+*14 Oct 2026, late night. `RESULTS_LOG` 2026-10-14d; protocol
+`outputs/bone_loss_eval/v3_severity/PRE_REGISTRATION.md` (`dbc0024`); models frozen in `a6e837b`
+before the test pass.*
+
+**Method.** The §8.39 protocol, run as committed. The same ResNet18 was trained on bands of the
+share of the 1.5×W / 2.0×H tooth crop overlapping a Tufts expert abnormality mask (≤ 0.05,
+0.05–0.15, > 0.15), on the 783 Stage-4a positives of 209 training radiographs plus one seeded
+jittered copy of every training tooth, with Stage 4a's recipe and a class-weighted cross-entropy:
+three seeds, each trained once on the Mac, seed 42 fixed in advance as the candidate. One test
+pass on the 182 positive teeth of 44 test radiographs, against the shipped contrast-trained head,
+an image-blind tooth-position prior and the majority band, with radiograph-cluster intervals.
+
+**Result.** Seed 42: macro-F1 0.2938 [0.2143, 0.3850], quadratic kappa −0.028; the tooth prior
+0.3344 [0.2723, 0.3967]; seed 42 minus the prior −0.0405 [−0.1245, +0.0584]. **Not eligible.**
+Seeds 43 and 44 gave 0.3279 (below the prior) and 0.3817. Seed 42 beats only the majority band
+(+0.1224 [+0.0522, +0.2010]). Its validation figure was 0.4425, the best epoch of a noisy curve on
+the set that chose it. The shipped contrast-trained head scored 0.3657 [0.2949, 0.4280] on the same
+teeth (0.3711 on the 175 from radiographs it did not train on); seed 42 minus it is −0.0719
+[−0.1717, +0.0511]. No interval was registered for the shipped head against the prior, and none is
+claimed.
+
+**What the paper may say.** Protocol §8, filled in: "Retrained on bands of the share of the tooth
+crop overlapping an expert-marked abnormality — an extent band, not a severity — the head reached
+macro-F1 0.294 [0.214, 0.385] on 182 held-out positive teeth, against 0.334 for an image-blind
+tooth-position prior; two further runs gave 0.328, below the prior, and 0.382. It grades only teeth
+that truly carry the label; in the pipeline most flagged teeth do not." Then that the registered
+rule was not met. `main.tex` says this in `sec:stage4`, and in one clause each in the system
+overview and the Limitations.
+
+**What it is not.** Not a severity, not periodontal, and not a test of the pipeline: the teeth are
+true positives cut at annotated boxes, while about seven in ten of the teeth Stage 4a flags carry no
+abnormality. Not a reason to adopt anything: the grade stays withheld by default and `models/04`
+stays the shipped head. Not evidence that the shipped head works either: against the same bands it
+scored 0.240 on validation (§8.39) and 0.366 on test, which says how far estimates on 140–182 teeth
+from about 40 radiographs move. The Tufts test split is now spent for Stage 4b as well. For the
+journal version (plan J11, D10) this is the case for removing the head.
+
+---
+
 ## 9. What's not yet written — checklist
 
 For whoever drafts the actual paper. Tick items off here as they land.
@@ -2924,6 +2971,11 @@ For whoever drafts the actual paper. Tick items off here as they land.
       report Stage 4a as three runs with the share of flags that are correct** (§8.37, found
       13 Oct 2026). No severity figure anywhere. Draft paragraph: `SUBMISSION_TODO.md` §1a
       row p. **Done 14 Oct in the 15-page `main.tex`, `sec:stage4`** (`RESULTS_LOG` 2026-10-14b).
+- [x] **State the Stage-4b retrain's registered result in the protocol's own wording** (§8.40,
+      14 Oct 2026, late night). This supersedes "no severity figure anywhere" in the item above:
+      Stage 4b now has one test figure, stated as an extent band, not a severity, with the rule not
+      met. **Done in the 15-page `main.tex`** — `sec:stage4`, the system overview and the
+      Limitations (`RESULTS_LOG` 2026-10-14d). The six-page cut carries it or drops Stage 4b.
 - [x] **Decide which front end the manuscript reports, and make every table say so** (§8.30,
       11 Oct 2026). **Decided 11 Oct: the current one. `main.tex` was rebuilt the same day**
       (`RESULTS_LOG` 2026-10-11k): every table and the headline re-stated, the override of the

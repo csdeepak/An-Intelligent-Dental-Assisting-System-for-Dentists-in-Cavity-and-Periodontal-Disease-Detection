@@ -160,7 +160,7 @@ pipeline, and it follows directly from anatomy — see
 | 3a′ | **Caries gate** — ResNet18 *(retained variant, `--caries-method gate`)* | Tight 1.0× crop | caries / healthy | ✅ `caries-gate-resnet18-v3.0`. Held-out **P 0.398 / R 0.740**, **AP 0.550** against a 0.147 chance line (3.7× chance). Rebuilt on 5,366 real healthy teeth; in-pipeline caries rate **84.9% → 19.1%**. Every pre-4-Sep caries number was measured on it. |
 | 3b | **Caries depth** — ResNet18 | Tight 1.0× crop | caries / deep_caries | ✅ acc **0.81**, macro F1 **0.77** (133 val crops). Validation only — no held-out test split exists for this head yet. Unchanged by Lever B — runs on teeth the lesion detector or gate flags. |
 | 4a | **Abnormality flag** (the field is still named `bone_loss`) — ResNet18 + focal loss, retrained with a radiograph-level split, default since 13 Oct 2026 | Expanded 1.5×W / 2.0×H crop | Flagged / not | ⚠️ **Test sensitivity 27.5%** [18.3, 38.0] at **95.9% specificity** on 143 Tufts radiographs (11–27% across three seeds). Not a periodontal finding; no external figure. The model it replaced reported macro F1 0.9233 on radiographs it had trained on and finds 7.6% held out — `RESULTS_LOG` 2026-10-13, -13b, -13c. |
-| 4b | **Severity of flagged teeth** — ResNet18 + focal loss | Same expanded crop | "Mild / Moderate / Severe" = low / middle / high crop contrast | ⚠️ **Trained on a crop-contrast stand-in, not on mask overlap** (found 13 Oct 2026). Not evaluated. **Withheld from the report by default since 14 Oct** (`--bone-severity-grade` restores it). |
+| 4b | **Severity of flagged teeth** — ResNet18 + focal loss | Same expanded crop | "Mild / Moderate / Severe" = low / middle / high crop contrast | ⚠️ **Trained on a crop-contrast stand-in, not on mask overlap** (found 13 Oct 2026). On the true overlap bands (Tufts test, 182 positive teeth) it scores macro-F1 0.366; a head retrained on those bands scored 0.294 and did not beat an image-blind tooth-position prior (0.334), so it was not adopted (`RESULTS_LOG` 2026-10-14d). **Withheld from the report by default since 14 Oct** (`--bone-severity-grade` restores it). |
 | — | *CEJ bone-level estimation (classical CV)* | Expanded crop | bone loss % | 🔬 **Negative result.** 15.1% exact agreement, 61.6% within ±1 class. **Not in the pipeline**, reported as a negative result. |
 | 5 | **Fusion, flags, assessability** | All tooth outputs | Fused per-tooth record | ✅ Positional-alignment guard + confidence gating. Abstains below `ASSESSABILITY_MIN_FDI_CONFIDENCE = 0.30` → 90.8% coverage at 0.847 accuracy. |
 | 6 | **Report** | Fused findings | Per-tooth JSON + overlay | ✅ Schema `opg-report/1.5`: every checkpoint's sha256 and tag in the report. 2.39 s/image on CPU as published (previous front end). Grad-CAM remains design-only. |
@@ -182,7 +182,7 @@ pipeline, and it follows directly from anatomy — see
 Full tables and provenance: [`docs/results/model_metrics.md`](docs/results/model_metrics.md).
 Every number below traces to a saved artefact under `outputs/`, a
 `models/<NN>_<name>/*summary*.txt`, or a run `results.csv`.
-[`scripts/verify_paper_numbers.py`](scripts/verify_paper_numbers.py) asserts 201 manuscript numbers
+[`scripts/verify_paper_numbers.py`](scripts/verify_paper_numbers.py) asserts 206 manuscript numbers
 against those artefacts, so numeric drift fails loudly.
 
 | Model | Dataset | Split | Headline metric |
@@ -540,7 +540,7 @@ Each of those four rows is a bug that was found the hard way. See
 │
 ├── scripts/
 │   ├── run_inference.py         ← ★ CLI: all six stages, OPG in → JSON + overlay out
-│   ├── verify_paper_numbers.py  ← asserts 201 manuscript numbers against artefacts
+│   ├── verify_paper_numbers.py  ← asserts 206 manuscript numbers against artefacts
 │   ├── verify_citations_crossref.py  ← dereferences every DOI against the registry (22 fixed, 2 Sep)
 │   ├── audit_citations.py · check_text_reuse.py · build_handbook.py
 │   ├── eval/                    ← 21 evaluation + invariant scripts (+ README)
@@ -717,7 +717,7 @@ python scripts/train_model.py   --config configs/dataset_config.yaml   # Stage 4
 | **Lever 2** — CariesXrays lesion detector (trained; benchmark row) | `scripts/yolo/build_cariesxrays_detector_dataset.py`, `scripts/yolo/train_cariesxrays_detector.py` | `models/14_cariesxrays_lever2/`, `outputs/lever2_cariesxrays/` |
 | **Lever B** — lesion-detection caries path (both arms trained/evaluated 4 Sep; Sec 6 met on 2/3 cohorts → `models/16` adopted as Stage-3a default) | `scripts/dentex/build_dentex_caries_boxes.py`, `scripts/yolo/{build_lever_b_pooled_dataset,train_lever_b_pooled_detector}.py`, `scripts/eval/{lesion_localization,ningxia_external,cariesxrays_external}.py` (`--decision lesion-detector`), `scripts/eval/lever_b_bootstrap.py` | `models/{14,16}_*` (B-single / B-pooled), `outputs/lever_b_eval/`, `outputs/lever_B_lesion_caries_path/PRE_REGISTRATION.md` (frozen) |
 | DOI integrity of every citation | `scripts/verify_citations_crossref.py` | `outputs/citation_audit/` |
-| The 201 manuscript numbers | `scripts/verify_paper_numbers.py` | `paper/main.tex` |
+| The 206 manuscript numbers | `scripts/verify_paper_numbers.py` | `paper/main.tex` |
 
 Paper figures regenerate from **saved run artefacts only, never re-measured**:
 `scripts/figures/make_paper_figures.py`, `make_baseline_figure.py`,
@@ -775,7 +775,7 @@ and treating the gap as *a defect to explain* rather than a disappointing number
 Geometry is now verified against an independent annotation source **before** training, in code that
 exits non-zero rather than in a doc that can go stale.
 
-**Numbers are pinned to artefacts.** `verify_paper_numbers.py` asserts 201 manuscript numbers
+**Numbers are pinned to artefacts.** `verify_paper_numbers.py` asserts 206 manuscript numbers
 against their JSONs; `verify_invariants.py` asserts frozen weight hashes and dataset hygiene;
 174 unit tests cover the coordinate conversions, the FDI table, the crop contracts and the
 orientation contract (both directions — including the `rot_box` inverse added for the Lever 1
