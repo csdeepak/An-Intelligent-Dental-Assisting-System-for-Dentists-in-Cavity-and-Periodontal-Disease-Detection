@@ -1,0 +1,133 @@
+================================================================================
+19_bone_severity_overlap -- Stage 4b retrained on bands of mask overlap, split by radiograph
+================================================================================
+Status:   Three registered training runs, each made once. NOT a pipeline default and not
+          proposed as one: models/04 stays behind --bone-severity-grade, and the report keeps
+          the Stage-4b grade withheld by default (D1, 14 Oct). Written BEFORE the test pass:
+          no model in this folder has produced a prediction on a test crop.
+Date:     14 October 2026
+Pre-reg:  outputs/bone_loss_eval/v3_severity/PRE_REGISTRATION.md, commit dbc0024 (the
+          decision owner's authorisation). Protocol and code unchanged since: `git diff dbc0024
+          HEAD` over the protocol, both Stage-4b scripts, bone_loss_heldout.py and
+          train_bone_loss_v2.py was empty before training (HEAD e8bbf35).
+Log:      docs/results/RESULTS_LOG.md -- one entry for the training and the test pass, written
+          after the test pass.
+Hardware: Apple M4 Pro, MPS (not bit-reproducible). No rental. Python 3.12.12, torch 2.2.0,
+          torchvision 0.17.0, numpy 1.26.4, OpenCV 5.0.0, printed from the interpreter before
+          training (the history JSONs record torch and the device only). torch and
+          torchvision are the versions models/18 records.
+Trainer:  scripts/tufts/train_bone_severity_v2.py     Test pass: scripts/eval/bone_severity_v2_eval.py
+
+THE LABEL IS NOT A CLINICAL SEVERITY AND NOT PERIODONTAL. It is an EXTENT BAND OF AN
+EXPERT-MARKED ABNORMALITY: the share of the 1.5x W / 2.0x H tooth crop that overlaps a Tufts
+expert abnormality mask (mostly apical lesions, sclerosis, cysts), cut at 0.05 and 0.15 into
+bands 0 / 1 / 2, on teeth whose overlap exceeds 0.01 (the Stage-4a positives). The class names
+"Mild / Moderate / Severe" of src/classifiers.py are index names only.
+
+--------------------------------------------------------------------------------
+WHY THIS EXISTS
+--------------------------------------------------------------------------------
+The shipped Stage-4b head (models/04) was trained on bands of crop CONTRAST, a stand-in its
+notebook built when the overlap column was missing (RESULTS_LOG 2026-10-13d). This trains the
+same architecture on the quantity it was named for, with a radiograph-level split. The decision
+owner chose retraining over removal on 14 Oct (D10).
+
+--------------------------------------------------------------------------------
+DATA
+--------------------------------------------------------------------------------
+Split     outputs/eda_tufts/split_v1.csv by radiograph, twins removed as in Stage 4a:
+          678 train / 145 val / 143 test.
+Source    _repo_archive/datasets_workspace/{Radiographs,Expert/mask}/<n>.JPG (1,000 each,
+          1615x840) and Segmentation/teeth_bbox.json (md5 8fb9182c1f5c98a5ea8a231469f7ba80);
+          counts, sizes and the md5 checked by hand before training, not by the trainer.
+          This run read them from the main macOS checkout through
+          three symlinks in the session's git worktree; the files are the same.
+Train     every clean positive tooth of the train split (783 on 209 radiographs,
+          bands 246 / 295 / 242) plus one +-15% jittered copy of every train tooth, positive
+          or not, kept if its own overlap exceeds 0.01 and labelled by it (802 / 806 / 800
+          jittered positives for seeds 42 / 43 / 44). The jitter is drawn from the run's seed,
+          so the three runs train on slightly different sets (below).
+Val       140 clean positives on 41 radiographs, bands 41 / 57 / 42. Used for the
+          scheduler and to pick the checkpoint.
+Test      182 clean positives, bands 55 / 63 / 64. Not read by `check` or `train`.
+
+`check` before training (H1-H3, protocol Sec 4): split 678/145/143 and per-band counts equal
+the registered ones; the band function puts 0.05 and 0.15 in the lower band; one epoch on 64
+crops runs. All three pass. Its console, not saved to a file, read:
+  H1 data: split {'train': 678, 'val': 145, 'test': 143}; clean positives per band
+     {'train': [246, 295, 242], 'val': [41, 57, 42]} (registered ...) -> pass
+  H2 bands at the cut points [0, 0, 1, 1, 2, 2] -> pass
+  H3 loop: one epoch on 64 crops ran -> pass (numbers discarded)
+`train` itself asserts the split sizes only, so the clean train bands 246 / 295 / 242 rest on
+that `check` output; the per-run totals below are clean plus jittered.
+
+--------------------------------------------------------------------------------
+RECIPE -- protocol Sec 2, as committed
+--------------------------------------------------------------------------------
+ResNet18, ImageNet weights, 3 outputs, all layers trained. Cross-entropy weighted
+n / (3 n_c) over the training bands. Adam 1e-4, weight decay 1e-4, batch 32.
+ReduceLROnPlateau on validation macro-F1 (0.5, patience 5). At most 50 epochs, stop after 10
+without improvement, keep the best validation macro-F1. Flip, rotation within 10 degrees,
+brightness x[0.8, 1.2], contrast x[0.9, 1.1].
+
+--------------------------------------------------------------------------------
+WEIGHTS (44.8 MB each; ALL THREE are local-only and gitignored, rule 4)
+--------------------------------------------------------------------------------
+Every figure below is VALIDATION (140 positives, the checkpoint-selection set), not test.
+
+seed42_best.pth  sha256 3d151388d1214fd0d2e5915cfa68e16b763c70f39e9a07c57b9a34d44a28c4ed
+  best validation macro-F1 0.4425 at epoch 3 of 13 (stopped by patience).
+  train 1,585 crops, bands 515 / 589 / 481; class weight [1.0259, 0.8970, 1.0984].
+  THE SEED FIXED IN ADVANCE AS THE CANDIDATE (protocol Sec 2).
+seed43_best.pth  sha256 d403c314c5663463d23ff45a4f2e1b8571c2532bb0d008aecfac407101f2fcc1
+  best validation macro-F1 0.4738 at epoch 5 of 15 (stopped by patience).
+  train 1,589 crops, bands 501 / 610 / 478; class weight [1.0572, 0.8683, 1.1081].
+seed44_best.pth  sha256 b97487c511638f6805310e945f14158ecad92f5c56681fac0871a126c4084088
+  best validation macro-F1 0.4726 at epoch 13 of 23 (stopped by patience).
+  train 1,583 crops, bands 500 / 603 / 480; class weight [1.0553, 0.8751, 1.0993].
+
+Bare state_dicts, class order [Mild, Moderate, Severe] = bands [0, 1, 2], loadable by
+src.classifiers.load_classifier(path, 3, device). Each sha256 was re-computed from the file
+after training and matches its seed*_history.json.
+
+Where they are: on the macOS clone only, at
+  /Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/.claude/worktrees/stage-4b-retrain-preflight-6d676a/models/19_bone_severity_overlap/seed{42,43,44}_best.pth
+That folder is a git worktree. Removing the worktree deletes them: copy them to the main
+checkout's models/19_bone_severity_overlap/ (also gitignored) before it is cleaned up.
+
+Reading the curves: training loss falls to 0.02-0.09 in every run while validation macro-F1
+peaks at epochs 3, 5 and 13 and wanders between 0.34 and 0.47 -- the head fits its training
+crops far better than it generalises. The best-epoch figure is the maximum over a noisy curve on
+the set that chose it, so it is optimistic. Seed 42 has the lowest validation figure of the
+three; it stays the candidate, because it was fixed before training.
+
+For scale, on the same 140 validation positives: always predicting the most common band scores
+macro-F1 0.1929 (arithmetic from the band counts: 114/197 for band 1, 0 for the others);
+models/04 scored 0.240 [0.155, 0.312] in the rehearsal of 14 Oct (RESULTS_LOG 2026-10-14c;
+[UNVERIFIED] -- the rehearsal output was not saved as an artefact, and 3 of the 41 radiographs
+were in models/04's own training set).
+
+--------------------------------------------------------------------------------
+RESULTS -- TEST
+--------------------------------------------------------------------------------
+Not yet run. `bone_severity_v2_eval.py score` runs once, after the decision owner's go, and
+writes outputs/bone_loss_eval/v3_severity/{test_rows.json,test_summary.json,test_stdout.log}.
+
+--------------------------------------------------------------------------------
+FILES
+--------------------------------------------------------------------------------
+seed{42,43,44}_best.pth        the checkpoints (gitignored, local-only, see above)
+seed{42,43,44}_history.json    per-epoch loss, validation macro-F1, lr, seconds; recipe; sha256
+seed{42,43,44}_train.log       the training console
+
+Reading the histories. Each epoch's `lr` is logged after that epoch's scheduler step, so it is
+the rate the NEXT epoch uses (seed 42 trained epoch 9 at 1e-4; its row shows 5e-5).
+`best_epoch` is taken from the 4-dp rounded values; selection used the unrounded ones. No tie
+arises in these three runs.
+
+Run notes. The three runs were made sequentially in one background chain that stopped on the
+first failure; none failed, none was repeated. Each log has, after its first line, two macOS
+`objc` warnings about AVF classes present in both PyAV and OpenCV's bundled libavdevice -- an
+environment duplicate unrelated to training; nothing in the runs touches video.
+Validation (and checkpoint selection) ran on MPS; the test pass scores on CPU, so a prediction
+on a near-tie can differ from what MPS would give.

@@ -1,0 +1,17 @@
+train: 1585 crops (clean + jittered), per band [515, 589, 481]   val: 140 clean crops, per band [41, 57, 42]
+objc[91164]: Class AVFFrameReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x11c5e43a8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x1419843a8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[91164]: Class AVFAudioReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x11c5e43f8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x1419843f8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+  epoch  1  loss 1.0373  val macro-F1 0.3395  lr 1.0e-04  8s
+  epoch  2  loss 0.8111  val macro-F1 0.4222  lr 1.0e-04  7s
+  epoch  3  loss 0.6331  val macro-F1 0.4425  lr 1.0e-04  7s
+  epoch  4  loss 0.5566  val macro-F1 0.3972  lr 1.0e-04  7s
+  epoch  5  loss 0.3953  val macro-F1 0.4209  lr 1.0e-04  7s
+  epoch  6  loss 0.3144  val macro-F1 0.4045  lr 1.0e-04  7s
+  epoch  7  loss 0.2499  val macro-F1 0.4009  lr 1.0e-04  7s
+  epoch  8  loss 0.2235  val macro-F1 0.3555  lr 1.0e-04  7s
+  epoch  9  loss 0.1874  val macro-F1 0.4201  lr 5.0e-05  7s
+  epoch 10  loss 0.1297  val macro-F1 0.3717  lr 5.0e-05  7s
+  epoch 11  loss 0.0899  val macro-F1 0.3688  lr 5.0e-05  7s
+  epoch 12  loss 0.0782  val macro-F1 0.4012  lr 5.0e-05  7s
+  epoch 13  loss 0.0888  val macro-F1 0.3568  lr 5.0e-05  8s
+seed 42: best validation macro-F1 0.4425 at epoch 3 of 13 -> seed42_best.pth  sha256 3d151388d121

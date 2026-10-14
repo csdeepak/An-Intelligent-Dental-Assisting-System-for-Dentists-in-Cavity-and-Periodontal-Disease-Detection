@@ -1,0 +1,209 @@
+{
+  "device": "mps",
+  "epochs": [
+    {
+      "epoch": 1,
+      "train_loss": 1.01237,
+      "val_macro_f1": 0.4482,
+      "lr": 0.0001,
+      "seconds": 9.2
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.8256,
+      "val_macro_f1": 0.4061,
+      "lr": 0.0001,
+      "seconds": 7.4
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.63147,
+      "val_macro_f1": 0.4437,
+      "lr": 0.0001,
+      "seconds": 8.4
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.4828,
+      "val_macro_f1": 0.4281,
+      "lr": 0.0001,
+      "seconds": 8.6
+    },
+    {
+      "epoch": 5,
+      "train_loss": 0.37497,
+      "val_macro_f1": 0.4618,
+      "lr": 0.0001,
+      "seconds": 7.9
+    },
+    {
+      "epoch": 6,
+      "train_loss": 0.32274,
+      "val_macro_f1": 0.4389,
+      "lr": 0.0001,
+      "seconds": 8.0
+    },
+    {
+      "epoch": 7,
+      "train_loss": 0.27935,
+      "val_macro_f1": 0.3811,
+      "lr": 0.0001,
+      "seconds": 7.9
+    },
+    {
+      "epoch": 8,
+      "train_loss": 0.22445,
+      "val_macro_f1": 0.4404,
+      "lr": 0.0001,
+      "seconds": 7.8
+    },
+    {
+      "epoch": 9,
+      "train_loss": 0.20207,
+      "val_macro_f1": 0.4225,
+      "lr": 0.0001,
+      "seconds": 7.9
+    },
+    {
+      "epoch": 10,
+      "train_loss": 0.16909,
+      "val_macro_f1": 0.4539,
+      "lr": 0.0001,
+      "seconds": 8.0
+    },
+    {
+      "epoch": 11,
+      "train_loss": 0.17757,
+      "val_macro_f1": 0.3927,
+      "lr": 5e-05,
+      "seconds": 7.9
+    },
+    {
+      "epoch": 12,
+      "train_loss": 0.11255,
+      "val_macro_f1": 0.4639,
+      "lr": 5e-05,
+      "seconds": 8.8
+    },
+    {
+      "epoch": 13,
+      "train_loss": 0.08038,
+      "val_macro_f1": 0.4726,
+      "lr": 5e-05,
+      "seconds": 9.1
+    },
+    {
+      "epoch": 14,
+      "train_loss": 0.05924,
+      "val_macro_f1": 0.4532,
+      "lr": 5e-05,
+      "seconds": 8.8
+    },
+    {
+      "epoch": 15,
+      "train_loss": 0.05288,
+      "val_macro_f1": 0.4208,
+      "lr": 5e-05,
+      "seconds": 8.4
+    },
+    {
+      "epoch": 16,
+      "train_loss": 0.04844,
+      "val_macro_f1": 0.4258,
+      "lr": 5e-05,
+      "seconds": 8.9
+    },
+    {
+      "epoch": 17,
+      "train_loss": 0.04054,
+      "val_macro_f1": 0.4208,
+      "lr": 5e-05,
+      "seconds": 9.0
+    },
+    {
+      "epoch": 18,
+      "train_loss": 0.04494,
+      "val_macro_f1": 0.4256,
+      "lr": 5e-05,
+      "seconds": 8.7
+    },
+    {
+      "epoch": 19,
+      "train_loss": 0.04123,
+      "val_macro_f1": 0.4078,
+      "lr": 2.5e-05,
+      "seconds": 8.9
+    },
+    {
+      "epoch": 20,
+      "train_loss": 0.0278,
+      "val_macro_f1": 0.4268,
+      "lr": 2.5e-05,
+      "seconds": 8.8
+    },
+    {
+      "epoch": 21,
+      "train_loss": 0.02443,
+      "val_macro_f1": 0.444,
+      "lr": 2.5e-05,
+      "seconds": 9.2
+    },
+    {
+      "epoch": 22,
+      "train_loss": 0.02194,
+      "val_macro_f1": 0.4273,
+      "lr": 2.5e-05,
+      "seconds": 8.9
+    },
+    {
+      "epoch": 23,
+      "train_loss": 0.02196,
+      "val_macro_f1": 0.4331,
+      "lr": 2.5e-05,
+      "seconds": 9.0
+    }
+  ],
+  "best_val_macro_f1": 0.4726,
+  "best_epoch": 13,
+  "class_weight": [
+    1.0553,
+    0.8751,
+    1.0993
+  ],
+  "seed": 44,
+  "sha256": "b97487c511638f6805310e945f14158ecad92f5c56681fac0871a126c4084088",
+  "pre_registration": "outputs/bone_loss_eval/v3_severity/PRE_REGISTRATION.md",
+  "torch": "2.2.0",
+  "classes": [
+    "Mild",
+    "Moderate",
+    "Severe"
+  ],
+  "cuts": [
+    0.05,
+    0.15
+  ],
+  "label": "share of the 1.5x/2.0x tooth crop overlapping a Tufts expert abnormality mask; positives only (overlap > 0.01). An extent band, not a clinical severity.",
+  "train_crops": 1583,
+  "train_bands": [
+    500,
+    603,
+    480
+  ],
+  "val_crops": 140,
+  "val_bands": [
+    41,
+    57,
+    42
+  ],
+  "recipe": {
+    "lr": 0.0001,
+    "weight_decay": 0.0001,
+    "batch": 32,
+    "max_epochs": 50,
+    "patience": 10,
+    "loss": "class-weighted cross-entropy",
+    "jitter_seed": 44,
+    "scheduler": "ReduceLROnPlateau(max, 0.5, 5)"
+  }
+}

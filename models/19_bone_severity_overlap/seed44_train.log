@@ -1,0 +1,27 @@
+train: 1583 crops (clean + jittered), per band [500, 603, 480]   val: 140 clean crops, per band [41, 57, 42]
+objc[91510]: Class AVFFrameReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x116bdc3a8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x700909c3a8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[91510]: Class AVFAudioReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x116bdc3f8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x700909c3f8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+  epoch  1  loss 1.0124  val macro-F1 0.4482  lr 1.0e-04  9s
+  epoch  2  loss 0.8256  val macro-F1 0.4061  lr 1.0e-04  7s
+  epoch  3  loss 0.6315  val macro-F1 0.4437  lr 1.0e-04  8s
+  epoch  4  loss 0.4828  val macro-F1 0.4281  lr 1.0e-04  9s
+  epoch  5  loss 0.3750  val macro-F1 0.4618  lr 1.0e-04  8s
+  epoch  6  loss 0.3227  val macro-F1 0.4389  lr 1.0e-04  8s
+  epoch  7  loss 0.2794  val macro-F1 0.3811  lr 1.0e-04  8s
+  epoch  8  loss 0.2245  val macro-F1 0.4404  lr 1.0e-04  8s
+  epoch  9  loss 0.2021  val macro-F1 0.4225  lr 1.0e-04  8s
+  epoch 10  loss 0.1691  val macro-F1 0.4539  lr 1.0e-04  8s
+  epoch 11  loss 0.1776  val macro-F1 0.3927  lr 5.0e-05  8s
+  epoch 12  loss 0.1125  val macro-F1 0.4639  lr 5.0e-05  9s
+  epoch 13  loss 0.0804  val macro-F1 0.4726  lr 5.0e-05  9s
+  epoch 14  loss 0.0592  val macro-F1 0.4532  lr 5.0e-05  9s
+  epoch 15  loss 0.0529  val macro-F1 0.4208  lr 5.0e-05  8s
+  epoch 16  loss 0.0484  val macro-F1 0.4258  lr 5.0e-05  9s
+  epoch 17  loss 0.0405  val macro-F1 0.4208  lr 5.0e-05  9s
+  epoch 18  loss 0.0449  val macro-F1 0.4256  lr 5.0e-05  9s
+  epoch 19  loss 0.0412  val macro-F1 0.4078  lr 2.5e-05  9s
+  epoch 20  loss 0.0278  val macro-F1 0.4268  lr 2.5e-05  9s
+  epoch 21  loss 0.0244  val macro-F1 0.4440  lr 2.5e-05  9s
+  epoch 22  loss 0.0219  val macro-F1 0.4273  lr 2.5e-05  9s
+  epoch 23  loss 0.0220  val macro-F1 0.4331  lr 2.5e-05  9s
+seed 44: best validation macro-F1 0.4726 at epoch 13 of 23 -> seed44_best.pth  sha256 b97487c51163
