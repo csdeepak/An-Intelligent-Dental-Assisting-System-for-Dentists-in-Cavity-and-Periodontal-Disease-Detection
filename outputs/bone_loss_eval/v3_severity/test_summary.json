@@ -1,0 +1,229 @@
+{
+  "pre_registration": "outputs/bone_loss_eval/v3_severity/PRE_REGISTRATION.md",
+  "method": "radiograph-cluster bootstrap, 10000 resamples, seed 42, percentile",
+  "label": "band of mask overlap (<=0.05, 0.05-0.15, >0.15) on teeth with overlap > 0.01; an extent band, not a clinical severity",
+  "test_teeth": 182,
+  "test_radiographs": 44,
+  "bands": [
+    55,
+    63,
+    64
+  ],
+  "arms": {
+    "pred_42": {
+      "macro_f1": 0.2938,
+      "accuracy": 0.3077,
+      "qwk": -0.0283,
+      "recall_by_band": [
+        0.34545454545454546,
+        0.4603174603174603,
+        0.125
+      ],
+      "confusion": [
+        [
+          19,
+          26,
+          10
+        ],
+        [
+          16,
+          29,
+          18
+        ],
+        [
+          21,
+          35,
+          8
+        ]
+      ],
+      "macro_f1_ci95": [
+        0.2143,
+        0.385
+      ]
+    },
+    "pred_43": {
+      "macro_f1": 0.3279,
+      "accuracy": 0.3352,
+      "qwk": 0.0548,
+      "recall_by_band": [
+        0.36363636363636365,
+        0.4444444444444444,
+        0.203125
+      ],
+      "confusion": [
+        [
+          20,
+          33,
+          2
+        ],
+        [
+          22,
+          28,
+          13
+        ],
+        [
+          27,
+          24,
+          13
+        ]
+      ],
+      "macro_f1_ci95": [
+        0.2336,
+        0.4352
+      ]
+    },
+    "pred_44": {
+      "macro_f1": 0.3817,
+      "accuracy": 0.3956,
+      "qwk": 0.132,
+      "recall_by_band": [
+        0.6181818181818182,
+        0.3968253968253968,
+        0.203125
+      ],
+      "confusion": [
+        [
+          34,
+          16,
+          5
+        ],
+        [
+          28,
+          25,
+          10
+        ],
+        [
+          29,
+          22,
+          13
+        ]
+      ],
+      "macro_f1_ci95": [
+        0.3013,
+        0.4726
+      ]
+    },
+    "pred_old": {
+      "macro_f1": 0.3657,
+      "accuracy": 0.4011,
+      "qwk": 0.1065,
+      "recall_by_band": [
+        0.12727272727272726,
+        0.4603174603174603,
+        0.578125
+      ],
+      "confusion": [
+        [
+          7,
+          25,
+          23
+        ],
+        [
+          7,
+          29,
+          27
+        ],
+        [
+          6,
+          21,
+          37
+        ]
+      ],
+      "macro_f1_ci95": [
+        0.2949,
+        0.428
+      ]
+    },
+    "pred_prior": {
+      "macro_f1": 0.3344,
+      "accuracy": 0.3352,
+      "qwk": 0.0568,
+      "recall_by_band": [
+        0.34545454545454546,
+        0.2857142857142857,
+        0.375
+      ],
+      "confusion": [
+        [
+          19,
+          20,
+          16
+        ],
+        [
+          22,
+          18,
+          23
+        ],
+        [
+          20,
+          20,
+          24
+        ]
+      ],
+      "macro_f1_ci95": [
+        0.2723,
+        0.3967
+      ]
+    },
+    "pred_majority": {
+      "macro_f1": 0.1714,
+      "accuracy": 0.3462,
+      "qwk": 0.0,
+      "recall_by_band": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "confusion": [
+        [
+          0,
+          55,
+          0
+        ],
+        [
+          0,
+          63,
+          0
+        ],
+        [
+          0,
+          64,
+          0
+        ]
+      ],
+      "macro_f1_ci95": [
+        0.1383,
+        0.2053
+      ]
+    }
+  },
+  "old_on_radiographs_it_did_not_train_on": {
+    "teeth": 175,
+    "macro_f1": 0.3711
+  },
+  "seed42_minus_prior": {
+    "value": -0.0405,
+    "ci95": [
+      -0.1245,
+      0.0584
+    ],
+    "excludes_zero": false
+  },
+  "seed42_minus_old": {
+    "value": -0.0719,
+    "ci95": [
+      -0.1717,
+      0.0511
+    ],
+    "excludes_zero": false
+  },
+  "seed42_minus_majority": {
+    "value": 0.1224,
+    "ci95": [
+      0.0522,
+      0.201
+    ],
+    "excludes_zero": true
+  },
+  "eligible": false
+}

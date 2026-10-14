@@ -1,0 +1,10 @@
+objc[92319]: Class AVFFrameReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x10c4ac3a8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x16b5103a8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[92319]: Class AVFAudioReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x10c4ac3f8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x16b5103f8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+182 test positives from 44 radiographs -> test_rows.json
+  pred_42        macro-F1 0.2938 [0.2143, 0.385]  accuracy 0.3077  kappa -0.0283
+  pred_43        macro-F1 0.3279 [0.2336, 0.4352]  accuracy 0.3352  kappa 0.0548
+  pred_44        macro-F1 0.3817 [0.3013, 0.4726]  accuracy 0.3956  kappa 0.1320
+  pred_old       macro-F1 0.3657 [0.2949, 0.428]  accuracy 0.4011  kappa 0.1065
+  pred_prior     macro-F1 0.3344 [0.2723, 0.3967]  accuracy 0.3352  kappa 0.0568
+  pred_majority  macro-F1 0.1714 [0.1383, 0.2053]  accuracy 0.3462  kappa 0.0000
+  seed 42 minus tooth prior: {'value': -0.0405, 'ci95': [-0.1245, 0.0584], 'excludes_zero': False}  eligible: False
