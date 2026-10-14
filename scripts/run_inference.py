@@ -311,8 +311,9 @@ DEF_BONE_SEVERITY = REPO_ROOT / "models/04_bone_loss_severity_notebook_models/bo
 # scripts/eval/verify_invariants.py pins. load_models() checks a default path against it BEFORE
 # unpickling the file, so a replaced or corrupted default stops the run instead of only being
 # stamped into the report afterwards (14 Oct 2026). Any other path is loaded as given and tagged
-# by its own hash, as before.
-DEFAULT_SHA256 = {
+# by its own hash, as before. Keyed by resolved path, so a default reached through a symlink is
+# checked too.
+DEFAULT_SHA256 = {path.resolve(): sha for path, sha in {
     DEF_DETECTOR: "5d301f13fb48da5c74e7ef01bd0f91226f9b6800cb433dee5aebc8f8db8f161e",
     DEF_FDI_HEAD: "6c675fa014551a0f184cf87a52d55ea26d21f23ae84dd5df1f7efce78a43004b",
     DEF_CARIES_GATE: "8f4a99ba412c5562e0bc444fef9b856af091d3d1c8b5ba74876735e616357a76",
@@ -320,7 +321,7 @@ DEFAULT_SHA256 = {
     DEF_CARIES_LESION_MODEL: "029018dbe37a92d1fd764322fa1c38b229698750e34d36c533b4338793e870ed",
     DEF_BONE_LOSS: "e4bc874423e7c17752bb949d510862e4b4fd618f9a7602a95743663a3c27a0b2",
     DEF_BONE_SEVERITY: "fa93a5201833d8137bd2ae328d3afd63c2c1f9e4ac82a621d1b430a51eba8a4a",
-}
+}.items()}
 
 # Tags of the checkpoints without a profile, keyed by the sha256 of their weights -- each hash
 # copied from that model's run_summary.txt -- so a report names the weights that actually ran.

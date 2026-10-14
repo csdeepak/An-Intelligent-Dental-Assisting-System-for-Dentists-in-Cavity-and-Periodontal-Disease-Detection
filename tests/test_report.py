@@ -65,3 +65,9 @@ def test_a_default_checkpoint_with_the_wrong_hash_is_refused_before_loading(tmp_
     monkeypatch.setattr(ri, "DEFAULT_SHA256", {paths["detector"].resolve(): "0" * 64})
     with pytest.raises(SystemExit, match="sha256 is not the pinned"):
         ri.load_models(**paths)
+
+
+def test_every_default_checkpoint_has_a_pin():
+    defaults = (ri.DEF_DETECTOR, ri.DEF_FDI_HEAD, ri.DEF_CARIES_GATE, ri.DEF_CARIES_SEVERITY,
+                ri.DEF_CARIES_LESION_MODEL, ri.DEF_BONE_LOSS, ri.DEF_BONE_SEVERITY)
+    assert {p.resolve() for p in defaults} == set(ri.DEFAULT_SHA256)
