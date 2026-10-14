@@ -385,42 +385,42 @@ position prior, so its grade stays withheld.
 Behind every number is a saved artefact.
 
 85
-00:05:24,226 --> 00:05:27,829
+00:05:24,226 --> 00:05:27,883
 Automatically checked claims in the paper
 went from one hundred twenty-seven to
 
 86
-00:05:27,879 --> 00:05:32,676
-two hundred six, tests from one seventy-four
-to one ninety-seven, and every default
+00:05:27,933 --> 00:05:32,720
+two hundred seven, tests from one seventy-four
+to two hundred four, and every default
 
 87
-00:05:32,726 --> 00:05:34,570
-model is hash-pinned.
+00:05:32,770 --> 00:05:35,458
+model is hash-checked before it loads.
 
 88
-00:05:35,970 --> 00:05:40,235
+00:05:36,858 --> 00:05:41,123
 So the review lowered the numbers that were
 inflated, raised the ones a better front
 
 89
-00:05:40,285 --> 00:05:44,340
+00:05:41,173 --> 00:05:45,228
 end earned, and named every stage
 for what it really measures.
 
 90
-00:05:45,740 --> 00:05:46,690
+00:05:46,628 --> 00:05:47,578
 Next:
 
 91
-00:05:46,425 --> 00:05:51,299
+00:05:47,313 --> 00:05:52,187
 a six-page conference paper, built from
 these verified numbers, and a venue decision
 
 92
-00:05:51,349 --> 00:05:52,847
+00:05:52,237 --> 00:05:53,735
 with our mentor.
 
 93
-00:05:52,897 --> 00:05:54,230
+00:05:53,785 --> 00:05:55,118
 Thank you.

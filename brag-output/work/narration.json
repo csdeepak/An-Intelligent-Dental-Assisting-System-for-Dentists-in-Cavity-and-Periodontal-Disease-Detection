@@ -114,7 +114,7 @@
    "id": "s19_engineering",
    "part": 3,
    "min": 7.5,
-   "text": "Behind every number is a saved artefact. Automatically checked claims in the paper went from one hundred twenty-seven to two hundred six, tests from one seventy-four to one ninety-seven, and every default model is hash-pinned."
+   "text": "Behind every number is a saved artefact. Automatically checked claims in the paper went from one hundred twenty-seven to two hundred seven, tests from one seventy-four to two hundred four, and every default model is hash-checked before it loads."
   },
   {
    "id": "s20_takeaway",

@@ -770,8 +770,8 @@
     rv($("#s19_engineering .scene-title"), t, s.start + 0.2); rv($("#s19_engineering .sub-title"), t, s.start + 0.5);
     const t1 = cue("s19_engineering", "Automatically") - 0.2, t2 = cue("s19_engineering", "tests") - 0.2, t3 = t2 + 1.6;
     rv($("#tile1"), t, t1, { dy: 24 }); rv($("#tile2"), t, t2, { dy: 24 }); rv($("#tile3"), t, t3, { dy: 24 });
-    $("#n1").textContent = Math.round(lerp(127, 206, E.out(P(t, cue("s19_engineering", "two") - 0.2, 1.0))));
-    $("#n2").textContent = Math.round(lerp(174, 197, E.out(P(t, cue("s19_engineering", "ninety-seven") - 0.4, 1.0))));
+    $("#n1").textContent = Math.round(lerp(127, 207, E.out(P(t, cue("s19_engineering", "two") - 0.2, 1.0))));
+    $("#n2").textContent = Math.round(lerp(174, 204, E.out(P(t, cue("s19_engineering", "two", 1) - 0.2, 1.0))));
     rv($("#engChips"), t, cue("s19_engineering", "default") - 0.3, { dy: 14 });
   }
   function s20(t) {

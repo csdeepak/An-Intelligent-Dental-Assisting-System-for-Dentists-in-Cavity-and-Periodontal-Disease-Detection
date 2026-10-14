@@ -6,7 +6,8 @@
 *.png
 work/voice/
 work/stills/
-work/chrome-profile/
+work/chrome-profile*/
+work/parts/
 work/site/assets/
 work/site/data.js
 work/render_log.txt

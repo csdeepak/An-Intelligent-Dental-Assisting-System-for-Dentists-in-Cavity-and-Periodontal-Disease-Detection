@@ -65,7 +65,7 @@ What the pipeline produced on it (`trace/test_211_report.json`, shipped defaults
 | 16 | Front end | 29.1 | Five before → after dumbbells, including the cost row and the not-separable row |
 | 17 | Caries | 20.8 | F1 bars against the constant line; Ningxia grouped bars; honest-limits footnote |
 | 18 | Stage 4 | 32.8 | 83.1 → 7.6 → 27.5 % (with seed marks); 0.721 (contrast) vs 0.294 vs prior 0.334 → not eligible |
-| 19 | Engineering | 15.1 | Claims 127 → 206, tests 174 → 197, schema 1.1 → 1.5; pins, invariants |
+| 19 | Engineering | 15.1 | Claims 127 → 207, tests 174 → 204, schema 1.1 → 1.5; pins, hash check before loading, invariants |
 | 20 | Takeaway | 9.8 | Lowered, raised, named |
 | 21 | Close | 9.9 | Next steps; thank you; credits |
 
@@ -73,7 +73,7 @@ What the pipeline produced on it (`trace/test_211_report.json`, shipped defaults
 
 | Figure in the video | Source |
 |---|---|
-| 1.70 s per image on CPU; 206 claims, 197 tests, 12 invariants (14 Oct) | `transfer.md` §1 |
+| 1.70 s per image on CPU; 207 claims, 204 tests, 12 invariants (14 Oct, late night) | `transfer.md` §1 at `f1007ca`; hash check before loading: `af5cc44` |
 | 127 claims, 174 tests (before) | `transfer.md` §1 at `fc811ca` (7 Sep snapshot) |
 | 95.3 M parameters | `model_metrics.md`, *Current front end*, Size |
 | Constant F1 0.320; F1 0.376 → 0.498; +17.80 pp [+13.48, +22.02] | `model_metrics.md`, *Caries, FDI-set F1* |

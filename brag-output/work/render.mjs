@@ -15,7 +15,7 @@ const FPS = 30;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 async function launch() {
-  const prof = join(HERE, "chrome-profile");
+  const prof = join(HERE, "chrome-profile" + (process.env.RENDER_TAG ? "-" + process.env.RENDER_TAG : ""));  // one per parallel renderer
   if (existsSync(prof)) rmSync(prof, { recursive: true, force: true });
   mkdirSync(prof, { recursive: true });
   const proc = spawn(CHROME, ["--headless=new", "--remote-debugging-port=0", `--user-data-dir=${prof}`, "--no-first-run",

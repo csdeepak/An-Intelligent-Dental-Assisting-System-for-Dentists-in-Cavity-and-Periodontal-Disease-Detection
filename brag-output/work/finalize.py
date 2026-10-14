@@ -24,6 +24,8 @@ def main():
     stills = WORK / "stills" / "poster"
     run(["node", WORK / "render.mjs", "stills", stills, POSTER_T])
     png = next(stills.glob("*.png"))
+    vdur = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=nw=1:nk=1",
+                           str(WORK / "video_silent.mp4")], capture_output=True, text=True, check=True).stdout.strip()
     run(["ffmpeg", "-y", "-v", "error", "-i", png, "-q:v", "2", OUT / "brag.jpg"])
     run(["ffmpeg", "-y", "-v", "error",
          "-i", WORK / "video_silent.mp4", "-loop", "1", "-t", "0.04", "-i", png, "-i", WORK / "mix.wav",
@@ -32,7 +34,7 @@ def main():
          "-map", "[v]", "-map", "[a]", "-map", "3:s",
          "-c:v", "libx264", "-preset", "slow", "-crf", "17", "-pix_fmt", "yuv420p",
          "-c:a", "aac", "-b:a", "192k", "-c:s", "mov_text", "-metadata:s:s:0", "language=eng",
-         "-movflags", "+faststart", "-t", "355.066", OUT / "brag.mp4"])
+         "-movflags", "+faststart", "-t", vdur, OUT / "brag.mp4"])   # the picture's length, not the captions'
     run(["ffprobe", "-v", "error", "-show_entries", "format=duration,size:stream=codec_type,codec_name,width,height",
          "-of", "compact", OUT / "brag.mp4"])
 
