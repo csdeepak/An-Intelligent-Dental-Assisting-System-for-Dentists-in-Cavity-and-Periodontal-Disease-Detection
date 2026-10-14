@@ -81,3 +81,19 @@ def test_real_bone_loss_summary_resolves_to_best_not_final():
     import hashlib
     actual = hashlib.sha256((d / "bone_loss_resnet18_best.pth").read_bytes()).hexdigest()
     assert best == actual
+
+
+def test_path_prefixed_filename_resolves_by_basename():
+    """models/16 writes `weights/best.pt`; the lookup asks for `best.pt`."""
+    text = f"weights/best.pt   sha256 {A}\nweights/last.pt   sha256 {B}\n"
+    assert hash_from_summary(text, "best.pt") == A
+    assert hash_from_summary(text, "last.pt") == B
+
+
+def test_real_lesion_detector_summary_resolves_best_not_last():
+    """Until 14 Oct 2026 this returned last.pt's hash (f774bb1e...)."""
+    from pathlib import Path
+    repo = Path(__file__).resolve().parents[1]
+    summary = (repo / "models" / "16_lever_b_pooled" / "run_summary.txt").read_text(encoding="utf-8")
+    assert hash_from_summary(summary, "best.pt").startswith("029018db")
+    assert hash_from_summary(summary, "last.pt").startswith("f774bb1e")

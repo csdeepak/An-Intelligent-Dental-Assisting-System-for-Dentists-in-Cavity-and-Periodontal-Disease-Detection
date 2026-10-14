@@ -139,6 +139,24 @@ def test_bone_loss_severity_only_runs_on_positives():
     assert out[0]["finding"] == "bone_loss" and out[0]["severity"] == "Severe"
 
 
+def test_bone_loss_severity_withheld_when_no_model_is_given():
+    """The pipeline default since 14 Oct 2026: the grade is a crop-contrast band (RESULTS_LOG
+    2026-10-13d), so it is not computed, and a flagged tooth says why its severity is null."""
+    img = _img(7)
+    out = run_bone_loss(_Fixed(2, BONE_LOSS_CLASSES.index("bone_loss")), None, img, [BOX, BOX], DEV)
+    assert all(r["finding"] == "bone_loss" and r["severity"] is None for r in out)
+    assert all("severity_withheld_contrast_proxy" in r["flags"] for r in out)
+    out = run_bone_loss(_Fixed(2, BONE_LOSS_CLASSES.index("normal")), None, img, [BOX], DEV)
+    assert out[0]["flags"] == []
+
+
+def test_bone_loss_severity_when_asked_is_flagged_not_evaluated():
+    out = run_bone_loss(_Fixed(2, BONE_LOSS_CLASSES.index("bone_loss")),
+                        _Fixed(3, BONE_LOSS_SEVERITY_CLASSES.index("Moderate")), _img(8), [BOX], DEV)
+    assert out[0]["severity"] == "Moderate"
+    assert "severity_is_contrast_band_not_evaluated" in out[0]["flags"]
+
+
 def test_mild_severity_carries_the_low_support_flag():
     """n=6 in the Mild training class (T0.5, open). Must be reported, never suppressed."""
     out = run_bone_loss(_Fixed(2, BONE_LOSS_CLASSES.index("bone_loss")),

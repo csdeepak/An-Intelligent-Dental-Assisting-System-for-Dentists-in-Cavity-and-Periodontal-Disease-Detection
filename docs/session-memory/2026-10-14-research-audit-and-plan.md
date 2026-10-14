@@ -277,6 +277,8 @@ research (R13 reviews the checklists instead). Nothing above is a measurement of
 | D6 | Overlay colours | Not-assessable grey 1 px; finding orange 2 px; numbering doubt blue 1 px with `?`; clean blue 2 px | "Keep red": F1 shrinks to the caption only |
 | D4 | T6, T7 if time | Yes, after the must tasks | Skip both |
 
+**Decided 14 Oct 2026 by the decision owner: every default above** ("go with defaults").
+
 ### 6.3 Order, tier, size
 
 | Day | # | Task | Tier | Depends on | Est. |

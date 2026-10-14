@@ -111,13 +111,20 @@ def load_tufts_gt(objects, img_w):
 def load_ufba_gt(label_path, img_w, img_h):
     """UFBA-425 YOLO label file -> [{fdi, bbox(x1y1x2y2), centroid}], in img_w x img_h pixels.
     Class c is FDI (c // 8 + 1) * 10 + (c % 8 + 1). Five of the 11,591 lines are polygons
-    (class, then x y pairs); those take the polygon's bounding box."""
+    (class, then x y pairs); those take the polygon's bounding box.
+
+    A line too short to parse, or a class outside 0-31, raises (14 Oct 2026): it used to be skipped
+    or turned into an impossible FDI code silently. All 11,591 lines of the 425 files pass."""
     out = []
     for line in Path(label_path).read_text().splitlines():
         p = line.split()
-        if len(p) < 5:
+        if not p:
             continue
+        if len(p) < 5:
+            raise ValueError(f"{label_path}: line too short to parse: {line!r}")
         c, v = int(p[0]), [float(x) for x in p[1:]]
+        if not 0 <= c <= 31:
+            raise ValueError(f"{label_path}: class {c} is outside 0-31")
         if len(v) == 4:
             xs, ys = (v[0] - v[2] / 2, v[0] + v[2] / 2), (v[1] - v[3] / 2, v[1] + v[3] / 2)
         else:
@@ -161,6 +168,8 @@ def main():
     ap.add_argument("--save-viz", action="store_true")
     ap.add_argument("--viz-n", type=int, default=12)
     args = ap.parse_args()
+    if args.aspect and not args.ufba:
+        ap.error("--aspect applies only with --ufba")   # it used to be ignored without a word
 
     import torch
     from ultralytics import YOLO

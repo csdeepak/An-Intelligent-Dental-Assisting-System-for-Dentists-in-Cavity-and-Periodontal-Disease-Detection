@@ -63,7 +63,8 @@ seed44_best.pth  sha256 9c03a7546a8b2f2bc2df97569d8489095bb031d86dd2a9935787ccc2
   best epoch 45 of 50 -- stopped by the 50-epoch cap, not by patience.
   Validation macro-F1 0.5968, sensitivity 24/140, specificity 3593/3650.
 Bare state_dicts, class order [normal, diseased], loadable by src.classifiers.load_classifier.
-These files exist only on the macOS clone that trained them.
+seed42_best.pth is tracked in git since it became the default (13 Oct 2026); seed43 and seed44
+exist only on the macOS clone that trained them.
 
 All three runs drive the training loss to 0.004-0.010 while validation macro-F1 never passes
 0.60: the model fits its training crops far better than it generalises.

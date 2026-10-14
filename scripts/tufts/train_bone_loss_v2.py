@@ -5,7 +5,10 @@ Pre-registration: outputs/bone_loss_eval/v2_retrain/PRE_REGISTRATION.md (commits
 The data, the recipe, the three seeds and the forbidden list are fixed there. The label is
 "the crop overlaps a Tufts expert ABNORMALITY mask" -- not periodontal bone loss.
 
-This script never reads a test radiograph. scripts/eval/bone_loss_v2_eval.py does, once.
+Training never reads a test radiograph. `check` does read two (13 and 24, with their labels) among
+the twenty whose saved rows it rebuilds to prove the crop builder unchanged; nothing is trained on
+them. scripts/eval/bone_loss_v2_eval.py scores the test split, once. (Corrected 14 Oct 2026; this
+said the script never reads a test radiograph.)
 
     python scripts/tufts/train_bone_loss_v2.py check            # H1-H3, before any training
     python scripts/tufts/train_bone_loss_v2.py train --seed 42  # refuses to overwrite a run

@@ -121,7 +121,8 @@ def main():
         # crash and re-armed the same trap. `width="stretch"` is the current API for both
         # st.image and st.dataframe.
         st.image(str(overlay_path), width="stretch",
-                caption="Blue = assessable · Orange = flagged / finding · Red = not assessable")
+                caption="Orange = finding (caries or Stage-4 flag) · Blue = no finding "
+                        "(thin, '?' = numbering uncertain) · Grey = not assessable")
 
     with right:
         st.subheader("Per-tooth findings")
@@ -156,6 +157,8 @@ def main():
 - **Caries labelling**: {lim['caries_presumed_negative_assumption']}
 - **Stage 4 is not a periodontal finding**: {lim['bone_loss_label_and_validation']}
 - **Stage 4 outside Tufts**: {lim['bone_loss_domain_shift']}
+- **Stage-4 severity grade**: {lim['bone_severity_not_evaluated']}
+- **Caries severity**: {lim['caries_severity_not_evaluated']}
 """)
     st.warning(
         "This pipeline is **not clinically validated**. It composes four independently "

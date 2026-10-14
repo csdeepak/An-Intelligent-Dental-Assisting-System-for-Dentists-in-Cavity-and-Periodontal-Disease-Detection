@@ -1,13 +1,12 @@
-# OPG pipeline deployment demo (app.py). See docs/EXTERNAL_DRIVE.md before building --
-# two checkpoints are not in this repo and must be fetched separately (see below).
+# OPG pipeline deployment demo (app.py). Every default checkpoint is tracked in git (since
+# 13 Oct 2026), and `COPY models/` below puts them in the image; nothing needs mounting.
+# The image was last built on 7 Sep 2026. The defaults changed on 11, 13 and 14 Oct 2026, so
+# rebuild before trusting a demo.
 #
 # Build:
 #   docker build -t opg-demo .
-# Run (mount the two Drive-only checkpoints in at their expected paths):
-#   docker run -p 8501:8501 \
-#     -v "$(pwd)/models/06_yolo_detection_a100_run/best.pt":/app/models/06_yolo_detection_a100_run/best.pt:ro \
-#     -v "$(pwd)/models/09_caries_gate_v3/caries_gate_v3.pth":/app/models/09_caries_gate_v3/caries_gate_v3.pth:ro \
-#     opg-demo
+# Run:
+#   docker run -p 8501:8501 opg-demo
 # Then open http://localhost:8501
 #
 # CPU-only image, deliberately: nothing in this pipeline needs a GPU for inference (~2s/image

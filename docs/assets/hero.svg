@@ -65,27 +65,27 @@
     </rect>
 
     <g class="fade-a">
-      <text class="f tag" x="56" y="66">PANORAMIC RADIOGRAPH · PER-TOOTH DIAGNOSIS · FDI NOTATION</text>
+      <text class="f tag" x="56" y="66">PANORAMIC RADIOGRAPH · PER-TOOTH FINDINGS · FDI NOTATION</text>
       <text class="f t1" x="54" y="118">Dental AI Pipeline</text>
     </g>
     <g class="fade-b">
-      <text class="f t2" x="56" y="152">Six-stage OPG analysis — YOLOv11l-seg detection, learned FDI enumeration,</text>
-      <text class="f t2" x="56" y="176">and two ResNet18 cascades for caries and periodontal bone loss.</text>
+      <text class="f t2" x="56" y="152">Six-stage OPG analysis — YOLOv11l tooth detection, learned FDI enumeration,</text>
+      <text class="f t2" x="56" y="176">a caries lesion detector and a tooth-level abnormality flag.</text>
     </g>
 
     <!-- KPI strip -->
     <g class="fade-c">
       <rect x="54" y="204" width="1052" height="62" rx="11" fill="#0e2438" stroke="url(#hstroke)" stroke-width="1"/>
       <g transform="translate(84,230)">
-        <text class="f kpi-n" x="0" y="0">0.810</text><text class="f kpi-l" x="0" y="18">DETECTION mAP@0.5</text>
+        <text class="f kpi-n" x="0" y="0">89.3%</text><text class="f kpi-l" x="0" y="18">RECALL, TUFTS TEST</text>
       </g>
       <line x1="240" y1="216" x2="240" y2="254" stroke="#1e3a52" stroke-width="1"/>
       <g transform="translate(268,230)">
-        <text class="f kpi-n" x="0" y="0">58.3%</text><text class="f kpi-l" x="0" y="18">FDI EXACT, END-TO-END</text>
+        <text class="f kpi-n" x="0" y="0">63.5%</text><text class="f kpi-l" x="0" y="18">FDI EXACT, TUFTS TEST</text>
       </g>
       <line x1="440" y1="216" x2="440" y2="254" stroke="#1e3a52" stroke-width="1"/>
       <g transform="translate(468,230)">
-        <text class="f kpi-n" x="0" y="0">0.9233</text><text class="f kpi-l" x="0" y="18">BONE-LOSS MACRO F1</text>
+        <text class="f kpi-n" x="0" y="0">0.498</text><text class="f kpi-l" x="0" y="18">CARIES F1, CONSTANT 0.320</text>
       </g>
       <line x1="648" y1="216" x2="648" y2="254" stroke="#1e3a52" stroke-width="1"/>
       <g transform="translate(676,230)">
@@ -93,7 +93,7 @@
       </g>
       <line x1="838" y1="216" x2="838" y2="254" stroke="#1e3a52" stroke-width="1"/>
       <g transform="translate(866,230)">
-        <text class="f kpi-n" x="0" y="0">97.7 M</text><text class="f kpi-l" x="0" y="18">PARAMS, ALL SIX MODELS</text>
+        <text class="f kpi-n" x="0" y="0">95.3 M</text><text class="f kpi-l" x="0" y="18">PARAMS, DEFAULT PIPELINE</text>
       </g>
     </g>
 

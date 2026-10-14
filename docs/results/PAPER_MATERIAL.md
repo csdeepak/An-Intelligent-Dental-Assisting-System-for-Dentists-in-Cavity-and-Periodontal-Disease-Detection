@@ -2859,12 +2859,41 @@ to measure, and it survived six months because it was a plausible number in a pl
 
 ---
 
+### 8.38 One re-rendered radiograph across the Tufts split, and what the crop path does
+
+*14 Oct 2026. `RESULTS_LOG` 2026-10-14. Implementation of the 14 Oct plan; nothing was scored.*
+
+**A near-duplicate.** Byte comparison had found two identical pairs in Tufts (590/591,
+1007/1008) and the retraining dropped one of each. A perceptual-hash scan of all 1,000
+radiographs found one more pair that bytes cannot: test radiograph 248 is a lighter,
+lower-contrast rendering of training radiograph 1017, the same patient in the same frame (7 bits
+apart; the next-closest cross-split pair is 33). It stays in the test split, disclosed. It holds
+27 of the 3,892 Stage-4a test teeth and none of the 182 positives, so no sensitivity moves; the
+Tufts Stage-1 and Stage-2 test figures count it as 1 of 143 radiographs.
+
+**What the paper may say.** "One of the 143 test radiographs is a re-rendered copy of a training
+radiograph; it contains no positive tooth." In the dataset paragraph or the Stage-4a paragraph,
+not both.
+
+**The crop the model sees in service.** The Stage-4a test figures were computed on the training
+crop path; the pipeline cuts the same boxes from the same pixels but resizes a 3-channel image.
+Inside the crop the two differ by at most 3 grey levels; on 503 training teeth no decision
+changes. Nothing to write beyond "scored on annotated tooth boxes", which §8.37 already requires.
+
+**Two disclosures for the Stage-4a paragraph** (`SUBMISSION_TODO.md` §1a row p): the three runs
+share one pre-computed set of jittered training crops, so their spread understates training
+variance; and every interval covers the sampling of radiographs only.
+
+---
+
 ## 9. What's not yet written — checklist
 
 For whoever drafts the actual paper. Tick items off here as they land.
 
 **Blocking — must be done before submission**
 
+- [ ] **Disclose the re-rendered test radiograph (248 of 1017) and the shared jitter set**
+      (§8.38, 14 Oct 2026): one sentence each, in the Stage-4a paragraph.
 - [ ] **Decide whether the bone-loss branch stays in the manuscript, then remove the three false
       statements about it** (§8.28, found 10 Oct 2026): "splits are image-level throughout";
       Tufts 700/150/150 given as the bone-loss split; and "domain shift" / "did not transfer" as

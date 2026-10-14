@@ -87,7 +87,8 @@ def load_head(weights, device):
             z = torch.cat([self.backbone(img), self.pos(feats)], dim=1)
             return self.quadrant(z), self.position(z)
 
-    ck = torch.load(weights, map_location="cpu", weights_only=False)
+    # weights_only=True (14 Oct 2026): models/08 and 10 load under it; see src/classifiers.py.
+    ck = torch.load(weights, map_location="cpu", weights_only=True)
     net = Net()
     net.load_state_dict(ck["model_state_dict"])
     return net.to(device).eval()

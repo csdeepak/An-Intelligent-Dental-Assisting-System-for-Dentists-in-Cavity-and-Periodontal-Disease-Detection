@@ -14,3 +14,21 @@ def test_class_to_fdi_and_box(tmp_path):
     assert [g["fdi"] for g in gt] == [11, 18, 21, 48, 31]
     assert gt[0]["bbox"] == [450.0, 200.0, 550.0, 300.0] and gt[0]["centroid"] == [500.0, 250.0]
     assert [round(v) for v in gt[4]["bbox"]] == [100, 50, 300, 200]
+
+
+def test_class_outside_0_31_raises(tmp_path):
+    import pytest
+    f = tmp_path / "b.txt"
+    f.write_text("32 0.5 0.5 0.1 0.2\n")
+    with pytest.raises(ValueError, match="outside 0-31"):
+        load_ufba_gt(f, 1000, 500)
+
+
+def test_short_line_raises_and_blank_line_is_skipped(tmp_path):
+    import pytest
+    f = tmp_path / "c.txt"
+    f.write_text("\n0 0.5 0.5 0.1 0.2\n")
+    assert len(load_ufba_gt(f, 1000, 500)) == 1
+    f.write_text("0 0.5 0.5\n")
+    with pytest.raises(ValueError, match="too short"):
+        load_ufba_gt(f, 1000, 500)

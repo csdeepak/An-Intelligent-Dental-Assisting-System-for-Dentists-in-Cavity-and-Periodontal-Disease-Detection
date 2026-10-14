@@ -8939,3 +8939,83 @@ manuscript now carries is from 2026-10-11g, -i and -j — and one new check, on 
   unreadable image recorded at Ningxia test1 on the other machine; whether JPEG ringing in the
   expert masks creates positives; near-duplicate radiographs across the retraining split
   beyond the two byte-identical pairs already dropped.
+
+## 2026-10-14 — Implementation to the plan: schema 1.5, ten pins, a split invariant, one near-duplicate found
+
+- **What was done:** Implemented `docs/session-memory/2026-10-14-research-audit-and-plan.md` with
+  the decision owner's defaults for D1–D6: the Stage-4b grade withheld by default; the
+  manuscript's Stage-4 text and Fig. 5 left for the six-page cut; new README banner tiles; four
+  stale README infographics unlinked and the architecture diagram corrected in place; grey, not
+  red, for "not assessable"; the optional tasks done. No model was trained, no cohort scored,
+  nothing re-run on a test split. Narrative: `docs/session-memory/2026-10-14b-implementation.md`.
+- **Dataset / config:** the 1,000 Tufts radiographs of `split_v1` (pixels only, no label, no
+  mask) for the near-duplicate scan; 20 Tufts *train* radiographs, 503 teeth, no labels, for the
+  crop-parity check; DENTEX `test_185` (24 teeth, 10 Stage-4 flags) for the smoke runs; the 425
+  UFBA-425 label files, parsed only.
+- **Metrics / results:**
+  1. **Near-duplicates across the Tufts split** (`scripts/eval/tufts_split_near_duplicates.py` →
+     `outputs/eda_tufts/near_duplicates.json`). 256-bit difference hash and the 10-bit threshold
+     that `bone_loss_heldout.py` used for one pair of sets on 13 Oct. Nearest-neighbour distance
+     over all 1,000 radiographs: minimum 0, 5th percentile 41, median 52 bits. Cross-split pairs
+     within 20 bits: two; the next is at 33. 590 (test) / 591 (train) at 0 bits, known and already
+     dropped. **1017 (train) / 248 (test) at 7 bits, new:** the same patient's radiograph, 248 a
+     lighter, lower-contrast rendering of 1017 — same 840 × 1615 frame, pixel correlation 0.961,
+     mean absolute difference 28.7 grey levels, checked by eye. **Decided by the decision owner:
+     disclose with a bound, no re-analysis.** The bound: in the Stage-4a test rows 248 holds 27 of
+     3,892 teeth and **none of the 182 positives**, so the three sensitivities (27.5 / 16.5 /
+     11.0%) are unaffected; specificity, PPV and false flags per radiograph include it, as do the
+     Tufts Stage-1 and Stage-2 test figures (89.3%, 63.5%), as 1 of 143 radiographs. Recorded in
+     the scan and the new invariant as a documented exception.
+  2. **Stage-4a training vs serving crops** (`tests/test_crop_parity.py`). On the same annotated
+     boxes, `clean_crops` (greyscale read) and `crop_batch` (colour read) cut identical boxes
+     from identical pixels. `cv2.resize` rounds 1- and 3-channel input differently: at most 3
+     grey levels inside the crop, up to 255 on a few pixels of the first one or two columns;
+     mean 0.014 grey levels over the 20 radiographs. Effect on the shipped Stage-4a model on
+     those 503 teeth: **0 of 503 flag decisions change** (45 flags either way); P(flag) changes
+     by 0.0011 on average, 0.060 at most. Not changed in code: every pipeline-level figure was
+     measured on the serving path. Supersedes "the serving crop matches the tested one by
+     reading" in 2026-10-13d, item 5.
+  3. **`weights_only=True`:** the seven classifier and head checkpoints (`models/03, 04, 07, 08,
+     09, 10, 18`) all load under it; the default report on `test_185` is identical before and
+     after.
+  4. **Overlay colours under simulated colour blindness** (Machado et al. 2009 matrices, applied
+     from memory, not re-verified): the old red/orange pair kept ΔE 61 (normal), 57 (protan), 41
+     (deutan) — distinguishable. The change rests on what red means, not on legibility; this
+     corrects the audit's §1 item 3 and §2 row 10, which said the pair was hard to separate.
+     Every pair of the new palette keeps ΔE ≥ 48 under both simulations.
+  5. **UFBA-425 labels:** 425 files, 11,591 lines, none too short to parse, none with a class
+     outside 0–31, so the new loader guard changes no saved result.
+- **Changes:** report schema `opg-report/1.5` (`scripts/run_inference.py`, `src/classifiers.py`):
+  the lesion-detector caveat corrected (CariesXrays is its validation split; Ningxia informed
+  adoption; DENTEX F1 0.498 vs 0.320, lesion agreement not separated); the Stage-4a text gains
+  "this model did not train on", the interval's meaning, annotated boxes, and that its confidence
+  is a ranking score; two new limitation keys (`bone_severity_not_evaluated`,
+  `caries_severity_not_evaluated`); every checkpoint's sha256 and tag in `models` — the
+  numbering-head tag now reads v2.0, which it always was; `--bone-severity-grade`, off by default,
+  `severity_reported` in the report; overlay orange = finding, blue = none (thin with `?` =
+  numbering uncertain), grey = not assessable. `verify_invariants.py`: `hash_from_summary`
+  matches by basename, ten weight files pinned (`models/16`, `models/07` added), a "Tufts split
+  disjoint" invariant, the Stage-4 wording invariant extended. `requirements-lock.txt` (Python
+  3.12.12, torch 2.2.0, …). Fig. 1 re-rendered: the retained gate hatched, one method order in
+  every panel, the constant `#e15759` so that it no longer prints as the same grey as the
+  default; every value unchanged. README banner and architecture diagram, `PROJECT_OVERVIEW.html`
+  banner, Dockerfile header, `docs/README.md`, `models/18` summary, `SUBMISSION_TODO.md` row p
+  (two sentences), input guards in the UFBA loader and `bone_loss_v2_eval.py`, a corrected
+  docstring in `train_bone_loss_v2.py` (`check` does read two test radiographs, 13 and 24).
+- **Checks:** `pytest` **194 passed** (184 before; 192 + 2 skipped where the Tufts radiographs are
+  absent); `verify_invariants.py` **12 hold** (11 before); `verify_paper_numbers.py` 191, no
+  drift. Smoke on `test_185`: per-tooth output identical to the 1.4 report except the three
+  Stage-4 severity fields (default) or one added flag (`--bone-severity-grade`); the previous
+  checkpoint's two Stage-4 texts byte-identical; gate mode carries `tag_gate`. Seconds per image
+  not re-measured: the default no longer computes the grade.
+- **Key decision or insight:** no metric changed, and none was meant to. One leak was found that
+  the earlier checks could not see (a re-rendered radiograph, not a byte copy); it touches no
+  Stage-4a positive. The audit overstated one colour argument, corrected in item 4.
+- **Source:** `outputs/eda_tufts/near_duplicates.json`; `tests/test_crop_parity.py`;
+  `tests/test_report.py`; `scripts/eval/verify_invariants.py`; `requirements-lock.txt`;
+  `paper/fig_baselines.png`; the plan and the session file named above.
+- **Follow-ups:** Phase C and F2 (the Stage-4 manuscript text and Fig. 5) with the six-page cut;
+  F4–F6 for the figures that survive it; tell the mentor and the repo owner — the detector
+  switch, the Stage-4a change, the withheld grade, the 248/1017 pair — and that the Docker image
+  is three default changes behind; the README's narrative sections C1–C4 still describe the
+  previous front end (their figures are unlinked, the text is not rewritten).

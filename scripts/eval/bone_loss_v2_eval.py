@@ -61,11 +61,11 @@ def score():
     for r in rows:
         r["prior"] = prior["share_by_tooth"].get(r["tooth"], prior["overall_share"])
         r["old_trained_on"] = r["stem"] in old_trained_on
-    for r, p in zip(rows, load_scorer()(xte)):                     # the shipped, pinned checkpoint
+    for r, p in zip(rows, load_scorer()(xte), strict=True):        # the shipped, pinned checkpoint
         r["p_old"] = round(p, 6)
     for s in SEEDS:
         scorer = load_scorer(MODELS / f"seed{s}_best.pth", sha256=hist[s]["sha256"])
-        for r, p in zip(rows, scorer(xte)):
+        for r, p in zip(rows, scorer(xte), strict=True):
             r[f"p_{s}"] = round(p, 6)
         if s == SHIP:
             thr, val_f1 = best_f1_threshold(yva, np.array(scorer(xva)))
@@ -209,7 +209,10 @@ def dentex():
         reports[name] = {}
         for stem in stems:
             img = cv2.imread(str(DEF_DISEASE / "input" / f"{stem}.png"), cv2.IMREAD_COLOR)
-            reports[name][stem] = run_pipeline(img, models, device, paths, image_label=stem, verbose=False)
+            # bone_severity_grade=True: the severity counts below were measured with the grade
+            # computed, before it became opt-in (14 Oct 2026).
+            reports[name][stem] = run_pipeline(img, models, device, paths, image_label=stem,
+                                               verbose=False, bone_severity_grade=True)
         got = (sum(r["summary"]["bone_loss_positive"] for r in reports[name].values()),
                sum(r["summary"]["teeth_detected"] for r in reports[name].values()))
         print(f"{name}: {got[0]} of {got[1]} detected teeth flagged, {len(stems)} images "

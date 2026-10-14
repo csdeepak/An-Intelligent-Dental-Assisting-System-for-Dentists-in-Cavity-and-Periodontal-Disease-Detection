@@ -34,10 +34,24 @@ REPO = Path(__file__).resolve().parents[2]
 OUT = REPO / "docs/results/figures/paper/00_baseline_comparison.png"
 PAPER = REPO / "paper/fig_baselines.png"
 
-C_CONST = "#c1121f"      # the constant -- red, the thing the paper is about
+C_CONST = "#e15759"      # the constant -- red, the thing the paper is about. Lighter than the
+                         # #c1121f used until 14 Oct 2026, which printed as the same grey as navy.
 C_OURS = "#264653"       # our pipeline
 C_VLM = "#8d99ae"        # the VLMs
 C_CEIL = "#adb5bd"       # degenerate ceiling arm
+# The retained gate is drawn in the pipeline's navy, hatched: same system, other caries stage.
+# Until 14 Oct 2026 both caries stages were plain navy and swapped order between panels, so the
+# bar above the constant in (b) -- the retired gate -- read as the shipped default.
+GATE_HATCH = "///"
+L_LESION, L_GATE, L_CONST = "Lesion\ndetector\n(default)", "Per-crop\ngate\n(retained)", "Constant\n(image\nnever read)"
+
+
+def _hatch(bars, rows, k):
+    for bar, r in zip(bars, rows):
+        if r[k]:
+            bar.set_hatch(r[k])
+            bar.set_edgecolor("white")
+            bar.set_linewidth(0)
 
 
 def load(p):
@@ -63,11 +77,11 @@ def main():
         a = d[method]["arm3c"]
         return 2 * a["tp"] / (2 * a["tp"] + a["fp"] + a["fn"])
     a_rows = [
-        ("Our pipeline\n(lesion\ndetector)", f1("lesion-detector"), C_OURS),
-        ("Our pipeline\n(per-crop\ngate)", f1("gate"), C_OURS),
-        ("Constant\n(image\nnever read)", held["f1"], C_CONST),
-        ("Qwen2.5\nVL-32B", comp["vlm_32b_0shot"]["f1"], C_VLM),
-        ("Qwen2.5\nVL-7B", comp["vlm_7b_0shot_rerun"]["f1"], C_VLM),
+        (L_LESION, f1("lesion-detector"), C_OURS, None),
+        (L_GATE, f1("gate"), C_OURS, GATE_HATCH),
+        (L_CONST, held["f1"], C_CONST, None),
+        ("Qwen2.5\nVL-32B", comp["vlm_32b_0shot"]["f1"], C_VLM, None),
+        ("Qwen2.5\nVL-7B", comp["vlm_7b_0shot_rerun"]["f1"], C_VLM, None),
     ]
 
     # ---------------------------------------------------------------- panel (b)
@@ -78,10 +92,12 @@ def main():
     b_pipe, f_pipe = lesion("pipeline")
     b_les, f_les = lesion("lesion-detector")
     b_all, f_all = lesion("all-teeth")
-    b_rows = [("Our pipeline\n(per-crop gate)", b_pipe, f_pipe, C_OURS),
-              ("Constant", b_const, f_const, C_CONST),
-              ("Our pipeline\n(lesion detector)", b_les, f_les, C_OURS),
-              ("Flag every tooth\n(ceiling)", b_all, f_all, C_CEIL)]
+    b_rows = [(L_LESION, b_les, f_les, C_OURS, None),
+              (L_GATE, b_pipe, f_pipe, C_OURS, GATE_HATCH),
+              (L_CONST, b_const, f_const, C_CONST, None),
+              ("Flag every tooth\n(ceiling)", b_all, f_all, C_CEIL, None)]
+    assert [r[0] for r in a_rows[:3]] == [r[0] for r in b_rows[:3]], \
+        "panels (a) and (b) must list the caries stages and the constant in one order"
 
     # ---------------------------------------------------------------- panel (c)
     def ext(dec):
@@ -101,7 +117,7 @@ def main():
 
     a = ax[0]
     ys = [r[1] for r in a_rows]
-    a.bar(range(len(a_rows)), ys, color=[r[2] for r in a_rows], width=0.62)
+    _hatch(a.bar(range(len(a_rows)), ys, color=[r[2] for r in a_rows], width=0.62), a_rows, 3)
     for i, v in enumerate(ys):
         a.text(i, v + 0.008, f"{v:.3f}", ha="center", fontsize=9,
                fontweight="bold" if a_rows[i][2] == C_CONST else "normal")
@@ -113,12 +129,13 @@ def main():
 
     b = ax[1]
     ys = [r[1] for r in b_rows]
-    b.bar(range(len(b_rows)), ys, color=[r[3] for r in b_rows], width=0.62)
-    for i, (lab, v, f, _) in enumerate(b_rows):
+    _hatch(b.bar(range(len(b_rows)), ys, color=[r[3] for r in b_rows], width=0.62), b_rows, 4)
+    for i, (lab, v, f, col, hatch) in enumerate(b_rows):
         b.text(i, v + 0.012, f"{v:.3f}", ha="center", fontsize=9,
-               fontweight="bold" if _ == C_CONST else "normal")
+               fontweight="bold" if col == C_CONST else "normal")
         b.text(i, v / 2, f"{f:,}\nteeth\nflagged", ha="center", va="center",
-               fontsize=7.5, color="white")
+               fontsize=7.5, color="white" if col == C_OURS else "#1b1b1b",
+               bbox=dict(facecolor=col, edgecolor="none", pad=1.5) if hatch else None)
     b.set_xticks(range(len(b_rows)))
     b.set_xticklabels([r[0] for r in b_rows], fontsize=7)
     b.set_ylabel("lesion-localisation agreement")
@@ -128,7 +145,8 @@ def main():
     c = ax[2]
     x = range(len(labels))
     w = 0.38
-    c.bar([i - w / 2 for i in x], pipe_v, w, label="Our pipeline (per-crop gate)", color=C_OURS)
+    c.bar([i - w / 2 for i in x], pipe_v, w, label="Per-crop gate (retained)", color=C_OURS,
+          hatch=GATE_HATCH, edgecolor="white", linewidth=0)
     c.bar([i + w / 2 for i in x], const_v, w, label="Constant", color=C_CONST)
     c.set_xticks(list(x))
     c.set_xticklabels(labels, fontsize=8)
@@ -136,7 +154,7 @@ def main():
     c.set_ylim(0, max(max(pipe_v), max(const_v)) * 1.3)
     c.axvline(len(labels) - 1.5, color="grey", lw=0.8, ls=":")
     c.legend(fontsize=8, loc="upper right")
-    c.set_title("(c) External cohort — no replication", fontsize=10)
+    c.set_title("(c) External cohort, per-crop gate — no replication", fontsize=10)
 
     for axis in ax:
         axis.spines[["top", "right"]].set_visible(False)

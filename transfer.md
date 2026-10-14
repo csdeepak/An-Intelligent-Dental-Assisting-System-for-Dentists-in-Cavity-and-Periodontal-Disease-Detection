@@ -101,6 +101,14 @@ first (`docs/session-memory/2026-10-13e-implementation-skills.md`). Still nothin
 labels were image contrast, not mask overlap**; the Stage-4a figure has to be reported as three
 runs; the default report's caries caveat is stale. Nothing was run and no code changed. §1,
 §2.1, §3, §4 and §8 edited.
+**14 Oct — a research-driven audit, then its plan implemented with the decision owner's
+defaults** (`docs/session-memory/2026-10-14-research-audit-and-plan.md`,
+`docs/session-memory/2026-10-14b-implementation.md`, `RESULTS_LOG` 2026-10-14): report schema
+1.5, the Stage-4b grade withheld by default, ten weight files pinned, a split invariant, a lock
+file, overlay colours, Fig. 1, the README banner and diagram. **One near-duplicate found: Tufts
+test radiograph 248 is a re-rendered copy of training radiograph 1017** — disclosed, not
+re-analysed; it holds no Stage-4a positive. No model trained, nothing scored. §1, §2.1, §3, §4
+and §8 edited.
 
 > **Windows clone, 6 Sep 2026 — the Tufts crop corpus was cut from the wrong frame, and is now
 > rebuilt.** It scored 11.5% crop-level FDI-exact where the published number is 71.5%, with correct
@@ -220,7 +228,7 @@ deployed in a Streamlit +
 Docker demo, and has been evaluated on **six independent cohorts**: DENTEX (development), four
 Ningxia hospitals, and the CariesXrays benchmark. Every reported number traces to a saved
 artefact — `scripts/verify_paper_numbers.py` asserts **191 manuscript claims** against those
-artefacts and all pass; `pytest` is **184/184**; `verify_invariants.py` all hold. The manuscript
+artefacts and all pass; `pytest` is **194/194**; `verify_invariants.py` all twelve hold (14 Oct). The manuscript
 (`paper/main.tex`) compiles clean under tectonic: **15 pages, 0 errors, 0 undefined
 references**, one 4 pt overfull box; a pdfLaTeX build is still owed. Its core finding — a
 tooth-level score
@@ -258,7 +266,7 @@ failed ones).
 | 3b Caries severity | ResNet18 | 11.18 M | `models/07_caries_cascade/` |
 | 4a Abnormality flag **(default since 13 Oct)** — the field is still named `bone_loss` | ResNet18, retrained with a radiograph-level split | 11.18 M | `models/18_bone_loss_radiograph_split/seed42_best.pth` |
 | 4a (previous default, retained, `--bone-loss`) | ResNet18, crop-level split | 11.18 M | `models/03_bone_loss_model_training_notebook_models/` |
-| 4b Severity of flagged teeth — **trained on a crop-contrast stand-in, not on mask overlap (found 13 Oct; §3)** | ResNet18 | 11.18 M | `models/04_bone_loss_severity_notebook_models/` |
+| 4b Severity of flagged teeth — **trained on a crop-contrast stand-in, not on mask overlap (found 13 Oct; §3); withheld from the report by default since 14 Oct (`--bone-severity-grade`)** | ResNet18 | 11.18 M | `models/04_bone_loss_severity_notebook_models/` |
 | **Total (default)** | | **95.34 M** | |
 | Total (gate variant) | | 81.21 M | |
 | **Caries path only (1,2,3a,3b), default** | | **72.99 M** | |
@@ -729,8 +737,8 @@ councilled on how** (`RESULTS_LOG` 2026-10-12c,
 | 3a Retired gate | Still the cleanest evidence in the project |
 | 3b Caries severity | Present, not evaluated; 133 validation crops and no test can be built |
 | 4a Abnormality flag | Three runs: 11.0–27.5% sensitivity, pooled 18.3%; about seven flags in ten false; not periodontal; no external figure |
-| 4b Severity of flagged teeth | **Trained on image contrast, not mask overlap.** Present, not evaluated, no figure |
-| 5–6 | 184 tests, 11 invariants, schema 1.4, runs from a clean extract of `898abf4` |
+| 4b Severity of flagged teeth | **Trained on image contrast, not mask overlap.** Present, not evaluated, no figure; withheld from the report by default (14 Oct) |
+| 5–6 | 194 tests, 12 invariants, schema 1.5 (14 Oct); a clean extract was last run at `898abf4` (schema 1.4) |
 
 - **New and serious: Stage 4b does not grade severity.** Its metadata had no overlap column;
   the notebook substituted the standard deviation of each crop's grey levels and printed one
@@ -751,8 +759,9 @@ councilled on how** (`RESULTS_LOG` 2026-10-12c,
   is spent, and an ensemble of the saved probabilities would be arithmetic after the fact; any
   first test of Stage 4b; anything further for the lesion detector; BRAR for this paper; any
   further pass over Ningxia or the Tufts test split.
-- **What is left to implement — small, all of it text, pins and guards; none started, each
-  needs the decision owner's go.** In order:
+- **What was left to implement — done 14 Oct with the decision owner's defaults
+  (`RESULTS_LOG` 2026-10-14), except item 7, which waits for the six-page cut.** The list as it
+  stood:
   1. **Decide what the report does with the two severity grades.** Chair's recommendation:
      hide the Stage-4b grade by default and keep the model behind a flag; keep the Stage-3b
      output with a line that it has no test. One seat would only label. Changes the demo.
@@ -780,9 +789,14 @@ councilled on how** (`RESULTS_LOG` 2026-10-12c,
   stage against fourteen verified papers, the councils' advice reconciled, P0–P3 roadmap and an
   experiment matrix (none runnable before submission):
   `docs/session-memory/2026-10-14-research-audit-and-plan.md`. New before any text: a
-  near-duplicate scan of the Tufts split (V1) and a Stage-4a crop-parity test (V2). Paper
-  Fig. 5 and the README banner still show the withdrawn 0.923 / "periodontal". Questions
+  near-duplicate scan of the Tufts split (V1) and a Stage-4a crop-parity test (V2). Questions
   D5 (README infographics) and D6 (overlay colours) added.
+- **Done 14 Oct** (`docs/session-memory/2026-10-14b-implementation.md`): T0–T7, V1, V2, F1, F3,
+  F7, W1, W2. **Left:** Phase C and F2 — the Stage-4 manuscript text and Fig. 5, which still
+  shows the withdrawn 0.923 — with the six-page cut; F4–F6 for the figures that survive it; tell
+  the mentor and the repo owner (the detector switch, the Stage-4a change, the withheld grade,
+  the 248/1017 pair; the Docker image is three default changes behind); the README's narrative
+  sections C1–C4 still describe the previous front end (their figures are unlinked).
 - **On the other machine:** the pdfLaTeX build is needed; the Docker rebuild is needed only if
   the paper mentions Docker.
 - **"Are all the metrics good?" No, as on 12 Oct.** Several are weak and two outputs are
@@ -858,7 +872,7 @@ depends on this.
 | **Real Tufts pixels are embedded in 7 tracked notebooks on `origin/main`.** Deferred — repo is confirmed private, so this is not an active leak, but must be resolved (strip outputs, or a coordinated history rewrite) before this repo or any fork is ever made public. | Deferred by explicit prior decision; revisit before public release |
 | **DECIDED 11 Oct — the manuscript reports the current front end, and was rebuilt on it. What remains is for the mentor to read the new headline.** The row as it stood: Which front end does the manuscript report? It now decides the paper's headline. Under the new front end the pipeline scores above the image-blind constant on DENTEX on both metrics, so "the constant scored highest" is true only of the previous one; the external results are the same either way (`RESULTS_LOG` 2026-10-11i). The pipeline default changed on 11 Oct; `paper/main.tex` describes the previous detector in every table. Rebuild the paper on the new front end, stating that the change went against two pre-registered verdicts — or report the previous front end and say the released default differs (`PAPER_MATERIAL.md` §8.30). | Changes the paper's tables and one of its claims; authors and mentor |
 | **The Stage-4a default was changed on 13 Oct without the repo owner or the mentor.** The retrained model met a pre-registered eligibility rule and the previous checkpoint is retained; reverting is one line. It puts a 44.8 MB file into git once committed, and changes what the demo shows: about eight times as many Stage-4 flags on DENTEX, each with a severity grade from a model that has never been tested (`RESULTS_LOG` 2026-10-13c). | They own the repo and the supervision |
-| **The report, the overlay and the app print a Stage-4 severity grade that measures crop contrast.** Stage 4b was trained on a stand-in the notebook built when its metadata had no overlap column (`RESULTS_LOG` 2026-10-13d). Since the Stage-4a change it is printed on about eight times as many teeth. Hide it by default, or keep it with a label; the same question, more mildly, for the Stage-3b caries grade, which has real labels and no test. Either choice is a small code change and a schema bump. | Changes what the demo shows; the decision owner's, and the mentor should hear it |
+| **Decided 14 Oct: the Stage-4 severity grade is withheld by default** (schema 1.5; `--bone-severity-grade` restores it, flagged as not evaluated). Stage 4b was trained on a crop-contrast stand-in (`RESULTS_LOG` 2026-10-13d, 2026-10-14). The Stage-3b caries grade stays, with a line in every report that it has no test. | The mentor should hear it: it changes what the demo shows |
 | **The Stage-1 switch was made without the repo owner or the mentor.** It overrides two pre-registered verdicts, re-scored the locked Ningxia cohort, and put a 51 MB file into git history for good (`arm3c_best.pt`, pushed 11 Oct in `7dd3ff4`). Reverting the default is still one line; the file stays in history either way. Whether either of them has been told since is not recorded in this repo. | They own the repo and the supervision |
 | **The Kaggle "dual-labeled" licence is unstated, and the default detector was trained on it.** Acceptable for an ablation; a publication question for a shipped default. | Needs a person to ask the dataset's authors, or a decision to retrain without it |
 | **`models/11` (53 MB) is committed to git, over the ~50 MB rule-4 line, and git history keeps it forever.** Deferred by the 3 Sep handoff decision (needed for a working fresh-clone demo). To undo: `git rm --cached`, restore `.gitignore`, re-host on Drive. | Revisit before any public release |
@@ -1007,16 +1021,19 @@ says otherwise.
 ### Checklist: does a fresh clone actually run the pipeline
 
 1. `git clone`, `pip install -r requirements.txt` (venv recommended; Python 3.13 confirmed
-   working with numpy 2.x — see the numpy note below).
+   working with numpy 2.x — see the numpy note below). For the exact stack behind the
+   11–14 Oct figures (Python 3.12, torch 2.2.0): `pip install -r requirements-lock.txt`.
 2. Fetch the Drive-only checkpoints per `docs/EXTERNAL_DRIVE.md` (see table below for which).
-3. `python -m pytest tests/ -q` → should read **184 passed**.
+3. `python -m pytest tests/ -q` → should read **194 passed** (192 passed, 2 skipped where the
+   Tufts radiographs are absent).
 4. `python scripts/eval/verify_invariants.py` → should read **all invariants hold**.
 5. `python scripts/run_inference.py --image <any_opg.png> --output report.json` → should
    complete and name `models/15_detector_multicorpus_leverA/arm3c_best.pt` (Stage 1 default,
    tag `tooth-detector-multicorpus-1024-v1.0`), `models/16_lever_b_pooled` (Stage 3a default) and
    `models/10_fdi_head_dentex_tufts_v2` (Stage 2 default) in the report's `models` block, and
    since 13 Oct `models/18_bone_loss_radiograph_split/seed42_best.pth` under `bone_loss`
-   (tag `abnormality-flag-resnet18-radiograph-split-v2.0`, schema `opg-report/1.4`). **That
+   (tag `abnormality-flag-resnet18-radiograph-split-v2.0`, schema `opg-report/1.5` since
+   14 Oct). **That
    file is in git only once the 13 Oct adoption has been committed — check `git ls-files`.**
    arm3c's weights are in git since `7dd3ff4` (11 Oct), so a clone has them; this step was
    verified on a checkout holding tracked files only (`RESULTS_LOG` 2026-10-11h).

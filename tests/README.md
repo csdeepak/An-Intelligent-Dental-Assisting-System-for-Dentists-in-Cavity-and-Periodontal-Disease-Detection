@@ -1,4 +1,4 @@
-# `tests/` — 159 tests, all passing
+# `tests/` — 194 tests, all passing
 
 ```bash
 python -m pytest tests/ -q

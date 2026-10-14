@@ -1,0 +1,50 @@
+{
+ "method": "256-bit difference hash (scripts/eval/bone_loss_heldout.py dhash), Hamming distance",
+ "threshold_bits": 10,
+ "review_bits": 20,
+ "n_radiographs": 1000,
+ "split_counts": {
+  "train": 700,
+  "val": 150,
+  "test": 150
+ },
+ "nearest_neighbour_bits_all_radiographs": {
+  "min": 0,
+  "p5": 41.0,
+  "median": 52.0
+ },
+ "recorded_pairs": [
+  {
+   "a": "590",
+   "b": "591",
+   "note": "byte-identical; 590 dropped from Stage-4a training and scoring (scripts/tufts/train_bone_loss_v2.py, DROP)"
+  },
+  {
+   "a": "1008",
+   "b": "1007",
+   "note": "byte-identical; 1008 dropped likewise"
+  },
+  {
+   "a": "248",
+   "b": "1017",
+   "note": "found by this script on 14 Oct 2026 at 7 bits: 248 (test) is a lighter re-rendering of 1017 (train), same patient. Kept in the test split and disclosed: 27 Stage-4a test teeth, none positive (RESULTS_LOG 2026-10-14)"
+  }
+ ],
+ "cross_split_pairs_within_review_bits": [
+  {
+   "a": "590",
+   "split_a": "test",
+   "b": "591",
+   "split_b": "train",
+   "bits": 0
+  },
+  {
+   "a": "1017",
+   "split_a": "train",
+   "b": "248",
+   "split_b": "test",
+   "bits": 7
+  }
+ ],
+ "unexplained_at_threshold": []
+}

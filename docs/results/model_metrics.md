@@ -694,6 +694,12 @@ row further down this section: **test sensitivity 27.5% [18.31, 37.98], specific
 It is an abnormality flag, not a periodontal one, and has no external figure. The checkpoint
 described next was the default until then and is retained (`--bone-loss`).
 
+**14 Oct 2026 (`RESULTS_LOG` 2026-10-14).** One of the 143 test radiographs, 248, is a lighter
+re-rendering of training radiograph 1017 (same patient; found by a near-duplicate scan of the
+split). It holds 27 of the 3,892 test teeth and none of the 182 positives, so the sensitivities
+below stand; specificity, PPV and false flags include it. The training and serving crop paths
+agree to within 3 grey levels inside the crop; on 503 training teeth no flag decision changes.
+
 Frozen and tagged 27 Aug 2026 as `bone-loss-binary-resnet18-v1.0`, SHA-256
 `c52f7f484076a2a2c3c144c3351912b118b6b0d56fc51ba1b4296e6ce6213db1`
 (`bone_loss_resnet18_best.pth`, the pipeline default until 13 Oct 2026 — `bone_loss_resnet18_final.pth` is a
@@ -782,6 +788,10 @@ Frozen and tagged 27 Aug 2026 as `bone-loss-severity-resnet18-v1.0`, SHA-256
 `fa93a5201833d8137bd2ae328d3afd63c2c1f9e4ac82a621d1b430a51eba8a4a`. Class order
 `[Mild, Moderate, Severe]` — `models/04_.../run_summary.txt`.
 
+**Withheld from the report by default since 14 Oct 2026** (schema 1.5): a flagged tooth carries
+`severity: null` and the flag `severity_withheld_contrast_proxy`; `--bone-severity-grade` restores
+the grade, flagged `severity_is_contrast_band_not_evaluated`. `RESULTS_LOG` 2026-10-14.
+
 > **⚠️ The labels are not mask overlap — found 13 Oct 2026, `RESULTS_LOG` 2026-10-13d.** The run
 > that produced these weights found no overlap column in its metadata and built a stand-in:
 > the standard deviation of each crop's grey levels, rescaled to 0.01–0.30 and cut at 0.05 and
@@ -820,6 +830,12 @@ Not integrated. Reported as a negative result.
 ---
 
 ## Stages 5–6 — Pipeline integration + report
+
+**Current, 14 Oct 2026 (`RESULTS_LOG` 2026-10-14):** report schema `opg-report/1.5`; every
+checkpoint's sha256 and tag stamped in `models`; the Stage-4 severity grade withheld by default;
+overlay orange = finding, blue = no finding (thin, `?` = numbering uncertain), grey = not
+assessable. `pytest` 194 passed; `verify_invariants.py` 12 hold (ten weight files pinned, the
+Tufts split disjoint).
 
 **Implemented 24 Aug 2026** (`scripts/run_inference.py`, RESULTS_LOG 2026-08-24f — R4, paper
 claim C3). Image in, per-tooth JSON + overlay out, through all six stages.

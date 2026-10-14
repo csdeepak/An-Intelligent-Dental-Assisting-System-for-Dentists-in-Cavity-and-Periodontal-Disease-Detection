@@ -20,6 +20,9 @@ inferred:
                            neighbours while still missing the peri-apical bone.
                            Source: PAPER_MATERIAL.md 6.1 and configs/dataset_config.yaml
                            (expand_width 1.5, expand_height 2.0).
+                           That was the design intent. The labels turned out otherwise: binary =
+                           overlap with an expert ABNORMALITY mask (RESULTS_LOG 2026-10-10),
+                           severity = bands of crop contrast (2026-10-13d). The crop stands.
 
   (the Stage-2 enumeration head uses 1.5x/1.5x -- a THIRD convention. It lives in
    src/fdi_head_inference.py and is not touched here.)
@@ -36,7 +39,9 @@ and still looks like a working pipeline.
   bone-loss binary  {normal: 0, diseased: 1}           DERIVED, see below
   bone-loss severity ['Mild', 'Moderate', 'Severe']    notebooks/bone_loss/04_*.ipynb cell 3,
                                                        used by the label-generating function in
-                                                       cell 6 (`return 0  # Mild`)
+                                                       cell 6 (`return 0  # Mild`) -- whose input
+                                                       was crop contrast, so the names are not
+                                                       degrees (RESULTS_LOG 2026-10-13d)
 
 The bone-loss binary checkpoint is a bare state_dict with no class_to_idx. Its order is
 recovered from the FocalLoss alpha recorded in its training summary, alpha = [0.642, 2.258],
@@ -105,7 +110,10 @@ def load_classifier(weights, n_classes, device):
     load is exactly the failure this pipeline cannot detect downstream.
     """
     import torch
-    ck = torch.load(weights, map_location="cpu", weights_only=False)
+    # weights_only=True (14 Oct 2026): every classifier checkpoint here is tensors, dicts and
+    # strings, and loads under it -- checked on models/03, 04, 07, 09 and 18. Unpickling arbitrary
+    # objects is how a tampered .pth runs code; torch defaults to True from 2.6.
+    ck = torch.load(weights, map_location="cpu", weights_only=True)
     class_to_idx = None
     if isinstance(ck, dict) and "model_state_dict" in ck:
         class_to_idx, sd = ck.get("class_to_idx"), ck["model_state_dict"]
@@ -375,13 +383,16 @@ def run_caries_lesion_detector(lesion_model, severity, img_bgr, boxes, device, c
 
 def run_bone_loss(binary, severity, img_bgr, boxes, device):
     """
-    Bone-loss cascade on 1.5xW / 2.0xH crops. Binary first; severity only on positives, which
-    is how it was trained (all three of its classes are degrees of bone loss).
+    Stage-4 cascade on 1.5xW / 2.0xH crops: the binary flag first, then the severity head on
+    flagged teeth only -- or no severity pass at all when `severity` is None.
 
     "Bone loss" is the historical name. The binary model's positive class is "the crop overlaps
     a Tufts expert ABNORMALITY mask" -- mostly apical lesions, sclerosis and cysts -- so treat a
     positive as an abnormality-proximity flag, not a periodontal finding (RESULTS_LOG
-    2026-10-10). The returned keys keep their names; callers depend on them.
+    2026-10-10). The severity head's three classes are bands of crop contrast, the stand-in its
+    notebook used when the mask overlap was missing, not degrees of anything (RESULTS_LOG
+    2026-10-13d); the pipeline passes `severity=None` unless asked, and a flagged tooth then
+    says so in its flags. The returned keys keep their names; callers depend on them.
     """
     if len(boxes) == 0:
         return []
@@ -390,8 +401,9 @@ def run_bone_loss(binary, severity, img_bgr, boxes, device):
     idx_pos = BONE_LOSS_CLASSES.index("bone_loss")
 
     positives = [i for i in range(len(boxes)) if int(pb[i].argmax()) == idx_pos]
-    ps = _probs(severity, batch[positives]) if positives else np.empty((0, 3))
-    sev_of = {i: ps[k] for k, i in enumerate(positives)}
+    graded = positives if severity is not None else []
+    ps = _probs(severity, batch[graded]) if graded else np.empty((0, 3))
+    sev_of = {i: ps[k] for k, i in enumerate(graded)}
 
     results = []
     for i in range(len(boxes)):
@@ -406,8 +418,11 @@ def run_bone_loss(binary, severity, img_bgr, boxes, device):
             p = sev_of[i]
             r["severity"] = BONE_LOSS_SEVERITY_CLASSES[int(p.argmax())]
             r["severity_confidence"] = round(float(p.max()), 4)
+            r["flags"].append("severity_is_contrast_band_not_evaluated")
             # n=6 in the Mild training class (T0.5, still open). Reported, not suppressed.
             if r["severity"] == "Mild":
                 r["flags"].append("severity_class_low_support")
+        elif i in positives:
+            r["flags"].append("severity_withheld_contrast_proxy")
         results.append(r)
     return results

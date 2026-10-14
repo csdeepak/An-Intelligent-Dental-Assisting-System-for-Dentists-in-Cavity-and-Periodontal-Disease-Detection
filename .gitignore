@@ -199,6 +199,7 @@ outputs/lever_A2_detector_finetune/**/*.pt
 !outputs/eda_tufts/
 outputs/eda_tufts/*
 !outputs/eda_tufts/split_v1.csv
+!outputs/eda_tufts/near_duplicates.json
 # Deliberately NOT a blanket unignore -- that directory also holds
 # split_TEMP_not_frozen_do_not_use_for_gpu_run.csv, whose own filename says not to trust it.
 # split_v1.csv is the frozen detector split (transfer.md SS8); it was not tracked anywhere in

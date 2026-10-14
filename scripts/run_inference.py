@@ -18,7 +18,8 @@ end-to-end behaviour had never been observed. This is paper claim C3.
                                                severity still graded on a TIGHT crop of flagged
                                                teeth. `--caries-method gate` reverts to the
                                                retained per-crop classifier -- see below)
-    Stage 4  bone-loss cascade             -> normal | bone_loss + severity      (1.5x/2.0x)
+    Stage 4  abnormality flag + severity   -> normal | bone_loss; severity withheld unless
+                                               --bone-severity-grade             (1.5x/2.0x)
     Stage 5  fusion, flags, assessability
     Stage 6  structured JSON (+ optional overlay)
 
@@ -48,7 +49,12 @@ written into every report rather than left to a footnote:
     acceptance: beats the constant + the gate, CI excluding zero, on >=2 of 3 external cohorts
     at <=1.5x the constant's flagging rate. It cleared that on CariesXrays (+37/+12 pp) and
     Ningxia (+9/+10 pp). On DENTEX it is a statistical TIE with both (CI including zero) -- not
-    a third win, and not reported as one. **This is real, measured progress on a problem five
+    a third win, and not reported as one. CORRECTED 14 Oct 2026: CariesXrays is this
+    detector's own validation split (`best.pt` was chosen on it), so it is not an external
+    cohort; Ningxia is external but informed the adoption; and both were measured under an
+    earlier tooth detector. With the default detector, on DENTEX: FDI-set F1 0.498 against the
+    constant's 0.320, and lesion agreement not separated from the constant (RESULTS_LOG
+    2026-10-13d). **This is real, measured progress on a problem five
     prior fix attempts on the gate could not move -- it is not "solved everywhere."** The
     retained gate path (`--caries-method gate`) still calls 19.1% of detected teeth carious
     against an 11.7% annotated floor at 0.40 held-out precision; pass it for reproducibility of
@@ -58,8 +64,11 @@ written into every report rather than left to a footnote:
     a Tufts expert ABNORMALITY mask, and the radiographs behind that label are described as
     apical lesions, sclerosis and cysts -- none as periodontal bone loss. Since 13 Oct 2026 the
     default binary model is one retrained with the split made by radiograph: on 143 Tufts test
-    radiographs it finds 27.5% of the teeth carrying its label at 95.9% specificity, and 11% to
-    27% across three training runs (RESULTS_LOG 2026-10-13b, -c). The model it replaced, whose
+    radiographs three training runs of one recipe found 11.0%, 16.5% and 27.5% of the teeth
+    carrying its label (18.3% pooled); the shipped run is the 27.5% one, at 95.9% specificity
+    (RESULTS_LOG 2026-10-13b, -c, -d). The severity grade was trained on crop contrast, not on the
+    mask, and is withheld unless `--bone-severity-grade` (RESULTS_LOG 2026-10-13d, 2026-10-14).
+    The model it replaced, whose
     0.923 macro-F1 was validation on its own training radiographs and which finds 7.6% held
     out, is retained: pass `--bone-loss models/03_bone_loss_model_training_notebook_models/
     bone_loss_resnet18_best.pth` for any Stage-4 number published before that date. The field
@@ -97,7 +106,14 @@ sys.path.insert(0, str(REPO_ROOT))
 # follow the binary weights actually loaded (BONE_LOSS_PROFILES below). Additive: nothing was
 # renamed or removed. The Stage-4a default changed the same day, so the per-tooth `bone_loss`
 # VALUES differ from a 1.3 report of the same image. RESULTS_LOG 2026-10-13c.
-SCHEMA_VERSION = "opg-report/1.4"
+# 1.5 (14 Oct 2026): `limitations` gained `bone_severity_not_evaluated` and
+# `caries_severity_not_evaluated`; `models.fdi_head` gained `sha256` and its `tag` now follows the
+# weights (it said v1.0 while v2.0 ran); `models.caries` gained `sha256`, `sha256_severity`,
+# `tag_severity` (and `tag_gate` in gate mode); `models.bone_loss` gained `sha256_severity` and
+# `severity_reported`. The Stage-4 severity grade is withheld by default: a flagged tooth carries
+# `severity: null` and the flag `severity_withheld_contrast_proxy` unless --bone-severity-grade.
+# The caries and Stage-4 texts were corrected. Nothing renamed or removed. RESULTS_LOG 2026-10-14.
+SCHEMA_VERSION = "opg-report/1.5"
 
 # Measured Stage-1/Stage-2 performance, stamped into every report's "limitations" block so a
 # report always carries the accuracy of the pipeline that produced it.
@@ -255,10 +271,17 @@ CARIES_METHOD_CAVEATS = {
     "lesion-detector": (
         "Stage 3 is the lesion detector (models/16_lever_b_pooled), adopted 4 Sep 2026 -- see "
         "the DEF_CARIES_LESION_MODEL comment above and RESULTS_LOG 2026-09-04h for the full "
-        "pre-registered verdict. It decisively beats both the retained gate and an image-blind "
-        "constant on 2 of 3 external cohorts (CariesXrays, Ningxia); on DENTEX it is a "
-        "statistical TIE with both, not a win. IMPROVED ON TWO COHORTS, NOT SOLVED EVERYWHERE. "
-        "Do not read a caries field here as a diagnosis."),
+        "pre-registered verdict. That evidence was measured under an earlier tooth detector. "
+        "Of its three cohorts, CariesXrays (1,200 images) is this detector's own validation "
+        "split, so it is not external; Ningxia is external and also informed the adoption: "
+        "+9.28 points of lesion agreement over an image-blind constant, pooled interval "
+        "+4.72 to +13.73. On DENTEX with the default tooth detector it reaches tooth-level "
+        "F1 0.498 against the constant's 0.320, but on lesion agreement it is not separated "
+        "from the constant (-3.55 points, interval -10.11 to +2.64) and sits 20.67 points "
+        "below the retained gate, which flags 2.4 times as many teeth. 43.9% of the tooth "
+        "codes it flags are annotated carious; no false-positive rate can be given, because "
+        "no cohort on hand labels a tooth healthy. IMPROVED, NOT SOLVED. Do not read a "
+        "caries field here as a diagnosis. Figures: docs/results/model_metrics.md, Stage 3a."),
     "gate": (
         "The gate is caries-gate-resnet18-v3.0, retrained with a real negative class "
         "(5,366 healthy teeth). In-pipeline it calls 19.1% of detected teeth carious "
@@ -284,6 +307,38 @@ CARIES_NEGATIVE_ASSUMPTION = {
 DEF_BONE_LOSS = REPO_ROOT / "models/18_bone_loss_radiograph_split/seed42_best.pth"
 DEF_BONE_SEVERITY = REPO_ROOT / "models/04_bone_loss_severity_notebook_models/bone_loss_severity_resnet18_best.pth"
 
+# Tags of the checkpoints without a profile, keyed by the sha256 of their weights -- each hash
+# copied from that model's run_summary.txt -- so a report names the weights that actually ran.
+# Until 14 Oct 2026 the numbering head's tag was a literal "v1.0" while v2.0 loaded. A file with
+# no entry is tagged "unregistered-<8 hex>".
+CHECKPOINT_TAGS = {
+    "e6abf1cd959c36824ef0061db84a5fbc8793af314099cb3cc72027662445cc5a": "fdi-enumeration-head-resnet18-v1.0",
+    "6c675fa014551a0f184cf87a52d55ea26d21f23ae84dd5df1f7efce78a43004b": "fdi-enumeration-head-resnet18-v2.0",
+    "8f4a99ba412c5562e0bc444fef9b856af091d3d1c8b5ba74876735e616357a76": "caries-gate-resnet18-v3.0",
+    "aa0a8a7ebf47a8acab0d24a6ecd948542c220196d1c71cbebbf56952beacbc86": "caries-cascade-resnet18-v1.0",
+    "029018dbe37a92d1fd764322fa1c38b229698750e34d36c533b4338793e870ed": "caries-lesion-detector-yolo11l-leverb-bpooled-v1.0",
+    "fa93a5201833d8137bd2ae328d3afd63c2c1f9e4ac82a621d1b430a51eba8a4a": "bone-loss-severity-resnet18-v1.0",
+}
+
+
+def checkpoint_tag(sha):
+    return CHECKPOINT_TAGS.get(sha, f"unregistered-{sha[:8]}")
+
+
+# Two severity grades no held-out set can test, stated in every report (RESULTS_LOG 2026-10-13d).
+BONE_SEVERITY_NOT_EVALUATED = (
+    "The Stage-4 severity head ('Mild' / 'Moderate' / 'Severe', models/04) was trained on the "
+    "standard deviation of each crop's grey levels -- a stand-in its notebook built because the "
+    "expert-mask overlap was missing -- so its classes are low, middle and high image contrast, "
+    "not degrees of anything clinical. It has no test. It is withheld by default: a flagged "
+    "tooth then carries severity null and the flag severity_withheld_contrast_proxy, and "
+    "models.bone_loss.severity_reported says whether this report carries the grade "
+    "(--bone-severity-grade). RESULTS_LOG 2026-10-13d.")
+CARIES_SEVERITY_NOT_EVALUATED = (
+    "The caries / deep_caries distinction comes from a severity head (models/07) validated on "
+    "133 crops (macro-F1 0.77) and never tested on held-out data: no held-out cohort on hand "
+    "carries a deep-caries label. Read deep_caries as unvalidated.")
+
 # What is known about each Stage-4a (binary) checkpoint, keyed by the sha256 of its weights, so
 # that the tag and the figures stamped into a report belong to the model that produced it -- the
 # arrangement DETECTOR_PROFILES already gives Stage 1. The default changed on 13 Oct 2026
@@ -301,14 +356,22 @@ BONE_LOSS_PROFILES = {
             "expert abnormality mask, and the radiographs behind that label are described by that "
             "expert as apical lesions, sclerosis and cysts -- none as periodontal bone loss. This "
             "checkpoint was trained with the split made by radiograph and scored once on 143 "
-            "Tufts test radiographs that no model in this pipeline trained on: it found 27.5% of "
-            "the teeth carrying its label (50 of 182; 95% interval 18.3 to 38.0) at 95.9% "
-            "specificity -- about one labelled tooth in four, about one false flag per "
-            "radiograph, and one flag in four correct. Two further training runs of the same "
-            "recipe gave 16.5% and 11.0%, so the operating point depends on the run. Expect this "
+            "Tufts test radiographs that this model did not train on (the Stage-4 severity head "
+            "trained on two of them, and one is a re-rendered copy of a training radiograph that "
+            "holds no positive tooth): it found 27.5% of the teeth carrying its label (50 of 182; "
+            "95% interval 18.3 to 38.0, which covers the sampling of radiographs, not the "
+            "training run) at 95.9% specificity -- about one labelled tooth in four, about one "
+            "false flag per radiograph, and one flag in four correct. Two further training runs "
+            "of the same recipe gave 16.5% and 11.0% (18.3%, 100 of 546, over the three), so the "
+            "operating point depends on the run. These figures were scored on crops cut at "
+            "annotated tooth boxes, not at this pipeline's detections. Its 'confidence' is the "
+            "softmax of a model trained with negatives undersampled to 3.5 per positive and a "
+            "class-weighted focal loss, applied at about 5% prevalence: read it as a ranking "
+            "score, not a probability. Expect this "
             "flag to miss most of what it is trained to mark and to be wrong more often than "
             "right. The field names are kept so existing consumers do not break. RESULTS_LOG "
-            "2026-10-13b; 2026-10-10 and 2026-10-13 for the checkpoint it replaced."),
+            "2026-10-13b, -13d, 2026-10-14; 2026-10-10 and 2026-10-13 for the checkpoint it "
+            "replaced."),
         "transfer": (
             "This Stage-4 model was trained on TUFTS radiographs and is applied here to whatever "
             "image is supplied. It has no figure with ground truth on any other source. On 164 "
@@ -316,9 +379,7 @@ BONE_LOSS_PROFILES = {
             "replaced flagged 0.75%) -- a firing rate, not a sensitivity, because DENTEX carries "
             "no ground truth for this label. The 2.2% affected-tooth sensitivity against the "
             "Ningxia periodontitis masks belongs to the checkpoint it replaced, and Ningxia has "
-            "not been scored with this one. The severity grade attached to a flagged tooth comes "
-            "from a separate model validated on 52 crops; on those DENTEX images it called 261 "
-            "of the 274 flagged teeth Moderate or Severe, and that grade is not validated. A "
+            "not been scored with this one. A "
             "'normal' field is weak evidence, not a negative finding, and says nothing about "
             "periodontal status. RESULTS_LOG 2026-10-13c."),
         "validation_split": (
@@ -326,7 +387,8 @@ BONE_LOSS_PROFILES = {
             "checkpoint chosen on 145 others, scored once on 143 test radiographs: sensitivity "
             "0.275 (50/182), specificity 0.959 (3558/3710); 0.165 and 0.110 for two further "
             "training runs of the same recipe. RESULTS_LOG 2026-10-13b. "
-            "severity: image-level, 32 training / 9 validation radiographs (unchanged)."),
+            "severity: image-level, 32 training / 9 validation radiographs; its labels were a "
+            "crop-contrast stand-in, not mask overlap (RESULTS_LOG 2026-10-13d)."),
         "class_order_note": (
             "binary class order [normal, bone_loss]: index 1 is the positive label by "
             "construction (scripts/tufts/train_bone_loss_v2.py trains on labels 0/1) and the "
@@ -468,31 +530,43 @@ def build_report(image_path, img_bgr, boxes, confs, fdi_assign, caries, bone, me
                 "lesion-detector" else CARIES_NEGATIVE_ASSUMPTION["gate"]),
             "bone_loss_label_and_validation": bone_profile["label_and_validation"],
             "bone_loss_domain_shift": bone_profile["transfer"],
+            "bone_severity_not_evaluated": BONE_SEVERITY_NOT_EVALUATED,
+            "caries_severity_not_evaluated": CARIES_SEVERITY_NOT_EVALUATED,
             "not_clinically_validated": True,
         },
     }
 
 
+# Overlay colours, BGR. Grey, not red, for "not assessable" (14 Oct 2026): red read as the most
+# urgent tooth when it meant the pipeline could not say. Orange and blue stay apart under
+# red-green colour blindness. A thin line marks less: no assessment, or a numbering doubt.
+OVERLAY_NOT_ASSESSABLE, OVERLAY_FINDING, OVERLAY_NO_FINDING = (160, 160, 160), (0, 165, 255), (200, 120, 0)
+
+
 def draw_overlay(img_bgr, report, out_path):
-    """Blue = assessable, orange = flagged, red = not assessable. Label is FDI + findings."""
+    """Orange = a finding (caries, or the Stage-4 abnormality flag); blue = no finding, thin when
+    the numbering is uncertain; grey, thin = not assessable. Label: FDI code ('?' when uncertain)
+    + findings."""
     import cv2
     viz = img_bgr.copy()
     for t in report["teeth"]:
         x1, y1, x2, y2 = [int(v) for v in t["bbox_xyxy"]]
+        finding = t["caries"]["finding"] != "no_caries" or t["bone_loss"]["finding"] == "bone_loss"
         if not t["assessable"]:
-            colour = (60, 60, 220)
-        elif t["fdi_flags"] or t["caries"]["finding"] != "no_caries" or \
-                t["bone_loss"]["finding"] == "bone_loss":
-            colour = (0, 165, 255)
+            colour, width = OVERLAY_NOT_ASSESSABLE, 1
+        elif finding:
+            colour, width = OVERLAY_FINDING, 2
         else:
-            colour = (200, 120, 0)
-        cv2.rectangle(viz, (x1, y1), (x2, y2), colour, 2)
-        bits = [str(t["fdi"]) if t["fdi"] else "??"]
+            colour, width = OVERLAY_NO_FINDING, 1 if t["fdi_flags"] else 2
+        cv2.rectangle(viz, (x1, y1), (x2, y2), colour, width)
+        bits = [(str(t["fdi"]) if t["fdi"] else "??") + ("?" if t["fdi_flags"] else "")]
         if t["caries"]["finding"] != "no_caries":
             bits.append(t["caries"]["finding"][:4].upper())
         if t["bone_loss"]["finding"] == "bone_loss":
-            # "ABN", not "BL": Stage 4 flags proximity to an abnormality, not bone loss.
-            bits.append("ABN-" + (t["bone_loss"]["severity"] or "?")[:3])
+            # "ABN", not "BL": Stage 4 flags proximity to an abnormality, not bone loss. The
+            # contrast-band grade is appended only when it was asked for.
+            sev = t["bone_loss"]["severity"]
+            bits.append("ABN-" + sev[:3] if sev else "ABN")
         cv2.putText(viz, " ".join(bits), (x1, max(14, y1 - 5)),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, colour, 1, cv2.LINE_AA)
     cv2.imwrite(str(out_path), viz)
@@ -560,7 +634,8 @@ def load_models(detector=DEF_DETECTOR, fdi_head=DEF_FDI_HEAD, caries_gate=DEF_CA
 
 def run_pipeline(img_bgr, models, device, paths, image_label="image", imgsz=1024, conf=0.25,
                  det_iou=0.50, one_to_one=True, verbose=True, caries_method="lesion-detector",
-                 caries_lesion_conf=CARIES_LESION_CONF, assignment="hungarian"):
+                 caries_lesion_conf=CARIES_LESION_CONF, assignment="hungarian",
+                 bone_severity_grade=False):
     """
     Stages 1-6 on an already-loaded image, using already-loaded models. This is the function
     both `main()` and the Streamlit app call -- one code path, so a fix or a limitation update
@@ -569,6 +644,10 @@ def run_pipeline(img_bgr, models, device, paths, image_label="image", imgsz=1024
     `caries_method` -- "lesion-detector" (the pipeline default since 4 Sep 2026, Lever B,
     RESULTS_LOG 2026-09-04h) or "gate" (the retained per-crop classifier, for reproducing any
     number measured before that date). See the DEF_CARIES_LESION_MODEL comment above.
+
+    `bone_severity_grade` -- False (default since 14 Oct 2026): the Stage-4 severity head is not
+    run and a flagged tooth says so; its classes are crop-contrast bands (RESULTS_LOG 2026-10-13d).
+    True restores the grade, flagged as not evaluated.
     """
     from src.classifiers import (BONE_LOSS_SEVERITY_CLASSES, run_bone_loss, run_caries,
                                  run_caries_lesion_detector)
@@ -593,10 +672,14 @@ def run_pipeline(img_bgr, models, device, paths, image_label="image", imgsz=1024
     if caries_method == "gate":
         log("stage 3 — caries GATE (tight crops, retained pre-4-Sep default) …")
         caries = run_caries(models["gate"], models["csev"], img_bgr, boxes, device)
+        gate_sha = file_sha256(str(paths["caries_gate"]))
         caries_meta = {
-            "method": "gate", "weights": str(paths["caries_gate"]),
+            "method": "gate", "weights": str(paths["caries_gate"]), "sha256": gate_sha,
             "severity_weights": str(paths["caries_severity"]),
-            "tag": "caries-cascade-resnet18-v1.0", "crop_expand": [1.0, 1.0],
+            # `tag` has always named the severity cascade in gate mode; kept, and the gate's own
+            # tag added beside it.
+            "tag": checkpoint_tag(file_sha256(str(paths["caries_severity"]))),
+            "tag_gate": checkpoint_tag(gate_sha), "crop_expand": [1.0, 1.0],
             "confidence_calibration": (
                 "isotonic, fitted on the crops_v3_phase1 val split; applied to "
                 "gate_confidence_calibrated ONLY. Verdicts remain argmax on raw "
@@ -606,10 +689,12 @@ def run_pipeline(img_bgr, models, device, paths, image_label="image", imgsz=1024
         log("stage 3 — caries LESION DETECTOR (whole image, adopted 4 Sep 2026) …")
         caries = run_caries_lesion_detector(models["caries_lesion_model"], models["csev"],
                                             img_bgr, boxes, device, conf=caries_lesion_conf)
+        lesion_sha = file_sha256(str(paths["caries_lesion_model"]))
         caries_meta = {
             "method": "lesion-detector", "weights": str(paths["caries_lesion_model"]),
+            "sha256": lesion_sha,
             "severity_weights": str(paths["caries_severity"]),
-            "tag": "caries-lesion-detector-yolo11l-leverb-bpooled-v1.0",
+            "tag": checkpoint_tag(lesion_sha),
             "lesion_conf": caries_lesion_conf,
             "adopted": "4 Sep 2026, Lever B Sec 6 -- RESULTS_LOG 2026-09-04h",
             "confidence_calibration": (
@@ -620,11 +705,17 @@ def run_pipeline(img_bgr, models, device, paths, image_label="image", imgsz=1024
         raise ValueError(f"unknown caries_method: {caries_method!r} (expected "
                          f"'lesion-detector' or 'gate')")
 
-    log("stage 4 — bone-loss cascade (1.5x/2.0x crops) …")
-    bone = run_bone_loss(models["bbin"], models["bsev"], img_bgr, boxes, device)
+    csev_sha = file_sha256(str(paths["caries_severity"]))
+    caries_meta.update(sha256_severity=csev_sha, tag_severity=checkpoint_tag(csev_sha))
+
+    log("stage 4 — abnormality flag (1.5x/2.0x crops) …")
+    bone = run_bone_loss(models["bbin"], models["bsev"] if bone_severity_grade else None,
+                         img_bgr, boxes, device)
 
     det_sha = file_sha256(str(paths["detector"]))
+    fdi_sha = file_sha256(str(paths["fdi_head"]))
     bone_sha = file_sha256(str(paths["bone_loss"]))
+    bsev_sha = file_sha256(str(paths["bone_severity"]))
     bone_profile = BONE_LOSS_PROFILES.get(bone_sha, UNREGISTERED_BONE_LOSS)
     meta = {
         "detector": {"weights": str(paths["detector"]), "sha256": det_sha,
@@ -632,15 +723,17 @@ def run_pipeline(img_bgr, models, device, paths, image_label="image", imgsz=1024
                              else f"unregistered-{det_sha[:8]}"),
                      "imgsz": imgsz, "conf": conf, "nms_iou": det_iou,
                      "input_rotation": "90 deg counter-clockwise (src/orientation.py)"},
-        "fdi_head": {"weights": str(paths["fdi_head"]), "tag": "fdi-enumeration-head-resnet18-v1.0",
+        "fdi_head": {"weights": str(paths["fdi_head"]), "sha256": fdi_sha,
+                     "tag": checkpoint_tag(fdi_sha),
                      "one_to_one": one_to_one, "assignment": assignment,
                      "crop_expand": [1.5, 1.5]},
         "caries": caries_meta,
         "bone_loss": {"binary": str(paths["bone_loss"]), "sha256_binary": bone_sha,
-                      "severity": str(paths["bone_severity"]),
+                      "severity": str(paths["bone_severity"]), "sha256_severity": bsev_sha,
+                      "severity_reported": bool(bone_severity_grade),
                       "crop_expand": [1.5, 2.0], "severity_classes": BONE_LOSS_SEVERITY_CLASSES,
                       "tag_binary": bone_profile["tag"] or f"unregistered-{bone_sha[:8]}",
-                      "tag_severity": "bone-loss-severity-resnet18-v1.0",
+                      "tag_severity": checkpoint_tag(bsev_sha),
                       "label_definition": (
                           "positive = the tooth crop overlaps a Tufts expert ABNORMALITY mask "
                           "(overlap > 0.01). Not a periodontal bone-loss label; the field names "
@@ -680,6 +773,9 @@ def main():
                          "default moves only if that pre-registration's acceptance rule is met.")
     ap.add_argument("--bone-loss", type=Path, default=DEF_BONE_LOSS)
     ap.add_argument("--bone-severity", type=Path, default=DEF_BONE_SEVERITY)
+    ap.add_argument("--bone-severity-grade", action="store_true",
+                    help="also report the Stage-4 severity grade. Off by default: its classes "
+                         "are crop-contrast bands, not degrees (RESULTS_LOG 2026-10-13d)")
     ap.add_argument("--conf", type=float, default=0.25, help="detector confidence threshold")
     ap.add_argument("--imgsz", type=int, default=1024, help="detector input size (frozen at 1024)")
     ap.add_argument("--det-iou", type=float, default=0.50, help="detector NMS IoU")
@@ -704,7 +800,7 @@ def main():
                           imgsz=args.imgsz, conf=args.conf, det_iou=args.det_iou,
                           one_to_one=not args.no_one_to_one, caries_method=args.caries_method,
                           caries_lesion_conf=args.caries_lesion_conf,
-                          assignment=args.assignment)
+                          assignment=args.assignment, bone_severity_grade=args.bone_severity_grade)
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2) + "\n")
