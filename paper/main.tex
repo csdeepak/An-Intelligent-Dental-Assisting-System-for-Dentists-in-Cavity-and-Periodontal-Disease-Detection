@@ -87,7 +87,8 @@ asking which teeth they mark as diseased. We show that this score is difficult
 to interpret, because decay is concentrated in the back teeth: a program that
 ignores the radiograph entirely and always names the same eight molars can score
 well. We built a complete six-stage pipeline that finds each tooth, numbers it,
-and classifies it for decay and for bone loss, and we compared it against
+and classifies it for decay, with a fourth stage that flags teeth near an
+expert-marked abnormality, and we compared it against
 progressively less informed systems---two general-purpose
 vision--language models and, finally, that image-blind constant---using one
 scorer on one set of 164 radiographs. The constant (F1 0.320) outscored both
@@ -102,9 +103,10 @@ between the two systems swung 31 percentage points across sites; on a second
 external benchmark of 2{,}815 lesions the constant won outright, by 22
 percentage points. Both language
 models returned confident, correctly formatted tooth lists for an image
-containing pure random noise. The bone-loss branch scored 0.923 macro-F1 on the
-data it was developed on and 2.2\,\% sensitivity pooled over the external
-hospitals.
+containing pure random noise. The fourth stage's first score, 0.923 macro-F1,
+came from a split that let the same radiographs into training and validation;
+split by radiograph, three training runs found 11.0--27.5\,\% of the teeth
+carrying its label.
 Acting on this, we then rebuilt the caries stage to localise lesions rather than
 label teeth---something the constant cannot do at all---and on the same 337
 external radiographs it beat the constant by 9.3 percentage points while flagging
@@ -121,7 +123,7 @@ for a working system has to come from.
 \end{abstract}
 
 \begin{IEEEkeywords}
-panoramic radiography, dental caries, periodontal bone loss, evaluation
+panoramic radiography, dental caries, data leakage, evaluation
 methodology, image-blind baselines, external validation, model calibration,
 selective prediction, domain shift
 \end{IEEEkeywords}
@@ -209,7 +211,7 @@ them.
 
 We measured that floor on our own work rather than anyone else's. We first built
 a system worth testing: a six-stage pipeline performing tooth detection, tooth
-numbering, caries classification and periodontal bone-loss classification, with
+numbering, caries classification and a per-tooth abnormality flag, with
 confidence intervals, calibrated probabilities, a threshold for declining
 uncertain cases fixed before the data were seen, and evaluation on four
 hospitals that contributed no training data. We then constructed a ladder of
@@ -237,8 +239,9 @@ variation the exercise exists to expose.
   \item \textbf{Calibration and selective-prediction} results, each with a
         control that isolates the mechanism responsible, and each reported with
         its cost rather than only its gain.
-  \item An honest characterisation of the pipeline, including a periodontal
-        branch that does not survive domain shift, and a tooth detector whose
+  \item An honest characterisation of the pipeline, including a fourth stage
+        whose label is not the one it was named for and whose first score did
+        not survive a split by radiograph, and a tooth detector whose
         numbering result is strong only on the corpus it was trained on and
         which was adopted over a pre-registered guard it failed.
 \end{enumerate}
@@ -379,11 +382,14 @@ resulting scores are resolved to a one-to-one assignment across the mouth by the
 Hungarian algorithm~\cite{kuhn1955hungarian}, so no two teeth receive the same
 code.
 
-\textbf{Stage 3} reports caries per tooth and \textbf{Stage 4} periodontal bone
-loss. Stage 4 is a coarse-to-fine ResNet18 cascade: a binary gate decides whether
-the finding is present on a tooth crop, and a second model grades severity only on
-the teeth the gate flags. Stage 3 was built the same way and is reported that way
-throughout Section~\ref{sec:results}. It now defaults instead to a whole-image
+\textbf{Stage 3} reports caries per tooth. \textbf{Stage 4} flags teeth near an
+expert-marked abnormality (Section~\ref{sec:stage4}): it was built for periodontal
+bone loss, but its training label is whether a tooth crop overlaps an expert's
+abnormality mask on Tufts, and we name it for that label. A second model, meant to
+grade the flagged teeth, was trained on bands of crop contrast instead; it ships
+withheld by default and is not evaluated here. Stage 3 was built as the same kind of
+cascade---a binary gate on a tooth crop, then a severity head on the teeth it
+flags---and is reported that way throughout Section~\ref{sec:results}. It now defaults instead to a whole-image
 lesion detector, whose predicted lesion boxes are assigned to teeth before the same
 severity head runs on the teeth so flagged; the per-crop gate is retained,
 unchanged, as a selectable variant. Section~\ref{sec:lesiondet} states why the
@@ -410,8 +416,8 @@ Stage & Model & Parameters \\
 3a Caries localisation & YOLOv11l detector & 25.31\,M \\
 \quad \textit{variant} & \textit{ResNet18 per-crop gate} & \textit{11.18\,M} \\
 3b Caries severity     & ResNet18 & 11.18\,M \\
-4a Bone-loss gate      & ResNet18 & 11.18\,M \\
-4b Bone-loss severity  & ResNet18 & 11.18\,M \\
+4a Abnormality flag    & ResNet18 & 11.18\,M \\
+4b Severity (withheld) & ResNet18 & 11.18\,M \\
 \midrule
 \multicolumn{2}{l}{\textbf{Total}} & \textbf{95.34\,M} \\
 \multicolumn{2}{l}{\textit{Caries path (stages 1--3)}} & \textit{72.99\,M} \\
@@ -465,12 +471,12 @@ external result is reported on its own below, and not averaged with the rest. Th
 decision rule, the comparators, the confidence and the acceptance bar were written
 down and committed before any arm was trained, and are reported where they fell.
 
-\subsection{Two diseases, one of which is reported as a negative result}
-The periodontal branch is a full component of the implemented system, and its
-result is a measured failure. We keep it in the paper for that reason rather than
-in spite of it: it is the clearest demonstration available to us that an
-in-domain score on a periodontal task is not evidence of a usable periodontal
-model. It is reported throughout as a \emph{secondary} analysis. The primary
+\subsection{The fourth stage, described by its label}
+Stage 4 is a full component of the implemented system, and we keep it in the paper
+described by what it was trained on rather than by what it was built for. Its first
+score is the clearest demonstration available to us that an in-domain figure
+measured on a leaky split is not evidence of a usable model. It is reported
+throughout as a \emph{secondary} analysis (Section~\ref{sec:stage4}). The primary
 evaluation---the baseline ladder---concerns caries only, because caries is the
 task for which we hold annotations on all five institutions.
 
@@ -482,7 +488,8 @@ task for which we hold annotations on all five institutions.
 \begin{table*}[t]
 \caption{Every corpus used, and what it was used for. ``External'' means no
 image from that corpus contributed to training or tuning any model in the
-pipeline. Evaluation splits are image-level throughout.}
+pipeline. Evaluation splits are image-level throughout, except the first Stage-4
+model's (Section~\ref{sec:stage4}).}
 \label{tab:data}
 \centering
 \footnotesize
@@ -491,7 +498,7 @@ pipeline. Evaluation splits are image-level throughout.}
 Corpus & Role & Images & Annotation & Split used &
 External? & Fits baseline? \\
 \midrule
-Tufts~\cite{panetta2022tufts} & Detection, bone loss & 1{,}000 &
+Tufts~\cite{panetta2022tufts} & Detection, Stage 4 & 1{,}000 &
 tooth boxes; expert masks & 700/150/150 frozen & no & no \\
 DENTEX~\cite{hamamci2023dentex} & Caries; numbering & 250\,$^{a}$ &
 per-lesion polygons & 164 scored / 86 excluded & no & 78 of the 86 \\
@@ -509,8 +516,7 @@ per-lesion boxes & 1{,}200 held out & \textbf{yes}\,$^{c}$ & no \\
 $^{a}$ The DENTEX \texttt{disease/} subset, which is the portion carrying
 per-lesion annotation. The tooth detector and the numbering head train on
 DENTEX's separate enumeration subset (634 images), never on a scored image. \quad
-$^{b}$ Caries-annotated subset; the periodontal subset of the same cohort is 736
-images. \quad
+$^{b}$ Caries-annotated subset. \quad
 $^{c}$ 13{,}784 annotated caries instances counted in the release. External to
 every component except the Stage-3a lesion detector, which trains on the other
 4{,}800 images (Section~\ref{sec:lesiondet}); the 1{,}200 scored images carry
@@ -519,9 +525,9 @@ every component except the Stage-3a lesion detector, which trains on the other
 
 \subsection{Development corpora}
 The \textbf{Tufts Dental Database}~\cite{panetta2022tufts} (1{,}000 OPGs) is
-held under a frozen 700/150/150 image-level split for tooth detection; the
-bone-loss branch was trained on tooth crops from it under its own crop-level
-split (Section~\ref{sec:limits}). The caries branch and the primary evaluation use
+held under a frozen 700/150/150 image-level split for tooth detection, which the
+retrained Stage-4 flag shares; the first Stage-4 model was trained on tooth crops
+under a crop-level split instead (Section~\ref{sec:stage4}). The caries branch and the primary evaluation use
 \textbf{DENTEX}~\cite{hamamci2023dentex}. Tooth detection trains on three
 corpora sampled in equal proportion: the Tufts training split, DENTEX's
 enumeration subset, and a third public corpus. FDI numbering trains on the first
@@ -530,8 +536,9 @@ Because the detector has seen DENTEX, every tooth-level result on the 164 scored
 DENTEX images is an \emph{in-domain} result for the front end, held out by image
 but not by corpus; we label it so wherever it appears.
 
-All evaluation splits are \textbf{image-level}; the bone-loss training split is the
-one exception. Two crops from one radiograph are not
+All evaluation splits are \textbf{image-level}; the first Stage-4 model's
+crop-level split is the one exception, and Section~\ref{sec:stage4} reports what it
+cost. Two crops from one radiograph are not
 independent observations, and a tooth-level split would place the same mouth in
 both training and test data.
 
@@ -567,8 +574,7 @@ filenames, we could not detect it.
 Four hospitals from an independent Chinese cohort~\cite{li2024multicenter} (denoted
 test1--test4) serve as locked external test data: never trained on, never tuned against, and evaluated a
 bounded and recorded number of times. For caries this is 337 images carrying
-1{,}013 annotated lesions; the periodontal subset of the same cohort is 736
-images.
+1{,}013 annotated lesions.
 
 One property of that cohort must be stated because it invites an obvious
 question. The cohort ships its own train/test division, and \textbf{test2 is
@@ -599,7 +605,7 @@ confirmed false positive.
 \subsection{Crop geometry and pre-registration}
 Classifier inputs are expanded crops resized to $224\times224$. Expansion is
 fixed per branch and identical across corpora: symmetric $1.5\times$ for
-numbering, and $1.5\times$ width by $2.0\times$ height for bone loss, since teeth
+numbering, and $1.5\times$ width by $2.0\times$ height for Stage 4, since teeth
 are roughly three times taller than wide and horizontal over-expansion bleeds
 into neighbouring teeth.
 
@@ -717,15 +723,6 @@ the same images: the 164 scored radiographs carry \textbf{479 annotated caries
 lesion polygons} distributed over \textbf{477 distinct teeth}. The difference is
 exactly two teeth that each carry two separate annotated lesions. Both numbers
 are correct; they are different units, and each table states which it uses.
-
-For the periodontal branch a third metric is unavoidable. Periodontal masks are
-not focal lesions but a single continuous band along the bone ridge, median area
-$\sim$365{,}680\,px, whose centroid falls in the gap between teeth and inside no
-tooth box---so lesion-centroid matching returns near-zero by construction,
-independent of model quality. Periodontal findings are therefore scored by
-\textbf{affected-tooth sensitivity}: a tooth counts as affected if at least 50\,\%
-of its box lies inside the marked region, and sensitivity is the fraction of
-those the pipeline flagged.
 
 \subsection{Controls}
 For the VLMs, we present a \textbf{blank grey image} and a \textbf{random-noise
@@ -1213,66 +1210,49 @@ The efficiency comparison survives all of the above: 33.45\,B parameters and
 CPU---a factor of roughly 460 in parameter count, in the wrong direction for the
 larger model.
 
-\subsection{Where the pipeline fails: the periodontal branch}
+\subsection{Stage 4: an abnormality flag, measured held out}
+\label{sec:stage4}
 
-\begin{figure*}[t]
+\begin{figure}[t]
 \centering
-\includegraphics[width=\textwidth]{fig_boneloss.png}
-\caption{The bone-loss branch under domain shift. \textbf{(a)} In-domain macro-F1
-of 0.923 on 1{,}558 Tufts validation crops at an untouched 4\,\% prevalence.
-\textbf{(b)} The same frozen model outside its training domain, \emph{on a
-different vertical scale}: it fires on 0.75\,\% of DENTEX teeth and reaches
-0.64--6.28\,\% affected-tooth sensitivity across the four external hospitals,
-the highest of which rests on few teeth (see text). The
-metrics necessarily differ between cohorts, which is why they are not plotted on
-a shared axis; the collapse does not depend on that choice. Reported as a
-measured negative result rather than as a component.}
-\label{fig:boneloss}
-\end{figure*}
+\includegraphics[width=\columnwidth]{fig_stage4a.png}
+\caption{Stage 4 on the held-out Tufts test split (143 radiographs, 3{,}892
+teeth, 182 carrying its label): three training runs of one recipe, each with a
+95\,\% interval from a bootstrap over radiographs, beside the first model on the
+125 of those radiographs it had not trained on. The intervals cover the sampling
+of radiographs, not the training run; the spread between runs is the larger
+uncertainty. The axis in (b) is truncated.}
+\label{fig:stage4}
+\end{figure}
 
-The bone-loss branch reaches \textbf{0.923 macro-F1} in domain on 1{,}558 Tufts
-validation crops at an untouched 4\,\% prevalence (sensitivity 83.05\,\%,
-specificity 99.53\,\%). Outside that domain it is close to inert: it fires on
-\textbf{0.75\,\%} of detected DENTEX teeth (34 of 4{,}512, over the 164 images)
-and reaches \textbf{2.17\,\%} affected-tooth sensitivity pooled over the four
-external hospitals [95\,\% CI 1.75, 2.62], a cluster bootstrap over the 736
-images, 10{,}000 resamples. Per site it is 2.91\,\% [2.23, 3.65] (test1),
-0.64\,\% [0.34, 0.96] (test2), 3.96\,\% [2.03, 6.36] (test3) and 6.28\,\%
-[2.49, 12.12] (test4). The last of these rests on 223 affected teeth where an
-earlier, Tufts-only tooth detector found 630 at the same hospital; we have not
-explained that fall and do not offer the test4 figure as a site result. Two
-independent external datasets, with different ground-truth formats and
-different metrics, agree.
+Stage 4 was built to flag periodontal bone loss, and it is not a periodontal
+detector. It is a ResNet18 that flags teeth whose crop overlaps an
+expert-marked abnormality on Tufts---described by that expert as apical lesions,
+sclerosis and cysts---so we name it for that label. The model first shipped
+reported 0.923 macro-F1 and 83\,\% sensitivity from a crop-level split in which
+every validation radiograph also supplied training crops; on the 125 test
+radiographs it had not trained on, it found \textbf{3.4\,\%} of such teeth (6 of
+175). Retrained with the split made by radiograph, under a protocol written down
+before training, three runs of one recipe found \textbf{27.5\,\%, 16.5\,\% and
+11.0\,\%} of such teeth on 143 test radiographs (50, 30 and 20 of 182; 18.3\,\%
+pooled), at 95.9--98.6\,\% specificity, with about seven flags in ten false
+(precision 24.8--29.4\,\%; Fig.~\ref{fig:stage4}). The runs rank teeth alike
+(ROC area 0.68--0.69) and differ in operating point; the ranking is separated from
+a tooth-position prior on average precision and not on ROC area. The run whose
+seed was fixed in advance, the 27.5\,\% one, is the pipeline default; that choice
+was made with the test result in view, and we do not call it pre-registered.
 
-Two caveats belong with the in-domain figure, and both make the collapse less
-surprising rather than more. First, 0.923 is the \emph{maximum of a noisy
-selection curve}: the diseased-class validation F1 oscillates between roughly
-0.40 and 0.85 across training epochs over only 59 validation positives, so
-selecting the best of 32 epochs is optimistically biased and a repeated-split
-estimate would very likely sit lower. Second, the crops it was measured on \textbf{cannot be
-regenerated}, only retained: half were built with a coordinate jitter whose random
-offsets were never saved, so an independent party starting from the source
-radiographs cannot recreate this exact validation set. The crops themselves were
-subsequently recovered from the project's own archive, and scoring the frozen
-checkpoint over the complete diseased class reproduces the reported figure
-exactly---49 of 59 positives, sensitivity $0.831$---so the number is verified even
-though the set that produced it is not reconstructible.
-
-We localised the cause. A first change of tooth detector, which moved numbering by
-$+12.0$ points and caries agreement by $+7.7$, moved bone loss by
-\emph{nothing}---the branch flagged 168 affected teeth before the swap and 165
-after, while the denominator grew 9\,\%. The change to the current detector moved
-numbering by a further $+34.40$ points and external caries agreement by $+19.35$,
-and bone loss again by nothing: 165 flagged of 6{,}792 affected teeth before, 153
-of 7{,}049 after. That falsifies the hypothesis that a shared upstream cause
-explains all three failures, and places this one inside the Stage-4a classifier
-rather than in the pipeline around it.
-
-We did not attempt a fix, and the reason is a data fact rather than a choice: the
-lever that repaired the numbering stage's cross-domain behaviour was
-multi-corpus training, and \textbf{DENTEX carries no bone-loss labels}. There is
-no second annotated periodontal corpus in this project, so that lever does not
-exist here.
+These figures were scored on annotated tooth boxes, not on the pipeline's own
+detections, and the flag has no external figure: on the 164 DENTEX images, which
+carry no such label, it fires on 6.1\,\% of detected teeth (274 of 4{,}512), a
+rate and not a sensitivity. The three runs share one pre-computed set of jittered
+training crops, so their spread understates training variance, and every interval
+covers the sampling of radiographs only. One of the 143 test radiographs is a
+re-rendered copy of a training radiograph; it holds no positive tooth. A second
+ResNet18, meant to grade the flagged teeth, was trained on bands of crop contrast,
+a stand-in for an overlap measurement its training data lacked; it is present in
+the released code, withheld from the report by default, and not evaluated. We
+make no periodontal claim.
 
 %% =====================================================================
 \section{Discussion}
@@ -1434,8 +1414,8 @@ image it is shown.
 
 \subsection{On reporting results that do not favour the authors}
 Three findings here are unfavourable to our own system: an external comparison
-in which it cannot be told from a constant, a periodontal branch that does not
-generalise, and a tooth detector adopted over a registered guard it failed. We
+in which it cannot be told from a constant, a fourth stage whose first score
+came from a leaky split and whose held-out recall is low, and a tooth detector adopted over a registered guard it failed. We
 report all three. A screening tool
 that fails silently is more dangerous than one that fails visibly, and the
 alternative---selecting whichever metric flatters the system---is precisely the
@@ -1499,18 +1479,11 @@ Each item states what it prevents us from concluding.
         Tufts-only control, and it was adopted over a registered guard on that
         figure (Section~\ref{sec:data}). All coverage figures are fractions of
         the teeth it detects.
-  \item \textbf{The in-domain bone-loss figure is a selected maximum}
-        (Section~\ref{sec:results}): it is the best of 32 epochs on a diseased
-        class of 59, so it should be read as an upper bound on that branch's
-        in-domain performance, not an estimate. The validation set it was measured
-        on is retained and the figure verified against it, but it cannot be
-        regenerated from source, since the jitter offsets were never saved. Nor
-        is it a held-out estimate: the branch was trained under a crop-level
-        split, and every radiograph that supplies a validation crop also supplies
-        training crops.
-  \item \textbf{Bone-loss labels are weak supervision}, derived by intersecting a
-        per-image expert mask with per-tooth boxes, from a single institution and
-        one annotation protocol, with only 711 real positive training teeth.
+  \item \textbf{Stage 4's label is not periodontal}, and its figures come from one
+        institution, three training runs that share their augmented crops, and
+        annotated tooth boxes rather than the pipeline's own detections
+        (Section~\ref{sec:stage4}). Its severity head was trained on crop
+        contrast and is not evaluated.
   \item \textbf{Patient-level separation cannot be verified on DENTEX}, which
         ships no patient identifiers. We establish byte-level and image-level
         separation only.
@@ -1523,8 +1496,9 @@ Each item states what it prevents us from concluding.
 \section{Conclusion}
 %% =====================================================================
 
-We evaluated an automated screening pipeline for dental caries and periodontal
-bone loss on panoramic radiographs, and measured what its scores mean by
+We evaluated an automated screening pipeline for dental caries on panoramic
+radiographs, with a fourth stage that flags teeth near expert-marked
+abnormalities, and measured what its scores mean by
 comparing it against progressively less informed systems under one scorer.
 
 On development data, a fixed list of eight molar codes---emitted for every
@@ -1542,7 +1516,9 @@ one's answer in that condition was precisely the population prior. Recasting the
 caries stage as lesion detection is the one change that moved the external
 comparison: $9.28$ points above the constant on the four hospitals pooled, while
 flagging fewer teeth than it. The
-periodontal branch scored 0.923 macro-F1 in domain and did not transfer.
+fourth stage's first score, 0.923 macro-F1, came from a split that let the same
+radiographs into training and validation; split by radiograph, it found
+11.0--27.5\,\% of its label across three training runs.
 
 Four capabilities distinguished the system from the prior where the caries score
 could not: identifying which tooth, producing confidences that behave like
@@ -1562,8 +1538,9 @@ Every figure is rendered from the saved evaluation artefacts at build time rathe
 than transcribed. All model checkpoints are SHA-256 pinned, and each evaluation
 artefact records the hashes of the weights that produced it. The frozen constant
 reported in Table~\ref{tab:fdiset} was independently re-derived from the 78
-fitting images during manuscript preparation and reproduced exactly. The
-supporting test suite comprises 174 tests, all passing.
+fitting images during manuscript preparation and reproduced exactly. Exact
+package versions are recorded in \texttt{requirements-lock.txt}. The supporting
+test suite comprises 194 tests, all passing.
 
 %% =====================================================================
 \bibliographystyle{IEEEtran}

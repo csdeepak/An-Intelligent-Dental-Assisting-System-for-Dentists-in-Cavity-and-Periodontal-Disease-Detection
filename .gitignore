@@ -54,6 +54,8 @@ data/*.json
 !docs/**/*.svg
 !docs/**/*.jpg
 !assets/*.png
+# The manuscript's figures (14 Oct 2026: the others had been force-added).
+!paper/fig_*.png
 !assets/*.svg
 
 # --- Model checkpoints (large files) ---

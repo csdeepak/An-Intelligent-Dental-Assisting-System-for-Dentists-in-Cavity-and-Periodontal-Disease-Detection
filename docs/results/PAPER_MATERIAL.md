@@ -2892,20 +2892,23 @@ For whoever drafts the actual paper. Tick items off here as they land.
 
 **Blocking — must be done before submission**
 
-- [ ] **Disclose the re-rendered test radiograph (248 of 1017) and the shared jitter set**
-      (§8.38, 14 Oct 2026): one sentence each, in the Stage-4a paragraph.
-- [ ] **Decide whether the bone-loss branch stays in the manuscript, then remove the three false
+- [x] **Disclose the re-rendered test radiograph (248 of 1017) and the shared jitter set**
+      (§8.38, 14 Oct 2026): one sentence each, in the Stage-4a paragraph. **Done 14 Oct in the
+      15-page `main.tex`** (`RESULTS_LOG` 2026-10-14b); the six-page cut must keep them.
+- [x] **Decide whether the bone-loss branch stays in the manuscript, then remove the three false
       statements about it** (§8.28, found 10 Oct 2026): "splits are image-level throughout";
       Tufts 700/150/150 given as the bone-loss split; and "domain shift" / "did not transfer" as
-      the reading of the external periodontitis result. Authors and mentor.
+      the reading of the external periodontitis result. **Decided 12 Oct (it stays, re-described);
+      the three statements corrected in the 15-page `main.tex` on 14 Oct** (`RESULTS_LOG`
+      2026-10-14b). The mentor has not yet seen it.
 - [ ] **Add the mandatory statements — none is in `main.tex`** (checked 10 Oct 2026): authors and
       affiliations, ethics, data availability with licences, code availability, funding, conflict
       of interest, author contributions, and acknowledgments including the AI-use disclosure IEEE
       requires.
-- [ ] **Describe Stage 4b as present and not evaluated, with its contrast stand-in stated, and
+- [x] **Describe Stage 4b as present and not evaluated, with its contrast stand-in stated, and
       report Stage 4a as three runs with the share of flags that are correct** (§8.37, found
       13 Oct 2026). No severity figure anywhere. Draft paragraph: `SUBMISSION_TODO.md` §1a
-      row p.
+      row p. **Done 14 Oct in the 15-page `main.tex`, `sec:stage4`** (`RESULTS_LOG` 2026-10-14b).
 - [x] **Decide which front end the manuscript reports, and make every table say so** (§8.30,
       11 Oct 2026). **Decided 11 Oct: the current one. `main.tex` was rebuilt the same day**
       (`RESULTS_LOG` 2026-10-11k): every table and the headline re-stated, the override of the

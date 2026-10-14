@@ -54,6 +54,10 @@ rebuilt the same day** (2026-10-11j for five further measurements, -k for the ma
 
 ### 1a. Defects in the rebuilt manuscript, found by the 12 Oct council
 
+**14 Oct: rows o–r, and §2 item 3, are applied to the 15-page `main.tex`** (`RESULTS_LOG`
+2026-10-14b): Stage 4 is described by its label, reported as three runs with the 248/1017 and
+shared-jitter disclosures, and Fig. 5 is the held-out figure. The six-page cut must carry them.
+
 Each was checked against `main.tex` by the session chair
 (`docs/session-memory/2026-10-12-publishability-council.md`). All are edits; none needs a run.
 

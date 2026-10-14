@@ -9019,3 +9019,57 @@ manuscript now carries is from 2026-10-11g, -i and -j — and one new check, on 
   switch, the Stage-4a change, the withheld grade, the 248/1017 pair — and that the Docker image
   is three default changes behind; the README's narrative sections C1–C4 still describe the
   previous front end (their figures are unlinked, the text is not rewritten).
+
+## 2026-10-14b — Manuscript: Stage 4 rewritten as an abnormality flag, Fig. 5 replaced
+
+- **What was done:** At the decision owner's request — overriding the morning's D2 default, "with
+  the six-page cut" — every Stage-4 statement in the 15-page `paper/main.tex` was rewritten to
+  `docs/paper/SUBMISSION_TODO.md` §2 item 3 and §1a rows o–r, Fig. 5 was replaced, and the
+  Stage-4 block of `scripts/verify_paper_numbers.py` was rebuilt. No measurement; every number
+  was logged before (2026-10-13b, -13c, -14). Narrative:
+  `docs/session-memory/2026-10-14c-manuscript-stage4.md`.
+- **Dataset / config:** `outputs/bone_loss_eval/v2_retrain/test_summary.json` (three runs on the
+  143 Tufts test radiographs; the first model on the 125 it had not trained on) and
+  `dentex_firing.json` (the default on 164 DENTEX images).
+- **What the manuscript now says:** Stage 4 flags teeth near an expert-marked abnormality and is
+  not a periodontal detector. The first model's 0.923 macro-F1 and 83% sensitivity came from a
+  crop-level split; on the 125 test radiographs it had not trained on it found 3.4% (6 of 175).
+  Three runs of the radiograph-split recipe found 27.5%, 16.5% and 11.0% (50, 30, 20 of 182;
+  18.3% pooled) at 95.9–98.6% specificity, precision 24.8–29.4%, ROC area 0.68–0.69; the default
+  is the run whose seed was fixed in advance, and its adoption is not called pre-registered.
+  Scored on annotated boxes; no external figure (DENTEX firing 6.1%, 274 of 4,512, is a rate). The
+  shared jitter set, the radiograph-only intervals and the 248/1017 copy are stated. The severity
+  head is present, trained on crop contrast, withheld by default, not evaluated. "We make no
+  periodontal claim."
+- **Where it changed:** abstract (system sentence; the 0.923 sentence now carries the held-out
+  range), keywords ("periodontal bone loss" → "data leakage"), introduction (system description,
+  contribution 5), §System (Stage-4 description, `tab:stages` rows "4a Abnormality flag" and
+  "4b Severity (withheld)", the subsection retitled "The fourth stage, described by its label"),
+  §Data (`tab:data` role and caption, footnote b, development-corpora and split sentences, the
+  external-cohort sentence, crop geometry), §Evaluation protocol (the affected-tooth-sensitivity
+  paragraph removed), §Results (the subsection "Where the pipeline fails: the periodontal branch"
+  replaced by "Stage 4: an abnormality flag, measured held out", `sec:stage4`), §Discussion,
+  §Limitations (two items on the first model → one), §Conclusion, §Reproducibility (194 tests,
+  `requirements-lock.txt`).
+- **Left the manuscript:** the first model's Ningxia affected-tooth sensitivities (2.17% pooled
+  and per site), its DENTEX firing rate 0.75%, and the paragraphs that argued from them — the
+  "localised the cause" argument with the detector-switch deltas +34.40 and +19.35, and "we did
+  not attempt a fix". Not withdrawn as results: they stay in this log and in `PAPER_MATERIAL.md`.
+  They describe a model the pipeline no longer ships.
+- **Fig. 5:** `scripts/figures/make_stage4a_paper_figure.py` → `paper/fig_stage4a.png` and
+  `docs/results/figures/paper/07_stage4a_heldout.png`: sensitivity and specificity of the three
+  runs with radiograph-cluster intervals, beside the first model; one neutral ink, no good/bad
+  colour; the script asserts the counts before drawing. `make_boneloss_paper_figure.py` and
+  `paper/fig_boneloss.png` are kept, unchanged and no longer included. `.gitignore` gains
+  `!paper/fig_*.png` (the earlier paper figures had been force-added).
+- **Metrics / checks:** `verify_paper_numbers.py` **188 claims, no drift** (191 before: 13
+  first-model Stage-4 claims and the two detector deltas removed, 12 Stage-4a claims added).
+  Tectonic: **15 pages**, 0 undefined references or citations, one 4.47 pt overfull box at line
+  945 (present before). `pytest` 194 passed; 12 invariants hold.
+- **Key decision or insight:** correct the long text now, so that the six-page cut starts from a
+  true one. The page count did not change.
+- **Source:** `paper/main.tex`, `paper/main.pdf`, `paper/fig_stage4a.png`,
+  `scripts/figures/make_stage4a_paper_figure.py`, `scripts/verify_paper_numbers.py`.
+- **Follow-ups:** the six-page cut carries this text; `paper/paper.txt` is still a stale text
+  dump; pdfLaTeX build on the other machine; `SUBMISSION_TODO.md` §1a row i (CariesXrays "kept
+  away from") is unchanged by this entry and still open.

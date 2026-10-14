@@ -109,6 +109,10 @@ file, overlay colours, Fig. 1, the README banner and diagram. **One near-duplica
 test radiograph 248 is a re-rendered copy of training radiograph 1017** — disclosed, not
 re-analysed; it holds no Stage-4a positive. No model trained, nothing scored. §1, §2.1, §3, §4
 and §8 edited.
+**14 Oct, evening — the 15-page manuscript's Stage 4 rewritten and Fig. 5 replaced**
+(`RESULTS_LOG` 2026-10-14b, `docs/session-memory/2026-10-14c-manuscript-stage4.md`): Stage 4 is
+described by its label and reported as three held-out runs; no periodontal claim, no 0.923 as
+performance. 188 manuscript numbers checked; 15 pages. §1 and §3 edited.
 
 > **Windows clone, 6 Sep 2026 — the Tufts crop corpus was cut from the wrong frame, and is now
 > rebuilt.** It scored 11.5% crop-level FDI-exact where the published number is 71.5%, with correct
@@ -227,7 +231,7 @@ The six-stage pipeline runs end to end on CPU alone (1.70 s/image on the macOS c
 deployed in a Streamlit +
 Docker demo, and has been evaluated on **six independent cohorts**: DENTEX (development), four
 Ningxia hospitals, and the CariesXrays benchmark. Every reported number traces to a saved
-artefact — `scripts/verify_paper_numbers.py` asserts **191 manuscript claims** against those
+artefact — `scripts/verify_paper_numbers.py` asserts **188 manuscript claims** (191 until the 14 Oct Stage-4 rewrite) against those
 artefacts and all pass; `pytest` is **194/194**; `verify_invariants.py` all twelve hold (14 Oct). The manuscript
 (`paper/main.tex`) compiles clean under tectonic: **15 pages, 0 errors, 0 undefined
 references**, one 4 pt overfull box; a pdfLaTeX build is still owed. Its core finding — a
@@ -777,8 +781,8 @@ councilled on how** (`RESULTS_LOG` 2026-10-12c,
   6. Stale text a reader meets first: `docs/assets/hero.svg` (0.810, 58.3%, 0.9233 as
      headline tiles), the README's badges and "127 numbers", a banner on
      `PROJECT_OVERVIEW.html`, the Dockerfile's header.
-  7. When the six-page cut exists: point `scripts/verify_paper_numbers.py` at it and add the
-     Stage-4a figures to its claims. It checks none of them today.
+  7. When the six-page cut exists: point `scripts/verify_paper_numbers.py` at it. The Stage-4a
+     figures are among its claims since 14 Oct (`RESULTS_LOG` 2026-10-14b).
 - **Stop date for code: 20 Oct.** Nothing new is measured from today.
 - **The task-level plan for 14 Oct** — files, changes, checks, order, and six further small
   defects found while reading the code (a stale numbering-head tag in every report among
@@ -792,11 +796,16 @@ councilled on how** (`RESULTS_LOG` 2026-10-12c,
   near-duplicate scan of the Tufts split (V1) and a Stage-4a crop-parity test (V2). Questions
   D5 (README infographics) and D6 (overlay colours) added.
 - **Done 14 Oct** (`docs/session-memory/2026-10-14b-implementation.md`): T0–T7, V1, V2, F1, F3,
-  F7, W1, W2. **Left:** Phase C and F2 — the Stage-4 manuscript text and Fig. 5, which still
-  shows the withdrawn 0.923 — with the six-page cut; F4–F6 for the figures that survive it; tell
+  F7, W1, W2; **and that evening Phase C and F2** — the 15-page manuscript's Stage-4 text and
+  Fig. 5 (`RESULTS_LOG` 2026-10-14b). **Left:** the six-page cut, carrying that text; F4–F6 for
+  the figures that survive it; tell
   the mentor and the repo owner (the detector switch, the Stage-4a change, the withheld grade,
   the 248/1017 pair; the Docker image is three default changes behind); the README's narrative
   sections C1–C4 still describe the previous front end (their figures are unlinked).
+- **The plan from here, stage by stage** — what each stage has, what 14 Oct fixed, what to fix
+  before submission (S1–S10, owner tasks O1–O5) and what to improve after it with its research
+  basis (J1–J12): `docs/session-memory/2026-10-14d-plan-by-stage.md`. Next: S2–S5 in the
+  15-page text, then the cut. Decisions D7–D10 at its end.
 - **On the other machine:** the pdfLaTeX build is needed; the Docker rebuild is needed only if
   the paper mentions Docker.
 - **"Are all the metrics good?" No, as on 12 Oct.** Several are weak and two outputs are

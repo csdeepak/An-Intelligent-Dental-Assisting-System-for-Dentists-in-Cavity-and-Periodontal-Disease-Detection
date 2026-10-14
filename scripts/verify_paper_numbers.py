@@ -283,37 +283,43 @@ check("32B answer to noise", ctl32["answers"]["noise"], "control_pixels_32b")
 check("7B answer to noise", ctl7["answers"]["noise"], "control_pixels_7b")
 
 # ------------------------------------------------------------------ Stage 4
-G = RES["G_ningxia_stage4_flag"]
-
-
-def pct_ci(e):
-    return f"[{r(e['ci95'][0]*100, 2)}, {r(e['ci95'][1]*100, 2)}]"
-
-
-rates = []
-for site, v in G["per_hospital"].items():
-    a = v[NEW]
-    rate = a["affected_teeth_flagged"] / a["affected_teeth"]
-    rates.append(rate)
-    check(f"Stage 4 {site}", r(rate*100, 2) + "% " + pct_ci(a["flag_rate"]), SW + "results")
-check("Stage 4 external range", r(min(rates)*100, 2) + "--" + r(max(rates)*100, 2) + "%",
-      SW + "results")
-g = G[NEW]
-check("Stage 4 pooled", r(g["affected_teeth_flagged"] / g["affected_teeth"] * 100, 2) + "%",
-      SW + "results")
-check("Stage 4 pooled CI", f"{r(g['flag_rate']['ci95'][0]*100, 2)}, {r(g['flag_rate']['ci95'][1]*100, 2)}",
-      SW + "results")
-check("Stage 4 pooled counts",
-      f"{g['affected_teeth_flagged']} of {g['affected_teeth']:,} after", SW + "results")
-check("Stage 4 previous-detector counts",
-      f"{G['m11']['affected_teeth_flagged']} flagged of {G['m11']['affected_teeth']:,}", SW + "results")
-t4 = G["per_hospital"]["test4"]
-check("Stage 4 test4 affected teeth, current", f"{t4[NEW]['affected_teeth']} affected teeth", SW + "results")
-check("Stage 4 test4 affected teeth, previous", f"found {t4['m11']['affected_teeth']}", SW + "results")
-K = RES["K_dentex_stage4_firing"][NEW]
-check("Stage 4 DENTEX firing rate", r(K["stage4_flagged"] / K["teeth_detected"] * 100, 2) + "%",
-      SW + "K_dentex_stage4")
-check("Stage 4 DENTEX counts", f"{K['stage4_flagged']} of {K['teeth_detected']:,}", SW + "K_dentex_stage4")
+# Rebuilt 14 Oct 2026 with the manuscript's Stage-4 subsection (RESULTS_LOG 2026-10-14): Stage 4a
+# as it ships -- three runs of the radiograph-split recipe on the Tufts test split, the first
+# model on the test radiographs it had not trained on, and the default's DENTEX firing rate.
+# The Ningxia affected-tooth figures belonged to the first model and left the manuscript with
+# it; every rate below is recomputed from the confusion counts, not read from a rounded field.
+V2 = "outputs/bone_loss_eval/v2_retrain/"
+TS = load(V2 + "test_summary.json")
+runs = [TS[f"seed_{s}"]["all"] for s in (42, 43, 44)]
+cf = [m["confusion"] for m in runs]
+pos4 = runs[0]["positive_teeth"]
+sens4 = [c["tp"] / (c["tp"] + c["fn"]) for c in cf]
+spec4 = [c["tn"] / (c["tn"] + c["fp"]) for c in cf]
+ppv4 = [c["tp"] / (c["tp"] + c["fp"]) for c in cf]
+roc4 = [m["roc_auc"]["value"] for m in runs]
+check("Stage 4a three sensitivities",
+      f"{r(sens4[0]*100, 1)}%, {r(sens4[1]*100, 1)}% and {r(sens4[2]*100, 1)}%", V2 + "test_summary")
+check("Stage 4a three counts", f"{cf[0]['tp']}, {cf[1]['tp']} and {cf[2]['tp']} of {pos4}", V2 + "test_summary")
+check("Stage 4a pooled", f"{r(sum(c['tp'] for c in cf) / (3 * pos4) * 100, 1)}% pooled", V2 + "test_summary")
+check("Stage 4a specificity range",
+      f"{r(min(spec4)*100, 1)}--{r(max(spec4)*100, 1)}% specificity", V2 + "test_summary")
+check("Stage 4a precision range", f"precision {r(min(ppv4)*100, 1)}--{r(max(ppv4)*100, 1)}%",
+      V2 + "test_summary")
+check("Stage 4a ROC range", f"ROC area {r(min(roc4), 2)}--{r(max(roc4), 2)}", V2 + "test_summary")
+check("Stage 4a test split", f"{runs[0]['radiographs']} radiographs, {runs[0]['teeth']:,} teeth, {pos4} carrying",
+      V2 + "test_summary")
+check("Stage 4a range, abstract and conclusion",
+      f"{r(min(sens4)*100, 1)}--{r(max(sens4)*100, 1)}%", V2 + "test_summary")
+u4 = TS["shipped"]["unseen_by_shipped"]
+check("Stage 4 first model, radiographs", f"{u4['radiographs']} test radiographs it had not trained on",
+      V2 + "test_summary")
+check("Stage 4 first model, counts", f"({u4['confusion']['tp']} of {u4['positive_teeth']})", V2 + "test_summary")
+check("Stage 4 first model, sensitivity",
+      f"{r(u4['confusion']['tp'] / u4['positive_teeth'] * 100, 1)}%", V2 + "test_summary")
+D4 = load(V2 + "dentex_firing.json")["default"]
+check("Stage 4a DENTEX firing",
+      f"{r(D4['flagged'] / D4['teeth_detected'] * 100, 1)}% of detected teeth "
+      f"({D4['flagged']} of {D4['teeth_detected']:,})", V2 + "dentex_firing")
 
 # ------------------------------------------ the tooth detector's registered guard
 M = RES["M_tufts_test_box_map"]
@@ -322,11 +328,9 @@ check("Tufts box mAP, Tufts-only control", r(M["controlB"]["box_map50"], 3), SW 
 check("Tufts box mAP gap", f"{-M['arm3c_minus_controlB_pp']:.1f} points", SW + "M_tufts_map")
 assert M["arm3c"]["box_map50"] < M["controlB"]["box_map50"] - 0.04, \
     "the manuscript says the registered Tufts guard was missed"
-# what moved when only the tooth detector changed
-check("numbering change with the detector",
-      sgn(RES["B_dentex_numbering"]["deltas"]["end_to_end_arm3c_minus_m11"]["delta_pp"]), SW + "results")
-check("external gate agreement change with the detector",
-      sgn(NX["pooled"]["deltas"]["pipeline: arm3c_minus_m11"]["delta_pp"]), SW + "results")
+# what moved when only the tooth detector changed. The numbering (+34.40) and external gate
+# agreement (+19.35) deltas left the manuscript on 14 Oct 2026 with the paragraph that used
+# them -- the first Stage-4 model's "bone loss moved by nothing" argument (RESULTS_LOG 2026-10-14).
 for key in ("C_dentex_lesion_agreement", "E_cariesxrays_lesion_agreement",
             "F_ningxia_caries_lesion_agreement"):
     check(f"constant's change with the detector ({key[:1]})",
