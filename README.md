@@ -163,7 +163,7 @@ pipeline, and it follows directly from anatomy — see
 | 4b | **Severity of flagged teeth** — ResNet18 + focal loss | Same expanded crop | "Mild / Moderate / Severe" = low / middle / high crop contrast | ⚠️ **Trained on a crop-contrast stand-in, not on mask overlap** (found 13 Oct 2026). On the true overlap bands (Tufts test, 182 positive teeth) it scores macro-F1 0.366; a head retrained on those bands scored 0.294 and did not beat an image-blind tooth-position prior (0.334), so it was not adopted (`RESULTS_LOG` 2026-10-14d). **Withheld from the report by default since 14 Oct** (`--bone-severity-grade` restores it). |
 | — | *CEJ bone-level estimation (classical CV)* | Expanded crop | bone loss % | 🔬 **Negative result.** 15.1% exact agreement, 61.6% within ±1 class. **Not in the pipeline**, reported as a negative result. |
 | 5 | **Fusion, flags, assessability** | All tooth outputs | Fused per-tooth record | ✅ Positional-alignment guard + confidence gating. Abstains below `ASSESSABILITY_MIN_FDI_CONFIDENCE = 0.30` → 90.8% coverage at 0.847 accuracy. |
-| 6 | **Report** | Fused findings | Per-tooth JSON + overlay | ✅ Schema `opg-report/1.5`: every checkpoint's sha256 and tag in the report. 2.39 s/image on CPU as published (previous front end). Grad-CAM remains design-only. |
+| 6 | **Report** | Fused findings | Per-tooth JSON + overlay | ✅ Schema `opg-report/1.6`: every checkpoint's sha256 and tag in the report, with input warnings and the runtime (versions, devices). 2.39 s/image on CPU as published (previous front end). Grad-CAM remains design-only. |
 
 > **"Complete" means trained and running end to end — not validated to clinical standard.** What is
 > honestly still weak, and is written into every generated report under `["limitations"]`: the

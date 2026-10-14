@@ -870,7 +870,11 @@ Not integrated. Reported as a negative result.
 checkpoint's sha256 and tag stamped in `models`; the Stage-4 severity grade withheld by default;
 overlay orange = finding, blue = no finding (thin, `?` = numbering uncertain), grey = not
 assessable. `pytest` 194 passed; `verify_invariants.py` 12 hold (ten weight files pinned, the
-Tufts split disjoint). **14 Oct, late night:** 204 tests (205 from 15 Oct, with a check that every default has a pin) — the seven default checkpoints are now
+Tufts split disjoint). **15 Oct:** schema `opg-report/1.6` — input warnings, the runtime that
+produced a report (versions, commit, and each component's device: on the Mac the classifiers run on
+MPS and both YOLO models on the CPU), and lesion boxes that fall on no tooth; 213 tests, including
+an end-to-end run of the seven defaults; per-tooth outputs unchanged on six before/after reports
+(`RESULTS_LOG` 2026-10-15b). **14 Oct, late night:** 204 tests (205 from 15 Oct, with a check that every default has a pin) — the seven default checkpoints are now
 checked against their pinned sha256 before loading, and the shipped Stage-3a lesion-to-tooth
 mapping has its own tests (`RESULTS_LOG` 2026-10-14e).
 

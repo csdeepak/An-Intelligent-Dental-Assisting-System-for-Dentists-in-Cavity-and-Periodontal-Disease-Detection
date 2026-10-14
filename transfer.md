@@ -136,6 +136,16 @@ numbering is no longer called calibrated, the 0.30 threshold no longer pre-regis
 Ningxia lead is reported as holding at three of four hospitals — pooled as a sample of hospitals
 it is +9.61 [−0.54, +19.76]. Three citations added. 205 tests, 214 claims, 16 pages. §1 and §3
 edited.
+**15 Oct, later — an implementation-only council** (`docs/session-memory/2026-10-15b-implementation-council.md`):
+every stage's code is sound or sound with fixes; a ranked list of ten fixes that change no output,
+and a separate list for after 20 Oct. Nothing applied. Paper changes it found are only noted, in
+`docs/paper/paper_change_notes_2026-10-15.md` — including that the 15 Oct Stage-3b sentence is
+wrong: a held-out DENTEX test split with 84 deep-caries annotations exists (`data/dentex/splits_v2.json`).
+**15 Oct, later still — the council's ten implementation fixes applied, no output changed**
+(`RESULTS_LOG` 2026-10-15b, `docs/session-memory/2026-10-15c-implementation-fixes.md`): input
+warnings, an end-to-end test, every YOLO load hash-checked, runtime provenance in the report, NaN
+guards, app and Docker hygiene; schema 1.6; 213 tests. Six before/after reports identical per
+tooth. The Docker image still has to be built, on Windows. §1 and §8 edited.
 
 > **Windows clone, 6 Sep 2026 — the Tufts crop corpus was cut from the wrong frame, and is now
 > rebuilt.** It scored 11.5% crop-level FDI-exact where the published number is 71.5%, with correct
@@ -255,7 +265,7 @@ deployed in a Streamlit +
 Docker demo, and has been evaluated on **six independent cohorts**: DENTEX (development), four
 Ningxia hospitals, and the CariesXrays benchmark. Every reported number traces to a saved
 artefact — `scripts/verify_paper_numbers.py` asserts **214 manuscript claims** (15 Oct) against those
-artefacts and all pass; `pytest` is **205/205**; `verify_invariants.py` all twelve hold (14 Oct). The manuscript
+artefacts and all pass; `pytest` is **213/213**; `verify_invariants.py` all twelve hold (14 Oct). The manuscript
 (`paper/main.tex`) compiles clean under tectonic: **16 pages (the 16th holds four references), 0 errors, 0 undefined
 references**, one 4 pt overfull box; a pdfLaTeX build is still owed. Its core finding — a
 tooth-level score
@@ -1095,7 +1105,7 @@ the raw-datasets table).
    working with numpy 2.x — see the numpy note below). For the exact stack behind the
    11–14 Oct figures (Python 3.12, torch 2.2.0): `pip install -r requirements-lock.txt`.
 2. Fetch the Drive-only checkpoints per `docs/EXTERNAL_DRIVE.md` (see table below for which).
-3. `python -m pytest tests/ -q` → should read **205 passed** (203 passed, 2 skipped where the
+3. `python -m pytest tests/ -q` → should read **213 passed** (210 passed, 3 skipped where the
    Tufts radiographs are absent).
 4. `python scripts/eval/verify_invariants.py` → should read **all invariants hold**.
 5. `python scripts/run_inference.py --image <any_opg.png> --output report.json` → should
@@ -1103,8 +1113,8 @@ the raw-datasets table).
    tag `tooth-detector-multicorpus-1024-v1.0`), `models/16_lever_b_pooled` (Stage 3a default) and
    `models/10_fdi_head_dentex_tufts_v2` (Stage 2 default) in the report's `models` block, and
    since 13 Oct `models/18_bone_loss_radiograph_split/seed42_best.pth` under `bone_loss`
-   (tag `abnormality-flag-resnet18-radiograph-split-v2.0`, schema `opg-report/1.5` since
-   14 Oct). **That
+   (tag `abnormality-flag-resnet18-radiograph-split-v2.0`, schema `opg-report/1.6` since
+   15 Oct). **That
    file is in git only once the 13 Oct adoption has been committed — check `git ls-files`.**
    arm3c's weights are in git since `7dd3ff4` (11 Oct), so a clone has them; this step was
    verified on a checkout holding tracked files only (`RESULTS_LOG` 2026-10-11h).

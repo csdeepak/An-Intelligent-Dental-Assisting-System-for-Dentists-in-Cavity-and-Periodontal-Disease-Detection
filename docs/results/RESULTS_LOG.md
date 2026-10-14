@@ -9322,3 +9322,60 @@ manuscript now carries is from 2026-10-11g, -i and -j — and one new check, on 
   `tests/test_report.py`.
 - **Follow-ups:** the six-page cut carries these corrections; the abstract built around the shipped
   system is still the cut's. The not-done items above are the authors' choice.
+
+## 2026-10-15b — Implementation fixes from the third council: input warnings, an end-to-end test, pinned loads, provenance, NaN guards, app and Docker hygiene; no output changed
+
+- **What was done:** On the user's go, the ten output-neutral fixes of
+  `docs/session-memory/2026-10-15b-implementation-council.md`. (1) `check_input` warns — never
+  refuses — on a portrait or square image, an aspect ratio outside 1.5–2.6, a shorter side under
+  600 px, more than 50 MP, or a non-8-bit source. The bounds sit outside every DENTEX and Tufts
+  training image (aspect 1.60–2.33, shorter side at least 840 px, measured on all of them). The
+  warnings go into `report.image.warnings`, the CLI's stderr and the app. (2)
+  `tests/test_pipeline_e2e.py` runs the seven defaults on the CPU through `run_pipeline`: a
+  synthetic radiograph (well formed, valid JSON, identical across two runs) and a Tufts training
+  radiograph against a golden summary (`tests/golden/tufts_1_cpu.json`; the test skips without the
+  raw data). Unit tests cover each guard. (3) An unreadable image now stops
+  `lesion_localization.py` and `c1_vlm_baseline.py` instead of being skipped; a corrupt isotonic
+  calibrator is an error, an absent one is not; lesion boxes on no detected tooth are counted.
+  (4) `load_yolo_pinned`: every YOLO unpickle in the pipeline and in seven eval scripts goes
+  through it — a default must match its pin, an unregistered file warns; `verify_invariants.py`
+  reads class orders with `weights_only=True`. (5) The report's `models.runtime` records Python,
+  platform, torch, torchvision, ultralytics, numpy, OpenCV, the git commit and each component's
+  device. (6) Classifier and FDI-head outputs must be finite; a NaN FDI confidence fails the
+  assessability gate (`nan < 0.30` is False, so it used to pass); reports are written with
+  `allow_nan=False`. (7) The app draws the overlay in memory (uploads were saved under
+  `outputs/_app_overlays/` for good), holds a lock around `run_pipeline`, does not cache a load
+  error, no longer blames Google Drive, and no longer crashes on a `None` recall. (8) The
+  Dockerfile installs `requirements-lock.txt` (every pin has a cp312 manylinux wheel, checked on
+  PyPI), uses `python:3.12.12-slim`, and loads the seven defaults at build time. (9) The
+  caries-severity limitation now says a held-out split exists and was never used. (10)
+  `ultralytics>=8.3,<9`. Report schema 1.6. Nothing trained or scored, no Ningxia data read, no
+  default changed. Narrative: `docs/session-memory/2026-10-15c-implementation-fixes.md`.
+- **Dataset / config:** a parity check on three images in no test split — DENTEX training images
+  `train_0.png` and `train_1.png`, Tufts training radiograph `1.JPG` — each in the default mode and
+  in gate mode with the Stage-4 grade, before and after the change, on the same Mac with the default
+  devices.
+- **Metrics:** no model number. **Parity: all six reports identical in every per-tooth record,
+  summary, limitation and model field;** the only differences are the schema version, the corrected
+  caries-severity text, and the added `image.warnings` (empty for all six), `models.runtime` and
+  the lesion counts. Two runs of the same image were identical before the change. Checks: pytest
+  213 (205 before), invariants 12, claims 214. The runtime record shows that on the Mac the
+  classifiers run on MPS and both YOLO models on the CPU. A portrait copy of `1.JPG` now warns; it
+  finds 1 tooth, against 9 for the landscape original.
+- **Key decision or insight:** the input check warns and never refuses: refusing would change
+  outputs, which is the decision owner's call. Additive report fields follow the file's own
+  convention, a schema bump. The eval scripts keep their `from ultralytics import YOLO` lines where
+  they were, because importing ultralytics patches `cv2.imread` globally
+  (`scripts/eval/ningxia_external.py:140-149`). No device is forced in the pipeline — that would
+  change numerics — the device is recorded instead.
+- **Disclosures:** the Docker image was not built (Docker is off on the Mac); build and smoke-test
+  it on Windows. The app's upload path was not driven in a browser: the app started headless
+  (Streamlit AppTest, no exception) and the changed Streamlit calls were validated in bare mode.
+  The golden summary is derived from a licensed Tufts radiograph (predictions only, no pixels);
+  whether to commit it is the user's decision. `paper/main.tex` still says 204 tests
+  (`docs/paper/paper_change_notes_2026-10-15.md`).
+- **Source:** `scripts/run_inference.py`, `src/classifiers.py`, `src/fdi_head_inference.py`,
+  `app.py`, `Dockerfile`, `requirements.txt`, the seven eval scripts and `verify_invariants.py`;
+  `tests/test_report.py`, `tests/test_classifiers.py`, `tests/test_pipeline_e2e.py`.
+- **Follow-ups:** the Docker build on Windows; the after-20-Oct list in the council file (the
+  Stage-3b retrain on `splits_v2`, an aspect-restoring front end, calibration under shift).
