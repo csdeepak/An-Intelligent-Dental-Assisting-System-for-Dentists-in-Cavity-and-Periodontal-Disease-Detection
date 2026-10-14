@@ -90,6 +90,12 @@ CariesXrays +37.80 pp; Ningxia +8.39 pp [+4.06, +12.67]. The constant rises with
 (+13.99, +4.12, +19.25 pp), so the rise in every column is mostly the front end. Lever B's
 4 Sep verdict is not re-decided by this table. Per hospital: `RESULTS_LOG` 2026-10-11g.
 
+*15 Oct 2026, post hoc (`RESULTS_LOG` 2026-10-15):* the Ningxia lead pooled as a sample of
+hospitals rather than four fixed ones — DerSimonian–Laird on the four per-hospital differences —
+is **+9.61 pp [−0.54, +19.76]**, I² 81%, prediction interval for a further hospital
+[−36.08, +55.29]. It holds at three of these four hospitals and is not shown for a new one.
+`outputs/stage1_switch/F_ningxia_random_effects.json`.
+
 *12 Oct 2026:* the CariesXrays 1,200 images are the lesion detector's **validation split** —
 not trained on, but used for early stopping and to choose `best.pt`. Its 0.757 there is a
 validation-split figure. The gate and the constant never saw those images. `RESULTS_LOG`
@@ -864,7 +870,7 @@ Not integrated. Reported as a negative result.
 checkpoint's sha256 and tag stamped in `models`; the Stage-4 severity grade withheld by default;
 overlay orange = finding, blue = no finding (thin, `?` = numbering uncertain), grey = not
 assessable. `pytest` 194 passed; `verify_invariants.py` 12 hold (ten weight files pinned, the
-Tufts split disjoint). **14 Oct, late night:** 204 tests — the seven default checkpoints are now
+Tufts split disjoint). **14 Oct, late night:** 204 tests (205 from 15 Oct, with a check that every default has a pin) — the seven default checkpoints are now
 checked against their pinned sha256 before loading, and the shipped Stage-3a lesion-to-tooth
 mapping has its own tests (`RESULTS_LOG` 2026-10-14e).
 

@@ -76,6 +76,13 @@ fixed-site. The text is now 16 pages; the 16th holds four references. **For the 
 abstract around the shipped system — its DENTEX development headline is the retired gate's — and
 drop "Domain Shift" from the title and keywords and the periodontal opening.
 
+**15 Oct: a second publishability council** (`RESULTS_LOG` 2026-10-15, `PAPER_MATERIAL.md` §8.42).
+24 corrections in the 15-page text — among them numbering is no longer said to be calibrated, the
+0.30 threshold is no longer called pre-registered, the F1 lead is no longer said to have failed
+externally (it cannot be scored there), and the Ningxia lead is reported as holding at three of
+four hospitals, with a random-effects interval that spans zero. Three citations added (Krois 2021,
+Schwendicke 2021, the UFBA-425 source) and Bizjak 2024 cited. 214 claims, 16 pages.
+
 Each was checked against `main.tex` by the session chair
 (`docs/session-memory/2026-10-12-publishability-council.md`). All are edits; none needs a run.
 

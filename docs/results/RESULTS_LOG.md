@@ -9259,3 +9259,66 @@ manuscript now carries is from 2026-10-11g, -i and -j — and one new check, on 
 - **Follow-ups:** the mentor meeting (O1) before the cut; the cut carries the abstract rewrite.
   Optional, the decision owner's: abstention under shift — Tufts and UFBA coverage at τ 0.30
   from saved rows — logged as arithmetic if it goes in.
+
+## 2026-10-15 — Second publishability council: every stage checked against its artefacts and published practice; 24 manuscript corrections, a random-effects reading of Ningxia, three citations
+
+- **What was done:** On the user's `/council`, after the 14 Oct fixes were pushed (`f1007ca`): the
+  test suite, the invariants and the claim checker re-run; every stage's headline metric re-read
+  from its artefact; and published practice looked up for each open issue (WebSearch — Firecrawl
+  was not available in the session). Three independent read-only seats: a dental-AI referee
+  (Opus), an evaluation statistician (Sonnet) and a red-team auditor (Opus). The chair checked
+  each finding used against the repo. On the user's go: 24 corrections to the 15-page
+  `paper/main.tex`; three bibliography entries; a post hoc random-effects analysis of the Ningxia
+  per-hospital differences (`scripts/eval/ningxia_random_effects.py` →
+  `outputs/stage1_switch/F_ningxia_random_effects.json`); and the default-checkpoint pin table
+  keyed by resolved path, with a test that every default has a pin. Nothing trained or scored, no
+  Ningxia data read, no default changed. Narrative:
+  `docs/session-memory/2026-10-15-publishability-council-2.md`.
+- **Dataset / config:** the random-effects analysis reads only the four saved per-hospital
+  differences (lesion detector − constant, current front end) and their 95% percentile intervals
+  in `stage1_switch_results.json`; SE = interval width / 3.92; DerSimonian–Laird; prediction
+  interval on t(k − 2). Post hoc, not pre-registered.
+- **Metrics:** Before: 204 tests, 12 invariants (two run in part here — the crop corpora are not
+  built on this clone), 207 claims, every headline metric equal to its artefact. **Random effects:
+  +9.61 pp, 95% CI [−0.54, +19.76]; Q = 15.79 (p = 0.0013), I² = 81%, τ = 9.27 pp; prediction
+  interval for a further hospital [−36.08, +55.29].** The registered fixed-site figure stands at
+  +9.28 [+4.72, +13.73]; the lead is positive and separated at three of the four hospitals. After:
+  205 tests, 12 invariants, 214 claims, tectonic 16 pages, 0 errors, 0 undefined references.
+- **Key decision or insight:** **Every stage is publishable after edits only; none needs a new
+  experiment. But the manuscript claimed more than its artefacts show.** (a) "Neither lead survived
+  outside it": the F1 lead cannot be scored externally — no external cohort carries tooth codes.
+  (b) Numbering's "calibrated probabilities", "For numbering, yes" and "numbering shows all four":
+  no numbering calibration was ever measured; it shows three. (c) The 0.30 threshold, "pre-registered
+  … chosen before these data were seen": it was fixed in code on 24 Aug as a documented heuristic,
+  and it is the numbering head's threshold, not the gate's. (d) "Its sign is robust" for Ningxia:
+  under random effects the interval spans zero; the text now says the lead holds at three of these
+  four hospitals and is not shown for one not yet seen. (e) Stage 3b was described without saying
+  it is untested. (f) Factual: 200-fold → 34-fold; "every interval 10,000 resamples" → the
+  calibration intervals used 2,000 over 34 images; "first arm to beat the constant on data it had
+  never seen" → the first whose pooled lead excluded zero (the gate beat it at test1); +10.2 and
+  +10.07 named as two runs of one comparison; Table V's 164 images → 148; Table I's row is a
+  validation split; "each evaluation artefact records the hashes" → the defaults are checked before
+  loading and every report records them; the 14 Oct perceptual-hash sentence said "each scored
+  image", but the minimum distance (37–42 bits) is below the training pairs' 5th percentile (45),
+  so it now describes the distribution. Added: the detection rule (IoU ≥ 0.30, or centre
+  containment); a reference-standard sentence; UFBA-425 in Table III; the lesion detector's 650
+  DENTEX training images in footnote a. Citations: Krois et al. 2021 (Sci Rep 11:6102; apical-lesion
+  F1 54.1% at the training centre, 32.7% at a second), Schwendicke et al. 2021 (J Dent 107:103610,
+  dental-AI reporting checklist), Budagam et al. 2024 (arXiv:2406.03747, introduces UFBA-425), and
+  the existing entry Bizjak & Robič 2024, now cited (lesion-level sensitivity 0.70 internal, 0.67
+  external). Each verified against Crossref, the Europe PMC abstract, the arXiv API or the PDF text.
+- **Disclosures:** the per-hospital SEs are approximated from percentile intervals, and with k = 4
+  the DerSimonian–Laird interval is itself approximate (a t₃ interval is wider, about
+  [−6.9, +26.1] — the chair's arithmetic, not in the artefact). The 34-fold ratio is checked
+  against the two areas the text states; no artefact records the 731 px median. Not adopted:
+  "tied" for Stage 4b; replacing Stage 4a's 3.4% with 7.6%; "every tooth in the mouth" against
+  "permanent teeth" (not verified). Not done (outside the approved list): abstention per cohort
+  under shift (one seat counted 3.9 / 14.4 / 26.3% of teeth declined on DENTEX / Tufts / UFBA,
+  not recomputed), Tufts in the patient-level limitation, the "no GPU present" and "fuse on the FDI
+  key" wording, false positives per image, the shipped detector's lesion-level AP.
+- **Source:** `paper/main.tex`; `paper/source.bib`; `scripts/eval/ningxia_random_effects.py`;
+  `outputs/stage1_switch/F_ningxia_random_effects.json`; `scripts/verify_paper_numbers.py` (seven
+  new claims, two new assertions); `scripts/run_inference.py` (`DEFAULT_SHA256`);
+  `tests/test_report.py`.
+- **Follow-ups:** the six-page cut carries these corrections; the abstract built around the shipped
+  system is still the cut's. The not-done items above are the authors' choice.

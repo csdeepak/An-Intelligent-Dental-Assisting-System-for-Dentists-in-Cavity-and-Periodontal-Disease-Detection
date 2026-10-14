@@ -2979,6 +2979,46 @@ Shift" is in the title and the keywords, and the first sentence names periodonta
 
 ---
 
+### 8.42 What the manuscript claimed beyond its artefacts, and the Ningxia lead as a sample of hospitals
+
+*15 Oct 2026. `RESULTS_LOG` 2026-10-15. A second council, with published practice looked up for
+each issue; nothing was trained or scored.*
+
+**The Ningxia lead does not generalise to a hospital not yet seen.** The registered figure,
++9.28 [+4.72, +13.73], treats the four hospitals as fixed. Pooled as a sample of hospitals — the
+practice in multi-centre external validation (Snell, Riley et al., J Clin Epidemiol 2016) — the
+same four differences give +9.61 [−0.54, +19.76], I² 81%, and a prediction interval for a further
+hospital of [−36.08, +55.29]. Positive and separated at three of the four. The paper now says the
+lead holds at three of these four hospitals and is not shown for one not yet seen. Post hoc;
+`outputs/stage1_switch/F_ningxia_random_effects.json`.
+
+**What the text claimed that no artefact supports — now corrected in `main.tex`.**
+
+| Claim | What is true |
+|---|---|
+| "Neither lead survived outside it" | The localisation lead did not; the F1 lead cannot be scored externally (no tooth codes) |
+| Numbering has "calibrated probabilities"; "numbering shows all four" | Numbering calibration was never measured; it shows three |
+| The 0.30 threshold was "pre-registered … chosen before these data were seen" and "located on the gate's curve" | Fixed in code on 24 Aug as a documented heuristic; it is the numbering head's |
+| Its sign is robust | Not across hospitals (above) |
+| Stage 3b runs on flagged teeth (silent on testing) | Validated on 133 crops, never tested |
+| 200-fold area difference | About 34-fold |
+| All intervals 10,000 resamples | Calibration intervals: 2,000, over 34 images |
+| First arm to beat the constant on unseen data | First whose pooled lead excluded zero |
+| Table V on 164 images | 148 |
+| Every evaluation artefact records weight hashes | The defaults are checked before loading; every report records them |
+| (14 Oct) each scored image as far from training as training images from each other | True of the distribution only |
+
+**Published practice the paper now cites.** Cross-centre failure of a dental panoramic model
+(Krois et al. 2021); the dental-AI reporting checklist (Schwendicke et al. 2021); a two-step
+enumeration-then-caries detector with external lesion-level sensitivity (Bizjak & Robič 2024); the
+source of UFBA-425 (Budagam et al. 2024). Practice found but not acted on, for the authors: report
+abstention per cohort, since calibration and declining degrade under shift (Ovadia et al. 2019);
+vary more than the seed when estimating training variance (Bouthillier et al. 2021); patient-level
+splits (leakage literature); false positives per image and patient-level specificity for a
+caries detector (as Bizjak & Robič report).
+
+---
+
 ## 9. What's not yet written — checklist
 
 For whoever drafts the actual paper. Tick items off here as they land.
@@ -3011,6 +3051,11 @@ For whoever drafts the actual paper. Tick items off here as they land.
       detector's own development figure beside the gate's, its DENTEX tie on lesion agreement,
       no "domain shift" in the title or keywords, no periodontal opening. The six disclosure
       fixes of the same council are **done in the 15-page text** (`RESULTS_LOG` 2026-10-14e).
+- [x] **Correct what the text claimed beyond its artefacts** (§8.42, 15 Oct 2026): 24 edits in
+      the 15-page `main.tex`, the Ningxia random-effects sentence, three citations
+      (`RESULTS_LOG` 2026-10-15). The cut carries them.
+- [ ] **Optional, the authors' call** (§8.42): abstention per cohort under shift; Tufts in the
+      patient-level limitation; false positives per image for the lesion detector.
 - [x] **Decide which front end the manuscript reports, and make every table say so** (§8.30,
       11 Oct 2026). **Decided 11 Oct: the current one. `main.tex` was rebuilt the same day**
       (`RESULTS_LOG` 2026-10-11k): every table and the headline re-stated, the override of the

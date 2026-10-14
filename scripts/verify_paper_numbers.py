@@ -355,6 +355,30 @@ check("Stage 4b contrast-trained head",
 M16 = "models/16_lever_b_pooled/run_summary.txt"
 n16 = re.search(r"DENTEX-caries ([\d,]+) replicated", (REPO / M16).read_text(encoding="utf-8")).group(1)
 check("lesion detector's DENTEX training images", f"trained on {n16} other DENTEX images", M16)
+# Second publishability council, 15 Oct 2026 (RESULTS_LOG 2026-10-15).
+RE = load(SW + "F_ningxia_random_effects.json")
+assert sum(s["ci95_pp"][0] > 0 for s in RE["per_site"].values()) == 3, \
+    "the manuscript says the lead holds at three of the four hospitals"
+assert RE["ci95_pp"][0] < 0 < RE["ci95_pp"][1], "the manuscript says the random-effects interval spans zero"
+check("Ningxia random-effects lead",
+      f"the lead is ${sgn(RE['mean_pp'])}$ points with a 95% interval of "
+      f"$[{sgn(RE['ci95_pp'][0])}, {sgn(RE['ci95_pp'][1])}]$", SW + "F_ningxia_random_effects")
+check("Ningxia heterogeneity", f"$I^2 = {RE['i2_pct']:.0f}%$", SW + "F_ningxia_random_effects")
+check("Ningxia prediction interval",
+      f"further hospital of $[{sgn(RE['prediction_interval_pp'][0])}, {sgn(RE['prediction_interval_pp'][1])}]$",
+      SW + "F_ningxia_random_effects")
+check("Table V images", f"the {RES['C_dentex_lesion_agreement']['pooled']['n_images']} of the 164 DENTEX images",
+      SW + "results")
+cm = re.search(r"n=(\d+)\), (\d+) resamples",
+               load("outputs/calibration/caries_gate_calibration_test.json")["ci_method"])
+check("calibration resamples",
+      f"({int(cm.group(2)):,} for the caries-gate calibration intervals, over its {cm.group(1)} source images)",
+      "outputs/calibration/caries_gate_calibration_test.json")
+M07 = "models/07_caries_cascade/run_summary.txt"
+n07 = re.search(r"same (\d+) crops", (REPO / M07).read_text(encoding="utf-8")).group(1)
+check("Stage 3b validation crops", f"validated on {n07} crops and never tested", M07)
+check("lesion-to-tooth area ratio, from the two areas the text states",
+      f"roughly {round(25000 / 731)}-fold", "main.tex: 731 px and ~25,000 px")
 
 # ------------------------------------------ the tooth detector's registered guard
 M = RES["M_tufts_test_box_map"]
