@@ -351,6 +351,10 @@ check("Stage 4b contrast-trained head",
       f"scored {r(A3['pred_old']['macro_f1'], 3)} on the same teeth "
       f"({r(T3['old_on_radiographs_it_did_not_train_on']['macro_f1'], 3)} without the three test radiographs",
       V3 + "test_summary")
+# Table IV's caption, added 14 Oct 2026: DENTEX is in-domain for the lesion detector too.
+M16 = "models/16_lever_b_pooled/run_summary.txt"
+n16 = re.search(r"DENTEX-caries ([\d,]+) replicated", (REPO / M16).read_text(encoding="utf-8")).group(1)
+check("lesion detector's DENTEX training images", f"trained on {n16} other DENTEX images", M16)
 
 # ------------------------------------------ the tooth detector's registered guard
 M = RES["M_tufts_test_box_map"]

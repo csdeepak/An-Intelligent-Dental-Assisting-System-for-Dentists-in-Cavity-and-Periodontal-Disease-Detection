@@ -110,8 +110,9 @@ carrying its label.
 Acting on this, we then rebuilt the caries stage to localise lesions rather than
 label teeth---something the constant cannot do at all---and on the same 337
 external radiographs it beat the constant by 9.3 percentage points while flagging
-fewer teeth than it. Five prior attempts to improve the classifier, leaving the
-task unchanged, had all failed.
+fewer teeth than it, on a cohort that had also informed its adoption. Five prior
+attempts to improve the classifier, leaving the task unchanged, had all returned
+intervals spanning zero.
 We do not conclude that automated caries screening fails. We conclude that a
 tooth-level score alone cannot establish that a system is reading the
 radiograph---a pipeline can clear an image-blind floor on the data it was built
@@ -565,7 +566,10 @@ Overlap was determined by \textbf{MD5 hashing every image and matching byte-iden
 files}, not by filename and not by assertion: 85 images are byte-identical to an
 image used in numbering-head training and 1 to an image used in detector
 training, giving \textbf{86 excluded} and \textbf{164 scored}. The record is
-stored as a manifest and re-checked at run time.
+stored as a manifest and re-checked at run time. A 256-bit perceptual hash found
+no near-copy either: against the DENTEX images both detectors trained on, each
+scored image lies as far from its nearest training image as training images lie
+from one another.
 
 The image-blind constant is fitted on those excluded images and applied to the
 scored ones. Of the 86, \textbf{78 carry at least one caries annotation}, and
@@ -605,7 +609,8 @@ detection baselines (Section~\ref{sec:benchmarkrow}). We count \textbf{13{,}784}
 caries instances in the release we obtained; the paper states 13{,}778 and the
 authors' repository 13{,}783. We report our own count and note the discrepancy
 rather than adopt either figure, since nothing here depends on which is right. We score the 1{,}200 images
-that serve as the Stage-3a lesion detector's validation split---no gradient came
+that serve as the Stage-3a lesion detector's validation split, drawn by image
+rather than by patient---no gradient came
 from them, but its training stopped and chose its checkpoint on them, so they are
 external for the gate and the constant and not for the detector---carrying
 \textbf{2{,}815 lesions}---more than the development and first external cohorts combined---and
@@ -803,7 +808,8 @@ the set-prediction result exactly.
 
 \begin{table}[t]
 \caption{Tooth-level caries prediction. \textbf{Dataset:} 164 leakage-free
-DENTEX images, in-domain for the tooth detector. \textbf{Task:} name the carious
+DENTEX images, in-domain for the tooth detector and for the lesion detector, which
+trained on 650 other DENTEX images. \textbf{Task:} name the carious
 teeth. \textbf{Metric:} FDI-set precision/recall/F1, micro-averaged.
 \textbf{Unit:} tooth code; $n = 477$ annotated carious teeth. One scorer for all
 arms. The pipeline is scored with each Stage-3a implementation; its parameter
@@ -1058,7 +1064,9 @@ $[+1.07, +21.34]$ and $+13.98$ $[+2.34, +24.34]$) and not at test1 ($-3.16$
 $[-10.56, +3.97]$), the hospital where the constant is strongest. It was the first
 arm in this work to beat the constant on data it had never seen. Because Ningxia was
 one of the three cohorts that decided the detector's adoption, this lead is
-conditioned on that choice: its sign is robust, its size optimistic. Under the
+conditioned on that choice: its sign is robust, its size optimistic. The pooled
+interval treats the four hospitals as fixed; it does not cover the spread between
+them, and a further hospital could, like test1, fall on the constant's side. Under the
 previous tooth detector the same two comparisons were $+0.79$ and $+10.07$ points;
 only on DENTEX did a sign change with the detector.
 
@@ -1531,7 +1539,10 @@ Each item states what it prevents us from concluding.
         them covers training variance.
   \item \textbf{Patient-level separation cannot be verified on DENTEX}, which
         ships no patient identifiers. We establish byte-level and image-level
-        separation only.
+        separation only. Our CariesXrays split is by image too (the official
+        split is not public), and its 6{,}000 images come from 5{,}380 patients,
+        so a patient can sit on both sides of the lesion detector's validation
+        split.
   \item \textbf{All data is retrospective and public or archival.} There is no
         prospective evaluation, and prevalence in these cohorts need not match any
         clinic's.
@@ -1589,7 +1600,7 @@ artefact records the hashes of the weights that produced it. The frozen constant
 reported in Table~\ref{tab:fdiset} was independently re-derived from the 78
 fitting images during manuscript preparation and reproduced exactly. Exact
 package versions are recorded in \texttt{requirements-lock.txt}. The supporting
-test suite comprises 194 tests, all passing.
+test suite comprises 204 tests, all passing.
 
 %% =====================================================================
 \bibliographystyle{IEEEtran}

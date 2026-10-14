@@ -125,6 +125,11 @@ Three seeds trained once each on the Mac and frozen in `a6e837b`; seed 42 macro-
 [0.214, 0.385] against 0.334 for an image-blind tooth-position prior. No default changed; the grade
 stays withheld; `main.tex` states the result. §1, §3 and §8 edited (§8 now records what the
 Windows clone lacks for the Stage-4 scripts).
+**14 Oct, late night — a publishability council, then six manuscript and two code fixes**
+(`RESULTS_LOG` 2026-10-14e, `docs/session-memory/2026-10-14g-publishability-council-and-fixes.md`):
+no stage needs a new experiment; the gaps are claims and scope. Defaults are now hash-checked
+before loading; the shipped Stage-3a mapping has tests. 204 tests, 207 claims, 16 pages. §1, §3
+and §8 edited.
 
 > **Windows clone, 6 Sep 2026 — the Tufts crop corpus was cut from the wrong frame, and is now
 > rebuilt.** It scored 11.5% crop-level FDI-exact where the published number is 71.5%, with correct
@@ -243,9 +248,9 @@ The six-stage pipeline runs end to end on CPU alone (1.70 s/image on the macOS c
 deployed in a Streamlit +
 Docker demo, and has been evaluated on **six independent cohorts**: DENTEX (development), four
 Ningxia hospitals, and the CariesXrays benchmark. Every reported number traces to a saved
-artefact — `scripts/verify_paper_numbers.py` asserts **206 manuscript claims** (14 Oct, late night) against those
-artefacts and all pass; `pytest` is **197/197**; `verify_invariants.py` all twelve hold (14 Oct). The manuscript
-(`paper/main.tex`) compiles clean under tectonic: **15 pages, 0 errors, 0 undefined
+artefact — `scripts/verify_paper_numbers.py` asserts **207 manuscript claims** (14 Oct, late night) against those
+artefacts and all pass; `pytest` is **204/204**; `verify_invariants.py` all twelve hold (14 Oct). The manuscript
+(`paper/main.tex`) compiles clean under tectonic: **16 pages (the 16th holds four references), 0 errors, 0 undefined
 references**, one 4 pt overfull box; a pdfLaTeX build is still owed. Its core finding — a
 tooth-level score
 cannot distinguish a real detector from an anatomical prior — now reads: the pipeline clears
@@ -836,6 +841,17 @@ councilled on how** (`RESULTS_LOG` 2026-10-12c,
   spent for Stage 4b too. **Open:** whether the journal version keeps or removes the head — this
   result is the case for removal; the decision owner's call. The three weight files are
   local-only (`models/19_bone_severity_overlap/run_summary.txt`).
+- **14 Oct, late night: is every stage publishable? Councilled a fourth time**
+  (`RESULTS_LOG` 2026-10-14e, `PAPER_MATERIAL.md` §8.41). No stage needs a new experiment; data,
+  Stages 1, 2 and 3a are publishable with disclosures, 3b is one clause, 4a one sentence, 4b cut.
+  **Done:** six disclosure edits in the 15-page text and two code fixes (defaults hash-checked
+  before loading; tests for the shipped lesion-to-tooth mapping). **Next, in order:** the mentor
+  meeting (O1); then the cut, whose abstract must be built around the shipped lesion detector —
+  the current abstract's development headline is the retired gate's — without "domain shift"
+  in the title or keywords and without the periodontal opening; then authors, statements,
+  CLAIM 2024 and a referee read. **Decisions for the owner:** Stage 4 in the cut (council: one
+  sentence on 4a, nothing on 4b); a fallback date for the Kaggle licence; whether to freeze code
+  now. Declined: a confidence sweep on DENTEX and CariesXrays validation.
 - **On the other machine:** the pdfLaTeX build is needed; the Docker rebuild is needed only if
   the paper mentions Docker.
 - **"Are all the metrics good?" No, as on 12 Oct.** Several are weak and two outputs are
@@ -1065,7 +1081,7 @@ the raw-datasets table).
    working with numpy 2.x — see the numpy note below). For the exact stack behind the
    11–14 Oct figures (Python 3.12, torch 2.2.0): `pip install -r requirements-lock.txt`.
 2. Fetch the Drive-only checkpoints per `docs/EXTERNAL_DRIVE.md` (see table below for which).
-3. `python -m pytest tests/ -q` → should read **197 passed** (195 passed, 2 skipped where the
+3. `python -m pytest tests/ -q` → should read **204 passed** (202 passed, 2 skipped where the
    Tufts radiographs are absent).
 4. `python scripts/eval/verify_invariants.py` → should read **all invariants hold**.
 5. `python scripts/run_inference.py --image <any_opg.png> --output report.json` → should
