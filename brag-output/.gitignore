@@ -1,0 +1,15 @@
+# Panel-review video: rendered media, licensed image data and caches stay local.
+# The sources that rebuild everything (scripts, narration, composition, timeline) are tracked.
+*.mp4
+*.wav
+*.jpg
+*.png
+work/voice/
+work/stills/
+work/chrome-profile/
+work/site/assets/
+work/site/data.js
+work/render_log.txt
+work/finalize_log.txt
+work/x264pass*
+work/still_times*.txt

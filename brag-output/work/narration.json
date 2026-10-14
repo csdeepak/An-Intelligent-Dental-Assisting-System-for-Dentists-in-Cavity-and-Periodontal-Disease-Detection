@@ -1,0 +1,132 @@
+{
+ "voice": "en-IN-NeerjaNeural",
+ "rate": "+15%",
+ "scenes": [
+  {
+   "id": "s01_title",
+   "part": 0,
+   "min": 6.5,
+   "text": "This is our capstone: an intelligent dental assisting system that reads a panoramic X-ray, tooth by tooth."
+  },
+  {
+   "id": "s02_problem",
+   "part": 1,
+   "min": 8.0,
+   "text": "A panoramic radiograph, or O P G, shows every tooth in one image. A dentist reads it tooth by tooth. We automate that reading: find each tooth, number it in F D I notation, and report its findings."
+  },
+  {
+   "id": "s03_built",
+   "part": 1,
+   "min": 8.0,
+   "text": "Our six-stage pipeline takes one radiograph and returns a per-tooth report and an annotated overlay, in about one point seven seconds on C P U alone, with ninety-five million parameters, inside a Streamlit and Docker demo."
+  },
+  {
+   "id": "s04_data",
+   "part": 1,
+   "min": 8.0,
+   "text": "It is built on public data: the Tufts database of a thousand radiographs, the DENTEX challenge set, and the CariesXrays benchmark. Four Ningxia hospitals are held out as external test data, never trained on, and UFBA-425 is unseen by our detector and numbering head."
+  },
+  {
+   "id": "s05_constant",
+   "part": 1,
+   "min": 8.0,
+   "text": "One question shaped the project. Caries concentrates in the molars, so a rule that ignores the image, and always names the same eight molars, already scores well on the usual tooth-level metric. Every result here is measured against that image-blind constant."
+  },
+  {
+   "id": "s06_input",
+   "part": 2,
+   "min": 6.5,
+   "text": "Now, the architecture, following one real radiograph through every stage. It is one of the one hundred and sixty-four DENTEX evaluation images, about three thousand by fifteen hundred pixels."
+  },
+  {
+   "id": "s07_detect",
+   "part": 2,
+   "min": 8.0,
+   "text": "Stage one: tooth detection. A YOLO eleven large detector, trained on three corpora, reads the image rotated ninety degrees and maps its boxes back: thirty-two teeth, every one above zero point seven nine confidence."
+  },
+  {
+   "id": "s08_number",
+   "part": 2,
+   "min": 8.0,
+   "text": "Stage two: numbering. Each tooth is cropped with a margin, and passed with its position to a ResNet-18 head that predicts its F D I code. A one-to-one assignment forbids duplicates: thirty-two teeth, thirty-two distinct codes."
+  },
+  {
+   "id": "s09_lesion",
+   "part": 2,
+   "min": 7.5,
+   "text": "Stage three: caries. A second YOLO detector finds the lesions themselves, across the whole image: nine lesion boxes. Each is assigned to the tooth it overlaps most, so nine teeth are flagged."
+  },
+  {
+   "id": "s10_severity",
+   "part": 2,
+   "min": 6.5,
+   "text": "A severity head grades each flagged tooth as caries or deep caries. Teeth twenty-one and forty-six are graded deep. This head is validated, but it has never been tested."
+  },
+  {
+   "id": "s11_abnormal",
+   "part": 2,
+   "min": 8.0,
+   "text": "Stage four is an abnormality flag. A ResNet-18 reads a taller crop around each tooth and flags closeness to an expert-marked abnormality: here, teeth eleven, thirty-seven and forty-eight. It is not a periodontal diagnosis, and its severity grade is withheld."
+  },
+  {
+   "id": "s12_report",
+   "part": 2,
+   "min": 8.0,
+   "text": "Stages five and six fuse it all into one record per tooth, in report schema one point five, stamped with the hash of every model that ran. The overlay shows findings in orange, and the rest in blue."
+  },
+  {
+   "id": "s13_truth",
+   "part": 2,
+   "min": 7.5,
+   "text": "Against the dentists' annotations, seven of the nine caries flags land on annotated carious teeth, and four annotated teeth are missed. That is one image, for illustration. The measured numbers come next."
+  },
+  {
+   "id": "s14_timeline",
+   "part": 3,
+   "min": 11.0,
+   "text": "Part three: results across the timeline. In August, the pipeline ran end to end, and was validated on four external hospitals. Then came the uncomfortable finding: the image-blind constant tied or beat us. On the fourth of September, a lesion detector became the first method to beat it, on two of three cohorts."
+  },
+  {
+   "id": "s15_review",
+   "part": 3,
+   "min": 17.0,
+   "text": "On the tenth of October, a review audited every number. It found that the bone-loss score of zero point nine two came from a split that shared radiographs with training, and that its label was not periodontal bone loss."
+  },
+  {
+   "id": "s16_front",
+   "part": 3,
+   "min": 11.0,
+   "text": "First, the front end. A multi-corpus tooth detector replaced the old one. On DENTEX, tooth recall rose from seventy-one to over ninety-nine percent, and numbering from fifty-eight to ninety-three, in-domain for the new detector. On the unseen UFBA-425 set, numbering rose from twenty-one to forty-four and a half percent. The cost: Tufts box accuracy fell from zero point seven two to zero point five nine."
+  },
+  {
+   "id": "s17_caries",
+   "part": 3,
+   "min": 9.0,
+   "text": "For caries, the pipeline's F1 rose from zero point three eight to zero point five, against zero point three two for the constant: a lead of nearly eighteen points, with its interval clear of zero. Across the four Ningxia hospitals, lesion agreement reached sixty-eight percent, nine points above the constant."
+  },
+  {
+   "id": "s18_stage4",
+   "part": 3,
+   "min": 11.0,
+   "text": "Stage four moved the other way, because its old figure was inflated. On unseen radiographs, the original model found seven point six percent of its label, not eighty-three. Retrained with a radiograph-level split, it reaches twenty-seven and a half percent sensitivity at ninety-six percent specificity, and eleven to twenty-seven percent across three seeds. The severity head had learned image contrast. Retrained on the true bands, it lost to a position prior, so its grade stays withheld."
+  },
+  {
+   "id": "s19_engineering",
+   "part": 3,
+   "min": 7.5,
+   "text": "Behind every number is a saved artefact. Automatically checked claims in the paper went from one hundred twenty-seven to two hundred six, tests from one seventy-four to one ninety-seven, and every default model is hash-pinned."
+  },
+  {
+   "id": "s20_takeaway",
+   "part": 3,
+   "min": 7.0,
+   "text": "So the review lowered the numbers that were inflated, raised the ones a better front end earned, and named every stage for what it really measures."
+  },
+  {
+   "id": "s21_close",
+   "part": 4,
+   "min": 8.0,
+   "text": "Next: a six-page conference paper, built from these verified numbers, and a venue decision with our mentor. Thank you."
+  }
+ ]
+}

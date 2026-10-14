@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OPG pipeline — panel review</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="stage">
+  <div id="bg"><div id="glow"></div><div id="grid"></div></div>
+
+  <!-- ===================== S01 TITLE ===================== -->
+  <section class="scene" id="s01_title">
+    <div class="title-bg"><img src="assets/opg.jpg" alt=""></div>
+    <div class="title-scan"></div>
+    <div class="title-wrap">
+      <div class="overline r1">Capstone project · panel review · October 2026</div>
+      <h1 class="r2">An Intelligent Dental<br>Assisting System</h1>
+      <div class="subtitle r3">Per-tooth analysis of panoramic dental X-rays (OPG)</div>
+      <div class="title-chips r4">
+        <span>6-stage pipeline</span><span>FDI tooth numbering</span><span>Caries</span><span>Abnormality flag</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== S02 PROBLEM ===================== -->
+  <section class="scene" id="s02_problem" data-source="Image: DENTEX challenge dataset (Hamamci et al., MICCAI 2023), CC BY-NC-SA 4.0">
+    <div class="opg-card" id="p2opg">
+      <svg id="p2svg" viewBox="0 0 3076 1536">
+        <defs><clipPath id="lensClip"><circle id="lensC" cx="0" cy="0" r="210"/></clipPath></defs>
+        <image href="assets/opg.jpg" width="3076" height="1536"/>
+        <g id="p2sweep"></g>
+        <g clip-path="url(#lensClip)" id="lensG"><image id="lensImg" href="assets/opg.jpg" width="3076" height="1536"/></g>
+        <circle id="lensRing" cx="0" cy="0" r="210" fill="none" stroke="#E8EDF5" stroke-width="7"/>
+      </svg>
+      <div class="opg-caption">One panoramic radiograph · every tooth in one image</div>
+    </div>
+    <div class="steps">
+      <div class="step" id="st1"><div class="num">1</div><div><h3>Find each tooth</h3><p>Locate every tooth in the radiograph</p></div></div>
+      <div class="step" id="st2"><div class="num">2</div><div><h3>Number it — FDI notation</h3><p>Quadrant digit + position digit</p>
+        <div class="fdi-mini" id="fdiMini"></div></div></div>
+      <div class="step" id="st3"><div class="num">3</div><div><h3>Report its findings</h3><p>Caries · abnormality — against that tooth number</p></div></div>
+    </div>
+  </section>
+
+  <!-- ===================== S03 BUILT ===================== -->
+  <section class="scene" id="s03_built" data-source="Speed: transfer.md §1 (CPU only, macOS clone) · parameters: model_metrics.md, Current front end">
+    <h2 class="scene-title">What we built: one radiograph in, a per-tooth report out</h2>
+    <div class="pipe" id="pipe">
+      <div class="pio" id="pin"><img src="assets/opg.jpg" alt=""><span>Input · OPG</span></div>
+      <div class="pnode" data-i="0"><b>1</b><h4>Tooth detection</h4><p>YOLOv11l</p></div>
+      <div class="pnode" data-i="1"><b>2</b><h4>FDI numbering</h4><p>ResNet-18 + one-to-one</p></div>
+      <div class="pnode" data-i="2"><b>3</b><h4>Caries</h4><p>YOLOv11l lesions + severity</p></div>
+      <div class="pnode" data-i="3"><b>4</b><h4>Abnormality flag</h4><p>ResNet-18</p></div>
+      <div class="pnode" data-i="4"><b>5</b><h4>Fusion</h4><p>one record per tooth</p></div>
+      <div class="pnode" data-i="5"><b>6</b><h4>Report + overlay</h4><p>JSON · image · app</p></div>
+      <div class="pio" id="pout"><img src="assets/overlay.jpg" alt=""><span>Output · overlay + JSON</span></div>
+      <div id="packet"></div>
+    </div>
+    <div class="stats">
+      <div class="stat" id="stat1"><div class="big"><span id="cSpeed">1.70</span><small> s</small></div><p>per image · CPU only</p></div>
+      <div class="stat" id="stat2"><div class="big"><span id="cParams">95.3</span><small> M</small></div><p>parameters, default pipeline</p></div>
+      <div class="stat" id="stat3"><div class="big">Demo</div><p>Streamlit app · Docker image</p></div>
+    </div>
+  </section>
+
+  <!-- ===================== S04 DATA ===================== -->
+  <section class="scene" id="s04_data" data-source="data/README.md · model_metrics.md · PAPER_MATERIAL.md (licences)">
+    <h2 class="scene-title">Data: public corpora, with external and unseen test sets</h2>
+    <div class="dcards">
+      <div class="dcard" id="d1"><span class="tag t-train">Train · test</span><h3>Tufts Dental Database</h3><div class="dbig">1,000</div><p>panoramic radiographs · split by radiograph</p><div class="uses">Detection · Numbering · Stage 4</div></div>
+      <div class="dcard" id="d2"><span class="tag t-dev">Development</span><h3>DENTEX <small>MICCAI 2023</small></h3><div class="dbig">164</div><p>leak-free evaluation images (MD5-checked)</p><div class="uses">Detection · Numbering · Caries</div></div>
+      <div class="dcard" id="d3"><span class="tag t-train">Train · validation</span><h3>CariesXrays <small>AAAI 2024</small></h3><div class="dbig">4,800 / 1,200</div><p>train / validation images</p><div class="uses">Caries lesion boxes</div></div>
+      <div class="dcard" id="d4"><span class="tag t-ext">External test · never trained on</span><h3>Ningxia</h3><div class="dbig">4 hospitals</div><p>337 caries images · 1,013 lesions</p><div class="uses">Caries · Stage 4 firing</div></div>
+      <div class="dcard" id="d5"><span class="tag t-unseen">Unseen</span><h3>UFBA-425</h3><div class="dbig">425</div><p>radiographs · 11,591 teeth</p><div class="uses">Numbering on a corpus neither model saw</div></div>
+    </div>
+    <div class="footnote" id="d6">The detector also trains on the Kaggle dual-labelled set (499 images).</div>
+  </section>
+
+  <!-- ===================== S05 CONSTANT ===================== -->
+  <section class="scene" id="s05_constant" data-source="Constant F1: model_metrics.md — Caries, FDI-set F1 (164 DENTEX images, 477 carious teeth)">
+    <h2 class="scene-title">The question that shaped the project</h2>
+    <div class="chart-wrap">
+      <div class="chart" id="toothChart"></div>
+      <div class="chart-legend"><span class="sw sw-or"></span> the constant's eight codes: first and second molars</div>
+    </div>
+    <div class="const-side">
+      <div class="cs-line" id="cs1"><div class="eye">&#x1F441;&#xFE0E;<i></i></div><div><h3>Ignores the image</h3><p>Always names teeth 16, 17, 26, 27, 36, 37, 46, 47</p></div></div>
+      <div class="cs-line" id="cs2"><div class="cs-stat">0.320</div><div><h3>Already scores well</h3><p>FDI-set F1 for caries on DENTEX — with no image read</p></div></div>
+      <div class="cs-line hl" id="cs3"><div class="cs-floor">FLOOR</div><div><h3>Every result is measured against it</h3><p>A model has to beat a prior over tooth positions</p></div></div>
+    </div>
+  </section>
+
+  <!-- ===================== PART 2 FLOW (persistent across s06–s13) ===================== -->
+  <div class="layer" id="flow">
+    <div id="rail">
+      <div class="rnode" data-k="in">Input</div>
+      <div class="rnode" data-k="1"><b>1</b> Detect</div>
+      <div class="rnode" data-k="2"><b>2</b> Number</div>
+      <div class="rnode" data-k="3"><b>3</b> Caries</div>
+      <div class="rnode" data-k="4"><b>4</b> Abnormality</div>
+      <div class="rnode" data-k="5"><b>5–6</b> Report</div>
+      <div id="railFill"></div>
+    </div>
+    <div id="viewer">
+      <svg id="vsvg" viewBox="0 0 3076 1536" preserveAspectRatio="xMidYMid meet">
+        <g id="rot">
+          <image href="assets/opg.jpg" width="3076" height="1536"/>
+          <rect id="scan" x="0" y="0" width="3076" height="40" fill="url(#scanGrad)" opacity="0"/>
+          <g id="gGT"></g>
+          <g id="gBoxes"></g>
+          <g id="gLinks"></g>
+          <g id="gLes"></g>
+          <g id="gCrop"></g>
+          <g id="gLabels"></g>
+          <g id="gBadges"></g>
+        </g>
+        <defs>
+          <linearGradient id="scanGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#2DD4BF" stop-opacity="0"/>
+            <stop offset="0.5" stop-color="#2DD4BF" stop-opacity="0.55"/>
+            <stop offset="1" stop-color="#2DD4BF" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <div id="metaChip"><b>DENTEX · test_211.png</b><span>3,076 × 1,536 px · one of 164 evaluation images</span></div>
+      <div id="legend"><span><i class="lg-or"></i>finding</span><span><i class="lg-bl"></i>no finding</span></div>
+    </div>
+    <div id="panel">
+      <div class="pblock" id="pb_s07">
+        <div class="ov">Stage 1</div><h2>Tooth detection</h2>
+        <div class="model">YOLOv11l · multi-corpus<br><span>trained on Tufts + DENTEX + Kaggle</span></div>
+        <div class="io"><span class="k">In</span> the radiograph, rotated 90° for the detector</div>
+        <div class="io"><span class="k">Out</span> <b id="cTeeth">32</b> tooth boxes, mapped back upright</div>
+        <div class="hist" id="hist"></div>
+        <div class="histcap">detection confidence, all 32 teeth · minimum <b>0.79</b></div>
+      </div>
+      <div class="pblock" id="pb_s08">
+        <div class="ov">Stage 2</div><h2>FDI numbering</h2>
+        <div class="model">ResNet-18 head + positional features<br><span>crop with 1.5× margin · one-to-one (Hungarian) assignment</span></div>
+        <div class="netrow" id="netrow">
+          <div class="slot" id="slotFdi"></div>
+          <div class="plus">+ position</div>
+          <div class="net">ResNet-18</div>
+          <div class="pred" id="predFdi">FDI <b>16</b><span>p = 0.9997</span></div>
+        </div>
+        <div class="io"><span class="k">Out</span> <b id="cCodes">32</b> teeth → <b>32</b> distinct codes · <b>0</b> duplicates</div>
+        <div class="quad" id="quad"></div>
+      </div>
+      <div class="pblock" id="pb_s09">
+        <div class="ov">Stage 3a</div><h2>Caries — lesion detector</h2>
+        <div class="model">YOLOv11l lesion detector (Lever B)<br><span>trained on CariesXrays + DENTEX caries boxes</span></div>
+        <div class="io"><span class="k">In</span> the whole radiograph, upright</div>
+        <div class="io"><span class="k">Rule</span> each lesion → the tooth it overlaps most</div>
+        <div class="flowcount"><div><b id="cLes">9</b><span>lesion boxes</span></div><div class="arrow">→</div><div><b id="cFlag">9</b><span>teeth flagged</span></div></div>
+      </div>
+      <div class="pblock" id="pb_s10">
+        <div class="ov">Stage 3b</div><h2>Caries severity</h2>
+        <div class="model">ResNet-18 · caries vs deep caries<br><span>runs on flagged teeth only</span></div>
+        <div class="sevlist" id="sevlist"></div>
+        <div class="warn" id="sevWarn"><b>Validated, never tested</b><span>133 validation crops, macro-F1 0.77 · no test split exists</span></div>
+      </div>
+      <div class="pblock" id="pb_s11">
+        <div class="ov">Stage 4</div><h2>Abnormality flag</h2>
+        <div class="model">ResNet-18 · taller crop 1.5 W × 2.0 H<br><span>label: overlap with an expert abnormality mask (Tufts)</span></div>
+        <div class="netrow" id="netrow4">
+          <div class="slot tall" id="slotS4"></div>
+          <div class="net v">ResNet-18</div>
+          <div class="pred v" id="predS4">tooth <b>48</b><span>flag · p = 0.67</span></div>
+        </div>
+        <div class="io"><span class="k">Out</span> flags on teeth <b>11</b>, <b>37</b>, <b>48</b></div>
+        <div class="warn" id="s4Warn"><b>Not a periodontal diagnosis</b><span>Stage 4b severity grade: withheld by default (schema 1.5)</span></div>
+      </div>
+      <div class="pblock" id="pb_s12">
+        <div class="ov">Stages 5–6</div><h2>Fusion → report</h2>
+        <pre class="json" id="json"></pre>
+        <div class="models" id="models"></div>
+      </div>
+      <div class="pblock" id="pb_s13">
+        <div class="ov">Check · this image only</div><h2>Against the dentists' annotations</h2>
+        <div class="tally" id="ta1"><b class="g">7 / 9</b><span>caries flags on annotated carious teeth<br><em>16 · 36 · 37 · 44 · 45 · 46 · 47</em></span></div>
+        <div class="tally" id="ta2"><b class="a">2</b><span>flags on teeth not annotated carious<br><em>21 · 26</em></span></div>
+        <div class="tally" id="ta3"><b class="m">4</b><span>annotated carious teeth missed<br><em>17 · 22 · 25 · 27</em></span></div>
+        <div class="warn soft" id="ta4"><b>One image, for illustration</b><span>Not a measurement — the measured numbers follow</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- the PART-2 scenes only carry timing + source lines; their content lives in #flow -->
+  <section class="scene ghost" id="s06_input" data-source="Image: DENTEX challenge dataset (Hamamci et al., MICCAI 2023), CC BY-NC-SA 4.0 · pipeline run: scripts/run_inference.py, shipped defaults"></section>
+  <section class="scene ghost" id="s07_detect" data-source="Pipeline output on this image · models/15_detector_multicorpus_leverA/arm3c_best.pt"></section>
+  <section class="scene ghost" id="s08_number" data-source="Pipeline output on this image · models/10_fdi_head_dentex_tufts_v2"></section>
+  <section class="scene ghost" id="s09_lesion" data-source="Pipeline output on this image · models/16_lever_b_pooled · mapping: src/classifiers.lesion_preds_to_tooth_idx"></section>
+  <section class="scene ghost" id="s10_severity" data-source="Severity validation: model_metrics.md — Phase 2 severity (133 crops)"></section>
+  <section class="scene ghost" id="s11_abnormal" data-source="Pipeline output on this image · models/18_bone_loss_radiograph_split/seed42_best.pth"></section>
+  <section class="scene ghost" id="s12_report" data-source="Report: opg-report/1.5, written by scripts/run_inference.py for this image"></section>
+  <section class="scene ghost" id="s13_truth" data-source="Annotations: DENTEX disease labels for test_211 (class 1 = caries)"></section>
+
+  <!-- ===================== PART 3 TIMELINE (persistent across s14–s15) ===================== -->
+  <div class="layer" id="tl">
+    <div id="axis"><div id="axisLine"></div><div id="axisFill"></div></div>
+    <div id="tlBefore">Before the review</div>
+    <div id="tlAfter">After</div>
+    <div id="review"><div class="rline"></div><div class="rtag">REVIEW · 10 Oct</div></div>
+    <div id="ms"></div>
+    <div id="afterZone"></div>
+    <div class="tcard" id="resp"><h3>The response · 11–14 Oct</h3><div id="respList"></div></div>
+    <div class="tcard" id="leverB">
+      <h3>4 Sep · Lever B — lesion agreement vs the image-blind constant <small>(previous front end)</small></h3>
+      <div class="gbars" id="gbars"></div>
+      <div class="tnote">CariesXrays 1,200 was later found to be the detector's own validation split (12 Oct) — a validation figure, not external.</div>
+    </div>
+    <div class="tcard" id="finding">
+      <h3>What the review found</h3>
+      <div class="frow" id="f1"><div class="fnum">0.923</div><div><b>Stage 4 "bone-loss" macro-F1, as reported</b><span>crop-level validation set, 59 positives</span></div></div>
+      <div class="frow bad" id="f2"><div class="fx">✕</div><div><b>Not held out</b><span>all 143 validation radiographs also supplied training crops</span></div></div>
+      <div class="frow bad" id="f3"><div class="fx">✕</div><div><b>Not periodontal bone loss</b><span>the label is overlap with an expert-marked abnormality mask</span></div></div>
+    </div>
+  </div>
+  <section class="scene ghost" id="s14_timeline" data-source="RESULTS_LOG.md 2026-08-24f, -08-25d, -08-28b/d, -09-04h · lever B table: model_metrics.md, Stage 3"></section>
+  <section class="scene ghost" id="s15_review" data-source="RESULTS_LOG.md 2026-10-10 · model_metrics.md, Stage 4a"></section>
+
+  <!-- ===================== S16 FRONT END ===================== -->
+  <section class="scene" id="s16_front" data-source="model_metrics.md — Current front end · RESULTS_LOG.md 2026-10-11g, 2026-10-12b">
+    <h2 class="scene-title">Stages 1–2 · the front end, before → after the review</h2>
+    <div class="sub-title">Tooth detector replaced 11 Oct by a multi-corpus model — a human decision against two pre-registered verdicts</div>
+    <div class="dumb" id="dumb"></div>
+    <div class="dlegend"><span><i class="dot b"></i>before (previous detector)</span><span><i class="dot a"></i>after (current default)</span></div>
+  </section>
+
+  <!-- ===================== S17 CARIES ===================== -->
+  <section class="scene" id="s17_caries" data-source="model_metrics.md — Caries, FDI-set F1 and lesion agreement (Current front end) · RESULTS_LOG.md 2026-10-11g">
+    <h2 class="scene-title">Stage 3 · caries, against the image-blind constant</h2>
+    <div class="sub-title">11 Oct · re-measured under the current front end, same 164 DENTEX images and Ningxia cohort</div>
+    <div class="cc" id="ccF1">
+      <h3>FDI-set F1 · DENTEX, 164 images, 477 carious teeth</h3>
+      <div class="vbars" id="vb1"></div>
+      <div class="delta" id="dl1"><b>+17.8 pp</b> vs constant <span>95% CI [+13.5, +22.0]</span></div>
+    </div>
+    <div class="cc" id="ccNx">
+      <h3>Lesion agreement · Ningxia, 4 hospitals pooled, 1,013 lesions</h3>
+      <div class="vbars" id="vb2"></div>
+      <div class="delta" id="dl2"><b>+9.3 pp</b> vs constant <span>95% CI [+4.7, +13.7]</span></div>
+    </div>
+    <div class="footnote wide" id="ccFoot">Honest limits: on DENTEX, lesion agreement is not separated from the constant (−3.6 pp [−10.1, +2.6]); per hospital (previous front end) the lead is separated at 3 of 4. DENTEX is in-domain for the new detector.</div>
+  </section>
+
+  <!-- ===================== S18 STAGE 4 ===================== -->
+  <section class="scene" id="s18_stage4" data-source="model_metrics.md — Stage 4a, Stage 4b · RESULTS_LOG.md 2026-10-13, -13b, -13d, -14d">
+    <h2 class="scene-title">Stage 4 · the inflated figure, corrected</h2>
+    <div class="sub-title">13–14 Oct · scored on radiographs never used in training, then retrained and tested once</div>
+    <div class="cc" id="cc4a">
+      <h3>4a abnormality flag · sensitivity on Tufts</h3>
+      <div class="vbars tall" id="vb3"></div>
+      <div class="chips" id="s4chips"><span>specificity <b>95.9%</b> (seed 42)</span><span>three seeds: <b>27.5 · 16.5 · 11.0%</b></span></div>
+    </div>
+    <div class="cc" id="cc4b">
+      <h3>4b severity grade · macro-F1</h3>
+      <div class="vbars tall" id="vb4"></div>
+      <div class="verdict" id="verdict"><b>Not eligible</b> — the grade stays withheld <span>seed 42 − prior: −0.040 [−0.124, +0.058]</span></div>
+    </div>
+  </section>
+
+  <!-- ===================== S19 ENGINEERING ===================== -->
+  <section class="scene" id="s19_engineering" data-source="transfer.md §1 — snapshot of 7 Sep 2026 and of 14 Oct 2026 · scripts/verify_paper_numbers.py · scripts/eval/verify_invariants.py">
+    <h2 class="scene-title">Behind every number, a saved artefact</h2>
+    <div class="sub-title">Snapshot of 7 Sep (before the review) → snapshot of 14 Oct</div>
+    <div class="tiles">
+      <div class="tile" id="tile1"><p>manuscript claims checked automatically</p><div class="tv"><span class="was">127</span><span class="arr">→</span><span class="now" id="n1">206</span></div></div>
+      <div class="tile" id="tile2"><p>tests passing</p><div class="tv"><span class="was">174</span><span class="arr">→</span><span class="now" id="n2">197</span></div></div>
+      <div class="tile" id="tile3"><p>report schema</p><div class="tv"><span class="was">1.1</span><span class="arr">→</span><span class="now">1.5</span></div></div>
+    </div>
+    <div class="chips big" id="engChips"><span><b>10</b> weight files hash-pinned</span><span><b>12</b> invariants hold</span><span>every default model's SHA-256 in every report</span></div>
+  </section>
+
+  <!-- ===================== S20 TAKEAWAY ===================== -->
+  <section class="scene" id="s20_takeaway" data-source="Summary of the figures above">
+    <h2 class="scene-title">What the review changed</h2>
+    <div class="take" id="tk1"><div class="ti down">↓</div><div><h3>Lowered what was inflated</h3><p>Stage 4a: 83.1% reported → 7.6% held out → 27.5% retrained</p></div></div>
+    <div class="take" id="tk2"><div class="ti up">↑</div><div><h3>Raised what a better front end earned</h3><p>DENTEX numbering 58.4% → 92.8% (in-domain) · caries F1 0.376 → 0.498</p></div></div>
+    <div class="take" id="tk3"><div class="ti eq">=</div><div><h3>Named every stage for what it measures</h3><p>Stage 4 is an abnormality flag, not a periodontal diagnosis</p></div></div>
+  </section>
+
+  <!-- ===================== S21 CLOSE ===================== -->
+  <section class="scene" id="s21_close" data-source="">
+    <div class="close-wrap">
+      <div class="overline" id="cl0">Next</div>
+      <div class="next" id="cl1"><b>1</b> A six-page conference paper, built from these verified numbers</div>
+      <div class="next" id="cl2"><b>2</b> A venue decision with our mentor</div>
+      <h1 id="cl3">Thank you</h1>
+      <div class="credits" id="cl4">Input image: DENTEX (Hamamci et al., MICCAI 2023), CC BY-NC-SA 4.0 · Every number: docs/results/model_metrics.md and RESULTS_LOG.md</div>
+    </div>
+  </section>
+
+  <!-- ===================== CHROME ===================== -->
+  <div id="partBig"><div class="pn"></div><div class="pt"></div></div>
+  <div id="partSmall"><span class="pn"></span><span class="pt"></span></div>
+  <div id="source"></div>
+  <div id="progress"><div id="progFill"></div></div>
+</div>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
