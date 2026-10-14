@@ -136,6 +136,8 @@ def head_joint_scores(model, img_bgr, boxes, device):
         lp = torch.log_softmax(op, dim=1)          # (N,8)
         # joint log-prob of every (quadrant, position) pair -> (N,32), column order FDI_CODES
         joint = (lq.unsqueeze(2) + lp.unsqueeze(1)).reshape(len(boxes), 32)
+    if not torch.isfinite(joint).all():
+        raise ValueError("non-finite FDI head output")
     return lq.cpu().numpy(), lp.cpu().numpy(), joint.cpu().numpy()
 
 

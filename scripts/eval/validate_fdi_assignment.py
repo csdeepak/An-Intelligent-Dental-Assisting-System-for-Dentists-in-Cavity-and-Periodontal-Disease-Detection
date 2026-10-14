@@ -215,7 +215,8 @@ def main():
 
     import torch
     from ultralytics import YOLO
-    model = YOLO(str(args.weights))
+    from scripts.run_inference import load_yolo_pinned
+    model = load_yolo_pinned(args.weights)
     head = None
     if args.method == "head":
         dev = torch.device("cuda" if torch.cuda.is_available()

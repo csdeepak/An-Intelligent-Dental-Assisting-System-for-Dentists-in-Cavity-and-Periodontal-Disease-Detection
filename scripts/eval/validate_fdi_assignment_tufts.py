@@ -173,6 +173,7 @@ def main():
 
     import torch
     from ultralytics import YOLO
+    from scripts.run_inference import load_yolo_pinned
 
     if args.ufba:
         leaked = set(json.loads(args.exclude.read_text())) if args.exclude else set()
@@ -193,7 +194,7 @@ def main():
 
     dev = torch.device("cuda" if torch.cuda.is_available()
                        else "mps" if torch.backends.mps.is_available() else "cpu")
-    model = YOLO(str(args.weights))
+    model = load_yolo_pinned(args.weights)
     head = load_head(args.head_weights, dev)
     print(f"detector: {args.weights.name}   head: {args.head_weights.parent.name}   device={dev}")
     args.out.mkdir(parents=True, exist_ok=True)

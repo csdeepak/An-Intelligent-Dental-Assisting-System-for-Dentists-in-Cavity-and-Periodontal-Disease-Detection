@@ -168,7 +168,10 @@ def crop_batch(img_bgr, boxes, expand, device):
 def _probs(model, batch):
     import torch
     with torch.no_grad():
-        return torch.softmax(model(batch), dim=1).cpu().numpy()
+        p = torch.softmax(model(batch), dim=1).cpu().numpy()
+    if not np.isfinite(p).all():
+        raise ValueError("non-finite classifier output: a NaN would be read as class 0")
+    return p
 
 
 _ISOTONIC = "unloaded"          # sentinel: distinguishes "not tried" from "absent"
@@ -194,7 +197,7 @@ def _isotonic_knots():
         try:
             d = json.loads(f.read_text(encoding="utf-8"))
             _ISOTONIC = (np.asarray(d["x"], dtype=float), np.asarray(d["y"], dtype=float))
-        except Exception:
+        except FileNotFoundError:
             _ISOTONIC = None
     return _ISOTONIC
 
@@ -322,7 +325,8 @@ def run_lesion_detector_raw(lesion_model, img_bgr, conf=0.25):
     return list(zip(boxes, confs))
 
 
-def run_caries_lesion_detector(lesion_model, severity, img_bgr, boxes, device, conf=0.25):
+def run_caries_lesion_detector(lesion_model, severity, img_bgr, boxes, device, conf=0.25,
+                               stats=None):
     """
     Caries Stage 3, LESION-DETECTOR path -- the pipeline default since 4 Sep 2026 (Lever B,
     RESULTS_LOG 2026-09-04h). Localises the lesion directly instead of classifying the tooth
@@ -351,6 +355,12 @@ def run_caries_lesion_detector(lesion_model, severity, img_bgr, boxes, device, c
     if len(boxes) == 0:
         return []
     lesion_preds = run_lesion_detector_raw(lesion_model, img_bgr, conf=conf)
+    if stats is not None:     # lesion boxes that fall on no detected tooth are dropped; count them
+        stats["lesion_boxes"] = len(lesion_preds)
+        stats["lesion_boxes_unmapped"] = sum(
+            not any(min(lx2, tx2) > max(lx1, tx1) and min(ly2, ty2) > max(ly1, ty1)
+                    for tx1, ty1, tx2, ty2 in boxes)
+            for (lx1, ly1, lx2, ly2), _ in lesion_preds)
     positives, conf_of = (lesion_preds_to_tooth_idx(lesion_preds, boxes)
                           if lesion_preds else ([], {}))
 

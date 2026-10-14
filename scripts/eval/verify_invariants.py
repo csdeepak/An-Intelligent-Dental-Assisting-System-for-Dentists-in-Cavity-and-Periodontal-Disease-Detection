@@ -165,7 +165,7 @@ def inv_class_orders():
         p = REPO_ROOT / rel
         if not p.exists():
             continue
-        ck = torch.load(p, map_location="cpu", weights_only=False)
+        ck = torch.load(p, map_location="cpu", weights_only=True)
         got = ck.get("class_to_idx") if isinstance(ck, dict) else None
         if got is None:
             continue

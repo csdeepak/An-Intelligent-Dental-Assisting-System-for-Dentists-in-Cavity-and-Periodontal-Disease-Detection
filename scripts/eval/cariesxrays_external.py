@@ -152,11 +152,12 @@ def main():
     from src.fdi_head_inference import assign_fdi_head, load_head
     from src.orientation import detect_upright
     from ultralytics import YOLO
+    from scripts.run_inference import load_yolo_pinned
 
     device = "cpu"
     det_path = args.detector or DEF_DETECTOR
     print(f"detector: {det_path}")
-    det = YOLO(str(det_path))
+    det = load_yolo_pinned(det_path)
     head = load_head(DEF_FDI_HEAD, device)
 
     lesion_model = gate = csev = None
@@ -177,7 +178,7 @@ def main():
                 "CariesXrays.")
         if args.manifest_split == "train" and not args.allow_train_overlap:
             raise SystemExit("--manifest-split train IS the Lever B training data; refusing.")
-        lesion_model = YOLO(str(args.lesion_model))
+        lesion_model = load_yolo_pinned(args.lesion_model)
         print(f"lesion model: {args.lesion_model}  conf={args.lesion_conf} (frozen)")
     else:
         gate, gate_cls = load_classifier(DEF_CARIES_GATE, 2, device)

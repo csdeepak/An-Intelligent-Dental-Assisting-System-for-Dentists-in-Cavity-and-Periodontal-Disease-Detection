@@ -225,6 +225,7 @@ def main():
     import cv2
     import torch
     from ultralytics import YOLO
+    from scripts.run_inference import load_yolo_pinned
 
     from src.classifiers import (lesion_preds_to_tooth_idx, load_classifier, run_caries,
                                  run_lesion_detector_raw)
@@ -239,13 +240,13 @@ def main():
 
     device = torch.device("cuda" if torch.cuda.is_available()
                           else "mps" if torch.backends.mps.is_available() else "cpu")
-    det = YOLO(str(args.detector))
+    det = load_yolo_pinned(args.detector)
 
     lesion_model = gate = sev = None
     if args.decision == "lesion-detector":
         if not args.lesion_model:
             raise SystemExit("--decision lesion-detector requires --lesion-model")
-        lesion_model = YOLO(str(args.lesion_model))
+        lesion_model = load_yolo_pinned(args.lesion_model)
         print(f"device={device}  lesion_model={args.lesion_model.name} "
               f"conf={args.lesion_conf} (frozen)")
     else:
@@ -271,8 +272,8 @@ def main():
         stem = lp.stem
         ip = args.disease_dir / "input" / f"{stem}.png"
         img = cv2.imread(str(ip))
-        if img is None:
-            continue
+        if img is None:     # was a silent skip; it would shrink n_lesions without a trace
+            raise SystemExit(f"cannot read {ip}")
         gt = load_lesion_gt(lp)
         if not gt:
             continue

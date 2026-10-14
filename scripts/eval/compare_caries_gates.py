@@ -45,6 +45,7 @@ def main():
     import cv2
     import torch
     from ultralytics import YOLO
+    from scripts.run_inference import load_yolo_pinned
 
     from src.classifiers import CARIES_GATE_CLASSES, crop_batch, load_classifier, CARIES_EXPAND
     from src.orientation import detect_upright
@@ -56,7 +57,7 @@ def main():
 
     device = torch.device("cuda" if torch.cuda.is_available()
                           else "mps" if torch.backends.mps.is_available() else "cpu")
-    det = YOLO(str(REPO_ROOT / "models/06_yolo_detection_a100_run/best.pt"))
+    det = load_yolo_pinned(REPO_ROOT / "models/06_yolo_detection_a100_run/best.pt")
     old, old_cls = load_classifier(args.old_gate, 2, device)
     new, new_cls = load_classifier(args.new_gate, 2, device)
     print(f"device={device}")

@@ -1,0 +1,121 @@
+{
+  "summary": {
+    "teeth_detected": 9,
+    "teeth_assessable": 9,
+    "distinct_fdi_codes": 9,
+    "duplicate_fdi_codes": 0,
+    "caries_positive": 3,
+    "bone_loss_positive": 3
+  },
+  "warnings": [],
+  "teeth": [
+    {
+      "fdi": 14,
+      "assessable": true,
+      "caries": "caries",
+      "stage4": "normal",
+      "bbox": [
+        622,
+        367,
+        698,
+        526
+      ]
+    },
+    {
+      "fdi": 24,
+      "assessable": true,
+      "caries": "caries",
+      "stage4": "bone_loss",
+      "bbox": [
+        907,
+        379,
+        979,
+        533
+      ]
+    },
+    {
+      "fdi": 31,
+      "assessable": true,
+      "caries": "no_caries",
+      "stage4": "normal",
+      "bbox": [
+        810,
+        483,
+        844,
+        614
+      ]
+    },
+    {
+      "fdi": 32,
+      "assessable": true,
+      "caries": "no_caries",
+      "stage4": "normal",
+      "bbox": [
+        836,
+        483,
+        874,
+        619
+      ]
+    },
+    {
+      "fdi": 33,
+      "assessable": true,
+      "caries": "deep_caries",
+      "stage4": "normal",
+      "bbox": [
+        851,
+        484,
+        892,
+        632
+      ]
+    },
+    {
+      "fdi": 36,
+      "assessable": true,
+      "caries": "no_caries",
+      "stage4": "bone_loss",
+      "bbox": [
+        949,
+        498,
+        1076,
+        647
+      ]
+    },
+    {
+      "fdi": 41,
+      "assessable": true,
+      "caries": "no_caries",
+      "stage4": "normal",
+      "bbox": [
+        783,
+        485,
+        817,
+        612
+      ]
+    },
+    {
+      "fdi": 43,
+      "assessable": true,
+      "caries": "no_caries",
+      "stage4": "normal",
+      "bbox": [
+        736,
+        489,
+        776,
+        629
+      ]
+    },
+    {
+      "fdi": 44,
+      "assessable": true,
+      "caries": "no_caries",
+      "stage4": "bone_loss",
+      "bbox": [
+        695,
+        498,
+        742,
+        655
+      ]
+    }
+  ]
+}

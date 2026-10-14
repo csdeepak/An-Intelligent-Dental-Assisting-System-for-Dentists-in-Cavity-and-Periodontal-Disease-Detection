@@ -113,7 +113,12 @@ sys.path.insert(0, str(REPO_ROOT))
 # `severity_reported`. The Stage-4 severity grade is withheld by default: a flagged tooth carries
 # `severity: null` and the flag `severity_withheld_contrast_proxy` unless --bone-severity-grade.
 # The caries and Stage-4 texts were corrected. Nothing renamed or removed. RESULTS_LOG 2026-10-14.
-SCHEMA_VERSION = "opg-report/1.5"
+# 1.6 (15 Oct 2026): `image` gained `warnings` (input checks: portrait, aspect, resolution, size,
+# bit depth -- warn only, the pipeline still runs); `models` gained `runtime` (python, library
+# versions, git commit, and the device each component actually ran on); in lesion-detector mode
+# `models.caries` gained `lesion_boxes_detected` and `lesion_boxes_unmapped`. The caries-severity
+# limitation text was corrected. Every per-tooth record is unchanged. RESULTS_LOG 2026-10-15b.
+SCHEMA_VERSION = "opg-report/1.6"
 
 # Measured Stage-1/Stage-2 performance, stamped into every report's "limitations" block so a
 # report always carries the accuracy of the pipeline that produced it.
@@ -352,8 +357,10 @@ BONE_SEVERITY_NOT_EVALUATED = (
     "(--bone-severity-grade). RESULTS_LOG 2026-10-13d.")
 CARIES_SEVERITY_NOT_EVALUATED = (
     "The caries / deep_caries distinction comes from a severity head (models/07) validated on "
-    "133 crops (macro-F1 0.77) and never tested on held-out data: no held-out cohort on hand "
-    "carries a deep-caries label. Read deep_caries as unvalidated.")
+    "133 crops (macro-F1 0.77, tuned and reported on the same crops) and never tested on held-out "
+    "data. An image-level DENTEX test split that labels deep caries exists "
+    "(data/dentex/splits_v2.json), but this head predates it and has not been scored on it. Read "
+    "deep_caries as unvalidated.")
 
 # What is known about each Stage-4a (binary) checkpoint, keyed by the sha256 of its weights, so
 # that the tag and the figures stamped into a report belong to the model that produced it -- the
@@ -477,7 +484,8 @@ UNREGISTERED_BONE_LOSS = {
 ASSESSABILITY_MIN_FDI_CONFIDENCE = 0.30
 
 
-def build_report(image_path, img_bgr, boxes, confs, fdi_assign, caries, bone, meta):
+def build_report(image_path, img_bgr, boxes, confs, fdi_assign, caries, bone, meta,
+                 input_warnings=()):
     """Stage 5-6: fuse the per-stage outputs into one record per detected tooth."""
     # Every stage returns one entry per box, in box order, and this function fuses them
     # positionally. If any stage ever returns a filtered list instead, the fusion would
@@ -495,7 +503,9 @@ def build_report(image_path, img_bgr, boxes, confs, fdi_assign, caries, bone, me
         if a.get("fdi") is None:
             assessable = False
             reasons.append("no_fdi_code_assigned")
-        if a.get("confidence", 0.0) < ASSESSABILITY_MIN_FDI_CONFIDENCE:
+        # `not >=`, not `<`: a NaN confidence must fail the gate, and `nan < 0.30` is False.
+        c = a.get("confidence", 0.0)
+        if c is None or not c >= ASSESSABILITY_MIN_FDI_CONFIDENCE:
             assessable = False
             reasons.append("fdi_confidence_below_threshold")
         teeth.append({
@@ -523,7 +533,8 @@ def build_report(image_path, img_bgr, boxes, confs, fdi_assign, caries, bone, me
     return {
         "schema_version": SCHEMA_VERSION,
         "generated": datetime.now().isoformat(timespec="seconds"),
-        "image": {"path": str(image_path), "width": W, "height": H},
+        "image": {"path": str(image_path), "width": W, "height": H,
+                  "warnings": list(input_warnings)},
         "summary": {
             "teeth_detected": len(teeth),
             "teeth_assessable": sum(t["assessable"] for t in teeth),
@@ -559,10 +570,10 @@ def build_report(image_path, img_bgr, boxes, confs, fdi_assign, caries, bone, me
 OVERLAY_NOT_ASSESSABLE, OVERLAY_FINDING, OVERLAY_NO_FINDING = (160, 160, 160), (0, 165, 255), (200, 120, 0)
 
 
-def draw_overlay(img_bgr, report, out_path):
+def draw_overlay(img_bgr, report, out_path=None):
     """Orange = a finding (caries, or the Stage-4 abnormality flag); blue = no finding, thin when
     the numbering is uncertain; grey, thin = not assessable. Label: FDI code ('?' when uncertain)
-    + findings."""
+    + findings. Returns the annotated image; writes it only when `out_path` is given."""
     import cv2
     viz = img_bgr.copy()
     for t in report["teeth"]:
@@ -585,7 +596,92 @@ def draw_overlay(img_bgr, report, out_path):
             bits.append("ABN-" + sev[:3] if sev else "ABN")
         cv2.putText(viz, " ".join(bits), (x1, max(14, y1 - 5)),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, colour, 1, cv2.LINE_AA)
-    cv2.imwrite(str(out_path), viz)
+    if out_path is not None:
+        cv2.imwrite(str(out_path), viz)
+    return viz
+
+
+# Input checks, warn only (15 Oct 2026). The detector trained on landscape panoramics: DENTEX
+# aspect 1.60-2.33, Tufts 1.92, shorter side at least 840 px (measured on every training image).
+# On UFBA-425's square export end-to-end numbering is 44.5%, against 77.2% widened. The bounds sit
+# outside every training image and were not tuned on any result. A warning changes no finding.
+INPUT_ASPECT_BAND = (1.5, 2.6)
+INPUT_MIN_SHORT_SIDE = 600
+INPUT_MAX_PIXELS = 50_000_000
+
+
+def check_input(img_bgr, source_dtype=None):
+    """-> warnings about an input unlike the radiographs the models trained on; [] when it is like
+    them. `source_dtype` is the file's own sample type (OpenCV reduces 16-bit to 8 on reading)."""
+    h, w = img_bgr.shape[:2]
+    warn = []
+    if h >= w:
+        warn.append(f"portrait or square image ({w}x{h}): the pipeline expects a landscape "
+                    "panoramic radiograph and rotates it 90 degrees for the detector")
+    elif not INPUT_ASPECT_BAND[0] <= w / h <= INPUT_ASPECT_BAND[1]:
+        warn.append(f"aspect ratio {w / h:.2f} is outside {INPUT_ASPECT_BAND[0]}-"
+                    f"{INPUT_ASPECT_BAND[1]}, the range of the training radiographs; detection "
+                    "and numbering degrade")
+    if min(h, w) < INPUT_MIN_SHORT_SIDE:
+        warn.append(f"low resolution ({w}x{h}): the shorter side is under {INPUT_MIN_SHORT_SIDE} px")
+    if h * w > INPUT_MAX_PIXELS:
+        warn.append(f"very large image ({w}x{h}); expect slow processing")
+    if source_dtype is not None and str(source_dtype) != "uint8":
+        warn.append(f"{source_dtype} source reduced to 8 bits on reading; contrast may be lost")
+    return warn
+
+
+def load_yolo_pinned(path):
+    """YOLO(path), after a hash check -- the one place a YOLO .pt is unpickled (15 Oct 2026). A
+    default must match its pin; any other file is loaded with a warning unless its hash is
+    registered, because unpickling runs whatever code the file carries."""
+    from ultralytics import YOLO
+    p = Path(path)
+    sha = file_sha256(str(p))
+    pinned = DEFAULT_SHA256.get(p.resolve())
+    if pinned and sha != pinned:
+        raise SystemExit(f"{p} is a default checkpoint, but its sha256 is not the pinned "
+                         f"{pinned[:12]}...; refusing to load it")
+    if sha not in DETECTOR_PROFILES and sha not in CHECKPOINT_TAGS:
+        print(f"WARNING: {p} (sha256 {sha[:12]}...) is not a registered checkpoint; loading it "
+              "unpickles it -- do this only for files you trust", file=sys.stderr)
+    return YOLO(str(p))
+
+
+@functools.lru_cache(maxsize=None)
+def _git_commit():
+    import subprocess
+    try:
+        out = subprocess.run(["git", "rev-parse", "HEAD"], cwd=REPO_ROOT, capture_output=True,
+                             text=True, timeout=5)
+        return out.stdout.strip() or None
+    except (OSError, subprocess.SubprocessError):
+        return None
+
+
+def _yolo_device(model):
+    """Where ultralytics actually ran: it picks CUDA or the CPU unless MPS is named, so on Apple
+    silicon the detectors run on the CPU while the classifiers run on MPS."""
+    predictor = getattr(model, "predictor", None)
+    return str(predictor.device) if predictor is not None and predictor.device is not None else "not run"
+
+
+def runtime_info(models, device):
+    """What produced a report, beyond the weights: versions, commit and per-component device."""
+    import platform
+
+    import cv2
+    import numpy
+    import torch
+    import torchvision
+    import ultralytics
+    return {"python": platform.python_version(), "platform": platform.platform(),
+            "torch": torch.__version__, "torchvision": torchvision.__version__,
+            "ultralytics": ultralytics.__version__, "numpy": numpy.__version__,
+            "opencv": cv2.__version__, "git_commit": _git_commit(),
+            "classifier_device": str(device),
+            "detector_device": _yolo_device(models["detector"]),
+            "lesion_detector_device": _yolo_device(models["caries_lesion_model"])}
 
 
 def pick_device():
@@ -631,9 +727,9 @@ def load_models(detector=DEF_DETECTOR, fdi_head=DEF_FDI_HEAD, caries_gate=DEF_CA
 
     device = device or pick_device()
     m = {
-        "detector": YOLO(str(paths["detector"])),
+        "detector": load_yolo_pinned(paths["detector"]),
         "head": load_head(paths["fdi_head"], device),
-        "caries_lesion_model": YOLO(str(paths["caries_lesion_model"])),
+        "caries_lesion_model": load_yolo_pinned(paths["caries_lesion_model"]),
     }
     m["gate"], gate_cls = load_classifier(paths["caries_gate"], 2, device)
     m["csev"], csev_cls = load_classifier(paths["caries_severity"], 2, device)
@@ -655,7 +751,7 @@ def load_models(detector=DEF_DETECTOR, fdi_head=DEF_FDI_HEAD, caries_gate=DEF_CA
 def run_pipeline(img_bgr, models, device, paths, image_label="image", imgsz=1024, conf=0.25,
                  det_iou=0.50, one_to_one=True, verbose=True, caries_method="lesion-detector",
                  caries_lesion_conf=CARIES_LESION_CONF, assignment="hungarian",
-                 bone_severity_grade=False):
+                 bone_severity_grade=False, source_dtype=None):
     """
     Stages 1-6 on an already-loaded image, using already-loaded models. This is the function
     both `main()` and the Streamlit app call -- one code path, so a fix or a limitation update
@@ -668,6 +764,9 @@ def run_pipeline(img_bgr, models, device, paths, image_label="image", imgsz=1024
     `bone_severity_grade` -- False (default since 14 Oct 2026): the Stage-4 severity head is not
     run and a flagged tooth says so; its classes are crop-contrast bands (RESULTS_LOG 2026-10-13d).
     True restores the grade, flagged as not evaluated.
+
+    `source_dtype` -- the image file's own sample type, if the caller read it (for the bit-depth
+    warning in `check_input`).
     """
     from src.classifiers import (BONE_LOSS_SEVERITY_CLASSES, run_bone_loss, run_caries,
                                  run_caries_lesion_detector)
@@ -677,6 +776,10 @@ def run_pipeline(img_bgr, models, device, paths, image_label="image", imgsz=1024
     def log(msg):
         if verbose:
             print(msg)
+
+    input_warnings = check_input(img_bgr, source_dtype)
+    for w in input_warnings:
+        log(f"  input warning: {w}")
 
     log("stage 1 — detection …")
     boxes, confs = detect_upright(models["detector"], img_bgr, imgsz=imgsz, conf=conf,
@@ -707,8 +810,10 @@ def run_pipeline(img_bgr, models, device, paths, image_label="image", imgsz=1024
         }
     elif caries_method == "lesion-detector":
         log("stage 3 — caries LESION DETECTOR (whole image, adopted 4 Sep 2026) …")
+        lesion_stats = {}
         caries = run_caries_lesion_detector(models["caries_lesion_model"], models["csev"],
-                                            img_bgr, boxes, device, conf=caries_lesion_conf)
+                                            img_bgr, boxes, device, conf=caries_lesion_conf,
+                                            stats=lesion_stats)
         lesion_sha = file_sha256(str(paths["caries_lesion_model"]))
         caries_meta = {
             "method": "lesion-detector", "weights": str(paths["caries_lesion_model"]),
@@ -720,6 +825,8 @@ def run_pipeline(img_bgr, models, device, paths, image_label="image", imgsz=1024
             "confidence_calibration": (
                 "NOT applied -- the isotonic calibrator was fit for the gate's score "
                 "distribution. gate_confidence here is a raw detection score, not a softmax."),
+            "lesion_boxes_detected": lesion_stats.get("lesion_boxes", 0),
+            "lesion_boxes_unmapped": lesion_stats.get("lesion_boxes_unmapped", 0),
         }
     else:
         raise ValueError(f"unknown caries_method: {caries_method!r} (expected "
@@ -760,10 +867,12 @@ def run_pipeline(img_bgr, models, device, paths, image_label="image", imgsz=1024
                           "and the severity tag are historical. RESULTS_LOG 2026-10-10."),
                       "validation_split": bone_profile["validation_split"],
                       "class_order_note": bone_profile["class_order_note"]},
+        "runtime": runtime_info(models, device),
     }
 
     log("stage 5–6 — fusion and report …")
-    return build_report(image_label, img_bgr, boxes, confs, fdi_assign, caries, bone, meta)
+    return build_report(image_label, img_bgr, boxes, confs, fdi_assign, caries, bone, meta,
+                        input_warnings=input_warnings)
 
 
 from src.fdi_head_inference import ASSIGNMENTS  # noqa: E402
@@ -808,6 +917,8 @@ def main():
     img = cv2.imread(str(args.image))
     if img is None:
         raise SystemExit(f"cannot read image: {args.image}")
+    raw = cv2.imread(str(args.image), cv2.IMREAD_UNCHANGED)
+    source_dtype = raw.dtype if raw is not None else None
 
     models, device, paths = load_models(
         detector=args.detector, fdi_head=args.fdi_head, caries_gate=args.caries_gate,
@@ -820,10 +931,13 @@ def main():
                           imgsz=args.imgsz, conf=args.conf, det_iou=args.det_iou,
                           one_to_one=not args.no_one_to_one, caries_method=args.caries_method,
                           caries_lesion_conf=args.caries_lesion_conf,
-                          assignment=args.assignment, bone_severity_grade=args.bone_severity_grade)
+                          assignment=args.assignment, bone_severity_grade=args.bone_severity_grade,
+                          source_dtype=source_dtype)
+    for w in report["image"]["warnings"]:
+        print(f"WARNING (input): {w}", file=sys.stderr)
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(report, indent=2) + "\n")
+    args.output.write_text(json.dumps(report, indent=2, allow_nan=False) + "\n")
 
     s = report["summary"]
     print(f"\n  teeth detected {s['teeth_detected']}   assessable {s['teeth_assessable']}"
