@@ -775,6 +775,14 @@ councilled on how** (`RESULTS_LOG` 2026-10-12c,
   defects found while reading the code (a stale numbering-head tag in every report among
   them): `docs/session-memory/2026-10-13g-implementation-plan-for-14-oct.md`. Four questions
   at its top need the decision owner's answer before the first edit.
+- **The research-driven audit of 14 Oct absorbs that plan; follow it for implementation** —
+  task cards T0–T8 plus V1–V2, F1–F7, W1–W2; figures and their colours, each
+  stage against fourteen verified papers, the councils' advice reconciled, P0–P3 roadmap and an
+  experiment matrix (none runnable before submission):
+  `docs/session-memory/2026-10-14-research-audit-and-plan.md`. New before any text: a
+  near-duplicate scan of the Tufts split (V1) and a Stage-4a crop-parity test (V2). Paper
+  Fig. 5 and the README banner still show the withdrawn 0.923 / "periodontal". Questions
+  D5 (README infographics) and D6 (overlay colours) added.
 - **On the other machine:** the pdfLaTeX build is needed; the Docker rebuild is needed only if
   the paper mentions Docker.
 - **"Are all the metrics good?" No, as on 12 Oct.** Several are weak and two outputs are
