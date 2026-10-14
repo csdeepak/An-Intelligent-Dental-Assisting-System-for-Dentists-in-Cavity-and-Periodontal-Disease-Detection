@@ -9205,3 +9205,57 @@ manuscript now carries is from 2026-10-11g, -i and -j — and one new check, on 
   (`models/19_bone_severity_overlap/run_summary.txt` says where). The Tufts test split is now spent
   for Stage 4b too. Whether the journal version keeps or removes the head (plan J11, D10) is the
   decision owner's; this result is the case for removal.
+
+## 2026-10-14e — Per-stage publishability council; six manuscript fixes and two code fixes applied
+
+- **What was done:** On the user's `/council`, three independent read-only seats — a conference
+  and journal referee (Opus), an ML-evaluation engineer (Sonnet) and a scope strategist (Opus) —
+  judged every stage against its artefacts; nothing was run. The chair checked each finding it
+  used against the repo. On the user's go, six edit-only fixes went into the 15-page
+  `paper/main.tex` and two code fixes into the pipeline. Nothing trained or scored, Ningxia
+  untouched, no default changed. Narrative:
+  `docs/session-memory/2026-10-14g-publishability-council-and-fixes.md`.
+- **Dataset / config:** none — no measurement.
+- **Metrics:** none new. Counts after the fixes: pytest 204 (was 197); manuscript claims 207 (was
+  206); invariants 12; tectonic 16 pages (was 15 — the 16th holds four references), 0 errors, 0
+  undefined references.
+- **Key decision or insight:** **No stage needs a new experiment to be publishable; the gaps are
+  claims and scope.** Data, Stage 1, Stage 2 and Stage 3a are publishable with disclosures; the
+  retired gate is the cleanest evidence; Stage 3b is one clause; Stage 4a is secondary, one
+  sentence in a six-page caries paper; Stage 4b is cut or one sentence, worded "not eligible",
+  never "worse" (its interval spans zero); Stages 5–6 are "implemented". What a reviewer raises
+  first: the abstract's development headline is the retired gate's (0.362; 0.802 against 0.630),
+  while the shipped lesion detector ties the constant on DENTEX lesion agreement (0.595 against
+  0.630); Lever B's external win rests on one cohort that also informed its adoption; "Domain
+  Shift" in the title and keywords and a periodontal opening sentence; no authors or mandatory
+  statements; the Kaggle licence. **Applied:** E1 the test count, 194 → 204; E2 Table IV's
+  caption — DENTEX is in-domain for the lesion detector too, which trained on 650 other DENTEX
+  images (asserted from `models/16`'s run summary); E3 the abstract's "had all failed" → "had all
+  returned intervals spanning zero", as the body already said; E4 a perceptual-hash sentence in
+  the leakage paragraph, in words; E5 the CariesXrays split is by image and its 6,000 images come
+  from 5,380 patients (where the split is introduced, and in the Limitations); E6 the abstract
+  says the Ningxia cohort informed the detector's adoption, and `sec:leverb` says the pooled
+  interval treats the four hospitals as fixed. C1 `load_models` refuses a default checkpoint
+  whose sha256 is not its pin, before unpickling it (`DEFAULT_SHA256` in
+  `scripts/run_inference.py`; two tests). C2 five tests of `lesion_preds_to_tooth_idx` and
+  `run_caries_lesion_detector`, the shipped Stage-3a path, which had none. **Declined:** a CPU
+  sweep of the lesion detector's confidence on DENTEX and CariesXrays validation (earlier
+  councils refused threshold studies; off the critical path); withholding the Stage-3b grade (the
+  decision owner kept it on 14 Oct, D1). **Left for the cut and the owner:** an abstract built
+  around the shipped system; title and keywords without "domain shift"; no periodontal opening;
+  Stage 4 in or out of the cut; authors and statements; a Kaggle-licence fallback date; the
+  mentor meeting first.
+- **Disclosures:** E4 rests on two perceptual-hash comparisons recorded in this log (2026-10-11
+  and 2026-10-11d) that were counted in-session with no artefact saved, so the manuscript states
+  the result without numbers. The checker does not assert the manuscript's test count. One seat's
+  finding was not adopted: the "700/150/150 against 678/145/143" mismatch — Stage 4 uses the same
+  split file less two twins and the radiographs with no tooth box. The chair's brief said
+  UFBA-425 was unseen by every model; the `arm4c` ablation trained on 382 UFBA images (the
+  default `arm3c` did not).
+- **Source:** `paper/main.tex`; `scripts/run_inference.py` (`DEFAULT_SHA256`, `load_models`);
+  `tests/test_report.py`; `tests/test_classifiers.py`; `scripts/verify_paper_numbers.py`;
+  `models/14_cariesxrays_lever2/run_summary.txt` (the image-level split);
+  `models/16_lever_b_pooled/run_summary.txt` (650 DENTEX images).
+- **Follow-ups:** the mentor meeting (O1) before the cut; the cut carries the abstract rewrite.
+  Optional, the decision owner's: abstention under shift — Tufts and UFBA coverage at τ 0.30
+  from saved rows — logged as arithmetic if it goes in.

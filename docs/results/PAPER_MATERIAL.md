@@ -2948,6 +2948,37 @@ journal version (plan J11, D10) this is the case for removing the head.
 
 ---
 
+### 8.41 What each stage supports for publication, and two weaknesses now stated
+
+*14 Oct 2026, late night. `RESULTS_LOG` 2026-10-14e. A three-seat council; nothing was run.*
+
+None of the stages needs a new experiment to be publishable. The gaps are claims and scope.
+
+| Stage | In a six-page caries paper |
+|---|---|
+| Data | Keep, with the leakage and split disclosures |
+| 1 Detector | "The front end": the failed registered guard and the Kaggle licence stated |
+| 2 Numbering | One line; lead with 63.5% (Tufts) and 44.5% (UFBA-425), not the in-domain 92.8% |
+| 3a Lesion detector | The positive result: one external cohort, selection-touched, ties the constant on DENTEX lesion agreement |
+| 3a Retired gate | The ladder's arm and the cleanest evidence |
+| 3b | One clause: present, not evaluated |
+| 4a | One sentence, the leakage lesson (0.923 → 7.6%) |
+| 4b | Cut, or one sentence: not eligible |
+| 5–6 | "Implemented" |
+
+**Two weaknesses `main.tex` now states.** (1) The CariesXrays split behind the lesion detector's
+validation figure is by image, and the release's 6,000 images come from 5,380 patients, so a
+patient can sit on both sides of it. (2) The Ningxia pooled interval treats the four hospitals as
+fixed; per hospital the difference runs from −3.16 to +16.91 points, and a further hospital could
+fall on the constant's side, as test1 does.
+
+**What the abstract still does, for the cut to fix.** Its development headline (0.362; 0.802
+against 0.630) is the retired gate's; the shipped lesion detector's F1 0.498 is absent, and on
+DENTEX lesion agreement it ties the constant (0.595 against 0.630, −3.55 [−10.11, +2.64]). "Domain
+Shift" is in the title and the keywords, and the first sentence names periodontal bone loss.
+
+---
+
 ## 9. What's not yet written — checklist
 
 For whoever drafts the actual paper. Tick items off here as they land.
@@ -2976,6 +3007,10 @@ For whoever drafts the actual paper. Tick items off here as they land.
       Stage 4b now has one test figure, stated as an extent band, not a severity, with the rule not
       met. **Done in the 15-page `main.tex`** — `sec:stage4`, the system overview and the
       Limitations (`RESULTS_LOG` 2026-10-14d). The six-page cut carries it or drops Stage 4b.
+- [ ] **Build the cut's abstract around the shipped system** (§8.41, 14 Oct 2026): the lesion
+      detector's own development figure beside the gate's, its DENTEX tie on lesion agreement,
+      no "domain shift" in the title or keywords, no periodontal opening. The six disclosure
+      fixes of the same council are **done in the 15-page text** (`RESULTS_LOG` 2026-10-14e).
 - [x] **Decide which front end the manuscript reports, and make every table say so** (§8.30,
       11 Oct 2026). **Decided 11 Oct: the current one. `main.tex` was rebuilt the same day**
       (`RESULTS_LOG` 2026-10-11k): every table and the headline re-stated, the override of the

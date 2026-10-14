@@ -864,7 +864,9 @@ Not integrated. Reported as a negative result.
 checkpoint's sha256 and tag stamped in `models`; the Stage-4 severity grade withheld by default;
 overlay orange = finding, blue = no finding (thin, `?` = numbering uncertain), grey = not
 assessable. `pytest` 194 passed; `verify_invariants.py` 12 hold (ten weight files pinned, the
-Tufts split disjoint).
+Tufts split disjoint). **14 Oct, late night:** 204 tests — the seven default checkpoints are now
+checked against their pinned sha256 before loading, and the shipped Stage-3a lesion-to-tooth
+mapping has its own tests (`RESULTS_LOG` 2026-10-14e).
 
 **Implemented 24 Aug 2026** (`scripts/run_inference.py`, RESULTS_LOG 2026-08-24f — R4, paper
 claim C3). Image in, per-tooth JSON + overlay out, through all six stages.

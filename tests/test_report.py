@@ -46,3 +46,22 @@ def test_overlay_colours_and_line_widths(tmp_path):
         mid = (y1 + y2) // 2                     # the left edge, away from the label above the box
         assert tuple(int(v) for v in img[mid, x1]) == colour
         assert tuple(int(v) for v in img[mid, x1 + 1]) == (colour if thick else (0, 0, 0))
+
+
+def test_default_checkpoint_pins_match_the_files():
+    """A wrong pin would stop every default run; a missing file is a fetch problem, not this."""
+    for path, sha in ri.DEFAULT_SHA256.items():
+        if path.exists():
+            assert ri.file_sha256(str(path)) == sha, path
+
+
+def test_a_default_checkpoint_with_the_wrong_hash_is_refused_before_loading(tmp_path, monkeypatch):
+    pytest.importorskip("ultralytics")
+    names = ("detector", "fdi_head", "caries_gate", "caries_severity", "caries_lesion_model",
+             "bone_loss", "bone_severity")
+    paths = {n: tmp_path / f"{n}.pt" for n in names}
+    for p in paths.values():
+        p.write_bytes(b"not a checkpoint")      # loading any of these would fail differently
+    monkeypatch.setattr(ri, "DEFAULT_SHA256", {paths["detector"].resolve(): "0" * 64})
+    with pytest.raises(SystemExit, match="sha256 is not the pinned"):
+        ri.load_models(**paths)

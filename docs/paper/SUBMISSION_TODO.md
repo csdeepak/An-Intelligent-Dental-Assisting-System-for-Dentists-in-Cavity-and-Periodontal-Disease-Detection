@@ -69,6 +69,13 @@ with the contrast-trained head's own figure, and no longer says "not evaluated".
 no longer holds; its other point, no severity claim, does. The cut carries the sentence or drops
 Stage 4b.
 
+**14 Oct, late night: a publishability council** (`RESULTS_LOG` 2026-10-14e, `PAPER_MATERIAL.md`
+§8.41). Applied to the 15-page text: the test count, Table IV's in-domain caption, "had all
+failed", a perceptual-hash sentence, the CariesXrays split by image, and the Ningxia interval as
+fixed-site. The text is now 16 pages; the 16th holds four references. **For the cut:** build the
+abstract around the shipped system — its DENTEX development headline is the retired gate's — and
+drop "Domain Shift" from the title and keywords and the periodontal opening.
+
 Each was checked against `main.tex` by the session chair
 (`docs/session-memory/2026-10-12-publishability-council.md`). All are edits; none needs a run.
 
