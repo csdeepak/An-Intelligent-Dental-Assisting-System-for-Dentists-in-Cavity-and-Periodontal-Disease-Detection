@@ -9379,3 +9379,66 @@ manuscript now carries is from 2026-10-11g, -i and -j — and one new check, on 
   `tests/test_report.py`, `tests/test_classifiers.py`, `tests/test_pipeline_e2e.py`.
 - **Follow-ups:** the Docker build on Windows; the after-20-Oct list in the council file (the
   Stage-3b retrain on `splits_v2`, an aspect-restoring front end, calibration under shift).
+
+## 2026-10-27 — Windows clone merged up to origin; a resample-count audit of the manuscript's intervals, and four stale statements fixed
+
+- **What was done:** the Windows clone had sat at `fc811ca` (7 Sep) while `origin` gained 42
+  commits (11–15 Oct). A revisit session first worked on that stale base, then found the gap at
+  commit time. Its work is kept unmerged on `record/2026-10-27-stale-base-revisit` (`8e150fe`);
+  `origin/main` was merged (`5dc5c09`) together with the 30 Sep RCE mentor draft (`3cc15fe`), and
+  each defect that session had found was re-checked against the merged tree. Those still present
+  are fixed here; the rest were already fixed or made moot by the 11 Oct manuscript rebuild.
+- **Dataset / config:** no model run, no new measurement. Audit of the `n_boot` / `seed` behind
+  every interval in `paper/main.tex`, read from each artefact `verify_paper_numbers.py` loads and,
+  where the artefact does not record it, from the producing script.
+- **Metrics — what the audit found:**
+
+  | interval family | resamples, seed | source of the fact |
+  |---|---|---|
+  | `bootstrap_ci`, `caries_intervals`, `stage1_switch`, Lever B, Stage-4 v2/v3 | 10,000, 42 | each artefact's own field |
+  | caries-gate calibration (AP etc.) | **2,000**, 42 | `caries_gate_calibration_test.json` `ci_method` — `main.tex` already said so |
+  | both abstention gains (numbering +4.76 [+3.29, +6.54]; gate +14.25 [+11.32, +16.63]) | **1,000, seed 0** | `c4_coverage_accuracy.py` `gain_stats` default, no CLI override; **not stated** in `main.tex` |
+
+  The J_coverage numbering run was re-run on this machine from
+  `outputs/stage1_switch/B_dentex_arm3c/stage2_rows_head.json` to a scratch directory and prints
+  the same +4.76 [+3.29, +6.54]. Its saved caries-gate upper bound reads 16.62 (macOS run) against
+  16.63 here and in `outputs/c4_abstention/` — a cross-machine float difference in a file the
+  manuscript does not cite for that number.
+- **Fixed (each still present on `origin/main`):**
+  1. `main.tex` §Statistical analysis now names the abstention exception (1,000, seed 0).
+  2. `main.tex` said "detection mAP and the in-domain scores of the two classifier branches" carry no
+     interval. Since 13–14 Oct both branches report bootstrapped intervals (Stage-4 runs over
+     radiographs; the caries gate's AP). Rewritten to the three quantities that truly lack one:
+     detection mAP, the gate's calibration error, and the first Stage-4 model's crop-level 0.923 /
+     83 %, quoted only as the figures its retraining replaced.
+  3. `model_metrics.md` and `PAPER_MATERIAL.md` §8.25: CariesXrays constant match rate **0.206**,
+     not 0.207 (1,997 / 9,672 = 0.20648, double-rounded through the stored 0.2065); the molar
+     mechanism (72.0 % / 60.2 %) marked **[UNVERIFIED]** — measured on a 300-image / 859-lesion
+     sample (2026-09-01), never saved.
+  4. `PAPER_MATERIAL.md` §8.15 said the calibration CI used 10,000 resamples; it used 2,000.
+     §8.14 now lists both exceptions. §8.10: the Tufts end-to-end eval scored 143 of 149 test
+     images — six (118, 339, 417, 501, 528, 974) have no objects in `teeth_bbox.json`. §9's
+     bone-loss "genuinely blocked" item marked superseded (crops recovered 7 Sep; Stage 4 reported
+     from radiograph-split runs since 13 Oct).
+  5. The tracked `paper/main.bbl` predated the 15 Oct citations: a pdfLaTeX build from the repo
+     left `krois2021generalizability`, `bizjak2024advancing`, `budagam2024oralbbnet` and
+     `schwendicke2021checklist` undefined (tectonic, the macOS build, runs BibTeX itself, so it
+     never showed). Regenerated with `bibtex`: those four entries added, nothing else changed;
+     16 pages, 0 errors, 0 undefined references.
+  - §8.25's pre-switch cohort intervals (DENTEX +4.6, Ningxia −0.9, CariesXrays +25.2) were never
+    saved; the record branch holds a 10,000 / seed-42 regeneration (point estimates exact, only the
+    Ningxia lower bound moves, −4.88 → −4.75 pp). The manuscript no longer cites them, so it was not
+    merged; §8.25 points at the branch.
+- **Verification:** `verify_paper_numbers.py` **215/215** (214 + a guard tying the abstention
+  sentence to `gain_stats`'s default; origin's calibration-phrase check updated for the new
+  sentence); `pytest` 210 passed, 3 skipped; `verify_invariants.py` all hold; `main.tex` recompiled.
+- **Key decision or insight:** stated the exceptions rather than re-running the abstention CIs at
+  10,000 — that would change printed digits, which is its own result. And: a cold start on this
+  repo has to compare with `origin` before reading `transfer.md`; this clone's own snapshot was
+  seven weeks stale and the session's first day of work landed on it.
+- **Source:** `scripts/verify_paper_numbers.py`, `scripts/eval/c4_coverage_accuracy.py`,
+  `outputs/calibration/caries_gate_calibration_test.json`,
+  `outputs/stage1_switch/J_coverage_arm3c/c4_coverage_accuracy.json`; record branch `8e150fe`.
+- **Follow-ups:** (1) optional — re-run both abstention intervals at 10,000 / seed 42 so the methods
+  sentence needs one exception fewer; (2) the molar-mechanism figures need an artefact or should
+  leave the docs; (3) Docker rebuild on Windows (unchanged from 2026-10-15b).

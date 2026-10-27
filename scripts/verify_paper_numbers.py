@@ -273,6 +273,15 @@ check("90%-coverage accuracy", f"{c4n['at_90']['accuracy']:.3f}", "J_coverage")
 check("75% of detections, over teeth present",
       r(0.75 * s2["recall"] * 100, 1) + "% of the teeth", "recomputed")
 
+# The methods section's second resample-count exception (added 27 Oct 2026; the first, the
+# calibration intervals, is asserted further down as "calibration resamples"). The abstention
+# script records no n_boot in its output, so read it from the function default it runs with:
+# changing that default without the sentence, or the sentence without it, fails here.
+_c4_src = (REPO / "scripts/eval/c4_coverage_accuracy.py").read_text(encoding="utf-8")
+_c4_n = re.search(r"def gain_stats\([^)]*n_boot=(\d+), seed=(\d+)\)", _c4_src)
+check("abstention CI resamples (methods)",
+      f"{int(_c4_n.group(1)):,} with seed {_c4_n.group(2)} for the two abstention-gain", "c4 gain_stats")
+
 # ------------------------------------------------------------- VLM + hardware
 v32 = load("outputs/c1_vlm/arm_vlm_32b_0shot.json")
 v7 = load("outputs/c1_vlm/arm_vlm_7b_0shot_rerun.json")
@@ -372,7 +381,7 @@ check("Table V images", f"the {RES['C_dentex_lesion_agreement']['pooled']['n_ima
 cm = re.search(r"n=(\d+)\), (\d+) resamples",
                load("outputs/calibration/caries_gate_calibration_test.json")["ci_method"])
 check("calibration resamples",
-      f"({int(cm.group(2)):,} for the caries-gate calibration intervals, over its {cm.group(1)} source images)",
+      f"({int(cm.group(2)):,} for the caries-gate calibration intervals, over its {cm.group(1)} source images;",
       "outputs/calibration/caries_gate_calibration_test.json")
 M07 = "models/07_caries_cascade/run_summary.txt"
 n07 = re.search(r"same (\d+) crops", (REPO / M07).read_text(encoding="utf-8")).group(1)

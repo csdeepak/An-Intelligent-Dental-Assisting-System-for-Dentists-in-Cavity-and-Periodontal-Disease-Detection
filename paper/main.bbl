@@ -168,6 +168,23 @@ Z.~Cao, C.~Feng, Y.~Shen, G.~Ye, H.~Xu, J.~Wu, Z.~Wu, H.~Gao, and H.~Zhu,
   limited panoramic radiograph dataset,'' \emph{Expert Systems with
   Applications}, vol. 254, p. 124446, 2024.
 
+\bibitem{krois2021generalizability}
+J.~Krois, A.~Garcia~Cantu, A.~Chaurasia, R.~Patil, P.~K. Chaudhari, R.~Gaudin,
+  S.~Gehrung, and F.~Schwendicke, ``Generalizability of deep learning models
+  for dental image analysis,'' \emph{Scientific Reports}, vol.~11, p. 6102,
+  2021.
+
+\bibitem{bizjak2024advancing}
+\BIBentryALTinterwordspacing
+{\v{Z}}.~Bizjak and T.~Robi{\v{c}}, ``Advancing dental caries detection in
+  panoramic {X}-rays: {A} two-step deep learning approach,'' \emph{Informatica
+  Medica Slovenica}, vol.~29, no. 1--2, pp. 1--10, 2024, no DOI found --
+  checked Crossref by title and by author 4 Sep 2026, no match; this journal
+  does not appear to register DOIs. The journal-hosted url is the citable
+  record. [Online]. Available:
+  \url{https://www.ims.si/index.php/ims/article/view/374}
+\BIBentrySTDinterwordspacing
+
 \bibitem{cerda2024determining}
 \BIBentryALTinterwordspacing
 D.~Cerda~Mardini, P.~Cerda~Mardini, D.~Paz Vicu{\~n}a~Iturriaga, and D.~R.
@@ -201,12 +218,24 @@ I.~E. Hamamci, S.~Er, E.~Simsar, A.~Sekuboyina, and Others, ``{DENTEX}: An
   abnormal tooth detection with dental enumeration and diagnosis benchmark for
   panoramic x-rays,'' 2023, arXiv:2305.19112.
 
+\bibitem{budagam2024oralbbnet}
+D.~Budagam, A.~Z. Imanbayev, I.~R. Akhmetov, A.~Sinitca, S.~Antonov, and
+  D.~Kaplun, ``{OralBBNet}: Spatially guided dental segmentation of panoramic
+  {X}-rays with bounding box priors,'' arXiv:2406.03747, 2024, introduces the
+  UFBA-425 dataset.
+
 \bibitem{li2024multicenter}
 X.~Li, X.~Ma, Y.~Zhao, J.~Hu, J.~Liu, Z.~Yang, F.~Han, J.~Zhang, W.~Liu, and
   Z.~Zhou, ``A multi-center dental panoramic radiography image dataset for
   impacted teeth, periodontitis, and dental caries: Benchmarking segmentation
   and classification tasks,'' \emph{Journal of Imaging Informatics in
   Medicine}, vol.~37, no.~2, pp. 831--841, 2024.
+
+\bibitem{schwendicke2021checklist}
+F.~Schwendicke, T.~Singh, J.-H. Lee, R.~Gaudin, A.~Chaurasia, T.~Wiegand,
+  S.~Uribe, and J.~Krois, ``Artificial intelligence in dental research:
+  Checklist for authors, reviewers, readers,'' \emph{Journal of Dentistry},
+  vol. 107, p. 103610, 2021.
 
 \bibitem{bai2025qwen25vl}
 S.~Bai, K.~Chen, X.~Liu, J.~Wang, and Others, ``{Qwen2.5-VL} technical

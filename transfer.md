@@ -146,6 +146,15 @@ wrong: a held-out DENTEX test split with 84 deep-caries annotations exists (`dat
 warnings, an end-to-end test, every YOLO load hash-checked, runtime provenance in the report, NaN
 guards, app and Docker hygiene; schema 1.6; 213 tests. Six before/after reports identical per
 tooth. The Docker image still has to be built, on Windows. §1 and §8 edited.
+**27 Oct — the Windows clone caught up, and a resample-count audit** (`RESULTS_LOG` 2026-10-27,
+`docs/session-memory/2026-10-27-repo-revisit-paired-ci.md`). This clone had sat at 7 Sep; `origin`
+was merged in (`5dc5c09`), together with the 30 Sep RCE **mentor draft** (8 pp, IEEEtran,
+`paper/paper.md` + `paper/ieee/main.pdf`, `3cc15fe`; not the maintained manuscript). Fixed on top:
+`main.tex` now states that the abstention intervals use 1,000 resamples (seed 0), and no longer says the
+classifier branches carry no interval; `model_metrics.md` 0.207 → 0.206; `PAPER_MATERIAL.md` §8.15
+says 2,000, not 10,000. Work done before the merge on the stale base is kept unmerged on
+`record/2026-10-27-stale-base-revisit` (`8e150fe`) — keep that branch, §8.25 points at it. 215
+claims, 210 tests passing here (3 skipped). §8 edited.
 
 > **Windows clone, 6 Sep 2026 — the Tufts crop corpus was cut from the wrong frame, and is now
 > rebuilt.** It scored 11.5% crop-level FDI-exact where the published number is 71.5%, with correct
@@ -1178,9 +1187,13 @@ different machine than the one searched.
   Hungarian FDI assignment) and torch↔numpy conversion both correct, full suite green. The pin
   protects older stacks (numpy 1.x-built torch/scipy); on a from-scratch 3.13 install there is no
   numpy 1.x wheel anyway, so numpy 2.x is what you'll get regardless.
-- **Docker:** Desktop is installed on this machine; its daemon was not running when last checked
-  (4 Sep). `docker build` has never actually executed end-to-end here — treat "verified" claims
-  from before that check with caution until it's actually run once.
+- **Docker:** `opg-demo` was built and smoke-tested end-to-end on this machine on 7 Sep (5.03 GB,
+  `RESULTS_LOG` 2026-09-07c), so the build itself works here. That image predates the 11 Oct
+  detector switch, the 13 Oct Stage-4a default and the 15 Oct schema-1.6 fixes — rebuild before
+  any demo.
+- **Which Python on Windows:** in Git Bash, `python` resolves to msys64's 3.11, which has no numpy —
+  every check then fails at import. Use `C:\venvs\dental312\Scripts\python.exe` (numpy 1.26,
+  matches the pin; 210 passed / 3 skipped and 215 claims on 27 Oct) or `py -3.13`.
 - **LaTeX on the macOS clone:** tectonic 0.17 (Homebrew, installed 11 Oct). `cd paper &&
   tectonic main.tex --outdir <somewhere>`; it is XeTeX, so `main.tex` loads a Times clone for
   non-pdfLaTeX engines, and with that the page count matches pdfLaTeX's on the previous

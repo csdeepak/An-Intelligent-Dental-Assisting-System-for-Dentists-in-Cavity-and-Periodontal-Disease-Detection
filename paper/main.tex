@@ -774,7 +774,8 @@ range.
 \subsection{Statistical analysis}
 All confidence intervals are 95\,\% percentile intervals from a \textbf{cluster
 bootstrap resampled over images}, 10{,}000 resamples, seed 42 (2{,}000 for the
-caries-gate calibration intervals, over its 34 source images). Differences
+caries-gate calibration intervals, over its 34 source images; 1{,}000 with seed 0
+for the two abstention-gain intervals). Differences
 between two systems evaluated on the same images are computed as paired
 differences within each resample.
 
@@ -787,9 +788,9 @@ observations would produce intervals far too narrow. Where a metric's clustering
 differs, the number of clusters is reported with it.
 
 One group of quantities carries no interval and we say so rather than implying
-otherwise: detection mAP and the in-domain scores of the two classifier branches,
-whose per-item prediction dumps were not saved and which would need a
-re-evaluation pass to bootstrap.
+otherwise: detection mAP, the caries gate's calibration error, and the crop-level
+scores the first Stage-4 model reported, which we quote only as the figures its
+retraining replaced.
 
 %% =====================================================================
 \section{Results}

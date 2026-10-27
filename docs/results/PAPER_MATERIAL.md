@@ -973,7 +973,8 @@ and the head achieves 69.4% of it.
 
 **Updated 4 September 2026 — the Tufts end-to-end number, which the pipeline never had.**
 `validate_fdi_assignment_tufts.py` runs the same detector → head → Hungarian assignment against
-the *complete* Tufts per-tooth numbering (3,760 permanent teeth on 149 frozen-test images,
+the *complete* Tufts per-tooth numbering (3,760 permanent teeth on the 143 of 149 frozen-test
+images that carry any tooth annotation — 118, 339, 417, 501, 528 and 974 have none,
 mirror-corrected via `tufts_title_to_fdi`), so it is a real recall and a real end-to-end
 accuracy, not the GT-only-teeth partial that DENTEX gives. With the deployed detector:
 **recall 82.4 %, FDI exact of detected 78.6 %, end-to-end 64.8 %** (`RESULTS_LOG` 2026-09-04d).
@@ -1345,6 +1346,11 @@ the operational consequence of taking this seriously.
 
 **Added 27 Aug 2026.** Every headline metric with saved per-item outputs now carries a
 **cluster-bootstrap 95% CI** (10,000 resamples, seed 42, `scripts/eval/bootstrap_ci.py`).
+*Exceptions, audited 27 Oct 2026 across every artefact `verify_paper_numbers.py` loads:* the
+caries-gate calibration intervals (§8.15) use 2,000 resamples, and both abstention-gain intervals
+(§8.21, and the post-switch `outputs/stage1_switch/J_coverage_arm3c/`) use 1,000 resamples with
+seed 0 — `c4_coverage_accuracy.py`'s fixed default, re-run 27 Oct and reproduced. `main.tex`
+states both.
 
 **Resampling is over IMAGES, not teeth, and this is the choice to defend in the methods.** The
 936 Stage-2 teeth come from 164 radiographs. Teeth within one image share a patient, a scanner,
@@ -1405,7 +1411,8 @@ flag; this section replaces that assertion with a number.
 | Max calibration error | 0.596 |
 | Brier score | 0.137 |
 
-CI by cluster bootstrap over source images, 10,000 resamples (§8.14's argument).
+CI by cluster bootstrap over source images, **2,000** resamples, seed 42 (§8.14's argument) — per
+the artefact's own `ci_method` field; this line said 10,000 until 27 Oct 2026.
 Figure: `figures/paper/caries_gate_calibration_test.png`.
 
 **The finding is that the model is systematically OVERCONFIDENT, not merely imprecise.** Every
@@ -2187,11 +2194,17 @@ checkpoint changed, same centroid-containment matcher imported from the Ningxia 
 
 **This is the largest lesion count of any cohort in the paper — more than DENTEX and Ningxia
 combined — and the largest margin.** Paired cluster bootstrap over images, 10,000 resamples,
-seed 42. A prefix draw (first 600 by file id) gave +0.240 [+0.211, +0.269]; the randomised draw
+seed 42. **Noted 27 Oct 2026:** none of this table's three intervals was ever saved; the DENTEX
+and Ningxia rows were run at 5,000 resamples, the CariesXrays count was not recorded. They are
+pre-switch figures the manuscript no longer cites (it now reports the 11 Oct front end,
+`outputs/stage1_switch/`). A saved 10,000 / seed-42 regeneration from the per-image records —
+point estimates exact, only the Ningxia lower bound moves (−0.049 → −0.048) — is on branch
+`record/2026-10-27-stale-base-revisit` (`8e150fe`, `outputs/constant_vs_pipeline_ci/`). A prefix draw (first 600 by file id) gave +0.240 [+0.211, +0.269]; the randomised draw
 reproduces it, so the sample carries no ordering bias.
 
 **The mechanism is measured, not inferred.** Mapping each lesion to the detected tooth containing
-it: **72.0% of lesions are on molars** (premolar 20.5%, canine 3.7%, incisor 3.7%), and **60.2%
+it — on a **300-image sample (859 lesions)**, not the 1,500-image draw above, and with **no saved
+artefact** [UNVERIFIED]; `RESULTS_LOG` 2026-09-01 is its only record: **72.0% of lesions are on molars** (premolar 20.5%, canine 3.7%, incisor 3.7%), and **60.2%
 fall on exactly the eight teeth the constant emits**. The constant's 0.561 sits near its
 structural ceiling of ~0.60 on this cohort. It is not out-diagnosing the pipeline; it is
 exploiting an extremely molar-concentrated disease distribution — which is precisely the claim
@@ -2199,7 +2212,7 @@ exploiting an extremely molar-concentrated disease distribution — which is pre
 
 **And the brute-force defence fails here.** On DENTEX the constant flagged only 14% more teeth at
 the same match rate, so volume did not explain its win. On this cohort it flags **64% more teeth
-(6.45 vs 3.94 per image) *and* has the higher match rate (0.207 vs 0.190)** — it wins on both
+(6.45 vs 3.94 per image) *and* has the higher match rate (0.206 vs 0.190)** — it wins on both
 axes. That defence should not be reused without checking it per cohort.
 
 **A ceiling worth stating:** **22.1% of lesions fall inside no detected tooth at all**, which
@@ -3235,6 +3248,11 @@ For whoever drafts the actual paper. Tick items off here as they land.
         wrong number behind a real-looking interval. The original un-rotated Tufts radiographs
         needed to redo this properly were searched for directly (every drive letter, OneDrive)
         and confirmed absent from this machine, not merely assumed absent.
+        > **Superseded (noted 27 Oct 2026).** Not blocked on availability: the original crops
+        > were in the project Drive (`RESULTS_LOG` 2026-09-07). And no longer needed for the
+        > paper: since 13 Oct Stage 4a is retrained on a radiograph-level split and reported as
+        > three held-out runs with radiograph-cluster intervals (`RESULTS_LOG` 2026-10-13b, -c);
+        > the crop-level 0.923 is quoted only as the figure that retraining replaced.
 - [x] Figures for Stages 3/4: training curves and confusion matrices. **Done 27 Aug 2026** —
       **regenerated** from committed artifacts rather than recovered from the archive, so both
       figure and numbers are reproducible from the repo (§8.18):

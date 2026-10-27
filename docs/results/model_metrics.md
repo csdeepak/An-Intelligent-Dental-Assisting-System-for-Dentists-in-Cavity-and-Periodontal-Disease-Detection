@@ -1063,10 +1063,13 @@ by every row. Paired cluster bootstrap over images, 10,000 resamples, seed 42.
 | **CariesXrays** | **1,500 img / 3,421 lesions** | **0.309** | **0.561** | **+0.252 [+0.232, +0.273]** | **constant wins decisively** |
 
 Frozen pipeline throughout — nothing trained, no checkpoint changed. CariesXrays is the largest
-cohort in the project by lesion count (more than DENTEX and Ningxia combined). Mechanism measured:
+cohort in the project by lesion count (more than DENTEX and Ningxia combined). Mechanism measured
+on a 300-image / 859-lesion sample, no saved artefact **[UNVERIFIED]**:
 **72.0% of its lesions are on molars and 60.2% on exactly the eight constant teeth**, against the
 constant's ~0.60 structural ceiling. Unlike DENTEX, the brute-force defence fails — the constant
-flags 64% more teeth *and* has the higher match rate (0.207 vs 0.190). 22.1% of lesions fall
+flags 64% more teeth *and* has the higher match rate (0.206 vs 0.190; 1,997 / 9,672 — was
+double-rounded to 0.207 until 27 Oct 2026). The three intervals in this table were never saved;
+see `PAPER_MATERIAL.md` §8.25. 22.1% of lesions fall
 inside no detected tooth, bounding every tooth-level arm here.
 
 **CariesXrays is a peer-reviewed public benchmark** — Chen et al., *CariesXrays: Enhancing Caries Detection in Hospital-Scale Panoramic Dental X-rays via Feature Pyramid Contrastive Learning*, **AAAI 2024**, 38(20) 21940–21948, DOI 10.1609/aaai.v38i20.30196 — verified against AAAI OJS, ACM DL and DBLP. 6,000 images matches their count exactly; 13,784 non-degenerate boxes vs their stated 13,783 is a +1 convention difference. Licence not stated. Leakage verified three ways (0 MD5 vs all corpora; positive control at distance 0; 1.5M-pair distribution).
