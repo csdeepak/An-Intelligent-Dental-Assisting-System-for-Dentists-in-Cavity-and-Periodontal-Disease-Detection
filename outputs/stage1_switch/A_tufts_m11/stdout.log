@@ -1,0 +1,29 @@
+objc[34432]: Class AVFFrameReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x1041a03a8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x142bc03a8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[34432]: Class AVFAudioReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x1041a03f8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x142bc03f8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Tufts test images: 149  (1 excluded as train duplicates: ['590'])
+detector: best.pt   head: 10_fdi_head_dentex_tufts_v2   device=mps
+assignment arms: hungarian
+  25/149 ...
+  50/149 ...
+  75/149 ...
+  100/149 ...
+  125/149 ...
+
+======================================================================
+TUFTS STAGE-2 -- best.pt + head(10_fdi_head_dentex_tufts_v2), assignment=hungarian
+======================================================================
+  GT teeth (permanent, mirror-corrected)  : 3760  across 143 images
+  detected (recall)                       : 3100  (82.4%)
+  FDI exact (of detected)                 : 2438  (78.6%)
+  quadrant correct (of detected)          : 2986  (96.3%)
+  right quadrant, off-by-one              : 473  (15.3%)
+  FDI exact (of ALL GT teeth)             : 2438  (64.8%)   <- END-TO-END
+    anterior (pos 1-3)          : 74.0%  (n=1325)
+    posterior (pos 4-8)         : 82.1%  (n=1775)
+    images with a detected gap  : 78.5%  (n=2780)
+    images contiguous           : 80.0%  (n=320)
+  duplicate FDI codes emitted             : 0
+  mean detections / image                 : 24.3   (full dentition 28-32)
+  flags                                   : {'reassigned_by_one_to_one': 557, 'low_confidence': 485, 'unassigned_no_code_left': 26}
+
+  wrote outputs/stage1_switch/A_tufts_m11/stage2_*_head.json

@@ -1,0 +1,29 @@
+objc[34496]: Class AVFFrameReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x1073b43a8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x16e2a43a8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[34496]: Class AVFAudioReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x1073b43f8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x16e2a43f8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Tufts test images: 149  (1 excluded as train duplicates: ['590'])
+detector: arm3c_best.pt   head: 10_fdi_head_dentex_tufts_v2   device=mps
+assignment arms: hungarian
+  25/149 ...
+  50/149 ...
+  75/149 ...
+  100/149 ...
+  125/149 ...
+
+======================================================================
+TUFTS STAGE-2 -- arm3c_best.pt + head(10_fdi_head_dentex_tufts_v2), assignment=hungarian
+======================================================================
+  GT teeth (permanent, mirror-corrected)  : 3760  across 143 images
+  detected (recall)                       : 3359  (89.3%)
+  FDI exact (of detected)                 : 2389  (71.1%)
+  quadrant correct (of detected)          : 3176  (94.6%)
+  right quadrant, off-by-one              : 653  (19.4%)
+  FDI exact (of ALL GT teeth)             : 2389  (63.5%)   <- END-TO-END
+    anterior (pos 1-3)          : 64.1%  (n=1485)
+    posterior (pos 4-8)         : 76.7%  (n=1874)
+    images with a detected gap  : 71.9%  (n=3104)
+    images contiguous           : 61.2%  (n=255)
+  duplicate FDI codes emitted             : 0
+  mean detections / image                 : 27.8   (full dentition 28-32)
+  flags                                   : {'low_confidence': 485, 'reassigned_by_one_to_one': 562, 'unassigned_no_code_left': 65}
+
+  wrote outputs/stage1_switch/A_tufts_arm3c/stage2_*_head.json

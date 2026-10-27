@@ -87,7 +87,8 @@ def load_head(weights, device):
             z = torch.cat([self.backbone(img), self.pos(feats)], dim=1)
             return self.quadrant(z), self.position(z)
 
-    ck = torch.load(weights, map_location="cpu", weights_only=False)
+    # weights_only=True (14 Oct 2026): models/08 and 10 load under it; see src/classifiers.py.
+    ck = torch.load(weights, map_location="cpu", weights_only=True)
     net = Net()
     net.load_state_dict(ck["model_state_dict"])
     return net.to(device).eval()
@@ -135,6 +136,8 @@ def head_joint_scores(model, img_bgr, boxes, device):
         lp = torch.log_softmax(op, dim=1)          # (N,8)
         # joint log-prob of every (quadrant, position) pair -> (N,32), column order FDI_CODES
         joint = (lq.unsqueeze(2) + lp.unsqueeze(1)).reshape(len(boxes), 32)
+    if not torch.isfinite(joint).all():
+        raise ValueError("non-finite FDI head output")
     return lq.cpu().numpy(), lp.cpu().numpy(), joint.cpu().numpy()
 
 

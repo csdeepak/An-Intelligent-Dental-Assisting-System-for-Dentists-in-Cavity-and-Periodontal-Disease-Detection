@@ -154,3 +154,14 @@ running, exactly as §2 was, or the result is not honest:
   - `mask_ratio` (4) and `overlap_mask` (True) were inherited as Ultralytics defaults and
     were never tuned for this data
 ================================================================================
+
+--------------------------------------------------------------------------------
+SUPERSEDED AS THE PIPELINE DEFAULT, 11 Oct 2026
+--------------------------------------------------------------------------------
+DEF_DETECTOR is now models/15_detector_multicorpus_leverA/arm3c_best.pt (RESULTS_LOG
+2026-10-11f, the decision; 2026-10-11g, the re-measurement). This checkpoint is unchanged,
+still hash-pinned by scripts/eval/verify_invariants.py and still in git. Every pipeline
+number published between 27 Aug and 11 Oct 2026 was measured with it; to reproduce one:
+    --detector models/11_yolo_seg_tufts_r1/best.pt
+scripts/eval/c1_vlm_baseline.py and scripts/count_model_params.py keep it as their own
+default for that reason.

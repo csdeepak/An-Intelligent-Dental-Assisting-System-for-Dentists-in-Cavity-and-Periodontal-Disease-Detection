@@ -26,7 +26,8 @@ sys.path.insert(0, str(REPO_ROOT))
 
 from src.classifiers import (  # noqa: E402
     BONE_LOSS_CLASSES, BONE_LOSS_EXPAND, BONE_LOSS_SEVERITY_CLASSES, CARIES_EXPAND,
-    CARIES_GATE_CLASSES, CARIES_SEVERITY_CLASSES, crop_batch, run_bone_loss, run_caries)
+    CARIES_GATE_CLASSES, CARIES_SEVERITY_CLASSES, crop_batch, lesion_preds_to_tooth_idx,
+    run_bone_loss, run_caries, run_caries_lesion_detector)
 
 torch = pytest.importorskip("torch")
 
@@ -128,6 +129,56 @@ def test_every_caries_result_is_flagged_uncalibrated():
     assert all("caries_uncalibrated" in r["flags"] for r in out)
 
 
+# ---- Stage 3a as shipped: the lesion detector's boxes mapped onto teeth (added 14 Oct 2026) ----
+TOOTH_A, TOOTH_B = [1000.0, 600.0, 1100.0, 900.0], [1090.0, 600.0, 1190.0, 900.0]   # 10 px overlap
+
+
+class _Lesions:
+    """A stand-in lesion detector whose `predict` returns the given [(xyxy, conf), ...]."""
+    def __init__(self, preds):
+        self.preds = preds
+
+    def predict(self, img, **kw):
+        from types import SimpleNamespace
+        xyxy = torch.tensor([p[0] for p in self.preds], dtype=torch.float32).reshape(-1, 4)
+        conf = torch.tensor([p[1] for p in self.preds], dtype=torch.float32)
+        return [SimpleNamespace(boxes=SimpleNamespace(xyxy=xyxy, conf=conf))]
+
+
+def test_a_straddling_lesion_marks_only_the_tooth_holding_most_of_it():
+    """Argmax containment: 30 of the lesion's 40 px of width lie in B, so B and not A."""
+    assert lesion_preds_to_tooth_idx([([1080, 700, 1120, 750], 0.6)], [TOOTH_A, TOOTH_B]) == \
+        ([1], {1: 0.6})
+
+
+def test_a_lesion_outside_every_tooth_or_of_zero_area_flags_nothing():
+    preds = [([1500, 700, 1540, 750], 0.9), ([1020, 700, 1020, 750], 0.9)]
+    assert lesion_preds_to_tooth_idx(preds, [TOOTH_A, TOOTH_B]) == ([], {})
+
+
+def test_two_lesions_on_one_tooth_keep_the_higher_confidence_in_either_order():
+    lo, hi = ([1010, 650, 1040, 680], 0.4), ([1050, 700, 1080, 730], 0.8)
+    for preds in ([lo, hi], [hi, lo]):
+        assert lesion_preds_to_tooth_idx(preds, [TOOTH_A, TOOTH_B]) == ([0], {0: 0.8})
+
+
+def test_lesion_detector_grades_only_the_teeth_a_lesion_maps_to():
+    deep = _Fixed(2, CARIES_SEVERITY_CLASSES.index("deep_caries"))
+    out = run_caries_lesion_detector(_Lesions([([1010, 650, 1040, 680], 0.7)]), deep, _img(5),
+                                     [TOOTH_A, TOOTH_B], DEV)
+    assert [r["finding"] for r in out] == ["deep_caries", "no_caries"]
+    assert [r["gate_confidence"] for r in out] == [0.7, 0.0]
+    assert out[0]["severity_confidence"] is not None and out[1]["severity"] is None
+    assert all("gate_confidence_is_detection_not_softmax" in r["flags"] for r in out)
+
+
+def test_lesion_detector_without_detections_never_runs_the_severity_head():
+    """severity=None would crash if called: no lesion box, no grade."""
+    out = run_caries_lesion_detector(_Lesions([]), None, _img(6), [TOOTH_A, TOOTH_B], DEV)
+    assert [r["finding"] for r in out] == ["no_caries", "no_caries"]
+    assert run_caries_lesion_detector(_Lesions([]), None, _img(6), [], DEV) == []
+
+
 def test_bone_loss_severity_only_runs_on_positives():
     img = _img(5)
     out = run_bone_loss(_Fixed(2, BONE_LOSS_CLASSES.index("normal")), _Fixed(3, 2),
@@ -137,6 +188,24 @@ def test_bone_loss_severity_only_runs_on_positives():
     out = run_bone_loss(_Fixed(2, BONE_LOSS_CLASSES.index("bone_loss")),
                         _Fixed(3, BONE_LOSS_SEVERITY_CLASSES.index("Severe")), img, [BOX], DEV)
     assert out[0]["finding"] == "bone_loss" and out[0]["severity"] == "Severe"
+
+
+def test_bone_loss_severity_withheld_when_no_model_is_given():
+    """The pipeline default since 14 Oct 2026: the grade is a crop-contrast band (RESULTS_LOG
+    2026-10-13d), so it is not computed, and a flagged tooth says why its severity is null."""
+    img = _img(7)
+    out = run_bone_loss(_Fixed(2, BONE_LOSS_CLASSES.index("bone_loss")), None, img, [BOX, BOX], DEV)
+    assert all(r["finding"] == "bone_loss" and r["severity"] is None for r in out)
+    assert all("severity_withheld_contrast_proxy" in r["flags"] for r in out)
+    out = run_bone_loss(_Fixed(2, BONE_LOSS_CLASSES.index("normal")), None, img, [BOX], DEV)
+    assert out[0]["flags"] == []
+
+
+def test_bone_loss_severity_when_asked_is_flagged_not_evaluated():
+    out = run_bone_loss(_Fixed(2, BONE_LOSS_CLASSES.index("bone_loss")),
+                        _Fixed(3, BONE_LOSS_SEVERITY_CLASSES.index("Moderate")), _img(8), [BOX], DEV)
+    assert out[0]["severity"] == "Moderate"
+    assert "severity_is_contrast_band_not_evaluated" in out[0]["flags"]
 
 
 def test_mild_severity_carries_the_low_support_flag():
@@ -211,3 +280,21 @@ def test_calibration_never_changes_the_verdict():
         cal = float(np.interp(p_caries, k[0], k[1]))
         assert isinstance(cal, float)
         assert verdict_raw == (p_caries >= 0.5), "verdict must follow the raw probability"
+
+
+class _NaN(torch.nn.Module):
+    def forward(self, x):
+        return torch.full((len(x), 2), float("nan"))
+
+
+def test_a_nan_classifier_output_raises_instead_of_reading_as_class_0():
+    """argmax over NaN is 0 -- 'caries' for the gate, 'normal' for Stage 4 -- with no error."""
+    with pytest.raises(ValueError, match="non-finite"):
+        run_caries(_NaN(), _Fixed(2, 0), _img(7), [BOX], DEV)
+
+
+def test_lesion_boxes_on_no_tooth_are_counted():
+    stats = {}
+    run_caries_lesion_detector(_Lesions([([1010, 650, 1040, 680], 0.7), ([1500, 700, 1540, 750], 0.6)]),
+                               _Fixed(2, 0), _img(8), [TOOTH_A, TOOTH_B], DEV, stats=stats)
+    assert stats == {"lesion_boxes": 2, "lesion_boxes_unmapped": 1}

@@ -1,0 +1,992 @@
+{
+  "detector": "models/11_yolo_seg_tufts_r1/best.pt",
+  "detector_sha256": "271316c46caaf4029ea707fa77b6fe30697795e46632e1f6fcae3498c48781ba",
+  "device": "cpu",
+  "n_images": 164,
+  "per_image": [
+    {
+      "image": "test_0",
+      "teeth_detected": 28,
+      "stage4_flagged": 0,
+      "caries_positive": 3
+    },
+    {
+      "image": "test_1",
+      "teeth_detected": 29,
+      "stage4_flagged": 0,
+      "caries_positive": 1
+    },
+    {
+      "image": "test_10",
+      "teeth_detected": 28,
+      "stage4_flagged": 0,
+      "caries_positive": 2
+    },
+    {
+      "image": "test_101",
+      "teeth_detected": 18,
+      "stage4_flagged": 0,
+      "caries_positive": 4
+    },
+    {
+      "image": "test_102",
+      "teeth_detected": 26,
+      "stage4_flagged": 0,
+      "caries_positive": 6
+    },
+    {
+      "image": "test_103",
+      "teeth_detected": 27,
+      "stage4_flagged": 0,
+      "caries_positive": 4
+    },
+    {
+      "image": "test_104",
+      "teeth_detected": 25,
+      "stage4_flagged": 0,
+      "caries_positive": 6
+    },
+    {
+      "image": "test_105",
+      "teeth_detected": 30,
+      "stage4_flagged": 1,
+      "caries_positive": 4
+    },
+    {
+      "image": "test_106",
+      "teeth_detected": 26,
+      "stage4_flagged": 1,
+      "caries_positive": 2
+    },
+    {
+      "image": "test_11",
+      "teeth_detected": 16,
+      "stage4_flagged": 0,
+      "caries_positive": 1
+    },
+    {
+      "image": "test_110",
+      "teeth_detected": 20,
+      "stage4_flagged": 0,
+      "caries_positive": 4
+    },
+    {
+      "image": "test_113",
+      "teeth_detected": 16,
+      "stage4_flagged": 0,
+      "caries_positive": 4
+    },
+    {
+      "image": "test_114",
+      "teeth_detected": 26,
+      "stage4_flagged": 0,
+      "caries_positive": 9
+    },
+    {
+      "image": "test_115",
+      "teeth_detected": 1,
+      "stage4_flagged": 0,
+      "caries_positive": 0
+    },
+    {
+      "image": "test_119",
+      "teeth_detected": 29,
+      "stage4_flagged": 0,
+      "caries_positive": 5
+    },
+    {
+      "image": "test_12",
+      "teeth_detected": 22,
+      "stage4_flagged": 0,
+      "caries_positive": 1
+    },
+    {
+      "image": "test_120",
+      "teeth_detected": 19,
+      "stage4_flagged": 0,
+      "caries_positive": 7
+    },
+    {
+      "image": "test_121",
+      "teeth_detected": 17,
+      "stage4_flagged": 0,
+      "caries_positive": 0
+    },
+    {
+      "image": "test_122",
+      "teeth_detected": 29,
+      "stage4_flagged": 0,
+      "caries_positive": 5
+    },
+    {
+      "image": "test_123",
+      "teeth_detected": 19,
+      "stage4_flagged": 0,
+      "caries_positive": 2
+    },
+    {
+      "image": "test_124",
+      "teeth_detected": 20,
+      "stage4_flagged": 0,
+      "caries_positive": 6
+    },
+    {
+      "image": "test_126",
+      "teeth_detected": 19,
+      "stage4_flagged": 2,
+      "caries_positive": 0
+    },
+    {
+      "image": "test_127",
+      "teeth_detected": 13,
+      "stage4_flagged": 0,
+      "caries_positive": 1
+    },
+    {
+      "image": "test_131",
+      "teeth_detected": 32,
+      "stage4_flagged": 0,
+      "caries_positive": 5
+    },
+    {
+      "image": "test_134",
+      "teeth_detected": 14,
+      "stage4_flagged": 1,
+      "caries_positive": 2
+    },
+    {
+      "image": "test_135",
+      "teeth_detected": 24,
+      "stage4_flagged": 0,
+      "caries_positive": 5
+    },
+    {
+      "image": "test_136",
+      "teeth_detected": 18,
+      "stage4_flagged": 0,
+      "caries_positive": 3
+    },
+    {
+      "image": "test_137",
+      "teeth_detected": 28,
+      "stage4_flagged": 0,
+      "caries_positive": 4
+    },
+    {
+      "image": "test_138",
+      "teeth_detected": 31,
+      "stage4_flagged": 0,
+      "caries_positive": 4
+    },
+    {
+      "image": "test_14",
+      "teeth_detected": 21,
+      "stage4_flagged": 0,
+      "caries_positive": 1
+    },
+    {
+      "image": "test_140",
+      "teeth_detected": 24,
+      "stage4_flagged": 0,
+      "caries_positive": 8
+    },
+    {
+      "image": "test_141",
+      "teeth_detected": 12,
+      "stage4_flagged": 2,
+      "caries_positive": 2
+    },
+    {
+      "image": "test_142",
+      "teeth_detected": 31,
+      "stage4_flagged": 0,
+      "caries_positive": 3
+    },
+    {
+      "image": "test_143",
+      "teeth_detected": 20,
+      "stage4_flagged": 0,
+      "caries_positive": 2
+    },
+    {
+      "image": "test_146",
+      "teeth_detected": 20,
+      "stage4_flagged": 0,
+      "caries_positive": 5
+    },
+    {
+      "image": "test_147",
+      "teeth_detected": 18,
+      "stage4_flagged": 0,
+      "caries_positive": 5
+    },
+    {
+      "image": "test_15",
+      "teeth_detected": 20,
+      "stage4_flagged": 0,
+      "caries_positive": 3
+    },
+    {
+      "image": "test_151",
+      "teeth_detected": 30,
+      "stage4_flagged": 0,
+      "caries_positive": 3
+    },
+    {
+      "image": "test_152",
+      "teeth_detected": 30,
+      "stage4_flagged": 0,
+      "caries_positive": 8
+    },
+    {
+      "image": "test_153",
+      "teeth_detected": 21,
+      "stage4_flagged": 1,
+      "caries_positive": 3
+    },
+    {
+      "image": "test_154",
+      "teeth_detected": 13,
+      "stage4_flagged": 0,
+      "caries_positive": 0
+    },
+    {
+      "image": "test_155",
+      "teeth_detected": 28,
+      "stage4_flagged": 0,
+      "caries_positive": 2
+    },
+    {
+      "image": "test_156",
+      "teeth_detected": 29,
+      "stage4_flagged": 0,
+      "caries_positive": 3
+    },
+    {
+      "image": "test_157",
+      "teeth_detected": 16,
+      "stage4_flagged": 0,
+      "caries_positive": 2
+    },
+    {
+      "image": "test_158",
+      "teeth_detected": 25,
+      "stage4_flagged": 1,
+      "caries_positive": 4
+    },
+    {
+      "image": "test_16",
+      "teeth_detected": 23,
+      "stage4_flagged": 0,
+      "caries_positive": 5
+    },
+    {
+      "image": "test_160",
+      "teeth_detected": 24,
+      "stage4_flagged": 0,
+      "caries_positive": 6
+    },
+    {
+      "image": "test_161",
+      "teeth_detected": 12,
+      "stage4_flagged": 0,
+      "caries_positive": 8
+    },
+    {
+      "image": "test_162",
+      "teeth_detected": 19,
+      "stage4_flagged": 0,
+      "caries_positive": 5
+    },
+    {
+      "image": "test_163",
+      "teeth_detected": 19,
+      "stage4_flagged": 0,
+      "caries_positive": 0
+    },
+    {
+      "image": "test_165",
+      "teeth_detected": 12,
+      "stage4_flagged": 0,
+      "caries_positive": 3
+    },
+    {
+      "image": "test_166",
+      "teeth_detected": 23,
+      "stage4_flagged": 0,
+      "caries_positive": 2
+    },
+    {
+      "image": "test_167",
+      "teeth_detected": 23,
+      "stage4_flagged": 0,
+      "caries_positive": 5
+    },
+    {
+      "image": "test_168",
+      "teeth_detected": 25,
+      "stage4_flagged": 0,
+      "caries_positive": 2
+    },
+    {
+      "image": "test_17",
+      "teeth_detected": 27,
+      "stage4_flagged": 0,
+      "caries_positive": 6
+    },
+    {
+      "image": "test_171",
+      "teeth_detected": 18,
+      "stage4_flagged": 0,
+      "caries_positive": 4
+    },
+    {
+      "image": "test_172",
+      "teeth_detected": 28,
+      "stage4_flagged": 0,
+      "caries_positive": 4
+    },
+    {
+      "image": "test_173",
+      "teeth_detected": 24,
+      "stage4_flagged": 1,
+      "caries_positive": 3
+    },
+    {
+      "image": "test_174",
+      "teeth_detected": 23,
+      "stage4_flagged": 0,
+      "caries_positive": 3
+    },
+    {
+      "image": "test_175",
+      "teeth_detected": 25,
+      "stage4_flagged": 0,
+      "caries_positive": 3
+    },
+    {
+      "image": "test_176",
+      "teeth_detected": 27,
+      "stage4_flagged": 0,
+      "caries_positive": 1
+    },
+    {
+      "image": "test_177",
+      "teeth_detected": 19,
+      "stage4_flagged": 2,
+      "caries_positive": 4
+    },
+    {
+      "image": "test_178",
+      "teeth_detected": 24,
+      "stage4_flagged": 0,
+      "caries_positive": 7
+    },
+    {
+      "image": "test_179",
+      "teeth_detected": 16,
+      "stage4_flagged": 0,
+      "caries_positive": 4
+    },
+    {
+      "image": "test_180",
+      "teeth_detected": 24,
+      "stage4_flagged": 1,
+      "caries_positive": 5
+    },
+    {
+      "image": "test_182",
+      "teeth_detected": 21,
+      "stage4_flagged": 0,
+      "caries_positive": 4
+    },
+    {
+      "image": "test_183",
+      "teeth_detected": 22,
+      "stage4_flagged": 0,
+      "caries_positive": 1
+    },
+    {
+      "image": "test_185",
+      "teeth_detected": 15,
+      "stage4_flagged": 0,
+      "caries_positive": 4
+    },
+    {
+      "image": "test_186",
+      "teeth_detected": 28,
+      "stage4_flagged": 1,
+      "caries_positive": 7
+    },
+    {
+      "image": "test_187",
+      "teeth_detected": 29,
+      "stage4_flagged": 0,
+      "caries_positive": 4
+    },
+    {
+      "image": "test_190",
+      "teeth_detected": 17,
+      "stage4_flagged": 0,
+      "caries_positive": 0
+    },
+    {
+      "image": "test_191",
+      "teeth_detected": 18,
+      "stage4_flagged": 0,
+      "caries_positive": 3
+    },
+    {
+      "image": "test_192",
+      "teeth_detected": 18,
+      "stage4_flagged": 0,
+      "caries_positive": 1
+    },
+    {
+      "image": "test_193",
+      "teeth_detected": 28,
+      "stage4_flagged": 0,
+      "caries_positive": 0
+    },
+    {
+      "image": "test_194",
+      "teeth_detected": 14,
+      "stage4_flagged": 0,
+      "caries_positive": 3
+    },
+    {
+      "image": "test_195",
+      "teeth_detected": 23,
+      "stage4_flagged": 0,
+      "caries_positive": 4
+    },
+    {
+      "image": "test_196",
+      "teeth_detected": 15,
+      "stage4_flagged": 0,
+      "caries_positive": 3
+    },
+    {
+      "image": "test_197",
+      "teeth_detected": 27,
+      "stage4_flagged": 0,
+      "caries_positive": 2
+    },
+    {
+      "image": "test_198",
+      "teeth_detected": 5,
+      "stage4_flagged": 0,
+      "caries_positive": 0
+    },
+    {
+      "image": "test_200",
+      "teeth_detected": 14,
+      "stage4_flagged": 0,
+      "caries_positive": 1
+    },
+    {
+      "image": "test_201",
+      "teeth_detected": 25,
+      "stage4_flagged": 3,
+      "caries_positive": 1
+    },
+    {
+      "image": "test_205",
+      "teeth_detected": 29,
+      "stage4_flagged": 0,
+      "caries_positive": 3
+    },
+    {
+      "image": "test_208",
+      "teeth_detected": 22,
+      "stage4_flagged": 1,
+      "caries_positive": 0
+    },
+    {
+      "image": "test_209",
+      "teeth_detected": 6,
+      "stage4_flagged": 0,
+      "caries_positive": 0
+    },
+    {
+      "image": "test_211",
+      "teeth_detected": 23,
+      "stage4_flagged": 0,
+      "caries_positive": 8
+    },
+    {
+      "image": "test_212",
+      "teeth_detected": 20,
+      "stage4_flagged": 0,
+      "caries_positive": 5
+    },
+    {
+      "image": "test_213",
+      "teeth_detected": 20,
+      "stage4_flagged": 0,
+      "caries_positive": 1
+    },
+    {
+      "image": "test_216",
+      "teeth_detected": 29,
+      "stage4_flagged": 0,
+      "caries_positive": 1
+    },
+    {
+      "image": "test_217",
+      "teeth_detected": 29,
+      "stage4_flagged": 0,
+      "caries_positive": 2
+    },
+    {
+      "image": "test_218",
+      "teeth_detected": 10,
+      "stage4_flagged": 0,
+      "caries_positive": 1
+    },
+    {
+      "image": "test_219",
+      "teeth_detected": 29,
+      "stage4_flagged": 0,
+      "caries_positive": 2
+    },
+    {
+      "image": "test_22",
+      "teeth_detected": 28,
+      "stage4_flagged": 1,
+      "caries_positive": 3
+    },
+    {
+      "image": "test_220",
+      "teeth_detected": 22,
+      "stage4_flagged": 0,
+      "caries_positive": 6
+    },
+    {
+      "image": "test_222",
+      "teeth_detected": 11,
+      "stage4_flagged": 0,
+      "caries_positive": 3
+    },
+    {
+      "image": "test_223",
+      "teeth_detected": 16,
+      "stage4_flagged": 0,
+      "caries_positive": 5
+    },
+    {
+      "image": "test_224",
+      "teeth_detected": 19,
+      "stage4_flagged": 0,
+      "caries_positive": 1
+    },
+    {
+      "image": "test_226",
+      "teeth_detected": 22,
+      "stage4_flagged": 2,
+      "caries_positive": 2
+    },
+    {
+      "image": "test_227",
+      "teeth_detected": 20,
+      "stage4_flagged": 0,
+      "caries_positive": 0
+    },
+    {
+      "image": "test_228",
+      "teeth_detected": 20,
+      "stage4_flagged": 0,
+      "caries_positive": 2
+    },
+    {
+      "image": "test_229",
+      "teeth_detected": 18,
+      "stage4_flagged": 0,
+      "caries_positive": 3
+    },
+    {
+      "image": "test_230",
+      "teeth_detected": 20,
+      "stage4_flagged": 0,
+      "caries_positive": 1
+    },
+    {
+      "image": "test_231",
+      "teeth_detected": 12,
+      "stage4_flagged": 0,
+      "caries_positive": 1
+    },
+    {
+      "image": "test_233",
+      "teeth_detected": 27,
+      "stage4_flagged": 1,
+      "caries_positive": 7
+    },
+    {
+      "image": "test_235",
+      "teeth_detected": 18,
+      "stage4_flagged": 0,
+      "caries_positive": 5
+    },
+    {
+      "image": "test_236",
+      "teeth_detected": 28,
+      "stage4_flagged": 0,
+      "caries_positive": 5
+    },
+    {
+      "image": "test_237",
+      "teeth_detected": 27,
+      "stage4_flagged": 0,
+      "caries_positive": 0
+    },
+    {
+      "image": "test_239",
+      "teeth_detected": 20,
+      "stage4_flagged": 0,
+      "caries_positive": 2
+    },
+    {
+      "image": "test_24",
+      "teeth_detected": 19,
+      "stage4_flagged": 0,
+      "caries_positive": 0
+    },
+    {
+      "image": "test_240",
+      "teeth_detected": 29,
+      "stage4_flagged": 0,
+      "caries_positive": 5
+    },
+    {
+      "image": "test_241",
+      "teeth_detected": 26,
+      "stage4_flagged": 0,
+      "caries_positive": 3
+    },
+    {
+      "image": "test_242",
+      "teeth_detected": 19,
+      "stage4_flagged": 0,
+      "caries_positive": 2
+    },
+    {
+      "image": "test_243",
+      "teeth_detected": 24,
+      "stage4_flagged": 0,
+      "caries_positive": 4
+    },
+    {
+      "image": "test_244",
+      "teeth_detected": 21,
+      "stage4_flagged": 0,
+      "caries_positive": 2
+    },
+    {
+      "image": "test_246",
+      "teeth_detected": 24,
+      "stage4_flagged": 0,
+      "caries_positive": 4
+    },
+    {
+      "image": "test_247",
+      "teeth_detected": 23,
+      "stage4_flagged": 0,
+      "caries_positive": 6
+    },
+    {
+      "image": "test_25",
+      "teeth_detected": 25,
+      "stage4_flagged": 1,
+      "caries_positive": 1
+    },
+    {
+      "image": "test_26",
+      "teeth_detected": 14,
+      "stage4_flagged": 0,
+      "caries_positive": 1
+    },
+    {
+      "image": "test_27",
+      "teeth_detected": 22,
+      "stage4_flagged": 0,
+      "caries_positive": 7
+    },
+    {
+      "image": "test_29",
+      "teeth_detected": 29,
+      "stage4_flagged": 0,
+      "caries_positive": 4
+    },
+    {
+      "image": "test_30",
+      "teeth_detected": 25,
+      "stage4_flagged": 1,
+      "caries_positive": 8
+    },
+    {
+      "image": "test_32",
+      "teeth_detected": 33,
+      "stage4_flagged": 0,
+      "caries_positive": 2
+    },
+    {
+      "image": "test_33",
+      "teeth_detected": 27,
+      "stage4_flagged": 1,
+      "caries_positive": 3
+    },
+    {
+      "image": "test_35",
+      "teeth_detected": 24,
+      "stage4_flagged": 0,
+      "caries_positive": 4
+    },
+    {
+      "image": "test_38",
+      "teeth_detected": 14,
+      "stage4_flagged": 1,
+      "caries_positive": 1
+    },
+    {
+      "image": "test_4",
+      "teeth_detected": 28,
+      "stage4_flagged": 0,
+      "caries_positive": 8
+    },
+    {
+      "image": "test_41",
+      "teeth_detected": 27,
+      "stage4_flagged": 0,
+      "caries_positive": 4
+    },
+    {
+      "image": "test_43",
+      "teeth_detected": 24,
+      "stage4_flagged": 1,
+      "caries_positive": 6
+    },
+    {
+      "image": "test_44",
+      "teeth_detected": 12,
+      "stage4_flagged": 0,
+      "caries_positive": 2
+    },
+    {
+      "image": "test_46",
+      "teeth_detected": 31,
+      "stage4_flagged": 0,
+      "caries_positive": 4
+    },
+    {
+      "image": "test_47",
+      "teeth_detected": 18,
+      "stage4_flagged": 0,
+      "caries_positive": 2
+    },
+    {
+      "image": "test_49",
+      "teeth_detected": 25,
+      "stage4_flagged": 0,
+      "caries_positive": 3
+    },
+    {
+      "image": "test_5",
+      "teeth_detected": 25,
+      "stage4_flagged": 0,
+      "caries_positive": 7
+    },
+    {
+      "image": "test_51",
+      "teeth_detected": 28,
+      "stage4_flagged": 0,
+      "caries_positive": 3
+    },
+    {
+      "image": "test_52",
+      "teeth_detected": 31,
+      "stage4_flagged": 0,
+      "caries_positive": 3
+    },
+    {
+      "image": "test_53",
+      "teeth_detected": 17,
+      "stage4_flagged": 0,
+      "caries_positive": 4
+    },
+    {
+      "image": "test_54",
+      "teeth_detected": 23,
+      "stage4_flagged": 0,
+      "caries_positive": 1
+    },
+    {
+      "image": "test_55",
+      "teeth_detected": 12,
+      "stage4_flagged": 0,
+      "caries_positive": 5
+    },
+    {
+      "image": "test_57",
+      "teeth_detected": 32,
+      "stage4_flagged": 0,
+      "caries_positive": 5
+    },
+    {
+      "image": "test_58",
+      "teeth_detected": 15,
+      "stage4_flagged": 0,
+      "caries_positive": 1
+    },
+    {
+      "image": "test_59",
+      "teeth_detected": 13,
+      "stage4_flagged": 2,
+      "caries_positive": 4
+    },
+    {
+      "image": "test_6",
+      "teeth_detected": 21,
+      "stage4_flagged": 0,
+      "caries_positive": 1
+    },
+    {
+      "image": "test_62",
+      "teeth_detected": 32,
+      "stage4_flagged": 0,
+      "caries_positive": 6
+    },
+    {
+      "image": "test_63",
+      "teeth_detected": 21,
+      "stage4_flagged": 0,
+      "caries_positive": 3
+    },
+    {
+      "image": "test_65",
+      "teeth_detected": 31,
+      "stage4_flagged": 0,
+      "caries_positive": 2
+    },
+    {
+      "image": "test_68",
+      "teeth_detected": 26,
+      "stage4_flagged": 0,
+      "caries_positive": 2
+    },
+    {
+      "image": "test_69",
+      "teeth_detected": 24,
+      "stage4_flagged": 0,
+      "caries_positive": 4
+    },
+    {
+      "image": "test_7",
+      "teeth_detected": 30,
+      "stage4_flagged": 0,
+      "caries_positive": 5
+    },
+    {
+      "image": "test_70",
+      "teeth_detected": 13,
+      "stage4_flagged": 0,
+      "caries_positive": 2
+    },
+    {
+      "image": "test_75",
+      "teeth_detected": 28,
+      "stage4_flagged": 0,
+      "caries_positive": 0
+    },
+    {
+      "image": "test_76",
+      "teeth_detected": 30,
+      "stage4_flagged": 0,
+      "caries_positive": 6
+    },
+    {
+      "image": "test_8",
+      "teeth_detected": 17,
+      "stage4_flagged": 0,
+      "caries_positive": 8
+    },
+    {
+      "image": "test_80",
+      "teeth_detected": 26,
+      "stage4_flagged": 0,
+      "caries_positive": 2
+    },
+    {
+      "image": "test_81",
+      "teeth_detected": 19,
+      "stage4_flagged": 0,
+      "caries_positive": 1
+    },
+    {
+      "image": "test_83",
+      "teeth_detected": 16,
+      "stage4_flagged": 0,
+      "caries_positive": 1
+    },
+    {
+      "image": "test_84",
+      "teeth_detected": 21,
+      "stage4_flagged": 0,
+      "caries_positive": 3
+    },
+    {
+      "image": "test_89",
+      "teeth_detected": 27,
+      "stage4_flagged": 0,
+      "caries_positive": 6
+    },
+    {
+      "image": "test_9",
+      "teeth_detected": 22,
+      "stage4_flagged": 0,
+      "caries_positive": 1
+    },
+    {
+      "image": "test_90",
+      "teeth_detected": 0,
+      "stage4_flagged": 0,
+      "caries_positive": 0
+    },
+    {
+      "image": "test_91",
+      "teeth_detected": 19,
+      "stage4_flagged": 0,
+      "caries_positive": 3
+    },
+    {
+      "image": "test_92",
+      "teeth_detected": 26,
+      "stage4_flagged": 0,
+      "caries_positive": 9
+    },
+    {
+      "image": "test_95",
+      "teeth_detected": 26,
+      "stage4_flagged": 0,
+      "caries_positive": 5
+    },
+    {
+      "image": "test_96",
+      "teeth_detected": 29,
+      "stage4_flagged": 0,
+      "caries_positive": 6
+    },
+    {
+      "image": "test_97",
+      "teeth_detected": 10,
+      "stage4_flagged": 0,
+      "caries_positive": 6
+    },
+    {
+      "image": "test_99",
+      "teeth_detected": 27,
+      "stage4_flagged": 0,
+      "caries_positive": 2
+    }
+  ]
+}

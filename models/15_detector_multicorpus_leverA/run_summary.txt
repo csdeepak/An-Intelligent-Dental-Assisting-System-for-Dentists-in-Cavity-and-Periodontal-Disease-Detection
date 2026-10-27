@@ -1,7 +1,12 @@
 ================================================================================
 15_detector_multicorpus_leverA — Lever A: multi-corpus detector, "done right"
 ================================================================================
-Status:   ABLATION. NOT adopted. Pipeline default detector stays
+Status:   UPDATE 11 Oct 2026 -- arm3c_best.pt IS NOW THE PIPELINE DEFAULT DETECTOR
+          (DEF_DETECTOR, tag tooth-detector-multicorpus-1024-v1.0), by a human decision
+          AGAINST the verdict recorded below. That verdict is unchanged: Guard 2 failed
+          and is not claimed met. See the last section of this file.
+          As recorded 3 Sep 2026:
+          ABLATION. NOT adopted. Pipeline default detector stays
           models/11_yolo_seg_tufts_r1 (tooth-detector-seg-tufts-1024-v1.0).
           Verdict = pre-registered rule (primary AND both guards required); primary
           passes overwhelmingly, GUARD 2 fails. Same disposition as Lever 1.
@@ -181,3 +186,35 @@ HANDOFF -- open items (see outputs/lever_A_multicorpus_detector_v2/STATUS.md S5)
 3. Optional cheap follow-up: a Tufts-WEIGHTED (not balanced) arm for a 3rd frontier point
    (Tufts share 33% -> 52% -> ~70%). Not pre-registered. Below Lever B in priority.
 4. ningxia_external.py --tag does not namespace --out (one-line fix).
+
+--------------------------------------------------------------------------------
+FULL HASHES  (added 11 Oct 2026. The ARMS table above records only an 8-character
+              prefix, which scripts/eval/verify_invariants.py cannot pin. These
+              are the files on the macOS machine, and each agrees with its prefix.)
+--------------------------------------------------------------------------------
+controlB_best.pt  sha256 d3aa1e388fc41da1a449d2dd39b1e6c0764e8dd541edbc91c6cf896ac0145757
+arm3c_best.pt     sha256 5d301f13fb48da5c74e7ef01bd0f91226f9b6800cb433dee5aebc8f8db8f161e
+arm4c_best.pt     sha256 8cafd77a3e9b27eb2e15be2f4b26f6d89b043ae0a37af849786541d67860ade7
+
+--------------------------------------------------------------------------------
+MADE THE PIPELINE DEFAULT, 11 Oct 2026  (arm3c only)
+--------------------------------------------------------------------------------
+Decision:  Gunadeep (gunadeep19), 11 Oct 2026, against this file's ABLATION verdict and
+           Lever 1's. Neither Tufts box-mAP bar was moved; neither guard is claimed met.
+           A council advised against; the repo owner and the mentor were not consulted.
+           RESULTS_LOG 2026-10-11f.
+Re-measured under outputs/stage1_switch/PRE_REGISTRATION.md (frozen c139779, Amendment 1
+85df6ff), models/11 control first on the same machine, RESULTS_LOG 2026-10-11g:
+
+  Tufts test, 3,760 teeth   end-to-end 0.648 -> 0.635   -1.30 pp [-4.64, +2.26]  not separable
+                            recall 0.824 -> 0.893; of detected 0.786 -> 0.711
+  DENTEX, 936 teeth         end-to-end 0.584 -> 0.928   +34.40 pp [+30.29, +38.54]  IN-DOMAIN
+  FDI-set F1, lesion-detector pipeline   0.376 -> 0.498  (+17.80 pp over the constant)
+  Lesion agreement, lesion detector      DENTEX 0.457 -> 0.595, CariesXrays 0.682 -> 0.757,
+                                         Ningxia 0.500 -> 0.684 (the constant rose as much)
+  Stop rule S1 (pooled external lesion agreement, bound -2 pp): +10.40 pp [+8.71, +12.09]
+
+Given up:  Tufts test box mAP@0.5 0.810 (models/11) -> 0.585. Instance masks.
+Open:      trained partly on the Kaggle "dual-labeled" set, licence unstated.
+Weights:   arm3c_best.pt committed 11 Oct 2026 (7dd3ff4, .gitignore exception). controlB and
+           arm4c stay gitignored, local disk only.

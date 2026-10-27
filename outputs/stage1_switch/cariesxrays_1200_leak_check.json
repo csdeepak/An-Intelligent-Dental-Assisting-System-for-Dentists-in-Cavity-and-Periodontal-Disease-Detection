@@ -1,0 +1,27 @@
+{
+  "Tufts (1,000)": {
+    "images": 1000,
+    "byte_identical": 0,
+    "min_hamming_of_256": 42
+  },
+  "DENTEX disease": {
+    "images": 250,
+    "byte_identical": 0,
+    "min_hamming_of_256": 50
+  },
+  "DENTEX enumeration": {
+    "images": 685,
+    "byte_identical": 0,
+    "min_hamming_of_256": 46
+  },
+  "Kaggle dual": {
+    "images": 500,
+    "byte_identical": 0,
+    "min_hamming_of_256": 45
+  },
+  "Ningxia": {
+    "images": 1640,
+    "byte_identical": 0,
+    "min_hamming_of_256": 45
+  }
+}

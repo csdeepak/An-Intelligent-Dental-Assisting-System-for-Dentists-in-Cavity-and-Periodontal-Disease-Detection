@@ -1,0 +1,28 @@
+# requirements-lock.txt -- the exact versions that produced every figure dated 11-14 Oct 2026.
+# Generated 2026-10-14 with importlib.metadata from the environment itself, not typed:
+#   Python 3.12.12, macOS-27.0.1-arm64-arm-64bit, CPU / MPS (no CUDA).
+# requirements.txt keeps its ranges; this file records what was actually installed.
+#   pip install -r requirements-lock.txt
+#
+# The other machine (Windows) was verified on Python 3.13.7, numpy 2.5.2, scipy 1.18.1 and
+# torch 2.8.0+cpu (transfer.md section 8); figures made there before 11 Oct may come from that
+# stack. With identical code the two machines gave 0.294 (Windows) and 0.300 (here) for the gate
+# pipeline's row of Table I, so a table's rows should come from one machine.
+
+torch==2.2.0
+torchvision==0.17.0
+numpy==1.26.4
+pandas==2.2.0
+scikit-learn==1.4.0
+scipy==1.12.0
+opencv-python==5.0.0.93
+Pillow==10.2.0
+matplotlib==3.11.1
+seaborn==0.13.2
+ultralytics==8.4.127
+streamlit==1.64.0
+PyYAML==6.0.1
+jupyter==1.0.0
+ipykernel==6.28.0
+tqdm==4.66.2
+pytest==7.4.4

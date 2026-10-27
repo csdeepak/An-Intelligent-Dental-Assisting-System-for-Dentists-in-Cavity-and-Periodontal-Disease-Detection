@@ -1,0 +1,120 @@
+scored 3892 teeth of 143 test radiographs -> /Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/outputs/bone_loss_eval/v2_retrain/test_rows.json
+
+Shipped model, on the test radiographs it never trained on
+  unseen_by_shipped: 125 radiographs, 3431 teeth, 175 positive | TP 6 FN 169 FP 40 TN 3216 | false flags per radiograph 0.32
+      sensitivity              0.0343 [0.0116, 0.0604]
+      specificity              0.9877 [0.9826, 0.9922]
+      ppv                      0.1304 [0.0426, 0.25]
+      f1_diseased              0.0543 [0.0184, 0.0935]
+      macro_f1                 0.5114 [0.493, 0.532]
+      average_precision        0.0842 [0.0519, 0.1306]
+      roc_auc                  0.6161 [0.5441, 0.6823]
+      prior_average_precision  0.0895 [0.0606, 0.1265]
+      ap_model_minus_prior     -0.0052 [-0.0413, 0.0375]
+
+Retrained, seed 42  <- the one that would ship
+  all: 143 radiographs, 3892 teeth, 182 positive | TP 50 FN 132 FP 152 TN 3558 | false flags per radiograph 1.063
+      sensitivity              0.2747 [0.1831, 0.3798]
+      specificity              0.9590 [0.9499, 0.9675]
+      ppv                      0.2475 [0.1611, 0.337]
+      f1_diseased              0.2604 [0.1774, 0.3376]
+      macro_f1                 0.6110 [0.5688, 0.6508]
+      average_precision        0.1833 [0.1131, 0.2739]
+      roc_auc                  0.6871 [0.6218, 0.7611]
+      prior_average_precision  0.0804 [0.0536, 0.1134]
+      ap_model_minus_prior     0.1029 [0.0377, 0.1913]
+  mask_non_empty: 48 radiographs, 1229 teeth, 182 positive | TP 50 FN 132 FP 54 TN 993 | false flags per radiograph 1.125
+      sensitivity              0.2747 [0.184, 0.3797]
+      specificity              0.9484 [0.9249, 0.9681]
+      ppv                      0.4808 [0.3523, 0.6132]
+      f1_diseased              0.3497 [0.2508, 0.446]
+      macro_f1                 0.6320 [0.577, 0.686]
+      average_precision        0.3504 [0.2638, 0.456]
+      roc_auc                  0.6889 [0.6249, 0.7621]
+      prior_average_precision  0.2455 [0.1879, 0.3202]
+      ap_model_minus_prior     0.1049 [0.0186, 0.2051]
+  unseen_by_shipped: 125 radiographs, 3431 teeth, 175 positive | TP 47 FN 128 FP 129 TN 3127 | false flags per radiograph 1.032
+      sensitivity              0.2686 [0.1748, 0.3776]
+      specificity              0.9604 [0.9517, 0.9687]
+      ppv                      0.2670 [0.1711, 0.3659]
+      f1_diseased              0.2678 [0.1791, 0.3529]
+      macro_f1                 0.6142 [0.5693, 0.658]
+      average_precision        0.1862 [0.1126, 0.282]
+      roc_auc                  0.6766 [0.6104, 0.7512]
+      prior_average_precision  0.0895 [0.0606, 0.1265]
+      ap_model_minus_prior     0.0967 [0.0286, 0.1887]
+  minus shipped, same teeth: sensitivity +0.2343 [0.1461, 0.3396]  specificity -0.0273 [-0.0365, -0.0182]  ppv +0.1366 [0.0257, 0.2369]  f1_diseased +0.2135 [0.1305, 0.2954]  macro_f1 +0.1028 [0.0598, 0.1453]  average_precision +0.1019 [0.0359, 0.1831]  roc_auc +0.0604 [-0.0065, 0.1359]
+  E1 (F1 above shipped): pass   E2 (average precision above the prior, masked radiographs): pass
+
+Retrained, seed 43
+  all: 143 radiographs, 3892 teeth, 182 positive | TP 30 FN 152 FP 72 TN 3638 | false flags per radiograph 0.503
+      sensitivity              0.1648 [0.1062, 0.2378]
+      specificity              0.9806 [0.9743, 0.9862]
+      ppv                      0.2941 [0.1919, 0.4048]
+      f1_diseased              0.2113 [0.1438, 0.2824]
+      macro_f1                 0.5907 [0.5557, 0.628]
+      average_precision        0.1533 [0.1056, 0.2242]
+      roc_auc                  0.6837 [0.6114, 0.7648]
+      prior_average_precision  0.0804 [0.0536, 0.1134]
+      ap_model_minus_prior     0.0728 [0.0319, 0.1364]
+  mask_non_empty: 48 radiographs, 1229 teeth, 182 positive | TP 30 FN 152 FP 22 TN 1025 | false flags per radiograph 0.458
+      sensitivity              0.1648 [0.1078, 0.2364]
+      specificity              0.9790 [0.9664, 0.9894]
+      ppv                      0.5769 [0.4307, 0.7333]
+      f1_diseased              0.2564 [0.1774, 0.3425]
+      macro_f1                 0.5891 [0.5422, 0.6388]
+      average_precision        0.3405 [0.2734, 0.4283]
+      roc_auc                  0.6861 [0.6153, 0.7651]
+      prior_average_precision  0.2455 [0.1879, 0.3202]
+      ap_model_minus_prior     0.0951 [0.0219, 0.1849]
+  unseen_by_shipped: 125 radiographs, 3431 teeth, 175 positive | TP 25 FN 150 FP 64 TN 3192 | false flags per radiograph 0.512
+      sensitivity              0.1429 [0.0904, 0.2069]
+      specificity              0.9803 [0.9733, 0.9866]
+      ppv                      0.2809 [0.1735, 0.4024]
+      f1_diseased              0.1894 [0.1244, 0.2566]
+      macro_f1                 0.5785 [0.5442, 0.6136]
+      average_precision        0.1461 [0.0997, 0.2163]
+      roc_auc                  0.6705 [0.5986, 0.7508]
+      prior_average_precision  0.0895 [0.0606, 0.1265]
+      ap_model_minus_prior     0.0566 [0.0191, 0.1162]
+  minus shipped, same teeth: sensitivity +0.1086 [0.0597, 0.1714]  specificity -0.0074 [-0.0148, -0.0003]  ppv +0.1505 [0.0331, 0.271]  f1_diseased +0.1351 [0.072, 0.2045]  macro_f1 +0.0671 [0.0343, 0.1025]  average_precision +0.0619 [0.0161, 0.1244]  roc_auc +0.0544 [-0.0267, 0.1467]
+  E1 (F1 above shipped): pass   E2 (average precision above the prior, masked radiographs): pass
+
+Retrained, seed 44
+  all: 143 radiographs, 3892 teeth, 182 positive | TP 20 FN 162 FP 51 TN 3659 | false flags per radiograph 0.357
+      sensitivity              0.1099 [0.057, 0.1742]
+      specificity              0.9863 [0.9818, 0.9903]
+      ppv                      0.2817 [0.1618, 0.4026]
+      f1_diseased              0.1581 [0.0865, 0.232]
+      macro_f1                 0.5649 [0.5282, 0.6033]
+      average_precision        0.1610 [0.1078, 0.2253]
+      roc_auc                  0.6869 [0.6292, 0.747]
+      prior_average_precision  0.0804 [0.0536, 0.1134]
+      ap_model_minus_prior     0.0805 [0.036, 0.1382]
+  mask_non_empty: 48 radiographs, 1229 teeth, 182 positive | TP 20 FN 162 FP 19 TN 1028 | false flags per radiograph 0.396
+      sensitivity              0.1099 [0.0584, 0.1724]
+      specificity              0.9819 [0.9709, 0.9909]
+      ppv                      0.5128 [0.3571, 0.6774]
+      f1_diseased              0.1810 [0.1017, 0.2629]
+      macro_f1                 0.5500 [0.5066, 0.596]
+      average_precision        0.3408 [0.2681, 0.4232]
+      roc_auc                  0.6895 [0.6321, 0.7498]
+      prior_average_precision  0.2455 [0.1879, 0.3202]
+      ap_model_minus_prior     0.0954 [0.0272, 0.1661]
+  unseen_by_shipped: 125 radiographs, 3431 teeth, 175 positive | TP 19 FN 156 FP 45 TN 3211 | false flags per radiograph 0.36
+      sensitivity              0.1086 [0.055, 0.1744]
+      specificity              0.9862 [0.9812, 0.9905]
+      ppv                      0.2969 [0.1639, 0.4259]
+      f1_diseased              0.1590 [0.0847, 0.2362]
+      macro_f1                 0.5643 [0.5263, 0.604]
+      average_precision        0.1686 [0.1109, 0.2385]
+      roc_auc                  0.6791 [0.6209, 0.7393]
+      prior_average_precision  0.0895 [0.0606, 0.1265]
+      ap_model_minus_prior     0.0792 [0.0306, 0.1387]
+  minus shipped, same teeth: sensitivity +0.0743 [0.0279, 0.1337]  specificity -0.0015 [-0.0077, 0.0048]  ppv +0.1664 [0.0436, 0.2793]  f1_diseased +0.1047 [0.0405, 0.1735]  macro_f1 +0.0529 [0.0205, 0.0876]  average_precision +0.0844 [0.0379, 0.1403]  roc_auc +0.0630 [-0.0093, 0.1406]
+  E1 (F1 above shipped): pass   E2 (average precision above the prior, masked radiographs): pass
+
+Secondary: validation-chosen threshold 0.4655 (seed 42) on test -> sensitivity 53/182, specificity 3524/3710, F1 0.2518
+
+ELIGIBLE to replace the shipped model (seed 42, E1 and E2): True   | all three seeds agree: True
+-> /Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/outputs/bone_loss_eval/v2_retrain/test_summary.json

@@ -1,0 +1,41 @@
+objc[60322]: Class AVFFrameReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x1064d43a8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x1385103a8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[60322]: Class AVFAudioReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x1064d43f8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x1385103f8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+held-out radiographs: 853  (byte-identical twins dropped: ['1008', '591']; near-duplicates of a training-side radiograph: [])
+scored 21956 teeth -> /Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/outputs/bone_loss_eval/heldout/heldout_rows.json
+
+all: 821 radiographs, 21956 teeth, 946 positive (prevalence 0.0431)
+  confusion  TP 72  FN 874  FP 281  TN 20729
+  sensitivity                0.0761  [0.0519, 0.1047]
+  specificity                0.9866  [0.9843, 0.9888]
+  ppv                        0.2040  [0.1419, 0.273]
+  f1_diseased                0.1109  [0.0765, 0.149]
+  macro_f1                   0.5419  [0.5247, 0.5612]
+  average_precision          0.0956  [0.0741, 0.1259]
+  roc_auc                    0.6437  [0.612, 0.6748]
+  prior_average_precision    0.0675  [0.0573, 0.0786]
+  prior_roc_auc              0.6364  [0.608, 0.6651]
+  ap_model_minus_prior       0.0281  [0.0084, 0.0564]
+  auc_model_minus_prior      0.0073  [-0.0374, 0.0502]
+
+mask_non_empty: 282 radiographs, 7060 teeth, 946 positive (prevalence 0.1340)
+  confusion  TP 72  FN 874  FP 101  TN 6013
+  sensitivity                0.0761  [0.0521, 0.1034]
+  specificity                0.9835  [0.9787, 0.9878]
+  ppv                        0.4162  [0.3136, 0.5207]
+  f1_diseased                0.1287  [0.0901, 0.171]
+  macro_f1                   0.5268  [0.5071, 0.5485]
+  average_precision          0.2329  [0.1946, 0.2766]
+  roc_auc                    0.6245  [0.5941, 0.6546]
+  prior_average_precision    0.2205  [0.1955, 0.2486]
+  prior_roc_auc              0.6581  [0.6282, 0.6885]
+  ap_model_minus_prior       0.0125  [-0.026, 0.0542]
+  auc_model_minus_prior      -0.0336  [-0.0762, 0.0084]
+
+mask_empty: 539 radiographs, 14896 teeth, 0 positive (prevalence 0.0000)
+  confusion  TP 0  FN 0  FP 180  TN 14716
+  specificity                0.9879  [0.9853, 0.9904]
+  ppv                        0.0000  [0.0, 0.0]
+  f1_diseased                0.0000  [0.0, 0.0]
+  macro_f1                   0.4970  [0.4963, 0.4976]
+
+-> /Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/outputs/bone_loss_eval/heldout/heldout_summary.json

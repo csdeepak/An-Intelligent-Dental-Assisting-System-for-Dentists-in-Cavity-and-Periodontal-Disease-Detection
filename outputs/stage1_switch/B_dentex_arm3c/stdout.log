@@ -1,0 +1,32 @@
+objc[34621]: Class AVFFrameReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x1067ac3a8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x1395603a8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[34621]: Class AVFAudioReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x1067ac3f8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x1395603f8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+enumeration head: models/10_fdi_head_dentex_tufts_v2/enumeration_head_best.pth  device=mps  one-to-one=on
+images: 164  (86 excluded as training duplicates — see data/dentex/disease_leaked_images.json)
+assignment arms: hungarian
+  25/164 …
+  50/164 …
+  75/164 …
+  100/164 …
+  125/164 …
+  150/164 …
+
+==========================================================================
+STAGE-2 VALIDATION — detector + HEAD FDI assignment vs DENTEX GT   [assignment=hungarian]
+==========================================================================
+  GT teeth evaluated            : 936  across 164 images
+  detected (recall)             : 932  (99.6%)
+  FDI exact (of detected)       : 869  (93.2%)
+  quadrant correct              : 926  (99.4%)
+  right quadrant, off-by-one    : 51  (5.5%)
+  FDI exact (of ALL GT teeth)   : 869  (92.8%)  <- end-to-end
+
+  unflagged assignments         : 885  exact 94.2%
+  flagged assignments           : 47  exact 74.5%   <- does flagging predict error?
+  flag frequency                : {'reassigned_by_one_to_one': 47, 'low_confidence': 36}
+
+  duplicate FDI codes emitted   : 0   (a real risk for a per-tooth classifier)
+
+  mean detections per image     : 27.5  (a full dentition is 28-32)
+  mean GT teeth per image       : 5.7
+
+  wrote outputs/stage1_switch/B_dentex_arm3c/stage2_*_head.json

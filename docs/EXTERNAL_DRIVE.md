@@ -65,7 +65,8 @@ has not changed with the v2.0 adoption, since v2.0 is 43 MB and already tracked 
 | `models/07_caries_cascade/phase2_final_bundle.pth` | `DEF_CARIES_SEVERITY` |
 | `models/08_fdi_enumeration_head/enumeration_head_best.pth` | Stage-2 head **v1.0** — superseded 26 Aug but retained and hash-pinned |
 | `models/10_fdi_head_dentex_tufts_v2/enumeration_head_best.pth` | `DEF_FDI_HEAD` (**v2.0**, DENTEX+Tufts) |
-| **`models/11_yolo_seg_tufts_r1/best.pt`** (53 MB) | **`DEF_DETECTOR`** — committed 3 Sep via a `.gitignore` exception (private repo) for the Windows handoff |
+| **`models/15_detector_multicorpus_leverA/arm3c_best.pt`** (51 MB) | **`DEF_DETECTOR` since 11 Oct 2026** — committed that day via a `.gitignore` exception (`7dd3ff4`, private repo). SHA-256 `5d301f13…8f161e` in its `run_summary.txt` |
+| **`models/11_yolo_seg_tufts_r1/best.pt`** (53 MB) | `DEF_DETECTOR` from 27 Aug to 11 Oct 2026, retained — committed 3 Sep via a `.gitignore` exception (private repo) for the Windows handoff |
 | **`models/09_caries_gate_v3/caries_gate_v3.pth`** (43 MB) | **`DEF_CARIES_GATE`** — committed 3 Sep, same size as the `10` head |
 | `models/03_bone_loss_model_training_notebook_models/bone_loss_resnet18_best.pth` | `DEF_BONE_LOSS` |
 | `models/04_bone_loss_severity_notebook_models/bone_loss_severity_resnet18_best.pth` | `DEF_BONE_SEVERITY` |

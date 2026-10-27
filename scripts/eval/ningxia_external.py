@@ -303,6 +303,7 @@ def main():
     import cv2
     import torch
     from ultralytics import YOLO
+    from scripts.run_inference import load_yolo_pinned
 
     from src.classifiers import load_classifier, run_bone_loss, run_caries
     from src.fdi_head_inference import assign_fdi_head, load_head
@@ -327,7 +328,7 @@ def main():
         import hashlib
         return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
-    det = YOLO(str(_need(args.detector, "detector")))
+    det = load_yolo_pinned(_need(args.detector, "detector"))
     head = load_head(_need(args.fdi_head, "FDI head"), device)
     used = {"detector": str(args.detector), "detector_sha256": _sha(args.detector),
             "fdi_head": str(args.fdi_head), "fdi_head_sha256": _sha(args.fdi_head)}
@@ -336,7 +337,7 @@ def main():
     if args.decision == "lesion-detector":
         if not args.lesion_model:
             raise SystemExit("--decision lesion-detector requires --lesion-model")
-        lesion_model = YOLO(str(_need(args.lesion_model, "lesion detector")))
+        lesion_model = load_yolo_pinned(_need(args.lesion_model, "lesion detector"))
         used["lesion_model"] = str(args.lesion_model)
         used["lesion_model_sha256"] = _sha(args.lesion_model)
         used["lesion_conf"] = args.lesion_conf

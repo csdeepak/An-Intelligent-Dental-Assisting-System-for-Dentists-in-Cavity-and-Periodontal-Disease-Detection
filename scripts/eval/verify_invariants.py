@@ -67,12 +67,15 @@ def hash_from_summary(text, weight_name):
     checked models/03's `best.pth` against `final.pth`'s hash and failed. Kept as a
     fallback for summaries that name only one checkpoint. Covered by
     tests/test_verify_invariants.py.
+
+    Filenames are compared by basename (14 Oct 2026): models/16 writes `weights/best.pt`, and
+    an exact-token match fell through to the last hash in the file -- `last.pt`'s.
     """
     current, attributed, last = None, {}, None
     for line in text.splitlines():
         for tok in line.split():
             if tok.endswith((".pth", ".pt")):
-                current = tok.strip("`'\",()")
+                current = tok.strip("`'\",()").replace("\\", "/").rsplit("/", 1)[-1]
         if "sha256" in line.lower():
             for tok in line.split():
                 if len(tok) == 64 and all(c in "0123456789abcdef" for c in tok):
@@ -97,6 +100,10 @@ def inv_weight_hashes():
         # adopted for its box gain despite missing §2's mask bar (RESULTS_LOG 2026-08-27d).
         ("models/11_yolo_seg_tufts_r1/best.pt",
          "models/11_yolo_seg_tufts_r1/run_summary.txt"),
+        # The Lever A multi-corpus detector. Pinned 11 Oct 2026, ahead of a planned change of
+        # the Stage-1 default to it; not in git, so this is a SKIP on any other machine.
+        ("models/15_detector_multicorpus_leverA/arm3c_best.pt",
+         "models/15_detector_multicorpus_leverA/run_summary.txt"),
         # Stages 4a/4b, tagged 27 Aug 2026 -- the last untagged models in the project.
         # They were in use as pipeline defaults for months with no hash on record, so
         # nothing would have caught a silent swap or a partial copy.
@@ -104,6 +111,17 @@ def inv_weight_hashes():
          "models/03_bone_loss_model_training_notebook_models/run_summary.txt"),
         ("models/04_bone_loss_severity_notebook_models/bone_loss_severity_resnet18_best.pth",
          "models/04_bone_loss_severity_notebook_models/run_summary.txt"),
+        # Stage 4a as of 13 Oct 2026: retrained with a radiograph-level split and adopted as the
+        # pipeline default (RESULTS_LOG 2026-10-13b, -c). models/03 above stays pinned: every
+        # Stage-4 number published before that date used it.
+        ("models/18_bone_loss_radiograph_split/seed42_best.pth",
+         "models/18_bone_loss_radiograph_split/run_summary.txt"),
+        # The Stage-3a default (lesion detector, since 4 Sep 2026) and the caries-severity bundle
+        # it feeds: defaults with no pin until 14 Oct 2026 (RESULTS_LOG 2026-10-13d).
+        ("models/16_lever_b_pooled/lever_b_pooled_yolo11l-2/weights/best.pt",
+         "models/16_lever_b_pooled/run_summary.txt"),
+        ("models/07_caries_cascade/phase2_final_bundle.pth",
+         "models/07_caries_cascade/run_summary.txt"),
     ]
     out = []
     for w, s in pairs:
@@ -123,7 +141,9 @@ def inv_weight_hashes():
         want = hash_from_summary(sp.read_text(encoding="utf-8"), Path(w).name)
         got = hashlib.sha256(wp.read_bytes()).hexdigest()
         if want is None:
-            out.append(f"NO HASH RECORDED for {Path(w).name}")
+            # A failure, not a note: a pin with nothing to compare against passes for no reason.
+            # Lever A's summary held only an 8-character prefix until 11 Oct 2026.
+            raise AssertionError(f"no sha256 recorded for {Path(w).name} in {s}")
         elif want != got:
             raise AssertionError(f"{Path(w).name}: recorded {want[:12]}… but file is {got[:12]}…")
         else:
@@ -145,7 +165,7 @@ def inv_class_orders():
         p = REPO_ROOT / rel
         if not p.exists():
             continue
-        ck = torch.load(p, map_location="cpu", weights_only=False)
+        ck = torch.load(p, map_location="cpu", weights_only=True)
         got = ck.get("class_to_idx") if isinstance(ck, dict) else None
         if got is None:
             continue
@@ -283,6 +303,134 @@ def inv_lever_c_defaults():
             f"gap_factor={GAP_FACTOR} (== assign_fdi default)")
 
 
+def inv_default_detector_registered():
+    """
+    The default Stage-1 detector must carry accuracy figures measured for IT.
+
+    Every report states a detection recall and an end-to-end FDI accuracy. Until 11 Oct 2026
+    both were module constants, so changing `DEF_DETECTOR`, or passing `--detector`, produced
+    reports quoting another detector's name and numbers. They are now looked up by the weights'
+    sha256. This names no checkpoint: it checks that whatever the default is has an entry, so
+    a new default cannot ship without figures of its own.
+    """
+    sys.path.insert(0, str(REPO_ROOT))
+    from scripts.run_inference import DEF_DETECTOR, DETECTOR_PROFILES, file_sha256
+    sha = file_sha256(str(DEF_DETECTOR))
+    prof = DETECTOR_PROFILES.get(sha)
+    assert prof, f"DEF_DETECTOR {DEF_DETECTOR.name} ({sha[:12]}…) has no DETECTOR_PROFILES entry"
+    assert prof["recall"] and prof["fdi_exact_end_to_end"], f"{prof['tag']}: no accuracy recorded"
+    return (f"{prof['tag']}: recall {prof['recall']:.3f}, "
+            f"FDI end-to-end {prof['fdi_exact_end_to_end']:.3f}")
+
+
+def inv_stage4_report_wording():
+    """
+    The report must not present Stage 4 as a periodontal finding (RESULTS_LOG 2026-10-10).
+
+    Stage 4's positive class is "overlaps a Tufts expert abnormality mask" and its in-domain
+    score is not held out. The per-tooth field names stay `bone_loss` so consumers do not break,
+    which leaves the caveat as the only thing telling a reader what the field is. So it is
+    checked: present in every report, and rendered by the app rather than left in the JSON --
+    until 11 Oct 2026 the app showed a "Bone loss" column and no Stage-4 caveat at all.
+
+    Since 13 Oct 2026 the caveat follows the binary weights that are loaded (BONE_LOSS_PROFILES,
+    RESULTS_LOG 2026-10-13c), as the detector's figures do. So this checks three things: every
+    profile, the unregistered one included, says the field is not a periodontal finding; the
+    checkpoint whose 0.923 was validation on its own training radiographs still says so; and
+    whatever the default is has a profile and the report carries it.
+
+    Since 14 Oct 2026 (schema 1.5, RESULTS_LOG 2026-10-14) also: the lesion-detector caveat calls
+    CariesXrays its validation split, not an external cohort; both severity texts exist, the
+    Stage-4 one says "contrast", and the app renders both; the Stage-4 severity grade is off by
+    default (RESULTS_LOG 2026-10-13d).
+    """
+    import inspect
+
+    import numpy as np
+    sys.path.insert(0, str(REPO_ROOT))
+    from scripts.run_inference import (BONE_LOSS_PROFILES, BONE_SEVERITY_NOT_EVALUATED,
+                                       CARIES_METHOD_CAVEATS, CARIES_SEVERITY_NOT_EVALUATED,
+                                       DEF_BONE_LOSS, SCHEMA_VERSION, UNREGISTERED_BONE_LOSS,
+                                       build_report, file_sha256, run_pipeline)
+    assert float(SCHEMA_VERSION.split("/")[1]) >= 1.5, f"schema went backwards: {SCHEMA_VERSION}"
+    cav = " ".join(CARIES_METHOD_CAVEATS["lesion-detector"].lower().split())
+    assert "validation split" in cav and "2 of 3 external" not in cav, \
+        "the lesion-detector caveat calls CariesXrays external again (RESULTS_LOG 2026-10-13d)"
+    assert "contrast" in BONE_SEVERITY_NOT_EVALUATED.lower(), "the Stage-4 severity text lost 'contrast'"
+    assert "133 crops" in CARIES_SEVERITY_NOT_EVALUATED, "the caries severity text lost its basis"
+    assert inspect.signature(run_pipeline).parameters["bone_severity_grade"].default is False, \
+        "the Stage-4 severity grade is reported by default again"
+    for prof in (*BONE_LOSS_PROFILES.values(), UNREGISTERED_BONE_LOSS):
+        text = " ".join(prof["label_and_validation"].lower().split())
+        for needle in ("abnormality", "not as a periodontal"):
+            assert needle in text, f"{prof['tag']}: the Stage-4 caveat lost its '{needle}' statement"
+    previous = BONE_LOSS_PROFILES["c52f7f484076a2a2c3c144c3351912b118b6b0d56fc51ba1b4296e6ce6213db1"]
+    assert "not a held-out" in previous["label_and_validation"].lower(), \
+        "the previous Stage-4a checkpoint's caveat lost its 'not a held-out' statement"
+    app = (REPO_ROOT / "app.py").read_text(encoding="utf-8")
+    assert "lim['bone_loss_label_and_validation']" in app, "app.py does not render the caveat"
+    for key in ("bone_severity_not_evaluated", "caries_severity_not_evaluated"):
+        assert f"lim['{key}']" in app, f"app.py does not render {key}"
+    if not DEF_BONE_LOSS.exists():
+        return f"SKIP {DEF_BONE_LOSS.name} (not on this machine)"
+    sha = file_sha256(str(DEF_BONE_LOSS))
+    prof = BONE_LOSS_PROFILES.get(sha)
+    assert prof, f"DEF_BONE_LOSS {DEF_BONE_LOSS.name} ({sha[:12]}…) has no BONE_LOSS_PROFILES entry"
+    rep = build_report("x", np.zeros((8, 8, 3), np.uint8), [], [], [], [], [],
+                       {"caries": {"method": "lesion-detector"}, "bone_loss": {"sha256_binary": sha}})
+    assert rep["limitations"]["bone_loss_label_and_validation"] == prof["label_and_validation"], \
+        "the report does not carry the default checkpoint's caveat"
+    assert rep["limitations"]["bone_severity_not_evaluated"] == BONE_SEVERITY_NOT_EVALUATED
+    return (f"{SCHEMA_VERSION}; {prof['tag']}; caveats follow the weights and are rendered by "
+            f"app.py; severity grade off by default")
+
+
+# ---------------------------------------------------------------- Tufts split
+def inv_tufts_split():
+    """
+    The Tufts split is by radiograph, and every Tufts test figure assumes it holds. The
+    crop-level split behind the old 0.923 put one patient on both sides; this guards the
+    radiograph-level split from the same fault (RESULTS_LOG 2026-10-14).
+
+    From tracked files: every radiograph in one split, 700/150/150; the Stage-4a test rows are
+    143 test radiographs; the severity head's radiographs meet the test split in exactly the
+    three recorded ones (149 and 192 in its training, 249 in its validation -- RESULTS_LOG
+    2026-10-13d), asserted so that a change is noticed; and no near-duplicate crosses the split
+    beyond the recorded pairs (scripts/eval/tufts_split_near_duplicates.py).
+    """
+    rows = list(csv.DictReader(open(REPO_ROOT / "outputs/eda_tufts/split_v1.csv")))
+    names = [r["filename"] for r in rows]
+    assert len(names) == len(set(names)), "a radiograph appears twice in split_v1.csv"
+    split = {Path(n).stem: r["split"].strip() for n, r in zip(names, rows)}
+    counts = {k: sum(v == k for v in split.values()) for k in ("train", "val", "test")}
+    assert counts == {"train": 700, "val": 150, "test": 150}, f"split counts changed: {counts}"
+    notes = ["700/150/150, unique"]
+
+    tr = REPO_ROOT / "outputs/bone_loss_eval/v2_retrain/test_rows.json"
+    d = json.loads(tr.read_text(encoding="utf-8"))
+    stems = {str(r["stem"]) for r in (d["rows"] if isinstance(d, dict) else d)}
+    off = sorted(s for s in stems if split.get(s) != "test")
+    assert len(stems) == 143 and not off, f"Stage-4a test rows: {len(stems)} radiographs; outside test: {off}"
+    notes.append("Stage-4a test rows: 143, all test")
+
+    meta = REPO_ROOT / "data/tufts/severity_dataset/metadata"
+    met = {k: sorted({r["stem"] for r in csv.DictReader(open(meta / f"{k}_metadata.csv"))
+                      if split.get(r["stem"]) == "test"}, key=int) for k in ("train", "val")}
+    assert met == {"train": ["149", "192"], "val": ["249"]}, f"severity head meets the test split: {met}"
+    notes.append("severity head meets test at 149, 192, 249 (recorded)")
+
+    nd = REPO_ROOT / "outputs/eda_tufts/near_duplicates.json"
+    if nd.exists():
+        n = json.loads(nd.read_text(encoding="utf-8"))
+        assert n["n_radiographs"] == len(split), "near_duplicates.json predates the split; re-run it"
+        assert not n["unexplained_at_threshold"], \
+            f"near-duplicates across the split: {n['unexplained_at_threshold']}"
+        notes.append(f"near-duplicates: 0 unexplained, {len(n['recorded_pairs'])} recorded")
+    else:
+        notes.append("near-duplicates: SKIP (run scripts/eval/tufts_split_near_duplicates.py)")
+    return "; ".join(notes)
+
+
 # ---------------------------------------------------------------- Stage-2 numbers
 def inv_stage2_reproduces():
     """The headline Stage-2 figures must still fall out of the saved per-tooth rows."""
@@ -400,6 +548,9 @@ check("checkpoint class orders", inv_class_orders)
 check("crop contracts distinct", inv_crop_contracts)
 check("Stage-2 numbers reproduce", inv_stage2_reproduces)
 check("Lever C off by default", inv_lever_c_defaults)
+check("default detector registered", inv_default_detector_registered)
+check("Stage-4 report wording", inv_stage4_report_wording)
+check("Tufts split disjoint", inv_tufts_split)
 check("crop source frames", inv_crop_frames)
 check("caries v3 dataset hygiene", inv_v3_dataset)
 check("leakage exclusion list", inv_leakage_list, slow=True)

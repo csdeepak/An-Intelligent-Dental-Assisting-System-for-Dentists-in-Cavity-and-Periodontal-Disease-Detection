@@ -1,13 +1,12 @@
-# OPG pipeline deployment demo (app.py). See docs/EXTERNAL_DRIVE.md before building --
-# two checkpoints are not in this repo and must be fetched separately (see below).
+# OPG pipeline deployment demo (app.py). Every default checkpoint is tracked in git (since
+# 13 Oct 2026), and `COPY models/` below puts them in the image; nothing needs mounting.
+# The image was last built on 7 Sep 2026. The defaults changed on 11, 13 and 14 Oct 2026, so
+# rebuild before trusting a demo.
 #
 # Build:
 #   docker build -t opg-demo .
-# Run (mount the two Drive-only checkpoints in at their expected paths):
-#   docker run -p 8501:8501 \
-#     -v "$(pwd)/models/06_yolo_detection_a100_run/best.pt":/app/models/06_yolo_detection_a100_run/best.pt:ro \
-#     -v "$(pwd)/models/09_caries_gate_v3/caries_gate_v3.pth":/app/models/09_caries_gate_v3/caries_gate_v3.pth:ro \
-#     opg-demo
+# Run:
+#   docker run -p 8501:8501 opg-demo
 # Then open http://localhost:8501
 #
 # CPU-only image, deliberately: nothing in this pipeline needs a GPU for inference (~2s/image
@@ -22,7 +21,8 @@
 # CUDA. RESULTS_LOG 2026-08-27j. The explicit CPU index below is what actually makes this a
 # CPU-only image, and the assertion further down fails the BUILD if it ever stops being one.
 
-FROM python:3.12-slim
+# The exact Python behind the reported numbers (requirements-lock.txt), not a moving 3.12 tag.
+FROM python:3.12.12-slim
 
 # libgl1 + libglib2.0-0: opencv-python's runtime dependencies on a slim base image. Without
 # these, `import cv2` fails at container start with a missing .so, not at build time -- easy
@@ -66,8 +66,14 @@ RUN pip install --no-cache-dir \
 # -- the exact failure mode this repo keeps finding in its own documentation. Deriving the
 # deploy set from the dev set means a new dependency is picked up automatically, and only the
 # explicit exclusions below ever need maintaining.
-COPY requirements.txt .
-RUN grep -vE '^(jupyter|ipykernel)([<>=!~]|$)' requirements.txt > /tmp/requirements-deploy.txt     && echo "--- installing (jupyter/ipykernel excluded) ---"     && cat /tmp/requirements-deploy.txt     && pip install --no-cache-dir -r /tmp/requirements-deploy.txt
+#
+# FROM THE LOCK since 15 Oct 2026, not from requirements.txt's ranges: `ultralytics>=8.0.0`
+# resolved to whatever was newest, so the image did not run the stack behind the numbers.
+# requirements-lock.txt pins every package exactly (torch 2.2.0 is already satisfied by the
+# CPU wheel above; numpy 1.26.4 keeps the numpy<2 rule). Every pin has a cp312 manylinux wheel
+# (checked against PyPI on 15 Oct). requirements.txt is copied too, as the dev spec it documents.
+COPY requirements.txt requirements-lock.txt ./
+RUN grep -vE '^(jupyter|ipykernel)([<>=!~]|$)' requirements-lock.txt > /tmp/requirements-deploy.txt     && echo "--- installing (jupyter/ipykernel excluded) ---"     && cat /tmp/requirements-deploy.txt     && pip install --no-cache-dir -r /tmp/requirements-deploy.txt
 
 # Fail the BUILD, not the container, if either invariant above ever silently regresses. Both
 # failure modes are real and both were silent: a CUDA torch wheel (caught only by reading
@@ -75,14 +81,8 @@ RUN grep -vE '^(jupyter|ipykernel)([<>=!~]|$)' requirements.txt > /tmp/requireme
 # Hungarian assignment at import -- the FDI numbering stage -- rather than erroring loudly).
 RUN python -c "import importlib.util as u, numpy, torch; assert '+cu' not in torch.__version__, 'torch %s is a CUDA build; this image is meant to be CPU-only -- check the --index-url above' % torch.__version__; assert numpy.__version__.startswith('1.'), 'numpy %s must stay <2 -- it silently breaks scipy.optimize (the Hungarian FDI assignment) at import' % numpy.__version__; from scipy.optimize import linear_sum_assignment; linear_sum_assignment(numpy.array([[1.0, 2.0], [3.0, 4.0]])); assert u.find_spec('notebook') is None and u.find_spec('jupyterlab') is None, 'the jupyter stack leaked into the image -- check the grep filter above'; import cv2, streamlit, ultralytics, sklearn, pandas, yaml, PIL; import inspect as _i, streamlit as _st; [__import__('sys').exit('st.%s lacks a width parameter -- streamlit too old for width=\"stretch\"' % _f.__name__) for _f in (_st.image, _st.dataframe) if 'width' not in _i.signature(_f).parameters]; _i.signature(_st.image).bind('x', width='stretch'); _i.signature(_st.dataframe).bind([], width='stretch'); print('OK torch %s | numpy %s | cv2 %s | streamlit %s | hungarian works | no jupyter | st width API ok' % (torch.__version__, numpy.__version__, cv2.__version__, streamlit.__version__))"
 
-# Code and every checkpoint UNDER models/ that happens to be on the local disk at build time.
-# COPY is not git-aware: on a machine where the two Drive-only checkpoints
-# (06_yolo_detection_a100_run/best.pt, 09_caries_gate_v3/caries_gate_v3.pth) have already been
-# fetched locally, they get baked into the image here, same as the tracked ones. On a FRESH
-# clone -- no local fetch yet -- COPY silently omits them, and the `docker run -v ...` mount
-# above becomes required, not optional, for the app to start. Both cases are handled: the
-# mount command is harmless when the files are already present (it overlays the identical
-# content at the same path) and load-bearing when they are not.
+# Code and every checkpoint under models/. Every pipeline default is tracked in git (since
+# 13 Oct 2026), so a fresh clone builds a working image with no mount.
 #
 # Nothing under data/ is needed: verified by grepping app.py, run_inference.py and src/ for
 # any read of a data/ path at inference time -- there are none. The leakage exclusion list
@@ -91,6 +91,11 @@ COPY app.py .
 COPY scripts/ scripts/
 COPY src/ src/
 COPY models/ models/
+
+# Fail the BUILD if a default checkpoint is missing or does not match its pin (15 Oct 2026). The
+# healthcheck below only probes Streamlit, so until now a bad weight file surfaced at the first
+# upload, inside a container that reported itself healthy.
+RUN python -c "import torch; from scripts.run_inference import load_models; load_models(device=torch.device('cpu')); print('OK: the seven default checkpoints load and match their pins')"
 
 EXPOSE 8501
 

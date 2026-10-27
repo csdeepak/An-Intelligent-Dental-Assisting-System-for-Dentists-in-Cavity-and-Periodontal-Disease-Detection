@@ -15,14 +15,17 @@ It is a single-user, unauthenticated, local demo for showing the pipeline workin
 
 WHY THE LIMITATIONS ARE RENDERED, NOT LINKED
 ---------------------------------------------
-`report["limitations"]` already carries the honest caveats (detector recall 70.6%, Stage-2
-58.3% end-to-end -- both re-measured 27 Aug on the seg detector, RESULTS_LOG 2026-08-27e --
-caries gate uncalibrated at 0.40 precision, bone-loss domain shift). This
+`report["limitations"]` already carries the honest caveats (the detector recall and Stage-2
+end-to-end accuracy of whichever detector ran, with a note on where those figures hold --
+RESULTS_LOG 2026-10-11g for the default --
+the caries caveat for whichever method ran, and that Stage 4 flags proximity to an abnormality
+rather than periodontal bone loss). This
 page puts that block directly under the results, same size as everything else, so it cannot
 be screenshotted away from the numbers it qualifies.
 """
 
 import sys
+import threading
 from pathlib import Path
 
 import streamlit as st
@@ -37,15 +40,22 @@ st.set_page_config(page_title="OPG Pipeline — Demo", page_icon="🦷", layout=
 def get_models():
     """
     Cached across the whole app session -- loading is the slow part (~seconds) and must
-    happen once, not per upload. Missing-weights is a real, expected failure on a fresh
-    clone (two checkpoints live on Google Drive, not git -- docs/EXTERNAL_DRIVE.md), so it
-    is caught here and shown as a readable message, not a stack trace.
+    happen once, not per upload. Every default checkpoint is in git (since 13 Oct 2026), so a
+    failure here means a weight file is missing or does not match its pinned sha256; it is
+    caught and shown as a readable message, not a stack trace.
     """
     from scripts.run_inference import load_models
     try:
         return load_models()
     except SystemExit as e:
         return e
+
+
+@st.cache_resource
+def pipeline_lock():
+    """One lock for the server. The cached models -- the YOLO predictors included -- are shared
+    by every browser session, and two runs at once would share one predictor's state."""
+    return threading.Lock()
 
 
 def main():
@@ -57,10 +67,11 @@ def main():
 
     models = get_models()
     if isinstance(models, SystemExit):
+        get_models.clear()      # not cached: once the weights are restored, a rerun loads them
         st.error(
             f"**Cannot start: {models}**\n\n"
-            "Two checkpoints are not tracked in git and must be fetched separately — "
-            "see `docs/EXTERNAL_DRIVE.md` for the Drive links and exact restore paths."
+            "Every default checkpoint is tracked in git: restore a missing or changed one with "
+            "`git checkout -- models/`."
         )
         st.stop()
     models, device, paths = models
@@ -80,10 +91,13 @@ def main():
     if img is None:
         st.error("Could not decode this file as an image.")
         st.stop()
+    raw = cv2.imdecode(file_bytes, cv2.IMREAD_UNCHANGED)
 
-    with st.spinner("Running all six stages …"):
+    with st.spinner("Running all six stages …"), pipeline_lock():
         report = run_pipeline(img, models, device, paths, image_label=uploaded.name,
-                              verbose=False)
+                              verbose=False, source_dtype=raw.dtype if raw is not None else None)
+    for w in report["image"]["warnings"]:
+        st.warning(f"Input: {w}. The results below may not hold for this image.")
 
     s = report["summary"]
     c1, c2, c3, c4, c5 = st.columns(5)
@@ -91,24 +105,18 @@ def main():
     c2.metric("Assessable", s["teeth_assessable"])
     c3.metric("Distinct FDI codes", s["distinct_fdi_codes"])
     c4.metric("Caries-positive", s["caries_positive"])
-    c5.metric("Bone-loss-positive", s["bone_loss_positive"])
+    c5.metric("Stage-4 flags", s["bone_loss_positive"],
+              help="Teeth near an abnormality. Not a periodontal finding — see Limitations.")
     if s["duplicate_fdi_codes"]:
         st.warning(f"{s['duplicate_fdi_codes']} duplicate FDI codes emitted — should be 0.")
 
     left, right = st.columns([3, 2])
     with left:
         st.subheader("Annotated overlay")
-        # A unique filename per upload+config, not a fixed name: a fixed path would let one
-        # browser tab serve another's stale image (Streamlit reruns don't guarantee ordering
-        # across sessions) and would race under concurrent use.
-        import hashlib
-        digest = hashlib.md5(uploaded.getvalue()).hexdigest()[:12]
-        overlay_path = REPO_ROOT / "outputs" / "_app_overlays" / f"{digest}.jpg"
-        overlay_path.parent.mkdir(parents=True, exist_ok=True)
-        draw_overlay(img, report, overlay_path)
-        # channels="BGR" is for raw arrays; draw_overlay already wrote correct colours via
-        # cv2.imwrite, and st.image reads a path as file bytes without decoding it, so no
-        # channel argument applies here.
+        # Drawn in memory, not written to disk (15 Oct 2026): a file per upload kept every
+        # user's radiograph under outputs/_app_overlays/ for good. draw_overlay returns a BGR
+        # array, hence channels="BGR".
+        viz = draw_overlay(img, report)
         # width="stretch", NOT use_column_width / use_container_width. `use_column_width` was
         # REMOVED in Streamlit 1.6x and raised TypeError at runtime the first time anyone
         # actually uploaded an image to this demo (27 Aug 2026) -- the build and the page load
@@ -117,8 +125,9 @@ def main():
         # release", per st.image's docstring in 1.62), so switching to it would have fixed the
         # crash and re-armed the same trap. `width="stretch"` is the current API for both
         # st.image and st.dataframe.
-        st.image(str(overlay_path), width="stretch",
-                caption="Blue = assessable · Orange = flagged / finding · Red = not assessable")
+        st.image(viz, channels="BGR", width="stretch",
+                caption="Orange = finding (caries or Stage-4 flag) · Blue = no finding "
+                        "(thin, '?' = numbering uncertain) · Grey = not assessable")
 
     with right:
         st.subheader("Per-tooth findings")
@@ -137,7 +146,8 @@ def main():
                 "Caries conf (cal.)": (round(t["caries"]["gate_confidence_calibrated"], 3)
                                        if t["caries"].get("gate_confidence_calibrated") is not None
                                        else "—"),
-                "Bone loss": t["bone_loss"]["finding"],
+                # Not "Bone loss": Stage 4 flags proximity to an abnormality (Limitations below).
+                "Stage 4 flag": "flagged" if t["bone_loss"]["finding"] == "bone_loss" else "—",
                 "Assessable": "✅" if t["assessable"] else "❌",
             })
         # width="stretch" -- see the note on st.image above; use_container_width is deprecated.
@@ -145,18 +155,24 @@ def main():
 
     st.subheader("⚠️ Limitations — read before trusting a number above")
     lim = report["limitations"]
+    # None for a detector with no measured profile (an unregistered --detector); `:.1%` would crash.
+    pct = lambda v: "not measured" if v is None else f"{v:.1%}"  # noqa: E731
     st.markdown(f"""
-- **Detector recall {lim['stage1_detector_recall']:.1%}** and **Stage-2 numbering
-  {lim['stage2_fdi_exact_end_to_end']:.1%} end-to-end** — {lim['interpretation']}
+- **Detector recall {pct(lim['stage1_detector_recall'])}** and **Stage-2 numbering
+  {pct(lim['stage2_fdi_exact_end_to_end'])} end-to-end** — {lim['interpretation']}
 - **Caries**: {lim['caries_method_caveat']}
 - **Caries labelling**: {lim['caries_presumed_negative_assumption']}
+- **Stage 4 is not a periodontal finding**: {lim['bone_loss_label_and_validation']}
+- **Stage 4 outside Tufts**: {lim['bone_loss_domain_shift']}
+- **Stage-4 severity grade**: {lim['bone_severity_not_evaluated']}
+- **Caries severity**: {lim['caries_severity_not_evaluated']}
 """)
     st.warning(
         "This pipeline is **not clinically validated**. It composes four independently "
         "trained models; the numbers above are research measurements, not a diagnosis."
     )
 
-    st.download_button("Download full JSON report", data=__import__("json").dumps(report, indent=2),
+    st.download_button("Download full JSON report", data=__import__("json").dumps(report, indent=2, allow_nan=False),
                        file_name=f"{Path(uploaded.name).stem}_report.json", mime="application/json")
 
     with st.expander("Model versions used"):

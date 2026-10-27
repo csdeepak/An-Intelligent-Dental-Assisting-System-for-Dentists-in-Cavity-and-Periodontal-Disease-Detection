@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 880" width="1160" height="880" role="img" aria-label="Six-stage OPG analysis pipeline: YOLOv11l-seg tooth detection, learned FDI enumeration head, then two parallel ResNet18 cascades for caries and periodontal bone loss, fused into a per-tooth JSON report and overlay">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 880" width="1160" height="880" role="img" aria-label="Six-stage OPG analysis pipeline: YOLOv11l tooth detection, a learned FDI enumeration head, then a caries lesion detector and a ResNet18 abnormality flag, fused into a per-tooth JSON report and overlay">
   <title>Six-stage OPG analysis pipeline</title>
-  <desc>OPG in, per-tooth JSON out. Stage 1 YOLOv11l-seg detects teeth (test box mAP@0.5 0.810). Stage 2 a ResNet18 enumeration head with positional features assigns FDI codes by Hungarian one-to-one assignment (58.3 percent exact end-to-end, 82.6 percent of detected teeth). Stage 3 a caries cascade runs on a tight 1.0x crop; Stage 4 a bone-loss cascade runs on a 1.5x-wide, 2.0x-tall crop of the same box. Stages 5 and 6 fuse the findings and emit the report.</desc>
+  <desc>OPG in, per-tooth JSON out, as of 14 Oct 2026. Stage 1 a YOLOv11l multi-corpus detector finds teeth (recall 89.3% on the Tufts test split). Stage 2 a ResNet18 enumeration head with positional features assigns FDI codes by Hungarian one-to-one assignment (63.5% end to end on Tufts test). Stage 3 a YOLOv11l lesion detector flags caries (F1 0.498 against a constant's 0.320 on DENTEX); a ResNet18 head grades depth, untested. Stage 4 a ResNet18 flags teeth near an expert-marked abnormality, not periodontal bone loss (test sensitivity 11.0 to 27.5% over three runs); its severity head, trained on crop contrast, is withheld by default. Stages 5 and 6 fuse the findings into a report and overlay.</desc>
   <defs>
     <linearGradient id="pbg" x1="0" y1="0" x2="0.6" y2="1">
       <stop offset="0%" stop-color="#0a1626"/><stop offset="100%" stop-color="#0a1d30"/>
@@ -68,11 +68,11 @@
     <rect x="250" y="106" width="660" height="86" rx="10" class="box"/>
     <rect x="250" y="106" width="4" height="86" rx="2" fill="#38bdf8"/>
     <text class="f st" x="272" y="128" fill="#38bdf8">STAGE 1 &#183; TOOTH DETECTION</text>
-    <text class="f ti" x="272" y="152">YOLOv11l-seg &#183; imgsz 1024 &#183; nc = 1</text>
-    <text class="f sb" x="272" y="174">Tufts &#183; frozen 700/150/150 image-level split &#183; boxes only</text>
-    <text class="f mt" x="888" y="132" text-anchor="end" fill="#38bdf8">mAP@0.5  0.810</text>
-    <text class="f mn" x="888" y="152" text-anchor="end">mask 0.638 &#8212; 0.65 bar missed</text>
-    <text class="f mn" x="888" y="172" text-anchor="end">recall 70.6% [66.5, 74.6]</text>
+    <text class="f ti" x="272" y="152">YOLOv11l &#183; imgsz 1024 &#183; nc = 1 &#183; boxes</text>
+    <text class="f sb" x="272" y="174">trained on Tufts + DENTEX + Kaggle</text>
+    <text class="f mt" x="888" y="132" text-anchor="end" fill="#38bdf8">recall 89.3% Tufts test</text>
+    <text class="f mn" x="888" y="152" text-anchor="end">box mAP@0.5 0.587 Tufts test</text>
+    <text class="f mn" x="888" y="172" text-anchor="end">99.6% DENTEX (in-domain)</text>
   </g>
 
   <!-- STAGE 2 -->
@@ -82,9 +82,9 @@
     <text class="f st" x="272" y="242" fill="#a78bfa">STAGE 2 &#183; FDI ENUMERATION</text>
     <text class="f ti" x="272" y="266">ResNet18 + 4 positional features</text>
     <text class="f sb" x="272" y="288">quadrant &#215; position, Hungarian one-to-one &#8212; 0 duplicate codes</text>
-    <text class="f mt" x="888" y="246" text-anchor="end" fill="#a78bfa">58.3% end-to-end</text>
-    <text class="f mn" x="888" y="266" text-anchor="end">82.6% of detected teeth</text>
-    <text class="f mn" x="888" y="286" text-anchor="end">quadrant 97.6%</text>
+    <text class="f mt" x="888" y="246" text-anchor="end" fill="#a78bfa">63.5% end-to-end, Tufts test</text>
+    <text class="f mn" x="888" y="266" text-anchor="end">92.8% DENTEX (in-domain detector)</text>
+    <text class="f mn" x="888" y="286" text-anchor="end">44.5% UFBA-425 (unseen corpus)</text>
   </g>
 
   <text class="f" x="580" y="332" text-anchor="middle" font-size="10.5" fill="#5f7d97" letter-spacing="1.6">TWO DIFFERENT CROPS OF THE SAME DETECTED BOX</text>
@@ -92,31 +92,31 @@
   <!-- CARIES LANE -->
   <rect x="60" y="356" width="488" height="268" rx="12" class="lane"/>
   <text class="f bl" x="84" y="382" fill="#fbbf24">CARIES PATH</text>
-  <text class="f" x="524" y="382" text-anchor="end" font-size="11" fill="#7f97ad">DENTEX</text>
+  <text class="f" x="524" y="382" text-anchor="end" font-size="11" fill="#7f97ad">DENTEX + CariesXrays</text>
 
   <g>
     <rect x="100" y="396" width="408" height="46" rx="8" fill="#122b3d" stroke="#2a4a63" stroke-width="1"/>
-    <text class="f" x="304" y="416" text-anchor="middle" font-size="13" fill="#dbe9f4">Tight crop &#183; 1.0&#215; (no expansion)</text>
-    <text class="m" x="304" y="433" text-anchor="middle" font-size="10.5" fill="#7f97ad">crown only &#8594; 224&#215;224, ImageNet norm</text>
+    <text class="f" x="304" y="416" text-anchor="middle" font-size="13" fill="#dbe9f4">Whole image &#8594; lesion boxes</text>
+    <text class="m" x="304" y="433" text-anchor="middle" font-size="10.5" fill="#7f97ad">tooth by overlap &#183; tight 1.0&#215; crop for severity</text>
   </g>
   <g>
     <rect x="100" y="460" width="408" height="68" rx="9" class="box"/>
     <rect x="100" y="460" width="3.5" height="68" rx="2" fill="#fbbf24"/>
-    <text class="f" x="120" y="484" font-size="13.5" font-weight="650" fill="#eaf3fa">ResNet18 gate &#8212; caries / healthy</text>
-    <text class="f mn" x="120" y="503">P 0.398 &#183; R 0.740 &#183; AP 0.550 (3.7&#215; chance)</text>
-    <text class="f mn" x="120" y="519">ECE 0.136 &#8594; 0.043 after isotonic</text>
+    <text class="f" x="120" y="484" font-size="13.5" font-weight="650" fill="#eaf3fa">YOLOv11l lesion detector (default)</text>
+    <text class="f mn" x="120" y="503">F1 0.498 vs constant 0.320 (DENTEX 164)</text>
+    <text class="f mn" x="120" y="519">per-crop gate retained (--caries-method gate)</text>
   </g>
   <g>
     <rect x="100" y="546" width="408" height="68" rx="9" class="box"/>
     <rect x="100" y="546" width="3.5" height="68" rx="2" fill="#fbbf24"/>
     <text class="f" x="120" y="570" font-size="13.5" font-weight="650" fill="#eaf3fa">ResNet18 depth &#8212; caries / deep</text>
-    <text class="f mn" x="120" y="589">acc 0.81 &#183; macro F1 0.77 (133 val crops)</text>
-    <text class="f mn" x="120" y="605">runs only when the gate fires</text>
+    <text class="f mn" x="120" y="589">macro F1 0.77, 133 val crops &#183; no test</text>
+    <text class="f mn" x="120" y="605">runs only on flagged teeth</text>
   </g>
 
   <!-- BONE LOSS LANE -->
   <rect x="612" y="356" width="488" height="268" rx="12" class="lane"/>
-  <text class="f bl" x="636" y="382" fill="#fb7185">BONE-LOSS PATH</text>
+  <text class="f bl" x="636" y="382" fill="#fb7185">ABNORMALITY FLAG</text>
   <text class="f" x="1076" y="382" text-anchor="end" font-size="11" fill="#7f97ad">TUFTS</text>
 
   <g>
@@ -127,16 +127,16 @@
   <g>
     <rect x="652" y="460" width="408" height="68" rx="9" class="box"/>
     <rect x="652" y="460" width="3.5" height="68" rx="2" fill="#fb7185"/>
-    <text class="f" x="672" y="484" font-size="13.5" font-weight="650" fill="#eaf3fa">ResNet18 gate &#8212; present / absent</text>
-    <text class="f mn" x="672" y="503">macro F1 0.9233 &#183; sens 83.1% &#183; spec 99.5%</text>
-    <text class="f mn" x="672" y="519">focal loss against a 23.8&#215; imbalance</text>
+    <text class="f" x="672" y="484" font-size="13.5" font-weight="650" fill="#eaf3fa">ResNet18 flag &#8212; near an abnormality mask</text>
+    <text class="f mn" x="672" y="503">sens 11.0&#8211;27.5% (3 runs) &#183; spec 95.9&#8211;98.6%</text>
+    <text class="f mn" x="672" y="519">label: not periodontal &#183; split by radiograph</text>
   </g>
   <g>
     <rect x="652" y="546" width="408" height="68" rx="9" class="box"/>
     <rect x="652" y="546" width="3.5" height="68" rx="2" fill="#fb7185"/>
-    <text class="f" x="672" y="570" font-size="13.5" font-weight="650" fill="#eaf3fa">ResNet18 severity &#8212; mild / mod / severe</text>
-    <text class="f mn" x="672" y="589">macro F1 0.7208 (52 val crops &#8212; provisional)</text>
-    <text class="f mn" x="672" y="605">runs only when the gate fires</text>
+    <text class="f" x="672" y="570" font-size="13.5" font-weight="650" fill="#eaf3fa">ResNet18 severity &#8212; contrast bands</text>
+    <text class="f mn" x="672" y="589">trained on crop contrast &#183; withheld by default</text>
+    <text class="f mn" x="672" y="605">only with --bone-severity-grade</text>
   </g>
 
   <!-- STAGE 5 -->
@@ -145,7 +145,7 @@
     <rect x="250" y="690" width="4" height="80" rx="2" fill="#2dd4bf"/>
     <text class="f st" x="272" y="712" fill="#2dd4bf">STAGE 5 &#183; FUSION, FLAGS, ASSESSABILITY</text>
     <text class="f ti" x="272" y="736">Per-tooth join on the FDI key + confidence gating</text>
-    <text class="f sb" x="272" y="758">positional-alignment guard &#183; abstain below FDI confidence 0.30 &#8594; 90.8% coverage</text>
+    <text class="f sb" x="272" y="758">positional-alignment guard &#183; abstain below FDI confidence 0.30 (pre-registered)</text>
   </g>
 
   <!-- STAGE 6 -->
@@ -153,6 +153,6 @@
     <rect x="250" y="794" width="660" height="62" rx="10" class="box"/>
     <rect x="250" y="794" width="4" height="62" rx="2" fill="#34d399"/>
     <text class="f st" x="272" y="816" fill="#34d399">STAGE 6 &#183; REPORT</text>
-    <text class="f ti" x="272" y="840">Per-tooth JSON + annotated overlay &#183; 2.39 s/image on CPU</text>
+    <text class="f ti" x="272" y="840">Per-tooth JSON (schema 1.5) + annotated overlay</text>
   </g>
 </svg>

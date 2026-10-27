@@ -1,0 +1,19 @@
+objc[45272]: Class AVFFrameReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x1028cc3a8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x1214d03a8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[45272]: Class AVFAudioReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x1028cc3f8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x1214d03f8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Ultralytics 8.4.127 🚀 Python-3.12.12 torch-2.2.0 CPU (Apple M4 Pro)
+YOLO11l summary (fused): 191 layers, 25,280,083 parameters, 0 gradients, 86.8 GFLOPs
+[34m[1mval: [0mFast image access ✅ (ping: 0.0±0.0 ms, read: 1757.2±2084.3 MB/s, size: 264.9 KB)
+[K[34m[1mval: [0mScanning /Users/chennupatigunadeep/Downloads/Capstone/Deepak impleentation/An-Intelligent-Dental-Assisting-System-for-Dentists-in-Cavity-and-Periodontal-Disease-Detection/data/detector_multicorpus_v2/labels/test.cache... 150 images, 6 backgrounds, 0 corrupt: 100% ━━━━━━━━━━━━ 150/150 30.0Mit/s 0.0s
+[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 10% ━─────────── 1/10 63.0s/it 18.9s<9:27[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 20% ━━────────── 2/10 37.2s/it 37.9s<4:58[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 30% ━━━╸──────── 3/10 29.0s/it 57.1s<3:23[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 40% ━━━━╸─────── 4/10 25.0s/it 1:16<2:30[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 50% ━━━━━━────── 5/10 22.8s/it 1:35<1:54[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 60% ━━━━━━━───── 6/10 21.3s/it 1:53<1:25[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 70% ━━━━━━━━──── 7/10 20.5s/it 2:12<1:01[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 80% ━━━━━━━━━╸── 8/10 19.9s/it 2:31<39.9s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 90% ━━━━━━━━━━╸─ 9/10 19.6s/it 2:50<19.6s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 100% ━━━━━━━━━━━━ 10/10 17.1s/it 2:51
+                   all        150       3924      0.593      0.637      0.587       0.21
+Speed: 0.5ms preprocess, 1136.6ms inference, 0.0ms loss, 0.5ms postprocess per image
+{
+  "weights": "models/15_detector_multicorpus_leverA/arm3c_best.pt",
+  "sha256": "5d301f13fb48da5c74e7ef01bd0f91226f9b6800cb433dee5aebc8f8db8f161e",
+  "split": "test_tufts.txt",
+  "device": "cpu",
+  "box_map50": 0.5873215709220491,
+  "box_map50_95": 0.2097313284946023,
+  "precision": 0.5930827053961467,
+  "recall": 0.6373598369011213
+}

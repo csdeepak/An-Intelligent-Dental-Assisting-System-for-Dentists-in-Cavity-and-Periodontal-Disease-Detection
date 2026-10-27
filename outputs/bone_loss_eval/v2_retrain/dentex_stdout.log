@@ -1,0 +1,56 @@
+previous: 34 of 4512 detected teeth flagged, 164 images (bone-loss-binary-resnet18-v1.0)
+default: 274 of 4512 detected teeth flagged, 164 images (abnormality-flag-resnet18-radiograph-split-v2.0)
+{
+  "pre_registration": "outputs/bone_loss_eval/v2_retrain/PRE_REGISTRATION.md, Amendment 1",
+  "n_images": 164,
+  "device": "cpu",
+  "control_reproduces_34_of_4512": true,
+  "every_field_outside_bone_loss_identical": true,
+  "previous": {
+    "sha256": "c52f7f484076a2a2c3c144c3351912b118b6b0d56fc51ba1b4296e6ce6213db1",
+    "tag": "bone-loss-binary-resnet18-v1.0",
+    "teeth_detected": 4512,
+    "flagged": 34,
+    "images_with_a_flag": 27,
+    "firing_rate": {
+      "value": 0.0075,
+      "ci95": [
+        0.0048,
+        0.0106
+      ]
+    },
+    "severity_of_flagged_teeth": {
+      "Severe": 21,
+      "Moderate": 11,
+      "Mild": 2
+    }
+  },
+  "default": {
+    "sha256": "e4bc874423e7c17752bb949d510862e4b4fd618f9a7602a95743663a3c27a0b2",
+    "tag": "abnormality-flag-resnet18-radiograph-split-v2.0",
+    "teeth_detected": 4512,
+    "flagged": 274,
+    "images_with_a_flag": 113,
+    "firing_rate": {
+      "value": 0.0607,
+      "ci95": [
+        0.0508,
+        0.0714
+      ]
+    },
+    "severity_of_flagged_teeth": {
+      "Moderate": 120,
+      "Severe": 141,
+      "Mild": 13
+    }
+  },
+  "default_minus_previous": {
+    "delta_pp": 5.32,
+    "ci95_pp": [
+      4.34,
+      6.39
+    ],
+    "excludes_zero": true,
+    "frac_resamples_le_0": 0.0
+  }
+}

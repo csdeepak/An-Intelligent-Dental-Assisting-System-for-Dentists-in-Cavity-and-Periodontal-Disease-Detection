@@ -1,0 +1,139 @@
+{
+  "device": "mps",
+  "epochs": [
+    {
+      "epoch": 1,
+      "train_loss": 1.03734,
+      "val_macro_f1": 0.3395,
+      "lr": 0.0001,
+      "seconds": 7.8
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.81114,
+      "val_macro_f1": 0.4222,
+      "lr": 0.0001,
+      "seconds": 6.9
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.63307,
+      "val_macro_f1": 0.4425,
+      "lr": 0.0001,
+      "seconds": 6.9
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.5566,
+      "val_macro_f1": 0.3972,
+      "lr": 0.0001,
+      "seconds": 6.9
+    },
+    {
+      "epoch": 5,
+      "train_loss": 0.3953,
+      "val_macro_f1": 0.4209,
+      "lr": 0.0001,
+      "seconds": 6.9
+    },
+    {
+      "epoch": 6,
+      "train_loss": 0.31436,
+      "val_macro_f1": 0.4045,
+      "lr": 0.0001,
+      "seconds": 7.0
+    },
+    {
+      "epoch": 7,
+      "train_loss": 0.24988,
+      "val_macro_f1": 0.4009,
+      "lr": 0.0001,
+      "seconds": 7.2
+    },
+    {
+      "epoch": 8,
+      "train_loss": 0.22348,
+      "val_macro_f1": 0.3555,
+      "lr": 0.0001,
+      "seconds": 7.3
+    },
+    {
+      "epoch": 9,
+      "train_loss": 0.18737,
+      "val_macro_f1": 0.4201,
+      "lr": 5e-05,
+      "seconds": 7.2
+    },
+    {
+      "epoch": 10,
+      "train_loss": 0.12972,
+      "val_macro_f1": 0.3717,
+      "lr": 5e-05,
+      "seconds": 7.3
+    },
+    {
+      "epoch": 11,
+      "train_loss": 0.0899,
+      "val_macro_f1": 0.3688,
+      "lr": 5e-05,
+      "seconds": 7.2
+    },
+    {
+      "epoch": 12,
+      "train_loss": 0.07824,
+      "val_macro_f1": 0.4012,
+      "lr": 5e-05,
+      "seconds": 7.2
+    },
+    {
+      "epoch": 13,
+      "train_loss": 0.08877,
+      "val_macro_f1": 0.3568,
+      "lr": 5e-05,
+      "seconds": 7.5
+    }
+  ],
+  "best_val_macro_f1": 0.4425,
+  "best_epoch": 3,
+  "class_weight": [
+    1.0259,
+    0.897,
+    1.0984
+  ],
+  "seed": 42,
+  "sha256": "3d151388d1214fd0d2e5915cfa68e16b763c70f39e9a07c57b9a34d44a28c4ed",
+  "pre_registration": "outputs/bone_loss_eval/v3_severity/PRE_REGISTRATION.md",
+  "torch": "2.2.0",
+  "classes": [
+    "Mild",
+    "Moderate",
+    "Severe"
+  ],
+  "cuts": [
+    0.05,
+    0.15
+  ],
+  "label": "share of the 1.5x/2.0x tooth crop overlapping a Tufts expert abnormality mask; positives only (overlap > 0.01). An extent band, not a clinical severity.",
+  "train_crops": 1585,
+  "train_bands": [
+    515,
+    589,
+    481
+  ],
+  "val_crops": 140,
+  "val_bands": [
+    41,
+    57,
+    42
+  ],
+  "recipe": {
+    "lr": 0.0001,
+    "weight_decay": 0.0001,
+    "batch": 32,
+    "max_epochs": 50,
+    "patience": 10,
+    "loss": "class-weighted cross-entropy",
+    "jitter_seed": 42,
+    "scheduler": "ReduceLROnPlateau(max, 0.5, 5)"
+  }
+}

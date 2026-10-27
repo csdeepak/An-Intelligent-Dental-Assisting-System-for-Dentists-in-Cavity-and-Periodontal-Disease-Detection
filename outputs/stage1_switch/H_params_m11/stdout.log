@@ -1,0 +1,13 @@
+stage1_detector          27,617,459    27.62 M
+stage2_fdi_head          11,187,916    11.19 M
+stage3a_lesion           25,311,251    25.31 M
+stage3a_gate_variant     11,177,538    11.18 M
+stage3b_caries_sev       11,177,538    11.18 M
+stage4a_bone_gate        11,177,538    11.18 M
+stage4b_bone_sev         11,178,051    11.18 M
+total_default                97,649,753    97.65 M
+total_gate_variant           83,516,040    83.52 M
+caries_path_default          75,294,164    75.29 M
+caries_path_gate_variant     61,160,451    61.16 M
+
+wrote outputs/stage1_switch/H_params_m11/param_counts.json

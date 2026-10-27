@@ -1,0 +1,63 @@
+objc[36314]: Class AVFFrameReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x102e843a8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x15fce43a8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[36314]: Class AVFAudioReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x102e843f8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x15fce43f8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+detector: models/11_yolo_seg_tufts_r1/best.pt
+lesion model: models/16_lever_b_pooled/lever_b_pooled_yolo11l-2/weights/best.pt  conf=0.25 (frozen)
+manifest filter: outputs/stage1_switch/cariesxrays_val_1200.csv split=val (1200 stems, 1200 resolved)
+CariesXrays external — decision=lesion-detector  images=1200
+  50/1200  agreement so far 0.7303
+  100/1200  agreement so far 0.7181
+  150/1200  agreement so far 0.7146
+  200/1200  agreement so far 0.7238
+  250/1200  agreement so far 0.7178
+  300/1200  agreement so far 0.7233
+  350/1200  agreement so far 0.7218
+  400/1200  agreement so far 0.7231
+  450/1200  agreement so far 0.7193
+  500/1200  agreement so far 0.7103
+  550/1200  agreement so far 0.7041
+  600/1200  agreement so far 0.6956
+  650/1200  agreement so far 0.6947
+  700/1200  agreement so far 0.6930
+  750/1200  agreement so far 0.6874
+  800/1200  agreement so far 0.6945
+  850/1200  agreement so far 0.6895
+  900/1200  agreement so far 0.6884
+  950/1200  agreement so far 0.6859
+  1000/1200  agreement so far 0.6856
+  1050/1200  agreement so far 0.6854
+  1100/1200  agreement so far 0.6829
+  1150/1200  agreement so far 0.6832
+  1200/1200  agreement so far 0.6824
+{
+  "cohort": "CariesXrays \u2014 Chen et al., AAAI 2024, 38(20) 21940-21948, DOI 10.1609/aaai.v38i20.30196 (licence not stated)",
+  "decision": "lesion-detector",
+  "detector": "models/11_yolo_seg_tufts_r1/best.pt",
+  "detector_sha256": "271316c46caaf4029ea707fa77b6fe30697795e46632e1f6fcae3498c48781ba",
+  "lesion_model": "models/16_lever_b_pooled/lever_b_pooled_yolo11l-2/weights/best.pt",
+  "lesion_conf": 0.25,
+  "manifest_filter": "outputs/stage1_switch/cariesxrays_val_1200.csv split=val (1200 stems, 1200 resolved)",
+  "sampling": "all",
+  "n_images_scored": 1200,
+  "counts": {
+    "images": 1200,
+    "unreadable": 0,
+    "no_xml": 0,
+    "xml_size_mismatch": 339,
+    "lesions": 2815,
+    "lesions_covered": 1921,
+    "lesions_strict": 1753,
+    "teeth_detected": 31212,
+    "teeth_flagged": 2351,
+    "flagged_hitting_a_lesion": 1788
+  },
+  "agreement_covered": 0.6824,
+  "agreement_strict": 0.6227,
+  "match_rate_DIAGNOSTIC_not_precision": 0.7605,
+  "mean_teeth_detected_per_image": 26.01,
+  "mean_teeth_flagged_per_image": 1.96,
+  "matcher": "centroid containment, imported from ningxia_external.match_by_centroid",
+  "geometry": "width/height read from the DECODED IMAGE; XML <size> deliberately ignored (27.3% of them are wrong)",
+  "caveat": "annotation exhaustiveness is unknown, so match_rate is a diagnostic and a flagged tooth with no lesion is NOT a confirmed false positive"
+}
+
+wrote outputs/stage1_switch/E_cariesxrays_lesion-detector_m11/cariesxrays_external_lesion-detector.json

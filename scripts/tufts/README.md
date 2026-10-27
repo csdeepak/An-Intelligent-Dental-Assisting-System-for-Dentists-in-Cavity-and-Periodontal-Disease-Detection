@@ -8,6 +8,7 @@ threw the labels away (`nc: 1, names: ['tooth']`) because it was building a dete
 | Script | Status | What it does |
 |---|---|---|
 | `regenerate_split_v1.py` | ✅ run — reproduces byte-for-byte | Rebuilds the frozen `outputs/eda_tufts/split_v1.csv` from the raw data (seeded shuffle, seed 42, 70/15/15) so it never has to be carried between machines again. Self-verifying against four recorded invariants including its SHA-256; `--verify` checks without writing. `RESULTS_LOG.md` 2026-08-26c. |
+| `train_bone_loss_v2.py` | ✅ run 13 Oct — three seeds, MPS | Stage 4a retrained with a radiograph-level split (the frozen `split_v1`, 678 / 145 / 143). `check` runs three harness checks; `train --seed N` refuses to repeat a run and never reads a test radiograph. Pre-registration `outputs/bone_loss_eval/v2_retrain/`; weights and histories `models/18_bone_loss_radiograph_split/`. An ablation: not the pipeline default. `RESULTS_LOG` 2026-10-13b |
 | `build_enumeration_crops.py` | ✅ run — 42,755 crops | FDI-labelled tooth crops from `Segmentation/teeth_bbox.json` (1,000 images, 25,201 usable permanent teeth). Reuses the frozen `split_v1` (700/150/150); 1.5× expansion; ±15% jitter on train only. Output `data/tufts/enumeration_v1/` (gitignored). |
 
 Train the head on both corpora at once:

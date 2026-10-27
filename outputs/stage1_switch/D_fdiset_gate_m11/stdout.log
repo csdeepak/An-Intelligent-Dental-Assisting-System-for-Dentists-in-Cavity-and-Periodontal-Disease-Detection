@@ -1,0 +1,18 @@
+objc[34965]: Class AVFFrameReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x10403c3a8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x1394fc3a8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[34965]: Class AVFAudioReceiver is implemented in both /opt/anaconda3/lib/python3.12/site-packages/cv2/.dylibs/libavdevice.61.3.100.dylib (0x10403c3f8) and /opt/anaconda3/lib/python3.12/site-packages/av/.dylibs/libavdevice.61.3.100.dylib (0x1394fc3f8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+ground truth: 164 leak-free images, 477 affected teeth, 148 images with >=1 caries
+  20/164  (1.83s/image)
+  40/164  (1.78s/image)
+  60/164  (1.76s/image)
+  80/164  (1.71s/image)
+  100/164  (1.71s/image)
+  120/164  (1.73s/image)
+  140/164  (1.73s/image)
+  160/164  (1.74s/image)
+
+pipeline arm (gate) done, 1.74s/image -> arm_pipeline.json
+
+arm         images       P       R      F1   exact   s/img
+pipeline               164   0.242   0.396   0.300    1.8%    1.74
+
+-> outputs/stage1_switch/D_fdiset_gate_m11/c1_comparison.json

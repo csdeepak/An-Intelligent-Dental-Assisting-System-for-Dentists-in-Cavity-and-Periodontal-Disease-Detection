@@ -146,17 +146,18 @@ def main():
     import torch
     from ningxia_external import MOLAR_CONSTANT, match_by_centroid
     from run_inference import (DEF_CARIES_GATE, DEF_CARIES_SEVERITY, DEF_DETECTOR,
-                               DEF_FDI_HEAD)
+                               DEF_FDI_HEAD, file_sha256)
     from src.classifiers import (lesion_preds_to_tooth_idx, load_classifier, run_caries,
                                  run_lesion_detector_raw)
     from src.fdi_head_inference import assign_fdi_head, load_head
     from src.orientation import detect_upright
     from ultralytics import YOLO
+    from scripts.run_inference import load_yolo_pinned
 
     device = "cpu"
     det_path = args.detector or DEF_DETECTOR
     print(f"detector: {det_path}")
-    det = YOLO(str(det_path))
+    det = load_yolo_pinned(det_path)
     head = load_head(DEF_FDI_HEAD, device)
 
     lesion_model = gate = csev = None
@@ -177,7 +178,7 @@ def main():
                 "CariesXrays.")
         if args.manifest_split == "train" and not args.allow_train_overlap:
             raise SystemExit("--manifest-split train IS the Lever B training data; refusing.")
-        lesion_model = YOLO(str(args.lesion_model))
+        lesion_model = load_yolo_pinned(args.lesion_model)
         print(f"lesion model: {args.lesion_model}  conf={args.lesion_conf} (frozen)")
     else:
         gate, gate_cls = load_classifier(DEF_CARIES_GATE, 2, device)
@@ -261,6 +262,8 @@ def main():
     res = {
         "cohort": "CariesXrays — Chen et al., AAAI 2024, 38(20) 21940-21948, DOI 10.1609/aaai.v38i20.30196 (licence not stated)",
         "decision": args.decision,
+        "detector": str(det_path),
+        "detector_sha256": file_sha256(str(det_path)),
         "lesion_model": (str(args.lesion_model) if args.decision == "lesion-detector" else None),
         "lesion_conf": (args.lesion_conf if args.decision == "lesion-detector" else None),
         "manifest_filter": manifest_note,

@@ -26,6 +26,7 @@ per-crop gate is retained as a variant. Both are counted, and both totals emitte
 Run: py -3.13 scripts/count_model_params.py
 Writes: outputs/param_counts/param_counts.json
 """
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -38,12 +39,12 @@ OUT = REPO / "outputs" / "param_counts" / "param_counts.json"
 # Kept in the pipeline's own stage order. Paths mirror the DEF_* defaults in
 # scripts/run_inference.py -- if a default checkpoint changes there, change it here.
 CHECKPOINTS = [
-    ("stage1_detector",       "models/11_yolo_seg_tufts_r1/best.pt"),
+    ("stage1_detector",       "models/15_detector_multicorpus_leverA/arm3c_best.pt"),
     ("stage2_fdi_head",       "models/10_fdi_head_dentex_tufts_v2/enumeration_head_best.pth"),
     ("stage3a_lesion",        "models/16_lever_b_pooled/lever_b_pooled_yolo11l-2/weights/best.pt"),
     ("stage3a_gate_variant",  "models/09_caries_gate_v3/caries_gate_v3.pth"),
     ("stage3b_caries_sev",    "models/07_caries_cascade/phase2_final_bundle.pth"),
-    ("stage4a_bone_gate",     "models/03_bone_loss_model_training_notebook_models/bone_loss_resnet18_best.pth"),
+    ("stage4a_bone_gate",     "models/18_bone_loss_radiograph_split/seed42_best.pth"),
     ("stage4b_bone_sev",      "models/04_bone_loss_severity_notebook_models/bone_loss_severity_resnet18_best.pth"),
 ]
 
@@ -81,8 +82,19 @@ def count(path: Path) -> int:
 
 
 def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--stage1", default=CHECKPOINTS[0][1],
+                    help="count a different Stage-1 detector (path relative to the repo)")
+    ap.add_argument("--out", type=Path, default=OUT)
+    args = ap.parse_args()
+    if args.stage1 != CHECKPOINTS[0][1] and args.out == OUT:
+        # param_counts.json is what the manuscript's numbers are asserted against.
+        print("a non-default --stage1 needs its own --out; refusing to overwrite", OUT.name)
+        return 1
+    checkpoints = [("stage1_detector", args.stage1)] + CHECKPOINTS[1:]
+
     counts, missing = {}, []
-    for name, rel in CHECKPOINTS:
+    for name, rel in checkpoints:
         path = REPO / rel
         if not path.exists():
             missing.append(rel)
@@ -114,14 +126,14 @@ def main() -> int:
     for name, n in totals.items():
         print(f"{name:26s} {n:>12,}   {n / 1e6:6.2f} M")
 
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps({
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    args.out.write_text(json.dumps({
         "rule": "learnable parameters only; batch-norm buffers excluded",
-        "checkpoints": dict(CHECKPOINTS),
+        "checkpoints": dict(checkpoints),
         "params": counts,
         "totals": totals,
     }, indent=2) + "\n", encoding="utf-8")
-    print(f"\nwrote {OUT.relative_to(REPO).as_posix()}")
+    print(f"\nwrote {args.out}")
     return 0
 
 

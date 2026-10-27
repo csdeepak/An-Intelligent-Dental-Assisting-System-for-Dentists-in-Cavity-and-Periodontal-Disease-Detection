@@ -276,6 +276,12 @@ applied at the detector output. Full table in `configs/dataset_config.yaml`
 
 ### 5.1 Stage 1 — Tooth detection (YOLOv11l)
 
+> **11 Oct 2026 — the pipeline default is no longer the Tufts-only model described below.** It
+> is the Lever A multi-corpus detect model (arm3c: Tufts + DENTEX `quadrant_enumeration` + Kaggle
+> "dual", per-corpus balanced sampling, otherwise this section's configuration), made the
+> default by a decision against two pre-registered ablation verdicts. §8.30 has the numbers and
+> how to write them. What follows describes the Tufts-only detectors, which are retained.
+
 - Single-class detection (`tooth`), primary/letter teeth included.
 - Annotations converted from Tufts `[y1, x1, y2, x2]` corner boxes to normalised YOLO
   `cx cy w h` (`scripts/yolo/convert_tufts_to_yolo.py`); boxes with w<2 or h<2 dropped;
@@ -417,6 +423,12 @@ copies** — are therefore kept in the same split, grouped by the source image s
 stratification applied at the image level. The same 70/15/15 image-level split is frozen
 and reused for detection.
 
+> **CORRECTED 10 Oct 2026 — this section describes the design, not what the bone-loss run did**
+> (`RESULTS_LOG` 2026-10-10, §8.28). The run that produced the shipped Stage-4a checkpoint found
+> no `val/` on disk and fell back to a crop-level `train_test_split(test_size=0.2)`, stratified by
+> label and not grouped by radiograph. All 143 validation radiographs also supply training crops.
+> The frozen 70/15/15 split is the detector's; the bone-loss models never used it.
+
 ### 6.4 Resampling for a 23.8× class imbalance
 
 The native bone-loss distribution is ~96% normal / ~4% diseased. Trained as-is, the model
@@ -498,7 +510,10 @@ already-planned fix, scheduled for Week 6, not Week 2. Report the current thresh
 All figures for Stage 1 are in `docs/results/figures/yolo_detection_a100/`
 (`val_*` = training/validation run, `test_*` = held-out test evaluation).
 
-### 7.1 Stage 1 — tooth detection (two frozen detectors; the **seg** model is the pipeline default since 27 Aug 2026)
+### 7.1 Stage 1 — tooth detection (two frozen Tufts-only detectors; the **seg** model was the pipeline default 27 Aug – 11 Oct 2026)
+
+> The default since 11 Oct 2026 is the multi-corpus detector — §8.30, and `model_metrics.md`
+> for its numbers. Its Tufts test box mAP@0.5 is 0.585 against the seg model's 0.810 below.
 
 | Run | GPU | imgsz | Epochs | Split | Precision | Recall | mAP@0.5 | mAP@0.5:0.95 |
 |-----|-----|-------|--------|-------|-----------|--------|---------|--------------|
@@ -626,6 +641,12 @@ enough to be uninformative.
 
 > Minor discrepancy for the record: `severity_summary.txt` lists F1 severe = 0.6957 while
 > the legacy report rounds it to 0.70. Use 0.6957.
+
+**Against the true overlap bands, on test (14 Oct 2026, `RESULTS_LOG` 2026-10-14d, §8.40).** The
+table above is the contrast-band validation of 27 Aug. Scored on 182 Tufts test positives against
+the bands it was named for, this head reaches macro-F1 0.3657 [0.2949, 0.4280]; a head retrained on
+those bands reaches 0.2938 [0.2143, 0.3850] (seed 42, fixed in advance; 0.3279 and 0.3817 for seeds
+43 and 44), against 0.3344 [0.2723, 0.3967] for an image-blind tooth-position prior. Not eligible.
 
 ### 7.5 Exploratory — CEJ-based bone level estimation
 
@@ -2358,6 +2379,644 @@ parallel Mac-side session, which used `2026-09-04`/`04b`/`04c` first for its own
 PRE_REGISTRATION.md` (frozen, commit `ef3f453`); `outputs/lever_b_eval/acceptance_rule_B-pooled.json`;
 `models/16_lever_b_pooled/run_summary.txt`; `docs/session-memory/2026-09-04a-lever-b-build-and-both-arms.md`.
 
+### 8.28 The bone-loss branch, audited — a crop-level validation split, and a label that is not bone loss
+
+Found 10 Oct 2026 by a review council and recomputed by its chair; `RESULTS_LOG` 2026-10-10. No
+model was run. These are two facts about Stage 4a that §6.3, §8.13, §8.18 and the manuscript get
+wrong.
+
+**1. The validation set shares every radiograph with the training set.** §6.3 describes an
+image-level split. The run that produced the shipped checkpoint did not use one: the training
+notebook found no `val/` on disk and fell back to a label-stratified, crop-level
+`train_test_split(test_size=0.2)`. Its saved output says so in one line.
+
+| | |
+|---|---|
+| validation radiographs that also supply training crops | **143 of 143** |
+| validation crops whose tooth is also in training | 543 of 1,558 (34.9%) |
+| validation positives whose tooth is a training positive's tooth | **46 of 59** |
+| distinct diseased teeth in the whole build | 153 (145 in training, 54 in validation) |
+
+The shared teeth are not duplicate files. They are the clean crop and the ±15%-jittered crop of
+one tooth, on opposite sides of the split. So 0.9233, and the 83.05% / 99.53% beside it, is
+validation on the training radiographs. It reproduces (§9, 7 Sep) and it is not a held-out
+estimate. How far it exceeds one is unmeasured.
+
+**2. The positive class is "a tooth crop that overlaps a Tufts expert abnormality mask".** That
+is the rule in the construction notebook (`overlap > 0.01`), and §6.2 treats the overlap as a
+proxy for bone lost. The Tufts expert masks mark *abnormalities* of any kind. Every diseased crop
+comes from 41 radiographs, and their expert descriptions are apical rarefying osteitis and apical
+radiolucencies (26 mention "apical"), cysts (9), sclerosis and dense bone islands (9). Four
+contain a periodontal or alveolar word, and each is an apical finding ("apical periodontitis",
+"widening of apical PDL"). Across all 1,000 Tufts descriptions, three describe periodontal bone
+loss or periodontal disease outright — **and none of those three radiographs supplies a diseased
+crop.** This is a keyword reading of free text, per radiograph. It is not a clinician's reading,
+and it was not done per mask.
+
+**What this does to §8.13.** §8.13 reads 0.923 in-domain against 2.4% external sensitivity as a
+branch that "does not generalise", and places the failure inside the Stage-4a classifier. Both
+halves of that comparison change. The in-domain half is inflated by an amount nobody has
+measured. The external half scores the model against Ningxia's periodontitis masks — a continuous
+band along the bone ridge — which is a target it was never trained on. A label mismatch predicts
+near-zero sensitivity with no domain shift at all. The detector-swap experiment still shows what
+it showed: the cause is not upstream. It no longer shows that the cause is shift.
+
+**Statements that are now false and must not reach a reviewer:**
+
+- "Splits are image-level throughout" — `main.tex` Table I caption and §Data; §6.3 here
+  (corrected in place); the root `README.md` (corrected 10 Oct).
+- Tufts "700/150/150 frozen" given as the split for "Detection, bone loss" — it is the
+  detector's split only.
+- "The bone-loss branch under domain shift" (the bone-loss figure caption), "did not transfer"
+  (Conclusion), and the abstract's 0.923-against-1.4–5.6% sentence, as written.
+
+**How to write this honestly.** There are two defensible options, and the choice belongs to the
+authors and the mentor, because the capstone's title names periodontal disease. *Cut:* remove the
+branch from the manuscript and keep one Limitations sentence saying that a second branch exists,
+was trained on Tufts abnormality masks, and was not validated as a periodontal classifier.
+*Keep:* describe it as what it is — an abnormality-proximity classifier, validated at crop
+level, whose external result is a label mismatch — and, only if kept, measure it once on Tufts
+radiographs that supplied no training crop. The masks, the boxes and all 1,000 original
+radiographs are on the macOS clone; that run needs its own pre-registration. What is not
+defensible is the current text. The same crops feed Stage 4b, whose split was not audited.
+
+*Update, 11 Oct 2026.* Stage 4b's split was audited that evening and **is** image-level: 32
+training radiographs, 9 validation, none shared. Its label source is the same abnormality masks.
+The pipeline's own output was corrected the same day (`RESULTS_LOG` 2026-10-11b): from report
+schema 1.2 every report and the demo app describe the Stage-4 field as an abnormality-proximity
+flag, not a periodontal finding, and the overlay prints `ABN` where it printed `BL`.
+
+Source: `RESULTS_LOG.md` 2026-10-10; `data/tufts/resampled_dataset/metadata/`;
+`notebooks/bone_loss/{02_bone_loss_dataset_construction,03_bone_loss_model_training}.ipynb`;
+`docs/session-memory/2026-10-10-state-review-council.md`.
+
+### 8.29 Three intervals — what the caries tables can and cannot say
+
+Measured 11 Oct 2026 under a pre-registration frozen before any code
+(`outputs/caries_intervals/PRE_REGISTRATION.md`, `RESULTS_LOG` 2026-10-11). Nothing was trained
+or tuned. Each measurement first reproduced a published number exactly.
+
+**1. The constant and the gate pipeline are not separable on FDI-set F1.** The gap the abstract
+leads with, 0.320 against 0.294, is **+2.61 pp [−0.64, +5.99]**. The constant does separate from
+both vision–language models (+7.32 pp [+3.42, +11.23] and +17.04 pp [+12.66, +21.22]); the gate
+pipeline does not separate from the larger one (+4.71 pp [−0.22, +9.44]). "Outscored" has to go.
+The argument does not: a system that cannot be told apart from an image-blind constant has not
+shown that it reads the image, and that is a sharper sentence than the one it replaces.
+
+**2. Lever B's external result is uneven by hospital.**
+
+| hospital | images | detector | constant | detector − constant |
+|---|---|---|---|---|
+| test1 | 134 | 0.462 | 0.446 | +1.58 pp [−4.43, +7.74] — includes 0 |
+| test2 | 110 | 0.576 | 0.407 | +16.91 pp [+10.48, +23.35] |
+| test3 | 40 | 0.494 | 0.377 | +11.73 pp [+1.29, +21.58] |
+| test4 | 53 | 0.430 | 0.323 | +10.75 pp [+0.60, +20.18] |
+| pooled | 337 | 0.500 | 0.399 | +10.17 pp [+6.27, +14.02] |
+
+The detector is separated from the constant at test2, test3 and test4 and not at test1 — the
+hospital where the constant is strongest and the old gate was weakest. This was estimation, not
+a test: the point estimates had been seen, so no bar was set and the 4 Sep verdict is not
+reopened. The manuscript asks others to report per institution; it now can.
+
+**3. The adopted detector beats the constant on the headline metric.** Table I has only ever
+scored the gate. Run once over the same 164 images, the lesion-detector pipeline scores
+**P 0.353 / R 0.403 / F1 0.376** against the constant's 0.218 / 0.600 / 0.320:
+**+5.64 pp [+1.74, +9.47]**. Against a same-day gate control it is +7.59 pp [+4.47, +10.70]. It
+flags 544 teeth where the constant names 1,312.
+
+**How to write this honestly.**
+
+- DENTEX is *development* data for the detector — a corpus it trained on, scored on images held
+  out from it. The hold-out was re-checked: no scored image is byte-identical to any of the 705
+  source images, and on a perceptual hash each one's nearest training image is no closer than
+  training images are to each other. Say "development", not "external".
+- It is one training run, on one machine. The gate control scored 0.300 here against the
+  published 0.294 from the Windows machine, with identical predictions from the August and the
+  current code — a cross-machine difference of 0.0066 that Table I should either state or
+  remove by restating both rows from one machine.
+- It does not overturn the tie on lesion agreement on these same images (0.455 against 0.489).
+  That metric is recall-shaped; F1 pays for precision, and precision is where the detector
+  wins. Both belong in the paper, side by side.
+- **The thesis shifts, and that is the authors' call, not an engineering one.** The paper's
+  claim was that a tooth-level score cannot show a system is reading the radiograph, because a
+  constant matches the system. That is still true of the gate and of both language models. It
+  is no longer true of the system the pipeline ships. The floor did its job: it is what the
+  detector's result is measured against.
+
+Source: `outputs/caries_intervals/caries_intervals.json`; `scripts/eval/caries_intervals.py`;
+`docs/session-memory/2026-10-11b-caries-interval-measurements.md`.
+
+### 8.30 The tooth detector was changed against two pre-registered verdicts — what the pipeline measures now
+
+On 11 Oct 2026 the Stage-1 default became the Lever A multi-corpus detector (arm3c: Tufts +
+DENTEX + Kaggle "dual"), replacing the Tufts-only seg detector. **Lever 1 (1 Sep) and Lever A
+(3 Sep) had each been recorded as an ablation, because each failed a pre-registered Tufts
+box-mAP guard, and both rules say a failed guard leaves the default alone. Neither bar was moved
+and neither guard is claimed met.** The change is a later human decision, recorded as that
+(`RESULTS_LOG` 2026-10-11f), and the pipeline was then re-measured under a pre-registration
+frozen before any run (`outputs/stage1_switch/PRE_REGISTRATION.md`, `RESULTS_LOG` 2026-10-11g).
+Both detectors were run on one machine; differences are paired over images.
+
+**Numbering.**
+
+| Cohort | Previous detector | arm3c | Difference |
+|---|---|---|---|
+| Tufts test, 3,760 teeth, end to end | 64.8% | 63.5% | −1.30 pp [−4.64, +2.26] — not separable |
+| — recall | 82.4% | 89.3% | +6.89 pp [+4.94, +9.00] |
+| — accuracy on detected teeth | 78.6% | 71.1% | −7.52 pp [−10.79, −4.16] |
+| DENTEX, 936 teeth, end to end | 58.4% (cross-domain) | 92.8% (**in-domain**) | +34.40 pp [+30.29, +38.54] |
+
+**Caries.** Lesion agreement of the default caries path (the lesion detector) rose on all three
+cohorts — DENTEX 0.457 → 0.595, CariesXrays 0.682 → 0.757, Ningxia 0.500 → 0.684 — and the
+image-blind constant rose by about as much, because in that metric the constant is placed with
+the pipeline's own boxes and codes. FDI-set F1, where the constant is fixed at 0.320: the
+default pipeline 0.376 → **0.498**, **+17.80 pp [+13.48, +22.02]** above the constant.
+
+**The paper's development-data headline depends on the front end** (`RESULTS_LOG`
+2026-10-11i; a comparison added after the matrix, from the same runs, not pre-registered).
+`main.tex` says the image-blind constant "scored highest" and "outscored a six-stage pipeline …
+under two unrelated metrics". Gate pipeline minus constant:
+
+| | Previous front end | Current front end |
+|---|---|---|
+| DENTEX, FDI-set F1 | −2.61 pp [−5.99, +0.64], not separable (published arm, other machine; −1.95 pp on this one) | **+4.27 pp [+1.58, +7.05]** |
+| DENTEX, lesion agreement | −4.18 pp [−8.42, −0.21] | **+17.12 pp [+12.15, +21.89]** |
+| CariesXrays, lesion agreement | −24.44 pp [−26.56, −22.36] | −22.42 pp [−24.62, −20.18] |
+| Ningxia pooled, lesion agreement | +0.79 pp [−3.27, +4.71] | +0.89 pp [−3.86, +5.57] |
+| Ningxia test1 / test2 | −15.51 / +10.89 pp | −18.99 / +12.32 pp |
+
+On DENTEX the order reverses: with the multi-corpus detector the pipeline is above the constant
+on both metrics, and on F1 the ladder reads lesion-detector pipeline 0.498, gate pipeline 0.362,
+constant 0.320, then the two language models. On the external cohorts nothing moves — the gate
+and the constant are still not separated on Ningxia, with the same swing between hospitals, and
+the constant still leads the gate by 22 pp on CariesXrays. So a manuscript on the new front end
+cannot open with "the constant scored highest". It can say something narrower and arguably
+stronger: *a pipeline that clears the image-blind floor on its development corpus still cannot
+be told from it at external hospitals — and clearing it at home took an in-domain detector, not
+a better caries model.* A manuscript on the previous front end keeps its headline, on an
+interval that excludes zero by one lesion on this machine, and must say the released default
+differs. Either way the claim is the authors' to choose.
+
+**How to write this honestly.**
+
+- **Say that it was a decision against the registered rule.** The manuscript's credibility
+  rests on reporting pre-registered outcomes as they fell; this one fell "ablation" twice and
+  the default was changed anyway. One sentence stating that, with what was given up (Tufts test
+  box mAP@0.5 0.810 → 0.585; instance masks), is the price of using the result.
+- **92.8% is in-domain.** The 164 images are held out from the detector's training data, but
+  DENTEX is one of its training corpora. The previous 58% was a Tufts-only detector on DENTEX —
+  a cross-domain figure, and the two must never share a row unlabelled. **With arm3c the
+  pipeline has no cross-domain numbering figure**: both cohorts with tooth labels are in its
+  training distribution. That is a limitation the previous front end did not have.
+- **Tufts is "not separable", not "no cost".** The interval reaches −4.64 pp, and under it the
+  detector finds more teeth and numbers them worse. Teeth matched to a box but given no code
+  rose from 26 to 65: the one-to-one assignment stops at 32 boxes and cannot reject a surplus
+  one.
+- **Most of the caries rise is the front end, not the caries model.** The constant moved with
+  it on every cohort (+13.99, +4.12, +19.25 pp). What the lesion detector adds over the constant
+  is about what it added before: not separated on DENTEX (−3.55 pp [−10.11, +2.64]), separated
+  on CariesXrays (+15.38 pp) and Ningxia (+9.28 pp [+4.72, +13.73]); per hospital it is again
+  not separated at test1.
+- **One result got worse and must be printed.** On DENTEX lesion agreement under arm3c the
+  retired gate scores 0.802 against the lesion detector's 0.595 (−20.67 pp [−26.39, −15.06]);
+  under the previous front end they were tied. The gate gets there by flagging 1,439 teeth to
+  the detector's 603, and on FDI-set F1, which charges for that, the order reverses (0.362
+  against 0.498). Both tables belong side by side, with the flagged counts.
+- **Lever B was adopted under the previous front end.** Its rule was not re-run and is not
+  claimed for this one. If the paper reports the new front end, the adoption evidence is
+  labelled with the front end it was scored on.
+- **Ningxia is no longer blind to the choice of detector.** The default was chosen after this
+  detector's gate-path Ningxia result was known, and the cohort was used once more as a veto
+  (the one stop rule: lesion-detector agreement must not fall by more than 2 pp; it rose
+  +10.40 pp [+8.71, +12.09]). Nothing was fitted on it.
+- **Two open items a reviewer can raise:** the Kaggle "dual-labeled" set, part of arm3c's
+  training data, states no licence; and the Tufts box-mAP guard figures were not re-measured.
+
+**Measured afterwards for the rebuild** (`RESULTS_LOG` 2026-10-11j). Numbering errors under
+the current detector are still mostly benign — 51 of 63 wrong codes off by one, 6 of 932
+detected teeth in a wrong quadrant. Declining the least-confident quarter still raises numbering
+accuracy, 0.932 → 0.980 (+4.76 pp [+3.29, +6.54]), and the registered 0.30 threshold now keeps
+96.1% of detected teeth. Stage 4 fires on 0.75% of DENTEX teeth. **The Tufts cost, like for
+like, is −13.6 pp of box mAP** (0.723 for a Tufts-only control → 0.587, one label frame, one
+machine); the 0.810 → 0.585 used above compares two protocols and should not be quoted.
+
+Source: `outputs/stage1_switch/stage1_switch_results.json`;
+`scripts/eval/stage1_switch_intervals.py`;
+`docs/session-memory/2026-10-11g-detector-switch-matrix-and-flip.md`.
+
+---
+
+### 8.31 What kind of evidence each stage has — and one cohort that was mis-described
+
+*12 Oct 2026, second council and an ML-engineering review. `RESULTS_LOG` 2026-10-12. No new
+number.*
+
+**The 1,200 CariesXrays images are the lesion detector's validation split.** The detector was
+not trained on them, but its training stopped early on them and its `best.pt` was chosen on
+them (`scripts/yolo/train_lever_b_pooled_detector.py`; `models/16_lever_b_pooled/run_summary.txt`
+has said so since 4 Sep). The manuscript rebuilt on 11 Oct says the detector "was kept away
+from" them. For the gate and for the constant, which never saw them, the cohort is external
+and the −22.42 pp row stands. For the lesion detector the 0.757 is a validation-split figure.
+That leaves **Ningxia as the only cohort the lesion detector neither trained nor selected on**,
+and Ningxia was one of the cohorts that decided its adoption.
+
+| Stage | Evidence | A claim it supports |
+|---|---|---|
+| 1 | Held out, in-domain; default chosen against two registered verdicts | It is the front end |
+| 2 | In-domain on DENTEX, 63.5% on Tufts test, nothing off-corpus | A caveated accuracy |
+| 3a lesion detector | In-domain (DENTEX), validation (CariesXrays), adoption-conditioned external (Ningxia) | The direction of the lead over the constant |
+| 3a gate | Held-out crops; external on two cohorts; unchanged by the detector swap | Not separable from the constant externally |
+| 3b | 133 validation crops | None |
+| 4a, 4b | Not held out; label is not bone loss | None |
+
+**No held-out test of Stage 3b can be built from data on hand.** The 164 leak-free DENTEX
+images carry a caries class and no deep-caries class.
+
+**What no further implementation removes:** no caries cohort untouched by a decision and none
+with healthy controls; one training run per model; a default adopted with outcomes in view;
+no clinician reference.
+
+---
+
+### 8.32 Three estimates that bound what the caries tables rest on
+
+*12 Oct 2026. `RESULTS_LOG` 2026-10-12b. Pre-registered as Amendments 3 and 4 of
+`outputs/stage1_switch/PRE_REGISTRATION.md`. Estimates; no default can change on them.*
+
+**Numbering on unseen data is low.** On UFBA-425, the one corpus with tooth labels that neither
+the detector nor the numbering head trained on, the pipeline numbers 44.5% of 11,591 teeth
+correctly [42.39, 46.62], finding 66.6% of them. That corpus is a square 640×640 re-export of
+panoramic images. Widened to a panoramic shape the same images give 77.2% [75.19, 79.14] and
+95.6% recall. The first figure is the registered one. The second was registered as a sensitivity
+analysis and rests on an aspect ratio that was not verified for these files. Write both, in that
+order, and do not write either as "accurate".
+
+**The adopted detector is ahead on that corpus.** +23.86 pp [+21.96, +25.77] over the detector
+it replaced, as distributed; +25.96 pp widened. It is the only evidence about the switch that is
+not in-domain for the adopted detector. It does not reverse the two registered verdicts the
+switch went against.
+
+**The constant is a pipeline-placed heuristic, and here is how well it is placed.** On Tufts,
+92.0% [89.58, 94.06] of the codes it flags sit on a true first or second molar, and it reaches
+81.7% [77.72, 85.35] of them. Both are a little lower than under the previous detector
+(precision −2.72 pp [−4.53, −1.01]). There are 621 detector boxes on no labelled tooth; their
+codes were not saved. In every lesion-agreement table the constant must be described as placed
+by the pipeline's own boxes and numbering, with these two figures beside it.
+
+**What the lesion detector flags.** 624 tooth codes on 164 DENTEX images: 43.9% on a carious
+tooth, 14.4% on a tooth with another annotated finding, 41.7% on a tooth with no annotation.
+71.6% are molars. The constant: 1,312 codes, 21.8% carious, all molars. The sentence that a
+lesion-placing model "cannot score well by reproducing a prior over tooth positions" survives its
+registered rule, and should carry these figures: the detector concentrates on molars almost as
+much as the gate does (66.6%), with twice the carious share.
+
+**No specificity-type figure exists on DENTEX and none can be made from the scored cohort.** The
+164 images contain no tooth labelled healthy. All 91 healthy labels in the release are on the 86
+images excluded as training duplicates.
+
+---
+
+### 8.33 The bone-loss branch stays — what it can and cannot be called
+
+*12 Oct 2026. `RESULTS_LOG` 2026-10-12c. Decision by the decision owner, against the earlier
+councils' advice; one more council was asked only how.*
+
+**The decision.** Stage 4 stays in the paper. §8.28's two facts are unchanged by it: the 0.923
+is validation on the training radiographs, and the positive class is proximity to a Tufts expert
+abnormality mask.
+
+**Why more training cannot fix it.** The fault is the label, not the fit. A cleaner split would
+give a clean number for the wrong thing. A periodontal claim needs a periodontal label.
+
+**Where such labels are.**
+
+| Source | Label | Status |
+|---|---|---|
+| Ningxia, periodontitis training split | 2,000 images, expert region masks | Public; not on this machine (11.2 GB on a pen drive, left there on purpose). The house rule forbids training on Ningxia. About a third of detected teeth fall inside the region at three of four hospitals, and no patient is healthy, so a per-tooth label from it is largely geometry |
+| BRAR (Xia et al., *Scientific Data* 2025) | 1,104 patients, bone loss over root length at the worst tooth, divided by age, in three grades | CC BY 4.0, open, **not downloaded**. Patient-level, one hospital, no boxes. Published baseline 63.3% accuracy. Because age is in the label, an age-only predictor is an image-blind baseline for it |
+
+`main.tex` 1273–1275 says no second annotated periodontal corpus exists in this project. Reword
+it: none was used.
+
+**What the paper may say** (council, 3 of 3): a second branch, trained on Tufts tooth crops
+labelled by overlap with an expert abnormality mask, ships in the pipeline; its in-domain figure
+comes from a crop-level split and is not reported as performance; on 736 Ningxia periodontitis
+images it flagged 2.17% of affected teeth (153 of 7,049), which a label mismatch predicts without
+any domain shift; no periodontal claim is made.
+
+**What it must not say:** "detects periodontal bone loss"; 0.923 as performance; "domain shift"
+or "did not transfer" for this branch; "two independent external datasets agree"; any severity,
+stage or grade claim; the keyword "periodontal bone loss".
+
+*(13 Oct: item 1 below was run — §8.34. Sensitivity 7.6% held out.)*
+
+**What would make it stronger, in order of cost.** (1) The frozen classifier scored once on the
+290 Tufts radiographs that carry an expert mask and supplied no training crop: its first
+held-out figure, for the label it was trained on. Pre-registration and go-ahead needed. (2) A
+patient-level grading experiment on BRAR against majority-class and age-only baselines — the
+paper's own argument on a second disease. For the capstone report and a journal version; the
+council did not want it inside six pages. (3) A per-tooth classifier trained on the Ningxia
+training split: one seat for, one against, parked.
+
+---
+
+### 8.34 Stage 4a held out — the 0.923 was the split
+
+*13 Oct 2026. `RESULTS_LOG` 2026-10-13. Pre-registered:
+`outputs/bone_loss_eval/heldout/PRE_REGISTRATION.md`. One pass; nothing trained or tuned.*
+
+**The measurement.** The frozen classifier on every tooth of 821 Tufts radiographs that supplied
+no training or validation crop — 21,956 teeth, 946 carrying its own label (overlap with the
+expert abnormality mask above 1%):
+
+| | Held out | Crop-level validation |
+|---|---|---|
+| Sensitivity | **7.6%** (72 of 946) [5.19, 10.47] | 83.1% (49 of 59) |
+| Specificity | 98.7% [98.43, 98.88] | 99.5% |
+| Macro-F1 | 0.542 [0.5247, 0.5612] | 0.923 |
+
+**What it means.** The classifier learned its training teeth. Every validation radiograph was
+also a training radiograph, and most validation positives were the jittered or clean sibling of
+a training positive (§8.28). Away from those teeth it marks one in thirteen. §8.28 said the
+excess of 0.923 over a leak-free figure was unmeasured; this is the measurement.
+
+**Against an image-blind baseline.** A score that knows only the tooth's title reaches average
+precision 0.0675 and ROC area 0.636. The model: 0.0956 and 0.644. The difference in average
+precision is +0.0281 [+0.0084, +0.0564] over all radiographs and is not separated from zero
+within the radiographs that carry a mask; the ROC area is not separated anywhere.
+
+**What this does to §8.13 and §8.33.** The external figures — 2.17% on Ningxia, 0.75% firing
+on DENTEX — were read as domain shift, then as label mismatch. The model fails on its own
+label inside its own source, so neither reading is needed and neither is shown.
+
+**How to write it** (registered, §7 of the pre-registration): the held-out sensitivity and
+specificity with their intervals; the label called abnormality proximity; the crop-level figures
+named as such; the difference given without an adjective. Not "periodontal", not "bone loss" as
+a finding, not "domain shift". It is a second instance of the paper's own argument: a tooth-level
+score that was made by how it was measured.
+
+**What it does not show.** That a ResNet18 cannot learn this label. The shipped model saw
+positives from 41 radiographs; 339 of the 1,000 carry a mask. A model trained with a
+radiograph-level split on all of them has not been tried, and would still be an abnormality
+flag, not a periodontal one.
+
+---
+
+### 8.35 Stage 4a retrained by radiograph — a matched pair, and how little a single seed says
+
+*13 Oct 2026. `RESULTS_LOG` 2026-10-13b. Pre-registered:
+`outputs/bone_loss_eval/v2_retrain/PRE_REGISTRATION.md`. Adopted the same night — §8.36.*
+
+**One variable changed.** The same ResNet18 and the same recipe, with the training and test
+teeth taken from different radiographs and all 678 training-split radiographs used:
+
+| | Sensitivity for its own label | Measured on |
+|---|---|---|
+| Shipped model, crop-level split | 83.1% | its validation crops — radiographs it trained on |
+| Shipped model | 3.4% (6 of 175) | 125 test radiographs it never trained on |
+| Retrained, split by radiograph, seed 42 | **27.5%** (50 of 182) [18.31, 37.98], at 95.9% specificity | 143 test radiographs |
+
+**It is better, and it is not good.** On test it beats the shipped model (F1 +0.2135
+[+0.1305, +0.2954]) and a score that knows only the tooth's position (average precision 0.1833
+against 0.0804; within radiographs that carry a mask 0.3504 against 0.2455, +0.1049
+[+0.0186, +0.2051]). It finds about one labelled tooth in four at about one false flag per
+radiograph. ROC area 0.69. All three runs memorise their training crops.
+
+**Three seeds, three operating points.** Sensitivity 27.5%, 16.5%, 11.0%; specificity 95.9%,
+98.1%, 98.6%. Average precision 0.183, 0.153, 0.161 and ROC area 0.687, 0.684, 0.687. The models
+rank teeth alike and cut at different places. Report all three. Any one alone would misstate
+what the recipe gives — and every other model in this pipeline is one training run.
+
+**What the paper can say.** The crop-level split's 83% was 3.4% on unseen radiographs; with the
+split done by radiograph the same recipe reaches 27.5% [18.3, 38.0] at 95.9% specificity and
+exceeds an image-blind baseline; the label is proximity to an expert-marked abnormality; no
+external figure exists for the retrained model.
+
+**What it cannot say.** That Stage 4 detects periodontal bone loss; that the retrained model is
+what the pipeline ships, unless it is adopted; anything about it on Ningxia.
+
+---
+
+### 8.36 The Stage-4a default changed — what the pipeline ships and what the manuscript still describes
+
+*13 Oct 2026, night. `RESULTS_LOG` 2026-10-13c. The decision owner's decision.*
+
+**What ships.** The model of §8.35, seed 42: trained with the split made by radiograph, test
+sensitivity 27.5% [18.31, 37.98] at 95.9% specificity, 11.0–27.5% across three seeds. The
+previous checkpoint is retained and reachable.
+
+**What did not change.** The label. It is an abnormality-proximity flag.
+
+**What it has no figure for.** Anything outside Tufts. The 2.17% on Ningxia periodontitis and
+the 0.75% firing on DENTEX are the previous checkpoint's. The new one fires on 6.1% of DENTEX
+teeth [5.08, 7.14], which is a rate and not an accuracy.
+
+**A weakness made visible.** Stage 4b grades the severity of whatever Stage 4a flags. It was
+validated on 52 crops and never tested. On DENTEX it now grades 274 teeth where it graded 34,
+and calls 261 of them Moderate or Severe. Nothing supports those grades.
+
+**The manuscript is now behind the pipeline on this branch.** Its Stage-4 description, its data
+table and its bone-loss subsection describe the previous model. `SUBMISSION_TODO.md` §2 item 3
+has the rewritten paragraph.
+
+### 8.37 Stage 4b grades image contrast, and Stage 4a's figure is one run of three
+
+*13 Oct 2026, late. `RESULTS_LOG` 2026-10-13d. A third council on per-stage evidence, with an
+ML-engineering review. Nothing was run.*
+
+**Stage 4b.** The severity model was meant to learn three bands of mask-overlap ratio. The
+metadata it was given had no overlap column. The notebook substituted the standard deviation
+of each crop's grey levels, rescaled to the same 0.01–0.30 range, and printed one warning
+line. The model therefore sorts flagged crops into low, middle and high contrast, and the
+pipeline prints the result as Mild, Moderate or Severe. Its 0.72 validation macro-F1 on 52
+crops measures agreement with that contrast banding. Two of its 32 training radiographs and
+one of its 9 validation radiographs sit in the Tufts test split.
+
+**What the paper may say of it.** That a severity head is present in the released pipeline,
+that its training labels were a contrast stand-in and not the expert mask, and that it is not
+evaluated. No figure. This is stronger than "validated on 52 crops": the number it has is for
+a different quantity.
+
+**Stage 4a.** The seed fixed in advance gave 27.5% sensitivity; the other two gave 16.5% and
+11.0%, and the third run's interval does not reach the first's. The three runs' ROC areas lie
+within 0.004 of one another. So the sensitivity is where the 0.5 cut happened to fall in that
+run, and the interval printed beside it covers the sampling of radiographs
+only. Across runs: between a tenth and a quarter of labelled teeth found, about seven flags in
+ten false, 0.4 to 1.1 false flags per radiograph, a ranking separated from a tooth-position
+prior on average precision and not on ROC area. The classifier was scored on annotated tooth
+boxes; no figure exists for it on the pipeline's own detections.
+
+**Claim limits by stage, as the council set them.**
+
+| Stage | The sentence the evidence supports |
+|---|---|
+| 1 Detect | Finds 89.3% of teeth on Tufts test and 66.6% on a corpus it never saw; its Tufts box mAP of 0.587 is below the Tufts-only control's 0.723, and it was adopted over that registered guard |
+| 2 Number | 63.5% end to end on Tufts test and 44.5% on an unseen corpus; 92.8% is on the detector's own training corpus |
+| 3a Lesion detector | On development data, F1 0.498 against an image-blind constant's 0.320; one external cohort, +9.28 pp pooled, which also informed its adoption; no false-positive rate can be given |
+| 3a Retired gate | Macro-F1 0.695 on held-out crops, precision 0.40; the only caries evidence that is both external and untouched by a selection |
+| 3b Caries severity | Present; not evaluated |
+| 4a Abnormality flag | Not periodontal. Three runs found 11.0–27.5% of labelled teeth on held-out Tufts radiographs with about seven flags in ten false; no external figure |
+| 4b Severity of flagged teeth | Present; trained on a contrast stand-in; not evaluated |
+| 5–6 Report, app | Runs from a clean clone of the repository; a research demonstration |
+
+**What this does to the paper's argument.** Nothing new against it, and one more instance for
+it: a figure that looked like validation (0.72) was agreement with a quantity nobody intended
+to measure, and it survived six months because it was a plausible number in a plausible table.
+
+---
+
+### 8.38 One re-rendered radiograph across the Tufts split, and what the crop path does
+
+*14 Oct 2026. `RESULTS_LOG` 2026-10-14. Implementation of the 14 Oct plan; nothing was scored.*
+
+**A near-duplicate.** Byte comparison had found two identical pairs in Tufts (590/591,
+1007/1008) and the retraining dropped one of each. A perceptual-hash scan of all 1,000
+radiographs found one more pair that bytes cannot: test radiograph 248 is a lighter,
+lower-contrast rendering of training radiograph 1017, the same patient in the same frame (7 bits
+apart; the next-closest cross-split pair is 33). It stays in the test split, disclosed. It holds
+27 of the 3,892 Stage-4a test teeth and none of the 182 positives, so no sensitivity moves; the
+Tufts Stage-1 and Stage-2 test figures count it as 1 of 143 radiographs.
+
+**What the paper may say.** "One of the 143 test radiographs is a re-rendered copy of a training
+radiograph; it contains no positive tooth." In the dataset paragraph or the Stage-4a paragraph,
+not both.
+
+**The crop the model sees in service.** The Stage-4a test figures were computed on the training
+crop path; the pipeline cuts the same boxes from the same pixels but resizes a 3-channel image.
+Inside the crop the two differ by at most 3 grey levels; on 503 training teeth no decision
+changes. Nothing to write beyond "scored on annotated tooth boxes", which §8.37 already requires.
+
+**Two disclosures for the Stage-4a paragraph** (`SUBMISSION_TODO.md` §1a row p): the three runs
+share one pre-computed set of jittered training crops, so their spread understates training
+variance; and every interval covers the sampling of radiographs only.
+
+---
+
+### 8.39 The shipped Stage-4b head does not track mask overlap; a retrain is registered
+
+*14 Oct 2026, night. `RESULTS_LOG` 2026-10-14c.*
+
+Rehearsing the scoring code for a Stage-4b retrain, on validation positives only, the shipped head
+scored macro-F1 0.240 and quadratic kappa −0.145 against the true overlap bands: worse than chance,
+as a head trained on crop contrast should be (§8.37). The decision owner chose to retrain rather
+than remove it. The protocol fixes the bands (0.05 / 0.15), three seeds with their own jitter, an
+image-blind tooth-position prior as the comparator, and one test pass on 182 positive teeth. Two
+limits are fixed in advance and belong in any sentence about the result: the bands measure the
+extent of an expert-marked abnormality near a tooth, not a clinical severity; and the head grades
+only teeth that truly carry the label, while about seven in ten of the teeth Stage 4a flags do not.
+
+---
+
+### 8.40 Retrained on the bands it was named for, Stage 4b does not beat a tooth-position prior
+
+*14 Oct 2026, late night. `RESULTS_LOG` 2026-10-14d; protocol
+`outputs/bone_loss_eval/v3_severity/PRE_REGISTRATION.md` (`dbc0024`); models frozen in `a6e837b`
+before the test pass.*
+
+**Method.** The §8.39 protocol, run as committed. The same ResNet18 was trained on bands of the
+share of the 1.5×W / 2.0×H tooth crop overlapping a Tufts expert abnormality mask (≤ 0.05,
+0.05–0.15, > 0.15), on the 783 Stage-4a positives of 209 training radiographs plus one seeded
+jittered copy of every training tooth, with Stage 4a's recipe and a class-weighted cross-entropy:
+three seeds, each trained once on the Mac, seed 42 fixed in advance as the candidate. One test
+pass on the 182 positive teeth of 44 test radiographs, against the shipped contrast-trained head,
+an image-blind tooth-position prior and the majority band, with radiograph-cluster intervals.
+
+**Result.** Seed 42: macro-F1 0.2938 [0.2143, 0.3850], quadratic kappa −0.028; the tooth prior
+0.3344 [0.2723, 0.3967]; seed 42 minus the prior −0.0405 [−0.1245, +0.0584]. **Not eligible.**
+Seeds 43 and 44 gave 0.3279 (below the prior) and 0.3817. Seed 42 beats only the majority band
+(+0.1224 [+0.0522, +0.2010]). Its validation figure was 0.4425, the best epoch of a noisy curve on
+the set that chose it. The shipped contrast-trained head scored 0.3657 [0.2949, 0.4280] on the same
+teeth (0.3711 on the 175 from radiographs it did not train on); seed 42 minus it is −0.0719
+[−0.1717, +0.0511]. No interval was registered for the shipped head against the prior, and none is
+claimed.
+
+**What the paper may say.** Protocol §8, filled in: "Retrained on bands of the share of the tooth
+crop overlapping an expert-marked abnormality — an extent band, not a severity — the head reached
+macro-F1 0.294 [0.214, 0.385] on 182 held-out positive teeth, against 0.334 for an image-blind
+tooth-position prior; two further runs gave 0.328, below the prior, and 0.382. It grades only teeth
+that truly carry the label; in the pipeline most flagged teeth do not." Then that the registered
+rule was not met. `main.tex` says this in `sec:stage4`, and in one clause each in the system
+overview and the Limitations.
+
+**What it is not.** Not a severity, not periodontal, and not a test of the pipeline: the teeth are
+true positives cut at annotated boxes, while about seven in ten of the teeth Stage 4a flags carry no
+abnormality. Not a reason to adopt anything: the grade stays withheld by default and `models/04`
+stays the shipped head. Not evidence that the shipped head works either: against the same bands it
+scored 0.240 on validation (§8.39) and 0.366 on test, which says how far estimates on 140–182 teeth
+from about 40 radiographs move. The Tufts test split is now spent for Stage 4b as well. For the
+journal version (plan J11, D10) this is the case for removing the head.
+
+---
+
+### 8.41 What each stage supports for publication, and two weaknesses now stated
+
+*14 Oct 2026, late night. `RESULTS_LOG` 2026-10-14e. A three-seat council; nothing was run.*
+
+None of the stages needs a new experiment to be publishable. The gaps are claims and scope.
+
+| Stage | In a six-page caries paper |
+|---|---|
+| Data | Keep, with the leakage and split disclosures |
+| 1 Detector | "The front end": the failed registered guard and the Kaggle licence stated |
+| 2 Numbering | One line; lead with 63.5% (Tufts) and 44.5% (UFBA-425), not the in-domain 92.8% |
+| 3a Lesion detector | The positive result: one external cohort, selection-touched, ties the constant on DENTEX lesion agreement |
+| 3a Retired gate | The ladder's arm and the cleanest evidence |
+| 3b | One clause: present, not evaluated |
+| 4a | One sentence, the leakage lesson (0.923 → 7.6%) |
+| 4b | Cut, or one sentence: not eligible |
+| 5–6 | "Implemented" |
+
+**Two weaknesses `main.tex` now states.** (1) The CariesXrays split behind the lesion detector's
+validation figure is by image, and the release's 6,000 images come from 5,380 patients, so a
+patient can sit on both sides of it. (2) The Ningxia pooled interval treats the four hospitals as
+fixed; per hospital the difference runs from −3.16 to +16.91 points, and a further hospital could
+fall on the constant's side, as test1 does.
+
+**What the abstract still does, for the cut to fix.** Its development headline (0.362; 0.802
+against 0.630) is the retired gate's; the shipped lesion detector's F1 0.498 is absent, and on
+DENTEX lesion agreement it ties the constant (0.595 against 0.630, −3.55 [−10.11, +2.64]). "Domain
+Shift" is in the title and the keywords, and the first sentence names periodontal bone loss.
+
+---
+
+### 8.42 What the manuscript claimed beyond its artefacts, and the Ningxia lead as a sample of hospitals
+
+*15 Oct 2026. `RESULTS_LOG` 2026-10-15. A second council, with published practice looked up for
+each issue; nothing was trained or scored.*
+
+**The Ningxia lead does not generalise to a hospital not yet seen.** The registered figure,
++9.28 [+4.72, +13.73], treats the four hospitals as fixed. Pooled as a sample of hospitals — the
+practice in multi-centre external validation (Snell, Riley et al., J Clin Epidemiol 2016) — the
+same four differences give +9.61 [−0.54, +19.76], I² 81%, and a prediction interval for a further
+hospital of [−36.08, +55.29]. Positive and separated at three of the four. The paper now says the
+lead holds at three of these four hospitals and is not shown for one not yet seen. Post hoc;
+`outputs/stage1_switch/F_ningxia_random_effects.json`.
+
+**What the text claimed that no artefact supports — now corrected in `main.tex`.**
+
+| Claim | What is true |
+|---|---|
+| "Neither lead survived outside it" | The localisation lead did not; the F1 lead cannot be scored externally (no tooth codes) |
+| Numbering has "calibrated probabilities"; "numbering shows all four" | Numbering calibration was never measured; it shows three |
+| The 0.30 threshold was "pre-registered … chosen before these data were seen" and "located on the gate's curve" | Fixed in code on 24 Aug as a documented heuristic; it is the numbering head's |
+| Its sign is robust | Not across hospitals (above) |
+| Stage 3b runs on flagged teeth (silent on testing) | Validated on 133 crops, never tested |
+| 200-fold area difference | About 34-fold |
+| All intervals 10,000 resamples | Calibration intervals: 2,000, over 34 images |
+| First arm to beat the constant on unseen data | First whose pooled lead excluded zero |
+| Table V on 164 images | 148 |
+| Every evaluation artefact records weight hashes | The defaults are checked before loading; every report records them |
+| (14 Oct) each scored image as far from training as training images from each other | True of the distribution only |
+
+**Published practice the paper now cites.** Cross-centre failure of a dental panoramic model
+(Krois et al. 2021); the dental-AI reporting checklist (Schwendicke et al. 2021); a two-step
+enumeration-then-caries detector with external lesion-level sensitivity (Bizjak & Robič 2024); the
+source of UFBA-425 (Budagam et al. 2024). Practice found but not acted on, for the authors: report
+abstention per cohort, since calibration and declining degrade under shift (Ovadia et al. 2019);
+vary more than the seed when estimating training variance (Bouthillier et al. 2021); patient-level
+splits (leakage literature); false positives per image and patient-level specificity for a
+caries detector (as Bizjak & Robič report).
+
 ---
 
 ## 9. What's not yet written — checklist
@@ -2366,6 +3025,56 @@ For whoever drafts the actual paper. Tick items off here as they land.
 
 **Blocking — must be done before submission**
 
+- [x] **Disclose the re-rendered test radiograph (248 of 1017) and the shared jitter set**
+      (§8.38, 14 Oct 2026): one sentence each, in the Stage-4a paragraph. **Done 14 Oct in the
+      15-page `main.tex`** (`RESULTS_LOG` 2026-10-14b); the six-page cut must keep them.
+- [x] **Decide whether the bone-loss branch stays in the manuscript, then remove the three false
+      statements about it** (§8.28, found 10 Oct 2026): "splits are image-level throughout";
+      Tufts 700/150/150 given as the bone-loss split; and "domain shift" / "did not transfer" as
+      the reading of the external periodontitis result. **Decided 12 Oct (it stays, re-described);
+      the three statements corrected in the 15-page `main.tex` on 14 Oct** (`RESULTS_LOG`
+      2026-10-14b). The mentor has not yet seen it.
+- [ ] **Add the mandatory statements — none is in `main.tex`** (checked 10 Oct 2026): authors and
+      affiliations, ethics, data availability with licences, code availability, funding, conflict
+      of interest, author contributions, and acknowledgments including the AI-use disclosure IEEE
+      requires.
+- [x] **Describe Stage 4b as present and not evaluated, with its contrast stand-in stated, and
+      report Stage 4a as three runs with the share of flags that are correct** (§8.37, found
+      13 Oct 2026). No severity figure anywhere. Draft paragraph: `SUBMISSION_TODO.md` §1a
+      row p. **Done 14 Oct in the 15-page `main.tex`, `sec:stage4`** (`RESULTS_LOG` 2026-10-14b).
+- [x] **State the Stage-4b retrain's registered result in the protocol's own wording** (§8.40,
+      14 Oct 2026, late night). This supersedes "no severity figure anywhere" in the item above:
+      Stage 4b now has one test figure, stated as an extent band, not a severity, with the rule not
+      met. **Done in the 15-page `main.tex`** — `sec:stage4`, the system overview and the
+      Limitations (`RESULTS_LOG` 2026-10-14d). The six-page cut carries it or drops Stage 4b.
+- [ ] **Build the cut's abstract around the shipped system** (§8.41, 14 Oct 2026): the lesion
+      detector's own development figure beside the gate's, its DENTEX tie on lesion agreement,
+      no "domain shift" in the title or keywords, no periodontal opening. The six disclosure
+      fixes of the same council are **done in the 15-page text** (`RESULTS_LOG` 2026-10-14e).
+- [x] **Correct what the text claimed beyond its artefacts** (§8.42, 15 Oct 2026): 24 edits in
+      the 15-page `main.tex`, the Ningxia random-effects sentence, three citations
+      (`RESULTS_LOG` 2026-10-15). The cut carries them.
+- [ ] **Optional, the authors' call** (§8.42): abstention per cohort under shift; Tufts in the
+      patient-level limitation; false positives per image for the lesion detector.
+- [x] **Decide which front end the manuscript reports, and make every table say so** (§8.30,
+      11 Oct 2026). **Decided 11 Oct: the current one. `main.tex` was rebuilt the same day**
+      (`RESULTS_LOG` 2026-10-11k): every table and the headline re-stated, the override of the
+      registered guard written into §Data, 191 numbers asserted, 15 pages under tectonic. Left:
+      a pdfLaTeX build and `paper.txt` on the Windows machine. The original item read: **This decides whether the abstract's first result is true of the system
+      described:** on DENTEX the constant no longer leads the pipeline under the new front end
+      (`RESULTS_LOG` 2026-10-11i). The table-by-table list is in
+      `docs/paper/SUBMISSION_TODO.md`. `main.tex` describes the Tufts-only seg detector throughout; the pipeline
+      default is now the multi-corpus detector. Either the paper is rebuilt on the new front end
+      — every pipeline table re-stated from `outputs/stage1_switch/`, the decision against the
+      registered rule stated, 92.8% labelled in-domain, the parameter total 95.34 M — or it
+      reports the previous front end and says the released default differs. Authors and mentor;
+      not an engineering call. Until one is done the manuscript and the code disagree.
+- [ ] **Bring three statements in `main.tex` into line with their intervals** (§8.29, measured
+      11 Oct 2026): "the constant scored highest" → not separable from the gate pipeline on F1;
+      "it replicates on the one cohort that is genuinely external" → a pooled statement, printed
+      beside the per-hospital table; and Table I gains the adopted detector's row
+      (0.353 / 0.403 / 0.376), labelled as development data. Decide whether Table I restates
+      both pipeline rows from one machine.
 - [x] **Fold §8.27 (Lever B; §8.26 at the time this box was written) into `main.tex`.
       Done 4 Sep 2026** (RESULTS_LOG 2026-09-04i). Table I now
       reports both Stage-3a paths under one counting rule; §System gained
@@ -2568,6 +3277,12 @@ For whoever drafts the actual paper. Tick items off here as they land.
       > Drive throttles the rest), so the whole-set figure is verified for sensitivity only so far.
       > What survives unchanged is the *selection-bias* limitation — best of 32 epochs on 59
       > positives — which is a separate point and is not touched by any of this.
+
+      > **SUPERSEDED 10 Oct 2026 — do not run this on the current validation set** (§8.28,
+      > `RESULTS_LOG` 2026-10-10). That set shares all 143 of its radiographs with training, so a
+      > reliability diagram, a PR sweep or an interval computed on it would describe a leaked
+      > split. The remaining 565-crop pull is not worth finishing for the same reason. If the
+      > branch stays in the paper, calibrate on radiographs that supplied no training crop.
 - [x] Threshold sweep **for the caries gate**, reported as a PR curve — **Done 27 Aug 2026**,
       §8.15. argmax/0.50 confirmed near F1-optimal; precision 0.40 → 0.69 purchasable at
       recall 0.74 → 0.35.
@@ -2632,3 +3347,23 @@ listed in full in `RESULTS_LOG.md` 2026-08-28; the ones that touch *this* docume
 **Left for the next session:** the manuscript is **12 pages against ISBI's 4**. It was written
 as a complete, self-explaining document by request; the cut is venue-specific and should not
 be done by re-compressing prose written to be clear. Decide the venue first.
+
+**12 Oct 2026 — to write, from §8.32 and §8.33:** the UFBA-425 numbering sentence in place of
+"we have none on unseen data"; the constant's placement precision and reach beside every
+lesion-agreement table; the flagged-teeth breakdown beside the sentence at `main.tex` 447–449;
+the bone-loss branch re-described, with the list of what it must not say; and the reworded
+"no second annotated periodontal corpus" sentence. Line-by-line: `docs/paper/SUBMISSION_TODO.md`
+§1a rows k to n and §2 item 3.
+
+**13 Oct 2026 — to write, from §8.34:** the bone-loss paragraph with the held-out figure
+(draft in `docs/paper/SUBMISSION_TODO.md` §2 item 3); and wherever the abstract, the
+discussion or the figure caption sets 0.923 against an external figure, the held-out 7.6%
+goes between them.
+
+**13 Oct 2026 (evening) — to write, from §8.35:** the matched pair for the bone-loss paragraph
+(83% → 3.4% → 27.5%), with all three seeds; and, in the Limitations, that this is the only
+branch for which seed-to-seed spread was measured.
+
+**13 Oct 2026 (night) — to write, from §8.36:** the Stage-4 text wherever the manuscript
+describes the shipped model; the severity model as unvalidated; and a line that the Ningxia
+periodontitis figure belongs to the checkpoint the pipeline no longer ships.

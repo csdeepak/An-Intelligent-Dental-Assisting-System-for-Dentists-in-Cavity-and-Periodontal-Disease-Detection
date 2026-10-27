@@ -1,8 +1,8 @@
 # `docs/` — documentation index
 
 You are looking at the documentation for an OPG (panoramic dental X-ray) analysis pipeline:
-detect every tooth, number it in FDI notation, and classify caries and periodontal bone
-loss per tooth. If you have five minutes and want the real state of the project, read these
+detect every tooth, number it in FDI notation, find caries, and flag teeth near an
+expert-marked abnormality (not periodontal bone loss). If you have five minutes and want the real state of the project, read these
 three files in order:
 
 1. **`results/model_metrics.md`** — every current best number on one page.

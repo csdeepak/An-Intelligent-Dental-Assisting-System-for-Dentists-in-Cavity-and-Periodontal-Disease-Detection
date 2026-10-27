@@ -27,12 +27,17 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-SRC = REPO / "outputs/ningxia_external_segdet/ningxia_external.json"
+# Rebuilt 11 Oct 2026 on the current Stage-1 detector (RESULTS_LOG 2026-10-11g, -j).
+SRC = REPO / "outputs/stage1_switch/G_ningxia_stage4_arm3c/ningxia_external.json"
+DENTEX = REPO / "outputs/stage1_switch/K_dentex_stage4_arm3c/dentex_stage4.json"
 OUT_PAPER = REPO / "paper/fig_boneloss.png"
 OUT_DOCS = REPO / "docs/results/figures/paper/05b_bone_loss_domain_shift_paper.png"
 
 TUFTS_MACRO_F1 = 0.9233        # models/03 run_summary, PAPER_MATERIAL 7.3
-DENTEX_FIRING = 0.007          # PAPER_MATERIAL 8.13
+# Stage-4 flags over detected teeth on the 164 DENTEX images. Until 11 Oct 2026 this was a
+# literal 0.007 -- 2 of 299 teeth on 12 images, with a detector two front ends old.
+_k = json.loads(DENTEX.read_text(encoding="utf-8"))["per_image"]
+DENTEX_FIRING = sum(r["stage4_flagged"] for r in _k) / sum(r["teeth_detected"] for r in _k)
 
 OK = "#2a9d8f"
 BAD = "#c1121f"
@@ -41,15 +46,16 @@ INK = "#22333b"
 
 def main():
     if not SRC.exists():
-        sys.exit(f"missing {SRC}\nThis figure must be built from the SEG detector run, "
-                 f"which is the pipeline default. Refusing to substitute another run.")
+        sys.exit(f"missing {SRC}\nThis figure must be built from the run of the pipeline's "
+                 f"default detector. Refusing to substitute another run.")
 
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
     bcs = json.loads(SRC.read_text(encoding="utf-8"))["by_category_split"]
-    nx = [(sp, bcs[f"periodontitis/{sp}"]["affected_tooth_sensitivity"])
+    nx = [(sp, bcs[f"periodontitis/{sp}"]["affected_teeth_flagged"]
+           / bcs[f"periodontitis/{sp}"]["affected_teeth"])
           for sp in ("test1", "test2", "test3", "test4")
           if f"periodontitis/{sp}" in bcs]
     if len(nx) != 4:

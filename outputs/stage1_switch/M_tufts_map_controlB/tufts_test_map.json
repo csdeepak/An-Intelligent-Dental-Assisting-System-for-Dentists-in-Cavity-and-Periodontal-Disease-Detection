@@ -1,0 +1,10 @@
+{
+  "weights": "models/15_detector_multicorpus_leverA/controlB_best.pt",
+  "sha256": "d3aa1e388fc41da1a449d2dd39b1e6c0764e8dd541edbc91c6cf896ac0145757",
+  "split": "test_tufts.txt",
+  "device": "cpu",
+  "box_map50": 0.7233303196248214,
+  "box_map50_95": 0.2709729571028828,
+  "precision": 0.7099930071073547,
+  "recall": 0.6941896024464832
+}

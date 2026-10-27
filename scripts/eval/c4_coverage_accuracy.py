@@ -120,14 +120,18 @@ def main():
     ap.add_argument("--out", type=Path, default=DEF_OUT)
     ap.add_argument("--fig", type=Path, default=DEF_FIG)
     ap.add_argument("--crops", type=Path, default=REPO_ROOT / "data/dentex/crops_v3_phase1")
+    ap.add_argument("--rows", type=Path,
+                    default=REPO_ROOT / "outputs/stage2_segdet/stage2_rows_head.json",
+                    help="saved Stage-2 rows to draw the numbering curve from. The default is the "
+                         "published run (previous Stage-1 detector); pass another detector's rows "
+                         "with its own --out and --fig")
     args = ap.parse_args()
 
     import numpy as np
     results = {}
 
     # ---------------------------------------------------------------- Stage 2
-    rows = json.loads((REPO_ROOT / "outputs/stage2_segdet/stage2_rows_head.json")
-                      .read_text(encoding="utf-8"))
+    rows = json.loads(args.rows.read_text(encoding="utf-8"))
     det = [r for r in rows if r.get("detected") and r.get("pred_fdi") is not None]
     s2 = [(float(r.get("confidence", 0.0)), r["pred_fdi"] == r["gt_fdi"]) for r in det]
     cv2_ = curve(s2)
@@ -138,7 +142,7 @@ def main():
            "accuracy": (sum(ok for _, ok in kept) / len(kept)) if kept else None}
 
     print(f"STAGE 2 — FDI numbering, {len(det)} detected teeth (of {len(rows)} GT)")
-    print(f"  accuracy at 100% coverage : {base2:.3f}   <- the 82.6% of-detected figure")
+    print(f"  accuracy at 100% coverage : {base2:.3f}   <- the of-detected figure")
     for t in (0.90, 0.75, 0.50):
         r = at_coverage(cv2_, t)
         print(f"  accuracy at {t:.0%} coverage  : {r['accuracy']:.3f}"
@@ -149,7 +153,8 @@ def main():
     print(f"  gain at 75% coverage      : {g2['gain_pp']:+.2f} pp "
           f"[{g2['ci95_pp'][0]:+.2f}, {g2['ci95_pp'][1]:+.2f}]  "
           f"(shuffled control {g2['shuffled_control_gain_pp']:+.2f} pp)")
-    results["stage2"] = {"n": len(s2), "accuracy_full_coverage": round(base2, 4),
+    results["stage2"] = {"n": len(s2), "rows": str(args.rows),
+                         "accuracy_full_coverage": round(base2, 4),
                          "gain_at_75": g2,
                          "operating_point": {k: (round(v, 4) if isinstance(v, float) else v)
                                              for k, v in op2.items()},

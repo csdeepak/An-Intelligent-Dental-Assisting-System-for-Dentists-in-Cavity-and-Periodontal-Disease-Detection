@@ -1,4 +1,4 @@
-# `tests/` — 159 tests, all passing
+# `tests/` — 213 tests, all passing
 
 ```bash
 python -m pytest tests/ -q
@@ -9,7 +9,8 @@ No pytest plugins or fixtures are required; every file also runs standalone
 
 | File | Tests | Covers |
 |---|---|---|
-| `test_classifiers.py` | 17 | **The three crop conventions and the class orders** — Stages 3/4. Added with R4 (24 Aug) |
+| `test_classifiers.py` | 26 | **The three crop conventions and the class orders** — Stages 3/4. Added with R4 (24 Aug). Since 14 Oct 2026 also the shipped Stage-3a path: lesion boxes mapped to the one tooth holding most of each, and severity graded only on those teeth; since 15 Oct a NaN output raises and unmapped lesion boxes are counted |
+| `test_pipeline_e2e.py` | 2 | **The whole pipeline, end to end, on the CPU** (15 Oct 2026): a synthetic radiograph (well formed, valid JSON, repeatable) and a Tufts training radiograph against `tests/golden/tufts_1_cpu.json` (skips without the raw Tufts data) |
 | `test_crop_generator.py` | 12 | Expanded-bbox geometry, ±15% jitter, mask-aware cropping (R2) |
 | `test_fdi_assignment.py` | 11 | Stage-2 positional assignment + every failure mode it must flag |
 | `test_fdi_converter.py` | 13 | Universal ↔ FDI table, **and the mirrored Tufts numbering** |
