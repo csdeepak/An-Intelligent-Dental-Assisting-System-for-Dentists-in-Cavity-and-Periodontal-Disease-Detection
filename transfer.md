@@ -31,6 +31,9 @@ private, so it is no more exposed than any other doc (`docs/session-memory/2026-
 2026-09-06b, `docs/session-memory/2026-09-06f-lever-c-run-and-null.md`) — the default assignment
 is unchanged and no current-best number moved; the two stale `docs/paper/` drafts now carry
 superseded banners (§3 item 7 closed).
+30 Sep — an RCE-generated **mentor draft** (8 pp, IEEEtran) now sits at `paper/paper.md` + `paper/ieee/main.pdf`,
+every number traced to a saved artifact, two blind review rounds; `paper/main.tex` untouched and still the maintained
+manuscript. It found five doc defects in `main.tex`/`model_metrics.md` (see `docs/session-memory/2026-09-30-rce-mentor-draft.md`).
 
 > **Windows clone, 6 Sep 2026 — the Tufts crop corpus was cut from the wrong frame, and is now
 > rebuilt.** It scored 11.5% crop-level FDI-exact where the published number is 71.5%, with correct

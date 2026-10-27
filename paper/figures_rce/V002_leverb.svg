@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="194" viewBox="0 0 640 194" font-family="Helvetica, Arial, sans-serif" font-size="12" role="img" aria-labelledby="t d" data-visual-id="V002" data-representation="dot_ci" data-domain-lo="-10" data-domain-hi="20" data-plot-left="180" data-plot-right="616" data-min-font="12">
+<title id="t">Lesion detector minus constant</title>
+<desc id="d">Dot plot with interval whiskers: DENTEX -3.34 [-8.37, 1.33], CariesXrays 12.22 [10.08, 14.3], Ningxia 10.17 [6.27, 14.02].</desc>
+<metadata>{&quot;domain&quot;: [-10, 20], &quot;representation&quot;: &quot;dot_ci&quot;, &quot;source_file&quot;: &quot;.rcs/plan/figure_data/v002_leverb_delta.csv&quot;, &quot;visual_id&quot;: &quot;V002&quot;}</metadata>
+<rect width="640" height="194" fill="#ffffff"/>
+<text x="180" y="22" font-size="13" font-weight="bold">Lesion detector minus constant</text>
+<line x1="180.00" y1="40" x2="180.00" y2="124" stroke="#dddddd"/>
+<text class="tick" data-axis="x" data-pos="180.00" x="180.00" y="140" text-anchor="middle">-10</text>
+<line x1="325.33" y1="40" x2="325.33" y2="124" stroke="#dddddd"/>
+<text class="tick" data-axis="x" data-pos="325.33" x="325.33" y="140" text-anchor="middle">0</text>
+<line x1="470.67" y1="40" x2="470.67" y2="124" stroke="#dddddd"/>
+<text class="tick" data-axis="x" data-pos="470.67" x="470.67" y="140" text-anchor="middle">10</text>
+<line x1="616.00" y1="40" x2="616.00" y2="124" stroke="#dddddd"/>
+<text class="tick" data-axis="x" data-pos="616.00" x="616.00" y="140" text-anchor="middle">20</text>
+<line x1="180" y1="124" x2="616" y2="124" stroke="#333333"/>
+<text x="398.00" y="160" text-anchor="middle">difference in lesion agreement (pp)</text>
+<text class="category" x="170" y="58.00" text-anchor="end">DENTEX</text>
+<g class="mark" data-x="DENTEX" data-y="-3.34" data-series="" data-cx="276.79" data-cy="54.00" data-err-low="-8.37" data-err-high="1.33"><line x1="203.69" y1="54.00" x2="344.66" y2="54.00" stroke="#0072B2" stroke-width="2"/><circle cx="276.79" cy="54.00" r="5.00" fill="#0072B2"/><text x="284.79" y="47.00" font-size="11">-3.34</text></g>
+<text class="category" x="170" y="86.00" text-anchor="end">CariesXrays (held-out)</text>
+<g class="mark" data-x="CariesXrays (held-out)" data-y="12.22" data-series="" data-cx="502.93" data-cy="82.00" data-err-low="10.08" data-err-high="14.3"><line x1="471.83" y1="82.00" x2="533.16" y2="82.00" stroke="#0072B2" stroke-width="2"/><circle cx="502.93" cy="82.00" r="5.00" fill="#0072B2"/><text x="510.93" y="75.00" font-size="11">12.2</text></g>
+<text class="category" x="170" y="114.00" text-anchor="end">Ningxia (external)</text>
+<g class="mark" data-x="Ningxia (external)" data-y="10.17" data-series="" data-cx="473.14" data-cy="110.00" data-err-low="6.27" data-err-high="14.02"><line x1="416.46" y1="110.00" x2="529.09" y2="110.00" stroke="#0072B2" stroke-width="2"/><circle cx="473.14" cy="110.00" r="5.00" fill="#0072B2"/><text x="481.14" y="103.00" font-size="11">10.2</text></g>
+</svg>
