@@ -155,6 +155,18 @@ classifier branches carry no interval; `model_metrics.md` 0.207 → 0.206; `PAPE
 says 2,000, not 10,000. Work done before the merge on the stale base is kept unmerged on
 `record/2026-10-27-stale-base-revisit` (`8e150fe`) — keep that branch, §8.25 points at it. 215
 claims, 210 tests passing here (3 skipped). §8 edited.
+**28 Oct — the mentor draft rebuilt on the current pipeline, with real radiographs**
+(`RESULTS_LOG` 2026-10-28, `docs/session-memory/2026-10-28-mentor-draft-real-figures.md`). The
+30 Sep draft predated the 11–15 Oct changes (old detector, Stage 4 as "bone loss", pre-switch
+numbers); `paper/paper.md` → `paper/ieee/main.pdf` is now **7 pages** on the numbers `main.tex`
+verifies, plus four new figures rendered by `scripts/figures/make_opg_figures.py` through the
+shipped code path: an OPG reading guide, every stage on one held-out DENTEX radiograph, rule-chosen
+outputs against the expert (7/7, 2/3, 0/4 lesions found) beside the constant, and the training
+curves of all four trained stages. Every one of its 286 distinct numbers traces to `main.tex` or a
+saved file. **New compliance item:** the figures show DENTEX pixels (CC BY-NC-SA 4.0), which the
+4 Sep audit had kept out of the paper — share-alike must be squared with the venue's copyright form
+before submission (`PAPER_MATERIAL.md` §8.19). `main.tex` itself is unchanged and still has no
+radiograph figure.
 
 > **Windows clone, 6 Sep 2026 — the Tufts crop corpus was cut from the wrong frame, and is now
 > rebuilt.** It scored 11.5% crop-level FDI-exact where the published number is 71.5%, with correct

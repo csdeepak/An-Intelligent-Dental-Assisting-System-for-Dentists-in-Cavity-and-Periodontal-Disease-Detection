@@ -12,287 +12,239 @@
 \IEEEauthorblockA{[ASK AUTHOR: affiliations and e-mail addresses]}}
 \maketitle
 \begin{abstract}
-Automated caries screening on panoramic dental radiographs (orthopantomograms (OPGs)) is usually scored by which teeth a system flags. We ask whether that score can separate a system that reads the image from one that only knows where caries tends to occur. We built a six-stage pipeline that detects, numbers and classifies each tooth for caries and periodontal bone loss, and scored its per-crop caries-gate variant against two vision-language models and a constant that names the same eight first and second molars for every image. On 164 development images checked for byte-level leakage, the constant scored F1 0.320 against the pipeline's 0.294. On 1,500 images of a second public benchmark it reached lesion agreement 0.561 against 0.309, and on 337 images from four external hospitals the two were level (0.399 and 0.408). A lesion detector, registered in advance, reached 0.500 on those external images, above both the constant and the gate, while flagging fewer teeth; that cohort informed the pre-registered choice between two training mixtures. Numbering, and calibration and abstention measured on the gate variant, produced outputs a constant cannot produce, although none was compared with a position-only control. The periodontal branch detected 49 of 59 diseased validation crops in domain (sensitivity 0.8305) but only 2.4\% of affected teeth at the external hospitals. We interpret these results as indicating that, for this pipeline, a tooth-level score alone was not sufficient evidence that it reads the radiograph. No clinician comparison was made, and the lesion-detector result rests on one fully external cohort and does not isolate the task change from changes of architecture and training data.
+Systems that find tooth decay (caries) on panoramic dental radiographs are usually scored by which teeth they mark as diseased. We show that this tooth-level score is hard to interpret, because caries concentrates in the molars: a program that never reads the image and always names the same eight molars scores F1 0.320 on our development set. We built a six-stage pipeline (tooth detection, FDI numbering, caries, and a per-tooth abnormality flag) and scored it, two vision-language models and that constant with one scorer on 164 leakage-free radiographs. Both vision-language models scored below the constant. Our pipeline cleared it on the development set — F1 0.362 with a per-crop caries classifier and 0.498 with a whole-image lesion detector — but its tooth detector had trained on that corpus. On 337 radiographs from four hospitals that contributed no training data, the per-crop pipeline and the constant could not be separated ($-$0.89 points, 95\% CI [$-$5.57, +3.86]), and on a second benchmark of 2,815 lesions the constant led by 22.42 points. The lesion detector, adopted under a rule written before training, led the constant by 9.28 points [+4.72, +13.73] on the four hospitals while flagging fewer teeth, at three of the four sites. We show every stage on real radiographs, the training curves of every trained model, and successes and failures against the expert annotation. We conclude that a tooth-level score alone cannot show that a system reads the radiograph, and that tooth identity, calibrated confidence, abstention and external per-site results are where that evidence has to come from.
 \end{abstract}
 \begin{IEEEkeywords}
-panoramic radiography, dental caries, periodontal bone loss, evaluation methodology, image-blind baselines, external validation, calibration, selective prediction
+panoramic radiography, dental caries, object detection, evaluation methodology, image-blind baselines, external validation, calibration, selective prediction
 \end{IEEEkeywords}
 
 \section{Introduction}
 
-A panoramic radiograph (orthopantomogram (OPG)) shows every tooth and the supporting bone in one exposure. Dental caries (tooth decay) and periodontal bone loss are both visible on it. The authors' motivation for automating its reading is a second pass over images a clinician has already read, to flag findings that may have been missed. They also keep a periodontal branch that fails outside its training domain, because it shows that an in-domain score is not evidence of a usable model.
+A panoramic dental radiograph (orthopantomogram, OPG) is one X-ray of both jaws (Fig.~\ref{fig:1}). Two conventions make it unfamiliar to a computer-vision reader. First, it is displayed as if the viewer faces the patient, so the patient's right side is on the image's left. Second, teeth are named in FDI two-digit notation: the first digit is the quadrant (1 upper right, 2 upper left, 3 lower left, 4 lower right, in the patient's frame) and the second the position from the midline (1 central incisor to 8 third molar). Tooth 16 is therefore the upper-right first molar, and 36 the lower-left one. Caries appears as a dark (radiolucent) region inside the bright tooth; fillings and crowns are the brightest objects in the image.
 
-Published systems for this task report high accuracies; for example, one tooth-numbering and cavity system reports numbering accuracy 0.998 on 935 radiographs~\cite{zancan2025ai}, and a periodontal classifier reports 98.39\% accuracy~\cite{bilal2024pdcnet}. Such results are typically reported per tooth: which teeth does the system call diseased, and how well does that list agree with the expert's. Caries, however, is not spread evenly across the mouth. A per-tooth score can therefore be earned partly by knowing where caries usually occurs, a form of shortcut~\cite{geirhos2020shortcut}. Whether published systems are compared with such an image-blind floor is not established here [CITATION NEEDED: systematic count of image-blind baselines in OPG caries evaluation].
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/R01_opg_primer.pdf}
+\caption{Reading an OPG. One held-out DENTEX radiograph (test\_120) cropped to the teeth. Dotted lines separate the quadrants Q1–Q4; numbers are the FDI codes our numbering stage assigned. Yellow: the expert's seven caries annotations as released, on teeth 12, 16, 28, 35, 36, 37 and 46. Dashed: the eight-molar set \{16, 17, 26, 27, 36, 37, 46, 47\} named by an image-blind constant; seven of its codes are present here, and four of the seven lesions lie on them. Radiographs: DENTEX~\cite{hamamci2023dentex}, CC BY-NC-SA 4.0.}
+\label{fig:1}
+\end{figure}
 
-We therefore ask three questions. RQ1: does tooth-level caries agreement separate a complete pipeline from an image-blind constant, on development data and on external cohorts? RQ2: does replacing the per-crop gate with a whole-image lesion detector, whose flagged teeth are derived from predicted lesion boxes, separate them? RQ3: on outputs a fixed code list does not produce (tooth identity, calibrated confidence, abstention), what does the pipeline measure? Throughout, a tooth-level score means a score over per-tooth decisions; Section V-C shows that the same metric did separate a system that places lesion boxes, so the claim of this paper concerns the gate-variant pipeline, not the metric in general.
+Automated systems detect each tooth and then classify it, and are scored per tooth: which teeth does the system call carious, and how well does that list match the expert's. Fig.~\ref{fig:1} shows why that score needs a floor. Caries is not spread evenly; molars carry most of it. A fixed list of molars collects part of the score without looking at any patient, so a reported number may reflect where caries usually is rather than where it is in this image — a shortcut in the sense of Geirhos et al.~\cite{geirhos2020shortcut}. In the 49 task-relevant papers of our own survey we noticed none that reports an image-blind baseline, an observation from that reading rather than a systematic count.
 
-To answer them we scored a six-stage pipeline against a ladder of systems with progressively less task-specific knowledge (the VLMs see the full image but were not trained for the task; the constant uses no caries information), under one scorer, two metric families and three cohorts. The contributions are:
+We ask three questions. RQ1: does tooth-level agreement separate a complete pipeline from an image-blind constant, on development data and on external cohorts? RQ2: does changing the caries task from classifying tooth crops to localising lesions in the whole image separate them? RQ3: what does the pipeline show on outputs a fixed list cannot produce — tooth identity, calibrated confidence and abstention? The contributions are:
 
 \begin{enumerate}
-\item A constant-baseline comparison on three cohorts, in which, on point estimates, the constant scored above the gate-variant pipeline on two and level with it on the third (Section V-A, V-B).
-\item A pre-registered replacement of the per-crop caries gate by a whole-image lesion detector that met its acceptance rule on two of three cohorts, only one of which is external to it (Section V-C).
-\item Numbering results, and calibration and selective-prediction results on the gate variant with a comparator calibrator and a shuffle control, reported as outputs a fixed code list does not produce (Section V-D).
-\item A measured negative result: a periodontal branch whose in-domain score does not transfer to external hospitals (Section V-F).
+\item A constant-baseline protocol for tooth-level OPG evaluation, applied with two metric families on three cohorts, one of them four external hospitals reported per site.
+\item A pre-registered reformulation of the caries stage as lesion detection, which led the constant on the external hospitals while flagging fewer teeth.
+\item The complete evidence trail of the system: every stage on a real radiograph, the training curves of the four trained models, and rule-chosen successes and failures against the expert annotation.
+\item A vision-language-model baseline with content-free controls, and a fourth stage reported held out after its first score proved to be a split artefact.
 \end{enumerate}
-
-Section II places the work; Section III describes the system; Section IV, the evaluation; Section V, the results; Section VI, their interpretation; and Section VII, the limitations.
 
 \section{Related Work}
 
-\textbf{Datasets.} This work uses four public panoramic datasets: the Tufts Dental Database of 1,000 radiographs with expert labels~\cite{panetta2022tufts}, the Dental Enumeration and Diagnosis (DENTEX) challenge data~\cite{hamamci2023dentex}, the CariesXrays benchmark of 6,000 radiographs released with its feature-pyramid contrastive learning (FPCL) detector~\cite{chen2024cariesxrays}, and a multi-centre cohort annotated for impacted teeth, periodontitis and caries~\cite{li2024multicenter}.
-
-\textbf{Reported performance.} Classification and numbering systems on panoramic data report high in-domain figures~\cite{zancan2025ai,bilal2024pdcnet}. In one comparison with dentists, a periodontal bone-loss model reported weighted F1 0.29 and F1 of 0 for severe bone loss~\cite{cerda2024determining}. Methods for limited panoramic data have also been proposed~\cite{cao2024dpml}. This paper does not rank itself against these works; it asks what the per-tooth score they share can support.
-
-\textbf{Shortcuts and calibration.} Deep networks can learn shortcut solutions that match the target on the training distribution without learning the intended signal~\cite{geirhos2020shortcut}; an image-blind constant is a direct test for one such shortcut. Modern networks are often poorly calibrated, and temperature scaling is a one-parameter correction~\cite{guo2017calibration}; isotonic regression is a non-parametric alternative~\cite{zadrozny2002isotonic}. We use both as calibration comparators.
-
-\textbf{Vision-language models.} A vision-language model (VLM) takes an image and a written instruction and answers in text. We use the Qwen2.5-VL series~\cite{bai2025qwen25vl} as general-purpose comparators, because they need no task-specific training and can therefore sit on the ladder between the pipeline and the constant.
+\textbf{Data.} We use the Tufts Dental Database of 1,000 OPGs~\cite{panetta2022tufts}, DENTEX~\cite{hamamci2023dentex}, the CariesXrays benchmark of 6,000 OPGs~\cite{chen2024cariesxrays}, a multi-centre cohort from four Chinese hospitals~\cite{li2024multicenter} and UFBA-425~\cite{budagam2024oralbbnet}. \textbf{Reported performance.} Numbering and classification systems report high in-domain figures~\cite{zancan2025ai,bilal2024pdcnet}; a bone-loss model compared with dentists reported weighted F1 0.29~\cite{cerda2024determining}. Generalisation of dental image models across centres is known to be limited~\cite{krois2021generalizability}, and a dental-AI reporting checklist asks how the reference standard was built~\cite{schwendicke2021checklist}. \textbf{Shortcuts and calibration.} An image-blind constant tests one shortcut~\cite{geirhos2020shortcut}. Temperature scaling~\cite{guo2017calibration} and isotonic regression~\cite{zadrozny2002isotonic} are our calibration comparators. \textbf{Vision-language models.} We use Qwen2.5-VL~\cite{bai2025qwen25vl} as general comparators that need no task training.
 
 \section{System}
 
-The implemented system maps one OPG to a per-tooth record in six stages, run from a single script and wrapped in a browser demonstration (Fig.~\ref{fig:1}). Table~\ref{tab:1} lists the models.
+The pipeline maps an OPG to a per-tooth record in six stages. Fig.~\ref{fig:2} shows each stage on one held-out radiograph, and Table~\ref{tab:1} lists the models.
 
 \begin{figure*}[t]
 \centering
-\includegraphics[trim=0 544.5bp 132.0bp 0, clip,width=0.82\textwidth]{figures/F01_architecture.pdf}
-\caption{Architecture of the implemented pipeline, derived from the repository's inference script and its default checkpoints. Stage 3a has two selectable implementations; the lesion detector is the default.}
-\label{fig:1}
-\end{figure*}
-
-\textbf{Stage 1} detects teeth with a YOLOv11l segmentation model from the Ultralytics You Only Look Once (YOLO) package~\cite{jocher2023ultralytics}, used for its boxes. \textbf{Stage 2} assigns each detected tooth a code in the two-digit notation of the World Dental Federation (FDI), in which the first digit is the quadrant (1 upper right, 2 upper left, 3 lower left, 4 lower right) and the second the position from the midline (1 central incisor to 8 third molar). A ResNet18~\cite{he2016resnet} consumes the tooth crop and four positional features, and the Hungarian method~\cite{kuhn1955hungarian} resolves the scores to a one-to-one assignment so that no two teeth share a code. The numbering head was trained on DENTEX and Tufts tooth crops.
-
-\textbf{Stage 3} reports caries. Its default is a whole-image YOLOv11l lesion detector: each predicted lesion box is assigned to the detected tooth box it overlaps most, and those teeth are flagged. The authors changed to this formulation because a prior over tooth positions cannot place a lesion box. The detector's training list pools 9,600 samples per epoch, 4,800 CariesXrays images and 650 DENTEX images replicated to equal weight, and its confidence threshold was fixed at 0.25 in advance. A per-crop ResNet18 caries gate, trained on DENTEX tooth crops from 260 images whose splits do not overlap the 250-image evaluation set, the earlier formulation, is retained as a selectable variant; a ResNet18 severity head grades flagged teeth in both paths. \textbf{Stage 4} is a ResNet18 bone-loss gate followed by a ResNet18 severity grader. Bone-loss crops are expanded 1.5 times in width and 2.0 times in height, because teeth are about three times taller than wide. No bone-loss repair was attempted, because DENTEX carries no bone-loss labels and the multi-corpus remedy is therefore unavailable. \textbf{Stages 5 and 6} fuse the per-stage outputs on the FDI code and emit the record.
-
-\begin{table}[t]
-\centering
-\caption{Pipeline stages and learnable parameter counts read from the saved checkpoints.}
-\label{tab:1}
-\footnotesize
-\begin{tabular}{>{\raggedright\arraybackslash}p{2.05cm}>{\raggedright\arraybackslash}p{2.05cm}r}
-\toprule
-Stage & Model & Parameters \\
-\midrule
-1 Tooth detection & YOLOv11l-seg & 27.62 M \\
-2 FDI numbering & ResNet18 + 4 positional features & 11.19 M \\
-3a Caries localisation (default) & YOLOv11l detector & 25.31 M \\
-3a Caries gate (variant) & ResNet18 & 11.18 M \\
-3b Caries severity & ResNet18 & 11.18 M \\
-4a Bone-loss gate & ResNet18 & 11.18 M \\
-4b Bone-loss severity & ResNet18 & 11.18 M \\
-Total (default) &  & 97.65 M \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The default pipeline has 97.65 M learnable parameters, and the caries path with the gate variant 61.16 M; in the ladder run it averaged 2.386 s per image on a central processing unit (CPU).
-
-\section{Experimental Setup}
-
-\textbf{Data.} Table~\ref{tab:2} summarises the cohorts. Tooth detection and the bone-loss branch were developed on Tufts under a frozen 700/150/150 image-level split. The caries evaluation uses the DENTEX disease subset of 250 images. The Ningxia cohort (four hospitals, test1 to test4) and CariesXrays were not used to train any model in the ladder comparison. All splits are image-level, because crops from one radiograph are not independent.
-
-\textbf{Training data and disjointness.} The lesion detector's DENTEX boxes come from a DENTEX subset other than the 250-image evaluation set, which its pre-registration forbids as training data, and it is scored on CariesXrays' 1,200-image validation split, disjoint from its 4,800 training images by construction. The caries gate's 863 test crops come from 34 DENTEX images of the gate's own held-out split. The scope of each leakage check differs by model: the MD5 check below covered the numbering and detector training images; the gate's crop splits record 0 overlap with the 250-image evaluation set; for the lesion detector's DENTEX training images, disjointness rests on subset membership and its pre-registration, and a hash check against the 164 scored images is not recorded [ASK AUTHOR: was it run?].
-
-\begin{table}[t]
-\centering
-\caption{Cohorts used for evaluation.}
-\label{tab:2}
-\footnotesize
-\begin{tabular}{>{\raggedright\arraybackslash}p{2.05cm}r>{\raggedright\arraybackslash}p{2.05cm}}
-\toprule
-Cohort & Images scored & Role \\
-\midrule
-DENTEX disease subset & 164 of 250 & development (caries, numbering) \\
-Tufts & 150 test & detector, bone loss (validation 1,558 crops) \\
-Ningxia, 4 hospitals & 337 caries, 736 periodontal & external \\
-CariesXrays & 1,500 random draw & external for the ladder \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\textbf{Leakage control.} Message-digest (MD5) hashing found 86 DENTEX images byte-identical to images used in training (85 in numbering, 1 in detection); these were excluded, leaving 164 scored images.
-
-Additional caveat: the check is byte-level, so near-duplicates and same-patient images cannot be excluded.
-
-\textbf{The ladder.} Four systems answer one question, which teeth in this radiograph show caries, on the same 164 images: (1) the pipeline, with the per-crop caries gate that was the default when the ladder was run; (2) Qwen2.5-VL-32B-Instruct, zero-shot, 33.45 B parameters as loaded; (3) Qwen2.5-VL-7B-Instruct, zero-shot, 8.29 B parameters; (4) an image-blind constant. The constant was chosen by greedy search over tooth codes on the 78 excluded images that carry at least one caries annotation, frozen, and applied unchanged: \{16, 17, 26, 27, 36, 37, 46, 47\}, the first and second molars of all four quadrants. Under FDI-set scoring it reads nothing from the image. Under lesion agreement it flags the detected teeth to which the pipeline's numbering stage assigns one of the eight codes, so it uses tooth positions from the image but no caries information. The VLM prompt described the image as an OPG, gave the FDI scheme and valid codes, allowed absent teeth and asked for a code list or the word none; decoding settings were not recorded with the runs [ASK AUTHOR: VLM decoding settings, e.g. sampling and maximum tokens]. For the two vision-language models we also presented a blank grey image and a random-noise image under the same prompt.
-
-\textbf{Metrics.} FDI-set precision, recall and F1 treat each image as a set of carious tooth codes; true positives, false positives and false negatives are pooled over all images before the ratios are taken. Lesion-localisation agreement is the fraction of annotated lesions that overlap a flagged tooth. On DENTEX lesions are matched greedily one-to-one by best IoU of at least 0.30, falling back to centroid containment for a lesion below that threshold; on external cohorts by centroid containment, because true matches there have IoU of only 0.015 to 0.124. Agreement has no negative class, so we report the number of teeth flagged beside it, and the match rate, the fraction of flagged teeth that contain at least one annotated lesion. Periodontal findings are scored by affected-tooth sensitivity. For calibration, both calibrators were fitted on the gate's validation split and evaluated on its test split, and isotonic regression is applied to the reported confidence only, so the published verdicts remain the measured ones.
-
-\textbf{Statistics.} Confidence intervals (CIs) are 95\% percentile cluster-bootstrap intervals over images, 10,000 resamples, seed 42; differences between systems on shared images are paired. Images, not teeth, are the resampling unit because errors are correlated within an image. External results are reported per hospital, because pooling hides between-site variation.
-
-\textbf{Pre-registration.} The lesion-detector acceptance rule was frozen at commit ef3f453 of the project repository before any detector was trained; no public record of it exists yet [ASK AUTHOR: public anchor for the pre-registration, e.g. a repository tag or OSF record]. It declared both training mixtures (CariesXrays only, and CariesXrays pooled with DENTEX), the three cohorts, the comparators, the metric and the fixed 0.25 confidence, and the rule: exceed both the constant and the gate on at least two of three cohorts, at no more than 1.5 times their rate of flagging teeth.
-
-\section{Results}
-
-\subsection{RQ1 on development data}
-
-\emph{Observed.} Fig.~\ref{fig:2} and Table~\ref{tab:3} give the ladder on DENTEX. The constant scored F1 0.320 (P 0.218, R 0.600), the pipeline 0.294, Qwen2.5-VL-32B 0.246 and Qwen2.5-VL-7B 0.149. A constant fitted directly on the scored images, which is not deployable, reached 0.330.
-
-\begin{figure*}[t]
-\centering
-\includegraphics[trim=0 625.5bp 132.0bp 0, clip,width=0.82\textwidth]{figures/V001_ladder.pdf}
-\caption{The image-blind constant scored the highest FDI-set F1 (0.3197) of the four systems on 164 leakage-free DENTEX images; values from the saved comparison outputs, micro-averaged over carious teeth.}
+\includegraphics[width=\textwidth]{figures/R02_walkthrough.pdf}
+\caption{One held-out DENTEX radiograph (test\_0, not used to train any model) through the pipeline, exactly as it ships. (a) Input, 2,829 by 1,316 pixels; the dashed box is the region shown in (b)–(f). (b) Stage 1 finds 30 teeth (detection confidence beside each box). (c) Stage 2 assigns each an FDI code, one code per tooth; "?" marks the two codes it was unsure of (24, 42). (d) Stage 3a runs a lesion detector once on the whole image: four lesion boxes, confidence 0.35 to 0.89. (e) Each lesion box is assigned to the tooth it overlaps most, flagging 26 and 46 (caries) and 36 and 45 (deep caries); the Stage-4 abnormality flag fires on no tooth here. (f) The overlay the software writes, with the expert's three caries annotations (teeth 26, 45, 48) added in yellow: two are found, the lesion on 48 is missed, and 36 is flagged with no annotated lesion. Radiographs: DENTEX~\cite{hamamci2023dentex}, CC BY-NC-SA 4.0.}
 \label{fig:2}
 \end{figure*}
 
+\textbf{Stage 1} detects teeth with a YOLOv11l detector~\cite{jocher2024yolo11} trained on three corpora in equal proportion: the Tufts training split, DENTEX's enumeration subset and a third public corpus. \textbf{Stage 2} crops each tooth (1.5 times its box), and a ResNet18~\cite{he2016resnet} with four positional features scores every FDI code; the Hungarian algorithm~\cite{kuhn1955hungarian} turns the scores into a one-to-one assignment, so no two teeth share a code. \textbf{Stage 3a} has two implementations. The default is a whole-image YOLOv11l lesion detector whose boxes are assigned to the tooth box they overlap most; it trains on 4,800 CariesXrays images and 650 DENTEX images replicated to equal weight (9,600 samples per epoch), with confidence fixed at 0.25 in advance. The retained variant is a ResNet18 that classifies each tooth crop. \textbf{Stage 3b} grades flagged teeth as caries or deep caries. \textbf{Stage 4} is a ResNet18 trained on Tufts whose label is whether a tooth crop overlaps an expert-marked abnormality; it was built for periodontal bone loss, and we name it for its label. Its severity head is withheld by default (Section V-G). \textbf{Stages 5–6} fuse the outputs on the FDI code and write a JSON record per tooth; abridged, tooth 36 of Fig.~\ref{fig:2} reads:
+
+{\footnotesize
+\begin{verbatim}
+{"fdi": 36, "fdi_confidence": 0.9999,
+ "detection_confidence": 0.8389,
+ "caries": {"finding": "deep_caries",
+            "gate_confidence": 0.8892,
+            "severity_confidence": 0.9579},
+ "bone_loss": {"finding": "normal",
+               "confidence": 0.7853},
+ "assessable": true}
+\end{verbatim}
+}
+
 \begin{table}[t]
 \centering
-\caption{Tooth-level caries prediction on 164 DENTEX images, micro-averaged over 477 annotated carious teeth.}
-\label{tab:3}
+\caption{Stages and learnable parameters, counted from the saved checkpoints.}
+\label{tab:1}
 \footnotesize
-\begin{tabular}{>{\raggedright\arraybackslash}p{1.6cm}rrr}
+\begin{tabular}{>{\raggedright\arraybackslash}p{3.30cm}>{\raggedright\arraybackslash}p{3.30cm}r}
 \toprule
-System & Precision & Recall & F1 \\
+Stage & Model & Params \\
 \midrule
-Constant (image never read) & 0.218 & 0.600 & 0.320 \\
-Pipeline (gate variant) & 0.235 & 0.390 & 0.294 \\
-Qwen2.5-VL-32B, zero-shot & 0.250 & 0.243 & 0.246 \\
-Qwen2.5-VL-7B, zero-shot & 0.248 & 0.107 & 0.149 \\
+1 Tooth detection & YOLOv11l & 25.31 M \\
+2 FDI numbering & ResNet18 + 4 features & 11.19 M \\
+3a Caries (default) & YOLOv11l lesion detector & 25.31 M \\
+3a Caries (variant) & ResNet18 crop classifier & 11.18 M \\
+3b Caries severity & ResNet18 & 11.18 M \\
+4a Abnormality flag & ResNet18 & 11.18 M \\
+4b Severity (withheld) & ResNet18 & 11.18 M \\
+Total &  & 95.34 M \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Under lesion-localisation agreement on the same images (479 lesions), the constant matched 234 lesions (0.489) and the pipeline 212 (0.443); they flagged 859 and 755 teeth at match rates 0.272 and 0.281, and flagging every detected tooth reached 0.722 with 3,344 teeth.
+The complete system runs at 1.70 s per image on a laptop CPU with no GPU.
 
-\emph{Interpretation.} Both metrics placed the constant ahead on this cohort. They are not independent evidence: they share images and flags, and lesion agreement rises with the number of teeth flagged, which was larger for the constant.
+\section{Data and Evaluation Protocol}
 
-Additional caveat: neither DENTEX difference has an interval in this draft.
+\textbf{Cohorts.} Table~\ref{tab:2} lists them. All splits are image-level. DENTEX's disease subset has 250 annotated OPGs; MD5 hashing found 86 byte-identical to images our models trained on (85 in numbering, 1 in detection), leaving 164 scored, of which 148 carry a caries lesion (479 lesions on 477 teeth). Because the tooth detector trained on other DENTEX images, every DENTEX result is in-domain for the front end. The Ningxia hospitals (test1–test4) were never trained on; they were, however, one of the three cohorts that decided the lesion detector's adoption. CariesXrays' 1,200 scored images are the lesion detector's validation split, so they are external for the crop classifier and the constant only.
 
-Additional caveat: the paired interval for the DENTEX difference is not in a saved artifact and is not reported here [MISSING RESULT: paired CI, DENTEX constant minus pipeline].
+\begin{table}[t]
+\centering
+\caption{Evaluation cohorts.}
+\label{tab:2}
+\footnotesize
+\begin{tabular}{>{\raggedright\arraybackslash}p{2.12cm}r>{\raggedright\arraybackslash}p{2.12cm}>{\raggedright\arraybackslash}p{2.12cm}}
+\toprule
+Cohort & Images & Lesions & Role \\
+\midrule
+DENTEX disease & 164 & 479 & development \\
+Ningxia, 4 hospitals & 337 & 1,013 & external \\
+CariesXrays & 1,200 & 2,815 & external (except lesion detector) \\
+Tufts test & 150 & — & detector, numbering, Stage 4 \\
+UFBA-425 & 425 & — & numbering, unseen corpus \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-\subsection{RQ1 on external cohorts}
+\textbf{The ladder.} Four systems answer one question — which teeth in this radiograph show caries? — on the same 164 images: the pipeline (with each Stage-3a implementation), Qwen2.5-VL-32B (33.45 B parameters) and Qwen2.5-VL-7B (8.29 B), both zero-shot, and a constant. The constant is found by greedy search over tooth codes on the 78 excluded images that carry caries, then frozen: \{16, 17, 26, 27, 36, 37, 46, 47\}. It scores F1 0.392 on those images and 0.320 on the scored ones, as an honestly held-out fit should. The VLMs receive the FDI scheme in the prompt and are parsed permissively. As content-free controls they are also shown a blank grey image and a random-noise image.
 
-\emph{Observed.} On 337 Ningxia images (1,013 lesions; Fig.~\ref{fig:3}), pooled agreement was 0.408 for the pipeline and 0.399 for the constant, at 6.246 and 5.789 flagged teeth per image; per hospital the constant-minus-pipeline difference ranged from +15.8 points at test1 to $-$10.6 points at test2. On 1,500 randomly drawn CariesXrays images (3,421 lesions), the constant reached 0.561 and the pipeline 0.309, and the constant flagged 9,672 teeth against 5,906 at match rates 0.206 and 0.189.
+\textbf{Metrics.} \emph{FDI-set F1} treats each image as a set of carious tooth codes, micro-averaged over teeth. \emph{Lesion-localisation agreement} is the fraction of expert lesions that overlap a flagged tooth: on DENTEX by greedy IoU $\geq$ 0.30 with a centroid fallback, and on external cohorts by centroid containment, because their lesions are small (median 731 pixels) inside tooth boxes of about 25,000 pixels. Agreement has no negative class and rises with the number of teeth flagged, so we report teeth flagged and the match rate beside it. Under this metric the constant's eight codes are placed by the pipeline's own boxes and numbering; on Tufts, 92.0\% [89.58, 94.06] of them land on a true first or second molar.
+
+\textbf{Statistics.} Intervals are 95\% percentile cluster bootstraps over images, 10,000 resamples, seed 42 (2,000 for the caries classifier's calibration intervals; 1,000 with seed 0 for the two abstention gains), paired when two systems share images. Images, not teeth, are resampled, because errors within an image are correlated. \textbf{Pre-registration.} The lesion detector's adoption rule — beat both the constant and the crop classifier on at least two of three cohorts, at no more than 1.5 times their rate of flagged teeth — was committed (ef3f453) before any arm was trained.
+
+\section{Results}
+
+\subsection{Training: what each model learned, on its validation split}
+
+Fig.~\ref{fig:3} shows the training logs of the four trained stages. Every training loss falls steadily; the checkpoint used is the best on each run's validation split, so these validation figures are selection diagnostics, not test results. The tooth detector reaches validation box mAP@0.5 0.634 on the 150 Tufts validation images at its last epoch (148), still rising slowly when training stopped. Its pre-registered guard on the frozen Tufts test split required box mAP@0.5 within four points of a Tufts-only control; it reached 0.587 against 0.723 and missed, and the detector was adopted regardless, by a dated decision, for the numbering and caries behaviour below. The lesion detector peaks at mAP@0.5 0.820 on the 1,200 CariesXrays validation images at epoch 29 of 54. The numbering head reaches crop-level FDI-exact 0.810 on 6,450 validation crops with ground-truth boxes at epoch 12 of 15; the quadrant digit is right on 98.1\% of crops and the position digit on 82.5\%, so almost all numbering error is in counting along the arch. The Stage-4a flag's validation macro-F1 stays below 0.6 in all three seeds (best 0.568, 0.580, 0.597), the first sign of its weakness.
 
 \begin{figure*}[t]
 \centering
-\includegraphics[trim=0 417.0bp 132.0bp 0, clip,width=0.82\textwidth]{figures/V004_ningxia_sites.pdf}
-\caption{The constant-versus-pipeline ordering reversed between hospitals (test1 0.446 vs 0.288; test2 0.407 vs 0.513), while the lesion detector was highest at all four; values from the saved external-evaluation outputs; no per-site intervals.}
+\includegraphics[width=\textwidth]{figures/R04_training.pdf}
+\caption{Training logs of the four trained stages, read from the saved run files. (a) Tooth detector, 148 epochs, validation on 150 Tufts radiographs. (b) Lesion detector, 54 epochs, validation on 1,200 CariesXrays radiographs. (c) Numbering head, 15 epochs, validation on 6,450 tooth crops (DENTEX and Tufts, ground-truth boxes). (d) Stage-4a flag, three seeds of one recipe. Dots mark the checkpoint each run kept. Validation splits, not test.}
 \label{fig:3}
 \end{figure*}
 
-\emph{Interpretation.} The ordering on development data did not replicate on Ningxia, and on CariesXrays the constant was ahead both in agreement and in match rate.
+\subsection{RQ1 on development data}
 
-\emph{Not established.} Internal and external agreement use different matchers and are not comparable to each other.
+\begin{table}[t]
+\centering
+\caption{Tooth-level caries prediction on 164 DENTEX images (477 carious teeth), micro-averaged.}
+\label{tab:3}
+\footnotesize
+\begin{tabular}{>{\raggedright\arraybackslash}p{4.20cm}rrr}
+\toprule
+System & Precision & Recall & F1 \\
+\midrule
+Pipeline, lesion detector & 0.439 & 0.574 & 0.498 \\
+Pipeline, crop classifier & 0.237 & 0.765 & 0.362 \\
+Constant (never reads image) & 0.218 & 0.600 & 0.320 \\
+Qwen2.5-VL-32B, zero-shot & 0.250 & 0.243 & 0.246 \\
+Qwen2.5-VL-7B, zero-shot & 0.248 & 0.107 & 0.149 \\
+Oracle constant (test-fitted) & 0.245 & 0.505 & 0.330 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-Additional caveat: the pooled Ningxia and CariesXrays paired intervals are omitted for the same reason as above.
+Both VLMs see the radiograph and score below a list that does not, by +7.32 points [+3.42, +11.23] and +17.04 [+12.66, +21.22] (Table~\ref{tab:3}, Fig.~\ref{fig:4}(a)). The frozen constant is one point below the oracle fitted on the test set, so almost all of the image-blind score is available without the evaluation data. Our pipeline leads the constant by +4.27 [+1.58, +7.05] with the crop classifier, by naming 1,537 teeth where the constant names 1,312, and by +17.80 [+13.48, +22.02] with the lesion detector, which leads on precision (0.439 against 0.218) and flags 624 tooth codes, 43.9\% of them carious. Under lesion agreement (Fig.~\ref{fig:4}(b)) the crop classifier leads the constant by 17.12 points [+12.15, +21.89], partly by volume: it flags 1,439 teeth against 988, at a lower match rate (0.267 against 0.306), and flagging every detected tooth reaches 0.998. The lesion detector flags 603 teeth at the highest match rate (0.473) and is not separable from the constant ($-$3.55 [$-$10.11, +2.64]).
 
-\subsection{RQ2: replacing the per-crop gate}
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{../fig_baselines.png}
+\caption{The constant-baseline comparison. (a) FDI-set F1 on 164 DENTEX images. (b) Lesion agreement on the same images, with teeth flagged inside each bar; the flag-everything arm shows the metric's ceiling. (c) The four external hospitals, crop classifier against the constant: the development lead does not replicate. (a) and (b) are in-domain for the tooth detector and use a different matcher from (c). Values are read from the saved evaluation files at render time.}
+\label{fig:4}
+\end{figure*}
 
-Five direct changes to the per-crop gate were each pre-registered and scored by the change in average precision (AP) on its 863 test crops from 34 images, paired over images: CLAHE contrast equalisation +0.0488 [$-$0.0031, +0.0993], 1.25 times crop expansion +0.0198 [$-$0.0367, +0.0810], position-balanced sampling +0.0432 [$-$0.0328, +0.1157], a retrain with 2.67 times the positives $-$0.0015 [$-$0.0886, +0.0821], and per-type thresholds changed F1 by +0.006 [$-$0.034, +0.041]. None of the intervals excludes zero, but they are wide, so effects of the size observed cannot be ruled out; these repairs were not scored against the constant. The caries stage was then replaced by whole-image lesion detection.
+\subsection{RQ1 on external data}
 
-\emph{Observed.} The lesion detector met the pre-registered rule on two of three cohorts (Table~\ref{tab:4}, Fig.~\ref{fig:4}). It flagged fewer teeth per image than both comparators on every cohort, at 0.305 to 0.664 of the constant's rate and 0.493 to 0.698 of the gate's. Per Ningxia hospital it reached 0.462, 0.576, 0.494 and 0.430 for test1 to test4, the highest of the three systems at each (Fig.~\ref{fig:3}). A detector trained on CariesXrays alone, the other pre-declared mixture, reached 0.694 on CariesXrays but 0.086 on DENTEX and 0.240 on Ningxia. Because the rule selecting between the two mixtures includes Ningxia, the external cohort informed which detector was adopted.
+On the four hospitals (Fig.~\ref{fig:4}(c)) the crop-classifier pipeline and the constant are level when pooled: 0.600 against 0.591, a difference of $-$0.89 points [$-$5.57, +3.86]. Per site the difference runs from +19.0 points for the constant at test1 (0.709 against 0.519) to $-$12.3 at test2 (0.579 against 0.702), a 31-point swing within one cohort; test2 shares a centre with the source cohort's own training portion, though none of its data trained our system. On CariesXrays the constant wins outright, 0.604 against 0.379, by 22.42 points [+20.18, +24.62], and flags 46\% more teeth at the higher match rate (0.200 against 0.188). The same pipeline is therefore 17 points above the constant, level with it, or 22 points below it depending only on the cohort, and it leads only on the corpus its detector trained on.
+
+\subsection{RQ2: localising lesions instead of classifying teeth}
+
+Five direct repairs of the crop classifier — contrast equalisation, crop expansion, position-balanced sampling, a retrain and threshold tuning — all returned intervals spanning zero. We then changed the task. Under the tooth detector of the time, the lesion detector met the pre-registered rule on two cohorts of three: +12.2 points [+10.1, +14.3] over the constant on CariesXrays and +10.2 [+6.3, +14.0] on Ningxia, with a tie on DENTEX ($-$3.3 [$-$8.4, +1.3]). Table~\ref{tab:4} gives the same three arms under the current detector.
 
 \begin{table*}[t]
 \centering
-\caption{Lesion agreement of the three Stage-3a comparators and the lesion detector's paired differences, percentage points with 95\% CIs.}
+\caption{Lesion agreement of the three Stage-3a options, current tooth detector; difference of the lesion detector minus the constant, paired 95\% CI.}
 \label{tab:4}
 \footnotesize
-\begin{tabular}{>{\raggedright\arraybackslash}p{2.6cm}rrrrr}
+\begin{tabular}{>{\raggedright\arraybackslash}p{4.20cm}rrrr}
 \toprule
-Cohort & Gate & Constant & Lesion detector & vs constant & vs gate \\
+Cohort & Crop classifier & Constant & Lesion detector & Difference (pp) \\
 \midrule
-DENTEX & 0.443 & 0.489 & 0.455 & -3.34 [$-$8.37, +1.33] & +1.25 [$-$3.19, +5.70] \\
-CariesXrays (held-out) & 0.317 & 0.562 & 0.684 & +12.22 [+10.08, +14.30] & +36.73 [+34.40, +39.02] \\
-Ningxia (external) & 0.408 & 0.399 & 0.500 & +10.17 [+6.27, +14.02] & +9.28 [+5.31, +13.29] \\
+DENTEX (dev.) & 0.802 & 0.630 & 0.595 & $-$3.55 [$-$10.11, +2.64] \\
+CariesXrays (its val. split) & 0.379 & 0.604 & 0.757 & +15.38 [+12.96, +17.73] \\
+Ningxia (external) & 0.600 & 0.591 & 0.684 & +9.28 [+4.72, +13.73] \\
 \bottomrule
 \end{tabular}
 \end{table*}
 
-\begin{figure*}[t]
-\centering
-\includegraphics[trim=0 646.5bp 132.0bp 0, clip,width=0.82\textwidth]{figures/V002_leverb.pdf}
-\caption{The lesion detector exceeded the constant on Ningxia (+10.17 pp) and CariesXrays (+12.22 pp) and tied on DENTEX, where the interval includes zero; whiskers are 95\% paired cluster-bootstrap intervals; values from the saved acceptance-rule outputs.}
-\label{fig:4}
-\end{figure*}
+The lead is not a volume effect: the lesion detector flags fewer teeth than the constant on every cohort (4.35 per image against 7.15 on Ningxia, 2.16 against 7.05 on CariesXrays). Per hospital it is separated from the constant at test2, test3 and test4 (+16.91 [+9.17, +24.62], +11.73 [+1.07, +21.34], +13.98 [+2.34, +24.34]) and not at test1 ($-$3.16 [$-$10.56, +3.97]). Treating the hospitals as a sample (DerSimonian–Laird random effects, post hoc) gives +9.61 [$-$0.54, +19.76] with I-squared 81\%: the lead holds at three of these four hospitals and is not shown for an unseen one. The training mixture, not the architecture, transfers: an arm trained on CariesXrays alone reached 0.694 [0.674, 0.714] on CariesXrays and collapsed to 0.086 [0.055, 0.119] on DENTEX and 0.240 [0.209, 0.272] on Ningxia.
 
-\emph{Interpretation.} The result is consistent with the change of task separating the system from the prior on Ningxia. The comparison does not isolate the task: the detector also differs from the gate in architecture and training data, and the single-corpus arm shows that the training mixture mattered, since its own-corpus score was the highest of any arm while it failed elsewhere.
-
-Additional caveat: none of the five gate repairs added the CariesXrays training data, so formulation and data are confounded.
-
-\emph{Not established.} Only Ningxia is external to the lesion detector, since both of its training corpora are cohorts in this comparison.
-
-Additional caveat: the CariesXrays row uses a 1,200-image held-out split, not the 1,500-image draw of Section V-B.
-
-\subsection{RQ3: outputs a constant cannot produce}
-
-\textbf{Numbering.} Detection recall was 70.6\%, end-to-end FDI-exact numbering 58.3\% (546 of 936 teeth, 95\% CI [53.9, 62.8]), and 82.6\% of the 661 detected teeth were numbered exactly (95\% CI [79.1, 85.8]). Of the 115 wrong codes, 89 were off by one position within the correct quadrant, and 16 of 661 detected teeth received a quadrant-level error. The Stage-1 detector reached box mAP@0.5 0.8100 on the Tufts test split; its mask mAP@0.5 was 0.6383, below the pre-registered bar of 0.65, and the model is used for boxes only. No position-only numbering baseline was run.
-
-Additional caveat: without such a control, these results show that numbering is informative, not that its information comes from the image rather than from tooth order.
-
-\textbf{Calibration.} These results describe the per-crop gate variant. On 863 held-out crops its expected calibration error (ECE) was 0.136; temperature scaling gave 0.152 and isotonic regression 0.043, at an average-precision cost from 0.550 to 0.500, and isotonic regression would change 155 of 863 verdicts at the 0.5 threshold. Isotonic regression reduced the test scores to 46 distinct values, and the resulting ties lowered average precision. We have no measured explanation for why temperature scaling increased ECE, and ECE has no interval here.
-
-\textbf{Selective prediction.} Declining the least-confident quarter raised numbering accuracy from 0.826 to 0.885 (+5.91 points, 95\% CI [+3.88, +7.68]) and caries-gate accuracy from 0.797 to 0.940 (+14.25 [+11.32, +16.63]); with shuffled confidences the gains were +0.03 and +0.00 points; the pre-registered 0.30 threshold gave 90.8\% coverage at 0.847 accuracy.
-
-\emph{Interpretation.} The shuffle control indicates that the gains come from the confidence ranking and not from discarding items.
-
-\subsection{Vision-language model behaviour}
-
-\emph{Observed.} Qwen2.5-VL-32B answered ``none'' to the blank image and 16, 17, 26, 27, 36, 37, 46, 47 to random noise; Qwen2.5-VL-7B answered 26,36 to the blank image, to noise and to a real radiograph. Few-shot prompting lowered Qwen2.5-VL-7B F1 from 0.149 to 0.066 with two examples and 0.034 with four.
-
-\emph{Interpretation.} These answers are consistent with the models emitting a population prior rather than reading the image, for these two models under this prompt.
-
-\subsection{The periodontal branch: a negative result}
-
-\emph{Observed.} The bone-loss gate reached macro-F1 0.9233 on 1,558 Tufts validation crops (59 diseased; sensitivity 0.8305, specificity 0.9953). On 736 Ningxia periodontal images the branch reached pooled affected-tooth sensitivity 2.4\% (95\% CI [2.0, 2.9]), between 1.4\% and 5.6\% across the four hospitals (Fig.~\ref{fig:5}).
+Fig.~\ref{fig:5} shows what these numbers look like on images. Rows were chosen by a rule fixed before rendering: the scored image with the most lesions all found, a typical image, and the image with the most lesions none found.
 
 \begin{figure*}[t]
 \centering
-\includegraphics[trim=0 604.5bp 132.0bp 0, clip,width=0.82\textwidth]{figures/V003_boneloss.pdf}
-\caption{External bone-loss sensitivity stayed below 9\% at every Ningxia hospital (pooled 2.43\%); whiskers are 95\% cluster-bootstrap intervals over 736 images; values from the saved bootstrap outputs.}
+\includegraphics[width=\textwidth]{figures/R03_outcomes.pdf}
+\caption{Pipeline output against the expert on three held-out DENTEX radiographs; left the lesion detector, right the constant placed by the same front end. (a) test\_120: all seven lesions found; 33 and 34 are also flagged with no annotated lesion. The constant, without reading the image, covers four of the seven. (b) test\_0 (Fig.~\ref{fig:2}): two of three found; the lesion on 48 is missed. (c) test\_110: none of four found — lesions on 32, 33, 34 and 46 are missed while 16, 24, 26, 36 and 37 are flagged. A flagged tooth without an annotated lesion is not a confirmed false positive, since the annotation's exhaustiveness is not documented. Radiographs: DENTEX~\cite{hamamci2023dentex}, CC BY-NC-SA 4.0.}
 \label{fig:5}
 \end{figure*}
 
-\emph{Not established.} The in-domain figure is the best of 32 epochs, selected on the same validation set, and is an upper bound rather than an estimate.
+\subsection{RQ3: outputs a constant cannot produce}
 
-Additional caveat: the external drop is not separated into image-domain shift, label-definition differences and threshold choice.
+\textbf{Numbering.} End-to-end FDI-exact accuracy on DENTEX is 92.8\% (869 of 936 teeth) [90.6, 94.9], an in-domain figure; 4 of the 936 teeth are never detected, and 93.2\% of the 932 found are numbered correctly. Of 63 wrong codes, 51 (81.0\%) name an adjacent tooth in the correct quadrant, and 6 of 932 detected teeth (0.6\%) get a quadrant-level error. On the Tufts test split (3,760 teeth) the pipeline reaches 63.5\% [59.3, 67.5] end to end, with 89.3\% of teeth detected and 71.1\% of those numbered correctly. On UFBA-425, which no model trained on, it reaches 44.5\% [42.39, 46.62] on the square export as distributed, and 77.2\% [75.19, 79.14] with each image widened to a panoramic shape.
+
+\textbf{Calibration} (measured on the crop classifier, not the lesion detector, which emits detection scores rather than per-tooth probabilities). The classifier is overconfident: expected calibration error (ECE) 0.136. Temperature scaling made it worse (0.152); isotonic regression reduced it to 0.043, at a cost — average precision falls from 0.550 to 0.500, and applied at the threshold it would change 155 of 863 verdicts — so we apply it to the reported confidence only. Its average precision, 0.550 [0.445, 0.660] against a prevalence of 0.147, shows that it ranks teeth well and fails at calibration and operating point.
+
+\textbf{Selective prediction.} Declining the least-confident quarter raises numbering accuracy from 0.932 to 0.980 (+4.76 points [+3.29, +6.54], 164 image clusters) and the crop classifier's from 0.797 to 0.940 (+14.25 [+11.32, +16.63], 34 clusters). With shuffled confidences both gains collapse to $-$0.06 and +0.00 points, so the gain comes from the confidence ranking, not from discarding items. The 0.30 threshold fixed in code lands at 96.1\% coverage and 0.941 accuracy.
+
+\subsection{Vision-language model controls}
+
+Qwen2.5-VL-7B answers 26,36 to a blank grey image, to random noise and to a real radiograph. Qwen2.5-VL-32B answers NONE to the blank image but, shown noise, answers 16, 17, 26, 27, 36, 37, 46, 47 — exactly the constant's set. Few-shot prompting lowers the 7B model's F1 from 0.149 to 0.066 (two shots) and 0.034 (four), by abstaining: empty answers rise from 56 to 123 of 164 images. These outputs on a noise input are not perception, for these two models under this prompt.
+
+\subsection{Stage 4, measured held out}
+
+The first Stage-4 model reported 0.923 macro-F1 on a crop-level split in which every validation radiograph also supplied training crops; on 125 test radiographs it had not trained on it found 3.4\% of labelled teeth (6 of 175). Retrained with the split made by radiograph, three runs found 27.5\%, 16.5\% and 11.0\% (50, 30 and 20 of 182) at 95.9–98.6\% specificity and 24.8–29.4\% precision (Fig.~\ref{fig:6}). On DENTEX, which has no such label, the flag fires on 6.1\% of detected teeth (274 of 4,512). The severity head, retrained on extent bands, scored macro-F1 0.294 [0.214, 0.385] against 0.334 for an image-blind tooth-position prior, did not meet its registered rule, and stays withheld. We make no periodontal claim.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{../fig_stage4a.png}
+\caption{Stage 4 on the held-out Tufts test split (143 radiographs, 3,892 teeth, 182 carrying its label): three training runs with 95\% radiograph-bootstrap intervals, beside the first model on the 125 radiographs it had not trained on.}
+\label{fig:6}
+\end{figure}
 
 \section{Discussion}
 
-\textbf{RQ1.} For the gate-variant pipeline, point estimates of tooth-level caries agreement were not above the image-blind prior on any of three cohorts: the constant was ahead on DENTEX and CariesXrays and level on Ningxia. Without the paired constant-minus-pipeline intervals this is a statement about point estimates; it is not a test of equivalence. The supported statement is non-separability, not that the constant is the better system. One hypothesis, not tested here, is that caries in these cohorts is concentrated in the molars, so that a fixed molar answer collects part of the achievable score; a per-tooth-type count of annotated lesions would test it.
-
-Additional caveat: that concentration was not measured in a saved artifact for this draft.
-
-\textbf{RQ2.} A detector whose flagged teeth come from predicted lesion boxes was separated from the prior on Ningxia; the five earlier repairs were judged only by AP on the gate's test crops, not against the prior. The result rests on one fully external cohort.
-
-Additional caveat: every model is a single training run.
-
-\textbf{RQ3.} Tooth identity, calibration against a comparator calibrator and abstention with a shuffle control are outputs that a fixed code list does not produce; per-site external results, which the constant does have, remain necessary beside them. We propose them as additional reporting axes.
-
-Additional caveat: they would need their own image-blind controls, such as position-only numbering and confidence, before they could count as evidence of image reading.
-
-\textbf{Implication.} For systems like the one tested here, we interpret a tooth-level caries score reported without an image-blind row and without per-site external results as insufficient evidence that the system reads the radiograph.
+\textbf{RQ1.} The pipeline clears the image-blind constant on the corpus its detector trained on, is level with it pooled over four external hospitals, and loses to it on a second benchmark; the same metric moves 40 points across cohorts and 31 across one cohort's sites. A favourable tooth-level figure on development data is therefore weak evidence of perception. Fig.~\ref{fig:1} and Fig.~\ref{fig:5} show the mechanism: the constant's molars overlap a large share of the expert's lesions without reading any pixel. \textbf{RQ2.} A detector that must place lesion boxes cannot score by reproducing a prior over positions, and it led the constant on the external hospitals while flagging fewer teeth; that lead is conditioned on Ningxia having informed its adoption, and the change of task is confounded with new training data. \textbf{RQ3.} Numbering, calibration and abstention with a shuffle control are outputs a constant cannot attempt; they still lack position-only controls. \textbf{What to report.} We propose that a tooth-level caries score be reported with an image-blind row, per-site external results, and the qualitative and training evidence of Figures 2, 3 and 5, so a reader can see what the system does on an image.
 
 \section{Limitations}
 
-The authors state the following limitations.
-
 \begin{itemize}
-\item The adopted lesion detector has no calibrated confidence and no abstention curve; the calibration and selective-prediction results describe the gate variant.
-\item No clinician comparison was made, so no clinical-utility claim is possible.
-\item The caries cohorts disagree in direction; the supported claim is non-separability.
-\item Internal and external agreement figures use different matchers and are not comparable.
-\item Localisation is tooth-level only.
-\item The external cohort has no healthy controls, so specificity and the area under the receiver operating characteristic curve are not computable.
-\item Unmatched flagged teeth are not confirmed false positives; the match rate is not precision.
-\item Only one VLM family at two scales was tested.
-\item Detection bounds numbering, and coverage figures are fractions of detected teeth.
-\item The in-domain bone-loss figure is a selected maximum, and its validation set cannot be regenerated from source.
-\item Bone-loss labels are weak supervision from one institution.
-\item Patient-level separation cannot be verified on DENTEX.
-\item All data are retrospective.
-\item The lesion detector is supported by one fully external cohort.
-\item Ningxia test2 shares a centre with the source cohort's own training portion and is the pipeline's best site.
-\item The test1 result is unexplained.
+\item DENTEX results are in-domain for the tooth detector, and the detector was adopted although it missed its pre-registered Tufts guard (0.587 against 0.723).
+\item Only Ningxia is external to the lesion detector, and it informed the detector's adoption; the random-effects interval includes zero.
+\item The lesion detector has no calibration or abstention curve of its own; those results describe the crop classifier.
+\item Internal and external agreement use different matchers and are not comparable; agreement has no negative class, and the external cohorts have no healthy controls.
+\item Training-curve values are on validation splits used to select checkpoints and are optimistic; every model is a single run except Stage 4a's three seeds.
+\item The qualitative examples are three images chosen by a rule; they illustrate, and do not replace, the cohort statistics.
+\item No clinician comparison was made, and no reference standard was re-annotated.
 \end{itemize}
-
-\textbf{Additional caveats.} Every trained model is a single run, so no seed variance is available. The CPU model behind the latency figure is not recorded. Related work is supported at abstract or title level only. The paired constant-minus-pipeline intervals are not in a saved artifact and are omitted. The two CariesXrays rows use different image sets. Two figures available only in project notes, the bone-loss firing rate on DENTEX and the molar concentration of CariesXrays lesions, are omitted. The lesion detector's gain is confounded with its architecture and training data. Numbering, calibration and abstention lack a position-only control. The bone-loss drop is not attributed to a type of shift. Leakage checks are byte-level. Lesion agreement rises with the number of teeth flagged, and the DENTEX ordering has no interval here.
 
 \section{Conclusion}
 
-On three cohorts, on point estimates, a constant naming the eight first and second molars scored above a six-stage pipeline's gate variant on tooth-level caries agreement on two cohorts and level with it on the third; paired intervals for these differences are still missing. A pre-registered lesion detector exceeded both the constant and the gate on the fully external cohort, by 10.17 and 9.28 points, although that comparison does not isolate the change of task. Numbering, calibration and abstention gave outputs a constant cannot produce, but without position-only controls they are not yet evidence of image reading, and the periodontal branch did not transfer. We propose reporting an image-blind row and per-site external results beside any tooth-level caries score; future work should add position-only controls, calibrate the lesion detector and compare with clinicians.
+On three cohorts the same pipeline sat above, level with and below an image-blind molar constant on tooth-level caries agreement, leading only on the corpus its detector had trained on. Reformulating caries as lesion localisation led the constant on four external hospitals while flagging fewer teeth. Real outputs, training logs and rule-chosen failures are shown beside every number. A tooth-level score reported alone cannot show that a system reads the radiograph; an image-blind row, per-site external results and visible evidence from the images should accompany it.
 
 \section*{Acknowledgment}
 
-[ASK AUTHOR: confirm wording] This manuscript draft was prepared with the assistance of the Research Communication Engine and the Claude Opus 5.5 model, which drafted text from the project's saved evaluation artifacts under the authors' direction. The authors are responsible for its content.
+[ASK AUTHOR: confirm wording] This manuscript draft was prepared with the assistance of the Research Communication Engine and the Claude Opus 5.5 model, which drafted text and rendered figures from the project's saved evaluation artifacts and models under the authors' direction. The authors are responsible for its content.
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}

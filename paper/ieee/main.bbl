@@ -21,17 +21,13 @@
 \providecommand{\BIBdecl}{\relax}
 \BIBdecl
 
-\bibitem{zancan2025ai}
-B.~G. Zancan, J.~A. Carneiro, C.~U. Martins, C.~Tirapelli, C.~P. Capel, E.~D.
-  da~Costa, H.~Gaêta-Araujo, J.~A. Baranauskas, and A.~A. Macedo,
-  ``{AI-powered precision in dental radiographic analysis using tailored CNNs
-  for tooth numbering and cavity detection},'' \emph{PLOS Digital Health},
-  2025.
-
-\bibitem{bilal2024pdcnet}
-A.~Bilal, A.~H. Khan, K.~Almohammadi, S.~A.~A. Ghamdi, H.~Long, and H.~Malik,
-  ``{PDCNET: Deep Convolutional Neural Network for Classification of
-  Periodontal Disease Using Dental Radiographs},'' \emph{IEEE Access}, 2024.
+\bibitem{hamamci2023dentex}
+\BIBentryALTinterwordspacing
+I.~E. Hamamci, S.~Er, O.~F. Durugol, G.~R. Cakmak, E.~de~la Rosa, E.~Simsar,
+  A.~E. Yuksel, and S.~Gultekin, ``{DENTEX: Dental Enumeration and Tooth
+  Pathosis Detection Benchmark for Panoramic X-ray},'' arXiv preprint, 2023.
+  [Online]. Available: \url{https://arxiv.org/abs/2305.19112}
+\BIBentrySTDinterwordspacing
 
 \bibitem{geirhos2020shortcut}
 R.~Geirhos, J.-H. Jacobsen, C.~Michaelis, R.~Zemel, W.~Brendel, M.~Bethge, and
@@ -42,14 +38,6 @@ R.~Geirhos, J.-H. Jacobsen, C.~Michaelis, R.~Zemel, W.~Brendel, M.~Bethge, and
 K.~Panetta, R.~Rajendran, A.~Ramesh, S.~Rao, and S.~Agaian, ``{Tufts Dental
   Database: A Multimodal Panoramic X-Ray Dataset for Benchmarking Diagnostic
   Systems},'' \emph{IEEE Journal of Biomedical and Health Informatics}, 2022.
-
-\bibitem{hamamci2023dentex}
-\BIBentryALTinterwordspacing
-I.~E. Hamamci, S.~Er, O.~F. Durugol, G.~R. Cakmak, E.~de~la Rosa, E.~Simsar,
-  A.~E. Yuksel, and S.~Gultekin, ``{DENTEX: Dental Enumeration and Tooth
-  Pathosis Detection Benchmark for Panoramic X-ray},'' arXiv preprint, 2023.
-  [Online]. Available: \url{https://arxiv.org/abs/2305.19112}
-\BIBentrySTDinterwordspacing
 
 \bibitem{chen2024cariesxrays}
 B.~Chen, S.~Fu, Y.~Liu, J.~Pan, G.~Lu, and Z.~Zhang, ``{CariesXrays: Enhancing
@@ -64,16 +52,40 @@ X.~Li, X.~Ma, Y.~Zhao, J.~Hu, J.~Liu, Z.~Yang, F.~Han, J.~Zhang, W.~Liu, and
   Deep Learning Models},'' \emph{Journal of Imaging Informatics in Medicine},
   2024.
 
+\bibitem{budagam2024oralbbnet}
+D.~Budagam, A.~Z. Imanbayev, I.~R. Akhmetov, A.~Sinitca, S.~Antonov, and
+  D.~Kaplun, ``{OralBBNet}: Spatially guided dental segmentation of panoramic
+  {X}-rays with bounding box priors,'' arXiv:2406.03747, 2024, introduces the
+  UFBA-425 dataset.
+
+\bibitem{zancan2025ai}
+B.~G. Zancan, J.~A. Carneiro, C.~U. Martins, C.~Tirapelli, C.~P. Capel, E.~D.
+  da~Costa, H.~Gaêta-Araujo, J.~A. Baranauskas, and A.~A. Macedo,
+  ``{AI-powered precision in dental radiographic analysis using tailored CNNs
+  for tooth numbering and cavity detection},'' \emph{PLOS Digital Health},
+  2025.
+
+\bibitem{bilal2024pdcnet}
+A.~Bilal, A.~H. Khan, K.~Almohammadi, S.~A.~A. Ghamdi, H.~Long, and H.~Malik,
+  ``{PDCNET: Deep Convolutional Neural Network for Classification of
+  Periodontal Disease Using Dental Radiographs},'' \emph{IEEE Access}, 2024.
+
 \bibitem{cerda2024determining}
 D.~{Cerda Mardini}, P.~{Cerda Mardini}, D.~P.~V. Iturriaga, and D.~R.~O.
   Borroto, ``{Determining the efficacy of a machine learning model for
   measuring periodontal bone loss},'' \emph{BMC Oral Health}, 2024.
 
-\bibitem{cao2024dpml}
-Z.~Cao, C.~Feng, Y.~Shen, G.~Ye, H.~Xu, J.~Wu, Z.~Wu, H.~Gao, and H.~Zhu,
-  ``{DPML: Prior-guided multitask learning for dental object recognition on
-  limited panoramic radiograph dataset},'' \emph{Expert Systems with
-  Applications}, 2024.
+\bibitem{krois2021generalizability}
+J.~Krois, A.~Garcia~Cantu, A.~Chaurasia, R.~Patil, P.~K. Chaudhari, R.~Gaudin,
+  S.~Gehrung, and F.~Schwendicke, ``Generalizability of deep learning models
+  for dental image analysis,'' \emph{Scientific Reports}, vol.~11, p. 6102,
+  2021.
+
+\bibitem{schwendicke2021checklist}
+F.~Schwendicke, T.~Singh, J.-H. Lee, R.~Gaudin, A.~Chaurasia, T.~Wiegand,
+  S.~Uribe, and J.~Krois, ``Artificial intelligence in dental research:
+  Checklist for authors, reviewers, readers,'' \emph{Journal of Dentistry},
+  vol. 107, p. 103610, 2021.
 
 \bibitem{guo2017calibration}
 \BIBentryALTinterwordspacing
@@ -96,12 +108,9 @@ S.~Bai, K.~Chen, X.~Liu, J.~Wang, W.~Ge, S.~Song, K.~Dang, and P.~Wang,
   \url{https://arxiv.org/abs/2502.13923}
 \BIBentrySTDinterwordspacing
 
-\bibitem{jocher2023ultralytics}
-\BIBentryALTinterwordspacing
-G.~Jocher, J.~Qiu, and A.~Chaurasia, ``{Ultralytics YOLO},'' Software,
-  https://github.com/ultralytics/ultralytics, 2023. [Online]. Available:
-  \url{https://github.com/ultralytics/ultralytics}
-\BIBentrySTDinterwordspacing
+\bibitem{jocher2024yolo11}
+G.~Jocher, J.~Qiu, and A.~Chaurasia, ``{Ultralytics YOLO11},'' Software,
+  version 8.3, 2024, \url{https://github.com/ultralytics/ultralytics}.
 
 \bibitem{he2016resnet}
 K.~He, X.~Zhang, S.~Ren, and J.~Sun, ``{Deep Residual Learning for Image

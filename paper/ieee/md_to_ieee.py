@@ -47,6 +47,21 @@ def cite(m):
 
 CITE_RE = re.compile(r"\s*\(((?:[A-Z][A-Za-z\- ]+?(?: et al\.)?, \d{4})(?:; [A-Z][A-Za-z\- ]+?(?: et al\.)?, \d{4})*)\)")
 
+# 28 Oct 2026: a source outside the RCE registry is cited by key, `[@key]` or `[@a,b]`, and its
+# entry is copied verbatim from the maintained manuscript's bibliography (paper/source.bib,
+# Crossref-checked), never written by hand here.
+SRC_BIB = Path("paper/source.bib").read_text(encoding="utf-8")
+KEY_RE = re.compile(r"\s*\[@([\w,]+)\]")
+bib_extra = {}
+
+def keycite(m):
+    keys = m.group(1).split(",")
+    for k in keys:
+        e = re.search(r"^@\w+\{" + re.escape(k) + r",.*?^\}", SRC_BIB, re.S | re.M)
+        if not e: raise SystemExit(f"[@{k}] is not in paper/source.bib")
+        bib_extra[k] = e.group(0) + "\n"
+    return r"~\cite{" + ",".join(keys) + "}"
+
 def esc(t):
     t = t.replace("\\", r"\textbackslash{}")
     for a, b in (("&", r"\&"), ("%", r"\%"), ("#", r"\#"), ("_", r"\_"), ("$", r"\$"), ("{", r"\{"), ("}", r"\}")):
@@ -57,11 +72,14 @@ def esc(t):
 def inline(t):
     t = esc(t)
     t = CITE_RE.sub(cite, t)
+    t = KEY_RE.sub(keycite, t)
     t = re.sub(r"\*\*(.+?)\*\*", r"\\textbf{\1}", t)
     t = re.sub(r"(?<![\w*])\*(.+?)\*(?!\w)", r"\\emph{\1}", t)
+    t = re.sub(r"\bFigure (\d)([a-f])\b", r"Fig.~\\ref{fig:\1}(\2)", t)
     t = re.sub(r"\bFigure (\d)\b", r"Fig.~\\ref{fig:\1}", t)
     t = re.sub(r"\bTable (\d)\b", r"Table~\\ref{tab:\1}", t)
     t = t.replace('"none"', "``none''").replace(' -', ' $-$').replace('[-', '[$-$').replace('(-', '($-$')
+    t = re.sub(r"(?<![\w$])-(?=\d)", r"$-$", t)   # a minus opening a table cell
     t = t.replace(">= ", r"$\geq$ ")
     return t
 
@@ -92,7 +110,23 @@ while i < len(lines):
     if m: body.append(r"\subsection{" + inline(m.group(2)) + "}"); i += 1; continue
     m = re.match(r"^!\[Figure (\d)\]\(figures_rce/(.+?)\.svg\)$", ln)
     if m: pending_fig = (m.group(1), m.group(2)); i += 1; continue
+    # 28 Oct 2026: raster/PDF figures. `![Figure N*](path)` spans both columns; without the star
+    # it is one column wide. The path is relative to paper/ieee/.
+    m = re.match(r"^!\[Figure (\d)(\*?)\]\(((?:figures/|\.\./).+?\.(?:pdf|png))\)$", ln)
+    if m: pending_fig = (m.group(1), m.group(3), m.group(2) == "*"); i += 1; continue
     m = re.match(r"^\*\*Figure (\d)\.\*\* (.+)$", ln)
+    if m and pending_fig and len(pending_fig) == 3:
+        n, path, wide = pending_fig
+        env, width = ("figure*", r"\textwidth") if wide else ("figure", r"\columnwidth")
+        body.append(f"\\begin{{{env}}}[t]\n\\centering\n\\includegraphics[width={width}]{{{path}}}\n"
+                    "\\caption{" + inline(m.group(2)) + "}\n\\label{fig:" + n + f"}}\n\\end{{{env}}}")
+        pending_fig = None; i += 1; continue
+    if ln.startswith("```"):
+        i += 1; code = []
+        while not lines[i].startswith("```"):
+            code.append(lines[i]); i += 1
+        body.append("{\\footnotesize\n\\begin{verbatim}\n" + "\n".join(code) + "\n\\end{verbatim}\n}")
+        i += 1; continue
     if m and pending_fig:
         n, stem = pending_fig; w, h = FIG_H[stem]
         trim = f"trim=0 {792 - 0.75 * h:.1f}bp {612 - 0.75 * w:.1f}bp 0, clip"
@@ -110,7 +144,10 @@ while i < len(lines):
             i += 1
         ncol = len(rows[0]); env = "table*" if ncol > 4 else "table"
         numeric = [all(re.match(r"^[\d$+\-\[(]", r[c].strip() or "0") for r in rows[1:] if r[c].strip()) for c in range(ncol)]
-        width = {3: "2.05cm", 4: "1.6cm"}.get(ncol, "2.6cm")
+        # Text columns share what the numeric columns leave of the column (8.4 cm) or page
+        # (17.4 cm) width, instead of a fixed narrow box that wrapped every label.
+        n_num = sum(numeric); n_txt = max(1, ncol - n_num)
+        width = f"{min(4.2, ((17.4 if env == 'table*' else 8.4) - 1.3 * n_num) / n_txt - 0.25):.2f}cm"
         spec = "".join("r" if numeric[c] else (r">{\raggedright\arraybackslash}p{" + width + "}") for c in range(ncol))
         tb = [f"\\begin{{{env}}}[t]", r"\centering", r"\caption{" + cap + "}", r"\label{tab:" + n + "}", r"\footnotesize",
               r"\begin{tabular}{" + spec + "}", r"\toprule", " & ".join(rows[0]) + r" \\", r"\midrule"]
@@ -159,6 +196,7 @@ tex = r"""\documentclass[conference]{IEEEtran}
 \end{document}
 """
 (OUT / "main.tex").write_text(tex, encoding="utf-8")
-(OUT / "references.bib").write_text("".join(bibentry(s) for s in REG if s["cite_key"] in cited), encoding="utf-8")
+(OUT / "references.bib").write_text("".join(bibentry(s) for s in REG if s["cite_key"] in cited)
+                                    + "".join(bib_extra[k] for k in sorted(bib_extra)), encoding="utf-8")
 unused = [s["cite_key"] for s in REG if s["cite_key"] not in cited]
 print("cited", len(cited), "unused registry entries (not written to bib):", unused)

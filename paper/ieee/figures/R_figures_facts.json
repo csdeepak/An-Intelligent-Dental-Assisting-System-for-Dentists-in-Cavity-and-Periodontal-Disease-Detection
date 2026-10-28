@@ -1,0 +1,252 @@
+{
+ "full": {
+  "image": "test_120",
+  "lesions": 7,
+  "matched": 7,
+  "flagged": 9,
+  "teeth": 26,
+  "lesion_boxes": 9,
+  "stage4_flags": 1,
+  "constant_teeth": 7,
+  "expert_on_constant_codes": 4,
+  "image_size": [
+   2872,
+   1504
+  ],
+  "expert_caries_fdi": [
+   12,
+   16,
+   28,
+   35,
+   36,
+   37,
+   46
+  ],
+  "flagged_fdi": [
+   [
+    12,
+    "caries"
+   ],
+   [
+    16,
+    "caries"
+   ],
+   [
+    28,
+    "deep_caries"
+   ],
+   [
+    33,
+    "caries"
+   ],
+   [
+    34,
+    "caries"
+   ],
+   [
+    35,
+    "caries"
+   ],
+   [
+    36,
+    "caries"
+   ],
+   [
+    37,
+    "caries"
+   ],
+   [
+    46,
+    "deep_caries"
+   ]
+  ],
+  "stage4_flag_fdi": [
+   38
+  ],
+  "uncertain_fdi": [],
+  "lesion_box_confidences": [
+   0.72,
+   0.8,
+   0.82,
+   0.83,
+   0.84,
+   0.84,
+   0.87,
+   0.89,
+   0.91
+  ],
+  "constant_codes_present": [
+   16,
+   17,
+   26,
+   27,
+   36,
+   37,
+   46
+  ]
+ },
+ "none": {
+  "image": "test_110",
+  "lesions": 4,
+  "matched": 0,
+  "flagged": 5,
+  "teeth": 26,
+  "lesion_boxes": 5,
+  "stage4_flags": 4,
+  "constant_teeth": 8,
+  "expert_on_constant_codes": 1,
+  "image_size": [
+   2955,
+   1316
+  ],
+  "expert_caries_fdi": [
+   32,
+   33,
+   34,
+   46
+  ],
+  "flagged_fdi": [
+   [
+    16,
+    "deep_caries"
+   ],
+   [
+    24,
+    "caries"
+   ],
+   [
+    26,
+    "deep_caries"
+   ],
+   [
+    36,
+    "caries"
+   ],
+   [
+    37,
+    "deep_caries"
+   ]
+  ],
+  "stage4_flag_fdi": [
+   32,
+   36,
+   37,
+   43
+  ],
+  "uncertain_fdi": [],
+  "lesion_box_confidences": [
+   0.45,
+   0.62,
+   0.8,
+   0.85,
+   0.88
+  ],
+  "constant_codes_present": [
+   16,
+   17,
+   26,
+   27,
+   36,
+   37,
+   46,
+   47
+  ]
+ },
+ "walk": {
+  "image": "test_0",
+  "lesions": 3,
+  "matched": 2,
+  "flagged": 4,
+  "teeth": 30,
+  "lesion_boxes": 4,
+  "stage4_flags": 0,
+  "constant_teeth": 8,
+  "expert_on_constant_codes": 1,
+  "image_size": [
+   2829,
+   1316
+  ],
+  "expert_caries_fdi": [
+   26,
+   45,
+   48
+  ],
+  "flagged_fdi": [
+   [
+    26,
+    "caries"
+   ],
+   [
+    36,
+    "deep_caries"
+   ],
+   [
+    45,
+    "deep_caries"
+   ],
+   [
+    46,
+    "caries"
+   ]
+  ],
+  "stage4_flag_fdi": [],
+  "uncertain_fdi": [
+   24,
+   42
+  ],
+  "lesion_box_confidences": [
+   0.35,
+   0.66,
+   0.73,
+   0.89
+  ],
+  "constant_codes_present": [
+   16,
+   17,
+   26,
+   27,
+   36,
+   37,
+   46,
+   47
+  ]
+ },
+ "training": {
+  "det_best": [
+   0.63443,
+   148.0
+  ],
+  "les_best": [
+   0.82012,
+   29.0
+  ],
+  "det_epochs": 148,
+  "les_epochs": 54,
+  "fdi_best": [
+   12,
+   0.810077519379845,
+   6450
+  ],
+  "fdi_val_quadrant_position_acc": [
+   0.9810852713178294,
+   0.8252713178294574
+  ],
+  "s4": {
+   "42": [
+    16,
+    0.5681,
+    26
+   ],
+   "43": [
+    24,
+    0.5803,
+    34
+   ],
+   "44": [
+    45,
+    0.5968,
+    50
+   ]
+  }
+ }
+}

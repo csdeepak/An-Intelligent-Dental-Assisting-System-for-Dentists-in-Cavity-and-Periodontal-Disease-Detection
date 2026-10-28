@@ -1828,6 +1828,16 @@ submission and one of them is a licence breach that is live today.
 | **Ningxia** | locked external test (4 hospitals) | ✅ **VERIFIED 4 Sep 2026 — no formal licence, informal non-commercial request only.** The source repo (`github.com/qinxin99/qinxini`) carries no LICENSE file and no CC/OSI licence text; the only stated term is "we kindly request that you do not use it for any commercial purposes." Weaker than DENTEX's formal licence, but this project's use (non-commercial research, no redistribution) satisfies it. The source paper (Li et al. 2024, `li2024multicenter`, now added to `source.bib` and cited in `main.tex` — it was not cited before this pass despite the repo requesting citation on use) requests citation on use. | Public release, `Journal of Imaging Informatics in Medicine` 37(2):831-841 | ✅ compliant, weaker terms noted |
 | **SDH clinic (3,219 images)** | not used in any result | Institutional; no data-use agreement recorded | **Images yes, mapping file NO** | ⛔ **IRB not started; de-identification void** |
 
+> **Added 28 Oct 2026 — DENTEX pixels are now in a paper figure.** The DENTEX row above was compliant
+> partly because nothing redistributed the data. The rebuilt mentor draft (`paper/ieee/`,
+> `RESULTS_LOG` 2026-10-28) shows three held-out DENTEX radiographs with model output drawn on them
+> (`scripts/figures/make_opg_figures.py`), each caption attributing DENTEX and its licence.
+> Non-commercial research use and attribution are met. **Share-alike is open:** the licence asks
+> that derivative works be shared under similar terms, and a figure in a paper whose copyright is
+> transferred to a publisher may not satisfy that. Before submission, either the venue's form must
+> allow the figure to carry CC BY-NC-SA 4.0, or the figure must be replaced. Tufts, Ningxia and
+> CariesXrays pixels remain out of every figure.
+
 #### 8.19.2 Tufts — the terms, and the breach
 
 The release agreement states, verbatim:
@@ -3217,6 +3227,13 @@ For whoever drafts the actual paper. Tick items off here as they land.
       subtype, showing the gate over-calls healthy teeth (19.2%) at the same rate as impacted
       ones (19.0%), so it is not confusing pathology-for-pathology; plus a visual panel of the
       highest-confidence false positives and most-missed false negatives.
+- [~] **Real-radiograph figures and current training curves — in the mentor draft, not yet in
+      `main.tex`. Done 28 Oct 2026** (`RESULTS_LOG` 2026-10-28,
+      `scripts/figures/make_opg_figures.py`): an OPG reading guide, every stage on one held-out
+      DENTEX radiograph, rule-chosen outputs against the expert beside the constant (7/7, 2/3, 0/4
+      lesions found), and the training logs of all four trained stages under the current defaults.
+      Open: whether they go into `main.tex` and the six-page cut, and the DENTEX share-alike
+      question (§8.19).
 - [ ] Failure-case figure panel: the 10 false negatives and 7 false positives from the
       bone-loss confusion matrix, with Grad-CAM. **Blocked** on the bone-loss crop rebuild
       (RESULTS_LOG 2026-08-27u). A caries failure panel is buildable from `crops_v3_phase1`.

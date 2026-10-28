@@ -1,30 +1,32 @@
-# Open issues: mentor draft, v002 (review round v001_1)
+# Open issues: mentor draft, rebuilt 28 Oct 2026
+
+The 30 Sep version of this list (draft v002, review round v001_1) is in git at `3cc15fe`. This one
+replaces it for the rebuilt draft: 7 pages, current pipeline, numbers as verified in `paper/main.tex`,
+real-radiograph figures from `scripts/figures/make_opg_figures.py` (`RESULTS_LOG` 2026-10-28).
 
 ## Must resolve before any submission
-- [MISSING RESULT] Paired CIs for constant-minus-pipeline on DENTEX, Ningxia pooled and CariesXrays (no saved artifact; Q-008 chose to omit). Also per-site intervals for the constant and lesion detector on Ningxia (inference:4 / selective_presentation). Regenerate with the project's bootstrap script and save the output.
-- [ASK AUTHOR] Public anchor for the lesion-detector pre-registration (currently commit ef3f453 of a private repository) (finding:28, evidence_traceability).
-- [ASK AUTHOR] VLM decoding settings (sampling, max tokens) not recorded in the artifact (finding:11).
-- [CITATION NEEDED] Gap statement: systematic count of image-blind baselines / external validation in OPG caries papers (the project's "2 of 49" count has no saved script; Q-010 omitted it).
-- ECE has no interval (finding:10); a bootstrap over the 34 source images would add one.
-- Position-only control for numbering and confidence (finding:33 / inference:2) -- an experiment, not a wording fix.
-- Title scope (inference:1 / overgeneralization): the reviewer notes the title "What a Tooth-Level Score Cannot Tell You" is broader than the evidence, since the same metric separated the lesion detector. Title kept per Q-001 (author's own title); the text now scopes the claim to the gate-variant pipeline. Mentor/author decision.
-- Author and affiliation block; acknowledgment/AI-disclosure wording ([ASK AUTHOR]).
+- [LICENCE] Figures 1, 2 and 5 show DENTEX radiographs (CC BY-NC-SA 4.0). Share-alike must be
+  reconciled with the venue's copyright form, or the figures replaced (`PAPER_MATERIAL.md` §8.19).
+- [ASK AUTHOR] Author and affiliation block; acknowledgment and AI-use wording.
+- [ASK AUTHOR] Public anchor for the lesion-detector pre-registration (commit `ef3f453` of a
+  private repository).
+- [ASK AUTHOR] VLM decoding settings (sampling, maximum tokens) are not recorded with the runs.
+- [VENUE] The planned venue (IEEE CONECCT 2027, `transfer.md` §5) needs six pages; this draft is seven
+  and still carries Stage 4 and the numbering results, which the planned caries-only cut drops.
+- [CITATION] "In the 49 task-relevant papers of our own survey we noticed none that reports an
+  image-blind baseline" is an observation from the authors' reading, worded as such; it is not a
+  systematic count.
 
-## Accepted risks (author instruction, chat 2026-09-30: mentor draft, proceed with defaults)
-- All checkpoint defaults Q-001..Q-013 accepted by instruction, not individually reviewed.
-- Related work read at abstract/title level only (L019); ~12 bib keys of main.tex not carried.
-- Steps 1-2 and 8-9 run in the same context as drafting (isolation: none); G2 has no tool and is recorded as unverified.
+## Closed since 30 Sep
+- Paired constant-minus-pipeline intervals: the draft now quotes the post-switch intervals that
+  `main.tex` verifies (`outputs/caries_intervals/`, `outputs/stage1_switch/`).
+- Stage 4 is described by its label (an abnormality-proximity flag), held out, not as a periodontal
+  detector; the 0.923 is quoted only as the split artefact it was.
+- "No evident results": every stage is now shown on a real radiograph, with training curves and
+  rule-chosen successes and failures against the expert.
 
-## Assumed venue rules
-- IEEE conference, IEEEtran conference class, 8 pages including references assumed; no official call consulted.
-
-## Claims awaiting confirmation (writer-derived in revision v002)
-- C070-C076 (training data, calibrator split, constant scoring under lesion agreement, match-rate definition, lesion detector per site, VLM prompt, constant fitting set) -- drawn from run summaries, pre-registration and code, not stated in the author's manuscript.
-- L023-L027 additional caveats.
-
-## Review round v002_1 (second blind review) -- items not closable by wording
-- finding:22 / inference:1 -- non-separability rests on point estimates; paired constant-minus-pipeline CIs must be regenerated (same item as the MISSING RESULT above).
-- finding:23 -- pre-registration public anchor ([ASK AUTHOR]).
-- finding:29 / inference:0 -- title generality (author decision; Q-001 kept the author's title).
-- inference:11 -- VLM probe rests on one blank, one noise and two real images; a systematic content-free probe across all 164 images is future work; decoding settings [ASK AUTHOR].
-- inference:12 -- hash check of the lesion detector's DENTEX training images against the 164 scored images is not recorded ([ASK AUTHOR]).
+## Accepted risks
+- Training-curve values are on validation splits used for checkpoint selection (optimistic).
+- The three qualitative images are chosen by a rule stated in the text; they illustrate, and do not
+  replace, the cohort statistics.
+- Related work is cited at abstract level; the full bibliography stays in `main.tex`.

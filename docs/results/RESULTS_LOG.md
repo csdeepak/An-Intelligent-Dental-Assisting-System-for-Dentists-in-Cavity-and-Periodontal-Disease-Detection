@@ -9442,3 +9442,52 @@ manuscript now carries is from 2026-10-11g, -i and -j — and one new check, on 
 - **Follow-ups:** (1) optional — re-run both abstention intervals at 10,000 / seed 42 so the methods
   sentence needs one exception fewer; (2) the molar-mechanism figures need an artefact or should
   leave the docs; (3) Docker rebuild on Windows (unchanged from 2026-10-15b).
+
+## 2026-10-28 — the mentor draft rebuilt on the current pipeline, with real-radiograph and training figures
+
+- **What was done:** the 30 Sep RCE mentor draft (`paper/paper.md` → `paper/ieee/main.pdf`) was
+  read by the repo owner, whose first objection was that it shows no evident result of training or
+  testing — every figure was a chart, no radiograph, detection or output appeared anywhere. It was
+  also stale: written before the 11 Oct detector switch, the 13 Oct Stage-4a retrain and the 15 Oct
+  corrections, it described Stage 4 as a periodontal bone-loss gate and quoted pre-switch numbers.
+  Rewritten (7 pages) on the numbers `paper/main.tex` verifies, framed for a reader who knows
+  computer vision and not OPGs, with four new figures from `scripts/figures/make_opg_figures.py`
+  (new) and two current charts reused from `main.tex` (`fig_baselines.png`, `fig_stage4a.png`).
+- **Dataset / config:** DENTEX `disease/`, held-out images only (the 164 leakage-free set), run
+  through `run_inference.load_models` + `run_pipeline` with every default checkpoint (hash-pinned),
+  plus `classifiers.run_lesion_detector_raw` for the lesion boxes the report does not store and
+  `run_inference.draw_overlay` for the shipped overlay. Images chosen by a rule fixed before
+  rendering, from the saved per-image evaluation
+  (`outputs/stage1_switch/C_dentex_lesion-detector_arm3c/lesion_localization.json`): the most
+  lesions all matched (`test_120`), the most lesions none matched (`test_110`), and `test_0` (2 of
+  3, near the cohort's 0.595). The script asserts each image's flagged-tooth and lesion counts
+  equal the saved evaluation's before drawing. No Tufts, Ningxia or CariesXrays pixels.
+- **Metrics — new to the paper record (validation splits, used for checkpoint selection, so
+  optimistic; read from the run files):**
+
+  | stage | log | epochs | selected checkpoint |
+  |---|---|---|---|
+  | 1 tooth detector (`models/15` arm3c) | `arm3c_results.csv` | 148 | val box mAP@0.5 **0.634** at epoch 148 (150 Tufts val images; still rising) |
+  | 3a lesion detector (`models/16`) | `results.csv` | 54 | val mAP@0.5 **0.820** at epoch 29 (1,200 CariesXrays val) |
+  | 2 FDI head (`models/10`) | `training_results.json` | 15 | val FDI-exact **0.810** at epoch 12 (6,450 crops, GT boxes); quadrant 98.1%, position 82.5% |
+  | 4a flag (`models/18`), seeds 42/43/44 | `seed*_history.json` | 26/34/50 | val macro-F1 **0.568 / 0.580 / 0.597** at epochs 16/24/45 |
+
+  Qualitative facts (`paper/ieee/figures/R_figures_facts.json`): `test_120` — 7 expert lesions
+  (12 16 28 35 36 37 46), all matched, 9 teeth flagged (adds 33, 34); the constant's codes cover 4 of
+  the 7. `test_0` — 30 teeth, 4 lesion boxes (0.35–0.89), flags 26 36 45 46; expert 26 45 48, 2
+  matched, 48 missed. `test_110` — expert 32 33 34 46, none matched; flags 16 24 26 36 37.
+- **Traceability:** every one of the draft's 286 distinct numbers appears in `paper/main.tex` or in
+  the saved figure facts / run files; the JSON excerpt in §III matches the saved walkthrough report
+  (`paper/ieee/figures/R02_test_0_report.json`) value for value. 7 pages, 0 errors, 0 undefined
+  references, 0 overfull boxes.
+- **Key decision or insight:** the figures put DENTEX pixels into a paper for the first time; the
+  4 Sep figure-redistribution audit had kept every manuscript figure a derived chart. DENTEX is CC
+  BY-NC-SA 4.0: non-commercial research use and attribution are met (each caption attributes it),
+  but share-alike applies to derived figures and has to be reconciled with the venue's copyright
+  transfer before submission. The draft's build tool (`paper/ieee/md_to_ieee.py`) gained PDF/PNG
+  figures, `[@key]` citations copied from `paper/source.bib`, code blocks, and wider table columns.
+- **Source:** `scripts/figures/make_opg_figures.py`, `paper/ieee/figures/R01–R04*.pdf`,
+  `paper/ieee/figures/R_figures_facts.json`, `paper/paper.md`, `paper/ieee/main.tex`.
+- **Follow-ups:** (1) the share-alike question, before any submission; (2) whether the walkthrough
+  and outcome figures also go into `main.tex` and the six-page cut; (3) the remaining author items
+  (author block, pre-registration public anchor, VLM decoding settings) — `paper/ieee/open_issues.md`.
