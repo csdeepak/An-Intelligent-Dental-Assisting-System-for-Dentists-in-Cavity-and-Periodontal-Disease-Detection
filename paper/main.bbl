@@ -46,13 +46,13 @@ A.~Bilal, A.~H. Khan, K.~Almohammadi, S.~A. Al~Ghamdi, H.~Long, and H.~Malik,
   ``{PDCNET}: Deep convolutional neural network for classification of
   periodontal disease using dental radiographs,'' \emph{IEEE Access}, vol.~12,
   pp. 150\,147--150\,168, 2024. [Online]. Available:
-  \url{https://ieeexplore.ieee.org/document/10400831}
+  \url{https://ieeexplore.ieee.org/document/10703069}
 \BIBentrySTDinterwordspacing
 
 \bibitem{mutlu2026comparison}
 {\"O}.~Mutlu, E.~Aslan, and A.~Mert, ``Deep learning--based automated
   diagnostic charting on panoramic radiography: Comparison of {YOLOv11} and
-  {YOLOv12},'' \emph{Odontology}, 2026.
+  {YOLOv12},'' \emph{Odontology}, vol. 114, no.~4, pp. 2658--2668, 2026.
 
 \bibitem{asif2026yolo26}
 \BIBentryALTinterwordspacing
@@ -74,12 +74,8 @@ K.~Nassiri and M.~A. Akhloufi, ``{YOLO}-based panoramic dental {X}-ray image
 \BIBentryALTinterwordspacing
 S.~Eftimie, T.~Ileni, L.~Iacob, M.~Hedesiu, and L.~Diosan, ``Tooth-level
   detection and mapping of dental pathologies on panoramic radiographs using
-  {YOLOv11} and {RT-DETR},'' \emph{MethodsX}, vol.~15, no.~3, p. 103696, 2025,
-  published as Sorana Eftimie; an earlier SSRN preprint lists the same author
-  as Sorana Muresanu. Distinct from the unrelated Mure\c{s}anu 2024
-  \emph{Diagnostics} paper already in this corpus
-  (\texttt{muresanu2024automating}). [Online]. Available:
-  \url{https://doi.org/10.1016/j.mex.2025.103696}
+  {YOLOv11} and {RT-DETR},'' \emph{MethodsX}, vol.~15, no.~3, p. 103696, 2025.
+  [Online]. Available: \url{https://doi.org/10.1016/j.mex.2025.103696}
 \BIBentrySTDinterwordspacing
 
 \bibitem{chen2023deep}
@@ -104,8 +100,8 @@ B.~G. Zancan, J.~A. Carneiro, C.~U. Martins, C.~Tirapelli, C.~P. Capel, E.~D.
   da~Costa, H.~Ga{\^e}ta-Araujo, J.~A. Baranauskas, and A.~A. Macedo,
   ``{AI}-powered precision in dental radiographic analysis using tailored
   {CNNs} for tooth numbering and cavity detection,'' \emph{PLOS Digital
-  Health}, vol.~4, no.~2, p. e0001074, 2025. [Online]. Available:
-  \url{https://pmc.ncbi.nlm.nih.gov/articles/PMC11868773/}
+  Health}, vol.~4, no.~11, p. e0001074, 2025. [Online]. Available:
+  \url{https://pmc.ncbi.nlm.nih.gov/articles/PMC12633937/}
 \BIBentrySTDinterwordspacing
 
 \bibitem{zhang2025reliable}
@@ -123,9 +119,7 @@ Z.~Meng, J.~Hao, X.~Dai, Y.~Feng, J.~Liu, B.~Feng, H.~Wu, X.~Gai, H.~Zhu,
   T.~Hu, Y.~Wu, H.~Xu, J.~Li, J.~Xiao, X.~Liu, J.~T. Zhou, F.~Zhu, Z.~Zhao,
   L.~Xia, B.~Fang, J.~Sun, J.~Wu, and Z.~Liu, ``A multimodal vision-language
   model for comprehensive dental diagnosis and enhanced clinical practice,''
-  \emph{Nature Communications}, vol.~17, p. 8933, 2026, article 8933. Metadata
-  verified against the Crossref record, 28 Aug 2026. Preprint precursor
-  available as arXiv:2509.23344 (DentVLM). [Online]. Available:
+  \emph{Nature Communications}, vol.~17, p. 8933, 2026. [Online]. Available:
   \url{https://doi.org/10.1038/s41467-026-75718-x}
 \BIBentrySTDinterwordspacing
 
@@ -178,10 +172,7 @@ J.~Krois, A.~Garcia~Cantu, A.~Chaurasia, R.~Patil, P.~K. Chaudhari, R.~Gaudin,
 \BIBentryALTinterwordspacing
 {\v{Z}}.~Bizjak and T.~Robi{\v{c}}, ``Advancing dental caries detection in
   panoramic {X}-rays: {A} two-step deep learning approach,'' \emph{Informatica
-  Medica Slovenica}, vol.~29, no. 1--2, pp. 1--10, 2024, no DOI found --
-  checked Crossref by title and by author 4 Sep 2026, no match; this journal
-  does not appear to register DOIs. The journal-hosted url is the citable
-  record. [Online]. Available:
+  Medica Slovenica}, vol.~29, no.~1, pp. 1--7, 2024. [Online]. Available:
   \url{https://www.ims.si/index.php/ims/article/view/374}
 \BIBentrySTDinterwordspacing
 
@@ -195,8 +186,8 @@ D.~Cerda~Mardini, P.~Cerda~Mardini, D.~Paz Vicu{\~n}a~Iturriaga, and D.~R.
 \BIBentrySTDinterwordspacing
 
 \bibitem{jocher2024yolo11}
-G.~Jocher, J.~Qiu, and A.~Chaurasia, ``{Ultralytics YOLO11},'' Software,
-  version 8.3, 2024, \url{https://github.com/ultralytics/ultralytics}.
+G.~Jocher and J.~Qiu, ``{Ultralytics YOLO11},'' Software, version 11.0.0, 2024,
+  \url{https://github.com/ultralytics/ultralytics}.
 
 \bibitem{he2016resnet}
 K.~He, X.~Zhang, S.~Ren, and J.~Sun, ``Deep residual learning for image
@@ -214,9 +205,9 @@ K.~Panetta, R.~Rajendran, A.~Ramesh, S.~P. Rao, and S.~Agaian, ``Tufts dental
   no.~4, pp. 1650--1659, 2022.
 
 \bibitem{hamamci2023dentex}
-I.~E. Hamamci, S.~Er, E.~Simsar, A.~Sekuboyina, and Others, ``{DENTEX}: An
-  abnormal tooth detection with dental enumeration and diagnosis benchmark for
-  panoramic x-rays,'' 2023, arXiv:2305.19112.
+I.~E. Hamamci, S.~Er, E.~Simsar, A.~Sekuboyina, and Others, ``{DENTEX}: Dental
+  enumeration and tooth pathosis detection benchmark for panoramic {X}-ray,''
+  2023, arXiv:2305.19112.
 
 \bibitem{budagam2024oralbbnet}
 D.~Budagam, A.~Z. Imanbayev, I.~R. Akhmetov, A.~Sinitca, S.~Antonov, and

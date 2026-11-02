@@ -1,0 +1,785 @@
+[
+ {
+  "key": "dersimonian1986meta",
+  "title": "Meta-analysis in clinical trials",
+  "year": 1986,
+  "doi": "10.1016/0197-2456(86)90046-2",
+  "arxiv": null,
+  "first_author": "dersimonian",
+  "venue": "Controlled Clinical Trials",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "unreachable",
+    "query": "doi+title",
+    "error": "S2 API HTTP 429 after 3 retries"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "Meta-analysis in clinical trials",
+   "year": 1986,
+   "first_author": "dersimonian",
+   "venue": "Controlled Clinical Trials",
+   "doi": "10.1016/0197-2456(86)90046-2",
+   "volume": "7",
+   "page": "177-188",
+   "type": "journal-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "higgins2002quantifying",
+  "title": "Quantifying heterogeneity in a meta-analysis",
+  "year": 2002,
+  "doi": "10.1002/sim.1186",
+  "arxiv": null,
+  "first_author": "higgins",
+  "venue": "Statistics in Medicine",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "unreachable",
+    "query": "doi+title",
+    "error": "S2 API HTTP 429 after 3 retries"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "Quantifying heterogeneity in a meta\u2010analysis",
+   "year": 2002,
+   "first_author": "higgins",
+   "venue": "Statistics in Medicine",
+   "doi": "10.1002/sim.1186",
+   "volume": "21",
+   "page": "1539-1558",
+   "type": "journal-article"
+  },
+  "title_sim": 0.977,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "riley2011interpretation",
+  "title": "Interpretation of random effects meta-analyses",
+  "year": 2011,
+  "doi": "10.1136/bmj.d549",
+  "arxiv": null,
+  "first_author": "riley",
+  "venue": "BMJ",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "matched",
+    "query": "doi+title"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "Interpretation of random effects meta-analyses",
+   "year": 2011,
+   "first_author": "riley",
+   "venue": "BMJ",
+   "doi": "10.1136/bmj.d549",
+   "volume": "342",
+   "page": "d549-d549",
+   "type": "journal-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "field2007bootstrapping",
+  "title": "Bootstrapping clustered data",
+  "year": 2007,
+  "doi": "10.1111/j.1467-9868.2007.00593.x",
+  "arxiv": null,
+  "first_author": "field",
+  "venue": "Journal of the Royal Statistical Society Series B",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "unreachable",
+    "query": "doi+title",
+    "error": "S2 API HTTP 429 after 3 retries"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "Bootstrapping Clustered Data",
+   "year": 2007,
+   "first_author": "field",
+   "venue": "Journal of the Royal Statistical Society Series B: Statistical Methodology",
+   "doi": "10.1111/j.1467-9868.2007.00593.x",
+   "volume": "69",
+   "page": "369-390",
+   "type": "journal-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "efron1979bootstrap",
+  "title": "Bootstrap methods: another look at the jackknife",
+  "year": 1979,
+  "doi": "10.1214/aos/1176344552",
+  "arxiv": null,
+  "first_author": "efron",
+  "venue": "The Annals of Statistics",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "unreachable",
+    "query": "doi+title",
+    "error": "S2 API HTTP 429 after 3 retries"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "Bootstrap Methods: Another Look at the Jackknife",
+   "year": 1979,
+   "first_author": "efron",
+   "venue": "The Annals of Statistics",
+   "doi": "10.1214/aos/1176344552",
+   "volume": "7",
+   "page": "1-26",
+   "type": "journal-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "naeini2015obtaining",
+  "title": "Obtaining well calibrated probabilities using Bayesian binning",
+  "year": 2015,
+  "doi": "10.1609/aaai.v29i1.9602",
+  "arxiv": null,
+  "first_author": "naeini",
+  "venue": "AAAI",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "matched",
+    "query": "doi+title"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "Obtaining Well Calibrated Probabilities Using Bayesian Binning",
+   "year": 2015,
+   "first_author": "pakdaman naeini",
+   "venue": "Proceedings of the AAAI Conference on Artificial Intelligence",
+   "doi": "10.1609/aaai.v29i1.9602",
+   "volume": "29",
+   "page": null,
+   "type": "journal-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "unreachable",
+   "error": "HTTP Error 429: Too Many Requests"
+  }
+ },
+ {
+  "key": "geifman2017selective",
+  "title": "Selective classification for deep neural networks",
+  "year": 2017,
+  "doi": null,
+  "arxiv": "1705.08500",
+  "first_author": "geifman",
+  "venue": "NeurIPS",
+  "resolvers": {
+   "crossref_title": {
+    "outcome": "unmatched",
+    "query": "title"
+   },
+   "openalex_title": {
+    "outcome": "matched",
+    "query": "title"
+   },
+   "semantic_scholar": {
+    "outcome": "unreachable",
+    "query": "title",
+    "error": "S2 API HTTP 429 after 3 retries"
+   },
+   "arxiv": {
+    "outcome": "matched",
+    "query": "arxiv_id"
+   }
+  },
+  "lookup_verified": "true"
+ },
+ {
+  "key": "goyal2017making",
+  "title": "Making the V in VQA Matter: Elevating the Role of Image Understanding in Visual Question Answering",
+  "year": 2017,
+  "doi": "10.1109/CVPR.2017.670",
+  "arxiv": null,
+  "first_author": "goyal",
+  "venue": "CVPR",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "unreachable",
+    "query": "doi+title",
+    "error": "S2 API HTTP 429 after 3 retries"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "Making the V in VQA Matter: Elevating the Role of Image Understanding in Visual Question Answering",
+   "year": 2017,
+   "first_author": "goyal",
+   "venue": "2017 IEEE Conference on Computer Vision and Pattern Recognition (CVPR)",
+   "doi": "10.1109/cvpr.2017.670",
+   "volume": null,
+   "page": "6325-6334",
+   "type": "proceedings-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "unreachable",
+   "error": "HTTP Error 429: Too Many Requests"
+  }
+ },
+ {
+  "key": "agrawal2018dont",
+  "title": "Don't Just Assume; Look and Answer: Overcoming Priors for Visual Question Answering",
+  "year": 2018,
+  "doi": "10.1109/CVPR.2018.00522",
+  "arxiv": null,
+  "first_author": "agrawal",
+  "venue": "CVPR",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "unreachable",
+    "query": "doi+title",
+    "error": "S2 API HTTP 429 after 3 retries"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "Don't Just Assume; Look and Answer: Overcoming Priors for Visual Question Answering",
+   "year": 2018,
+   "first_author": "agrawal",
+   "venue": "2018 IEEE/CVF Conference on Computer Vision and Pattern Recognition",
+   "doi": "10.1109/cvpr.2018.00522",
+   "volume": null,
+   "page": "4971-4980",
+   "type": "proceedings-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "gururangan2018annotation",
+  "title": "Annotation Artifacts in Natural Language Inference Data",
+  "year": 2018,
+  "doi": "10.18653/v1/N18-2017",
+  "arxiv": null,
+  "first_author": "gururangan",
+  "venue": "NAACL",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "unreachable",
+    "query": "doi+title",
+    "error": "S2 API HTTP 429 after 3 retries"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "Annotation Artifacts in Natural Language Inference Data",
+   "year": 2018,
+   "first_author": "gururangan",
+   "venue": "Proceedings of the 2018 Conference of the North American Chapter of\n          the Association for Computational Linguistics: Human Language\n          Technologies, Volume 2 (Short Papers)",
+   "doi": "10.18653/v1/n18-2017",
+   "volume": null,
+   "page": "107-112",
+   "type": "proceedings-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "poliak2018hypothesis",
+  "title": "Hypothesis Only Baselines in Natural Language Inference",
+  "year": 2018,
+  "doi": "10.18653/v1/S18-2023",
+  "arxiv": null,
+  "first_author": "poliak",
+  "venue": "*SEM",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "matched",
+    "query": "doi+title"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "Hypothesis Only Baselines in Natural Language Inference",
+   "year": 2018,
+   "first_author": "poliak",
+   "venue": "Proceedings of the Seventh Joint Conference on Lexical and\n          Computational Semantics",
+   "doi": "10.18653/v1/s18-2023",
+   "volume": null,
+   "page": "180-191",
+   "type": "proceedings-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "degrave2021ai",
+  "title": "AI for radiographic COVID-19 detection selects shortcuts over signal",
+  "year": 2021,
+  "doi": "10.1038/s42256-021-00338-7",
+  "arxiv": null,
+  "first_author": "degrave",
+  "venue": "Nature Machine Intelligence",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "matched",
+    "query": "doi+title"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "AI for radiographic COVID-19 detection selects shortcuts over signal",
+   "year": 2021,
+   "first_author": "degrave",
+   "venue": "Nature Machine Intelligence",
+   "doi": "10.1038/s42256-021-00338-7",
+   "volume": "3",
+   "page": "610-619",
+   "type": "journal-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "zech2018variable",
+  "title": "Variable generalization performance of a deep learning model to detect pneumonia in chest radiographs: A cross-sectional study",
+  "year": 2018,
+  "doi": "10.1371/journal.pmed.1002683",
+  "arxiv": null,
+  "first_author": "zech",
+  "venue": "PLOS Medicine",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "matched",
+    "query": "doi+title"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "Variable generalization performance of a deep learning model to detect pneumonia in chest radiographs: A cross-sectional study",
+   "year": 2018,
+   "first_author": "zech",
+   "venue": "PLOS Medicine",
+   "doi": "10.1371/journal.pmed.1002683",
+   "volume": "15",
+   "page": "e1002683",
+   "type": "journal-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "oakdenrayner2020hidden",
+  "title": "Hidden stratification causes clinically meaningful failures in machine learning for medical imaging",
+  "year": 2020,
+  "doi": "10.1145/3368555.3384468",
+  "arxiv": null,
+  "first_author": "oakden-rayner",
+  "venue": "CHIL",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "unreachable",
+    "query": "doi+title",
+    "error": "S2 API HTTP 429 after 3 retries"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "Hidden stratification causes clinically meaningful failures in machine learning for medical imaging",
+   "year": 2020,
+   "first_author": "oakden-rayner",
+   "venue": "Proceedings of the ACM Conference on Health, Inference, and Learning",
+   "doi": "10.1145/3368555.3384468",
+   "volume": null,
+   "page": "151-159",
+   "type": "proceedings-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "kim2019design",
+  "title": "Design Characteristics of Studies Reporting the Performance of Artificial Intelligence Algorithms for Diagnostic Analysis of Medical Images: Results from Recently Published Papers",
+  "year": 2019,
+  "doi": "10.3348/kjr.2019.0025",
+  "arxiv": null,
+  "first_author": "kim",
+  "venue": "Korean Journal of Radiology",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "unreachable",
+    "query": "doi+title",
+    "error": "S2 API HTTP 429 after 3 retries"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "Design Characteristics of Studies Reporting the Performance of Artificial Intelligence Algorithms for Diagnostic Analysis of Medical Images: Results from Recently Published Papers",
+   "year": 2019,
+   "first_author": "kim",
+   "venue": "Korean Journal of Radiology",
+   "doi": "10.3348/kjr.2019.0025",
+   "volume": "20",
+   "page": "405",
+   "type": "journal-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "mongan2020claim",
+  "title": "Checklist for Artificial Intelligence in Medical Imaging (CLAIM): A Guide for Authors and Reviewers",
+  "year": 2020,
+  "doi": "10.1148/ryai.2020200029",
+  "arxiv": null,
+  "first_author": "mongan",
+  "venue": "Radiology: Artificial Intelligence",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "matched",
+    "query": "doi+title"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "Checklist for Artificial Intelligence in Medical Imaging (CLAIM): A Guide for Authors and Reviewers",
+   "year": 2020,
+   "first_author": "mongan",
+   "venue": "Radiology: Artificial Intelligence",
+   "doi": "10.1148/ryai.2020200029",
+   "volume": "2",
+   "page": "e200029",
+   "type": "journal-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "collins2024tripodai",
+  "title": "TRIPOD+AI statement: updated guidance for reporting clinical prediction models that use regression or machine learning methods",
+  "year": 2024,
+  "doi": "10.1136/bmj-2023-078378",
+  "arxiv": null,
+  "first_author": "collins",
+  "venue": "BMJ",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "unreachable",
+    "query": "doi+title",
+    "error": "S2 API HTTP 429 after 3 retries"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "TRIPOD+AI statement: updated guidance for reporting clinical prediction models that use regression or machine learning methods",
+   "year": 2024,
+   "first_author": "collins",
+   "venue": "BMJ",
+   "doi": "10.1136/bmj-2023-078378",
+   "volume": "385",
+   "page": "e078378",
+   "type": "journal-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": [
+    {
+     "type": "correction",
+     "notice_doi": "10.1136/bmj.q902"
+    }
+   ]
+  }
+ },
+ {
+  "key": "mohammadrahimi2022deep",
+  "title": "Deep learning for caries detection: A systematic review",
+  "year": 2022,
+  "doi": "10.1016/j.jdent.2022.104115",
+  "arxiv": null,
+  "first_author": "mohammad-rahimi",
+  "venue": "Journal of Dentistry",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "matched",
+    "query": "doi+title"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "Deep learning for caries detection: A systematic review",
+   "year": 2022,
+   "first_author": "mohammad-rahimi",
+   "venue": "Journal of Dentistry",
+   "doi": "10.1016/j.jdent.2022.104115",
+   "volume": "122",
+   "page": "104115",
+   "type": "journal-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "schwendicke2021checklist",
+  "title": "Artificial intelligence in dental research: Checklist for authors, reviewers, readers",
+  "year": 2021,
+  "doi": "10.1016/j.jdent.2021.103610",
+  "arxiv": null,
+  "first_author": "schwendicke",
+  "venue": "Journal of Dentistry",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "unreachable",
+    "query": "doi+title",
+    "error": "S2 API HTTP 429 after 3 retries"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "Artificial intelligence in dental research: Checklist for authors, reviewers, readers",
+   "year": 2021,
+   "first_author": "schwendicke",
+   "venue": "Journal of Dentistry",
+   "doi": "10.1016/j.jdent.2021.103610",
+   "volume": "107",
+   "page": "103610",
+   "type": "journal-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ }
+]
