@@ -13,6 +13,7 @@ figures (`scripts/figures/make_opg_figures.py`) and data figures
 - [ASK AUTHOR] Public anchor for the lesion-detector pre-registration (commit `ef3f453` of a
   private repository).
 - [ASK AUTHOR] VLM decoding settings (sampling, maximum tokens) are not recorded with the runs.
+- [ASK AUTHOR] CPU model for the 1.70 s per image runtime (Section IV, review item 20).
 - [VENUE] Ten pages. The planned venue (IEEE CONECCT 2027, `transfer.md` §5) takes six; either this
   version targets a different venue or a cut is chosen (the planned caries-only cut drops Stage 4 and
   most of RQ3).
@@ -22,6 +23,22 @@ figures (`scripts/figures/make_opg_figures.py`) and data figures
 - [DATA] Ningxia: Li et al. 2024 describe three hospitals; the release's four test splits (test2
   from the training centre, three cross-centre) are what the draft calls "four sites". Confirm with
   the dataset authors if a reviewer asks which hospital each split comes from.
+
+## Review round 1, 2 Nov 2026 (`paper/ieee/review/`, `RESULTS_LOG` 2026-11-02b)
+- Integrity gate (Stage 2.5): passed with notes after fixing Table 7's post-hoc framing and the
+  Table 3 Stage-4 count. Panel decision: **Major revision**; one validated Devil's Advocate
+  CRITICAL (the RQ2 sentence). The 21-item roadmap in `2026-11-02_panel_round1.md` is the open
+  work list for this draft.
+- Revision, 2 Nov (`2026-11-02_response_round1.md`, `RESULTS_LOG` 2026-11-02c): the 13 text items
+  are applied and the CRITICAL is closed in the text; 10 done, 5 partial, 6 planned or open.
+  Analyses of 2 Nov (`RESULTS_LOG` 2026-11-02d): HKSJ (4), DENTEX perceptual-hash check (6),
+  constant stability (15) and the image-blind operating curve with matched volume (16) are done
+  and in the draft. Open from the roadmap: Ningxia per-type comparison (1; needs the raw images,
+  `outputs/review_round1/README.md`); learned position-only floor, content ablation and site probe
+  (10); availability statement (11); a supplement for Stage 4 and the VLMs (2); a radiographic
+  definition of deep caries (19); a boxed checklist (21).
+- Figures 4 and 7 are at 0.80 and 0.78 text width. Their panel titles read in print, but the
+  confidence numbers and FDI labels inside the boxes do not. Enlarged insets would fix it.
 
 ## Closed 2 Nov 2026 (citation audit, `RESULTS_LOG` 2026-11-02)
 - Every reference resolved on Crossref, OpenAlex, Semantic Scholar and arXiv (34 of 36; Bizjak and

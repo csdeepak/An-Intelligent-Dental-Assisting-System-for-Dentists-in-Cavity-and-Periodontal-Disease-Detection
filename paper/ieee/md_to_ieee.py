@@ -139,7 +139,8 @@ while i < len(lines):
     # 28 Oct 2026: raster/PDF figures. `![Figure N*](path)` spans both columns; without the star
     # it is one column wide. The path is relative to paper/ieee/.
     # `![Figure N*0.9](...)`: an optional scale after the star sets the width as a fraction.
-    m = re.match(r"^!\[Figure (\d+)(\*?)(0\.\d+)?\]\(((?:figures/|\.\./).+?\.(?:pdf|png))\)$", ln)
+    # `![Figure N 0.9](...)`: the same for a one-column figure (2 Nov 2026).
+    m = re.match(r"^!\[Figure (\d+)(\*?) ?(0\.\d+)?\]\(((?:figures/|\.\./).+?\.(?:pdf|png))\)$", ln)
     if m: pending_fig = (m.group(1), m.group(4), (m.group(2) == "*", m.group(3) or "")); i += 1; continue
     # Display math: a `$$` line opens and closes a numbered equation, carried verbatim.
     if ln.strip() == "$$":
@@ -189,9 +190,15 @@ while i < len(lines):
         # Text columns share the rest in proportion to their longest cell, so a short "Verdict"
         # column does not take the width a long "Evidence" column needs.
         txt = [c for c in range(ncol) if not numeric[c]]
-        free = (17.4 if env == "table*" else 8.4) - numw - 0.22 * ncol
+        free = (17.4 if env == "table*" else 8.2) - numw - 0.22 * ncol
         need = {c: max(len(r[c]) for r in raw) ** 0.75 for c in txt}
         widths = {c: max(1.65, free * need[c] / sum(need.values())) for c in txt}
+        # 2 Nov 2026: a page-wide table whose text cells all fit on one line at their natural
+        # width (about 0.115 cm a character at ootnotesize) gets those widths, slack shared
+        # in proportion, so no row wraps.
+        nat = {c: 0.115 * max(len(r[c]) for r in raw) + 0.15 for c in txt}
+        if env == "table*" and sum(nat.values()) <= free:
+            widths = {c: nat[c] * free / sum(nat.values()) for c in txt}
         spec = "".join("r" if numeric[c] else (r">{\raggedright\arraybackslash}p{" + f"{widths[c]:.2f}cm" + "}") for c in range(ncol))
         tb = [f"\\begin{{{env}}}[t]", r"\centering", r"\caption{" + cap + "}", r"\label{tab:" + n + "}", r"\footnotesize",
               r"\setlength{\tabcolsep}{3pt}",
@@ -270,6 +277,7 @@ ABBR = {
     "Nature Machine Intelligence": "Nat. Mach. Intell.",
     "Radiology: Artificial Intelligence": "Radiol. Artif. Intell.",
     "Statistics in Medicine": "Stat. Med.",
+    "BMC Medical Research Methodology": "BMC Med. Res. Methodol.",
     "Controlled Clinical Trials": "Control. Clin. Trials",
     "Korean Journal of Radiology": "Korean J. Radiol.",
     "Journal of Prosthetic Dentistry": "J. Prosthet. Dent.",
@@ -281,6 +289,7 @@ ABBR = {
     "PLOS Digital Health": "PLOS Digit. Health",
     "BMC Oral Health": "BMC Oral Health",
     "Expert Systems with Applications": "Expert Syst. Appl.",
+    "Dentomaxillofacial Radiology": "Dentomaxillofac. Radiol.",
 }
 for full, short in ABBR.items():
     bib = re.sub(r"((?:journal|booktitle)\s*=\s*\{)" + re.escape(full) + r"\}", lambda m: m.group(1) + short + "}", bib)

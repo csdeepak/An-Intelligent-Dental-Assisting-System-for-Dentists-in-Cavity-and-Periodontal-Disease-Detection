@@ -94,12 +94,6 @@ J.~Krois \emph{et~al.}, ``Generalizability of deep learning models for dental
   diagnostic charting on panoramic radiography: Comparison of {YOLOv11} and
   {YOLOv12},'' \emph{Odontology}, vol. 114, no.~4, pp. 2658--2668, 2026.
 
-\bibitem{cerda2024determining}
-D.~Cerda~Mardini, P.~Cerda~Mardini, D.~Paz Vicu{\~n}a~Iturriaga, and D.~R.
-  Ortu{\~n}o~Borroto, ``Determining the efficacy of a machine learning model
-  for measuring periodontal bone loss,'' \emph{BMC Oral Health}, vol.~24,
-  no.~1, p. 100, 2024.
-
 \bibitem{bizjak2024advancing}
 {\v{Z}}.~Bizjak and T.~Robi{\v{c}}, ``Advancing dental caries detection in
   panoramic {X}-rays: {A} two-step deep learning approach,'' \emph{Inform. Med.
@@ -156,6 +150,11 @@ Z.~Meng \emph{et~al.}, ``A multimodal vision-language model for comprehensive
 S.~Bai, K.~Chen, X.~Liu, J.~Wang \emph{et~al.}, ``{Qwen2.5-VL} technical
   report,'' 2025, arXiv:2502.13923.
 
+\bibitem{batchelor2004grouping}
+P.~A. Batchelor and A.~Sheiham, ``Grouping of tooth surfaces by susceptibility
+  to caries: A study in 5--16 year-old children,'' \emph{BMC Oral Health},
+  vol.~4, no.~1, p.~2, 2004.
+
 \bibitem{field2007bootstrapping}
 C.~A. Field and A.~H. Welsh, ``Bootstrapping clustered data,'' \emph{J. R.
   Stat. Soc. B}, vol.~69, no.~3, pp. 369--390, 2007.
@@ -171,6 +170,16 @@ J.~P.~T. Higgins and S.~G. Thompson, ``Quantifying heterogeneity in a
 \bibitem{riley2011interpretation}
 R.~D. Riley, J.~P.~T. Higgins, and J.~J. Deeks, ``Interpretation of random
   effects meta-analyses,'' \emph{BMJ}, vol. 342, p. d549, 2011.
+
+\bibitem{inthout2014hartung}
+J.~IntHout, J.~P.~A. Ioannidis, and G.~F. Borm, ``The
+  {Hartung-Knapp-Sidik-Jonkman} method for random effects meta-analysis is
+  straightforward and considerably outperforms the standard {DerSimonian-Laird}
+  method,'' \emph{BMC Med. Res. Methodol.}, vol.~14, no.~1, p.~25, 2014.
+
+\bibitem{viechtbauer2007confidence}
+W.~Viechtbauer, ``Confidence intervals for the amount of heterogeneity in
+  meta-analysis,'' \emph{Stat. Med.}, vol.~26, no.~1, pp. 37--52, 2007.
 
 \bibitem{jocher2024yolo11}
 G.~Jocher and J.~Qiu, ``{Ultralytics YOLO11},'' Software, version 11.0.0, 2024,
@@ -199,5 +208,12 @@ J.~Mongan, L.~Moy, and C.~E. Kahn, ``Checklist for artificial intelligence in
 F.~Schwendicke \emph{et~al.}, ``Artificial intelligence in dental research:
   Checklist for authors, reviewers, readers,'' \emph{J. Dent.}, vol. 107, p.
   103610, 2021.
+
+\bibitem{akarslan2008comparison}
+Z.~Z. Akarslan, M.~Akdevelio{\u{g}}lu, K.~G{\"u}ng{\"o}r, and H.~Erten, ``A
+  comparison of the diagnostic accuracy of bitewing, periapical, unfiltered and
+  filtered digital panoramic images for approximal caries detection in
+  posterior teeth,'' \emph{Dentomaxillofac. Radiol.}, vol.~37, no.~8, pp.
+  458--463, 2008.
 
 \end{thebibliography}
