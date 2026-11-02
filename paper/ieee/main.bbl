@@ -22,103 +22,182 @@
 \BIBdecl
 
 \bibitem{hamamci2023dentex}
-\BIBentryALTinterwordspacing
-I.~E. Hamamci, S.~Er, O.~F. Durugol, G.~R. Cakmak, E.~de~la Rosa, E.~Simsar,
-  A.~E. Yuksel, and S.~Gultekin, ``{DENTEX: Dental Enumeration and Tooth
-  Pathosis Detection Benchmark for Panoramic X-ray},'' arXiv preprint, 2023.
-  [Online]. Available: \url{https://arxiv.org/abs/2305.19112}
-\BIBentrySTDinterwordspacing
+I.~E. Hamamci, S.~Er, E.~Simsar, A.~Sekuboyina \emph{et~al.}, ``{DENTEX}:
+  Dental enumeration and tooth pathosis detection benchmark for panoramic
+  {X}-ray,'' 2023, arXiv:2305.19112.
 
 \bibitem{geirhos2020shortcut}
-R.~Geirhos, J.-H. Jacobsen, C.~Michaelis, R.~Zemel, W.~Brendel, M.~Bethge, and
-  F.~A. Wichmann, ``{Shortcut learning in deep neural networks},'' \emph{Nature
-  Machine Intelligence}, 2020.
+R.~Geirhos \emph{et~al.}, ``Shortcut learning in deep neural networks,''
+  \emph{Nat. Mach. Intell.}, vol.~2, pp. 665--673, 2020.
 
 \bibitem{panetta2022tufts}
-K.~Panetta, R.~Rajendran, A.~Ramesh, S.~Rao, and S.~Agaian, ``{Tufts Dental
-  Database: A Multimodal Panoramic X-Ray Dataset for Benchmarking Diagnostic
-  Systems},'' \emph{IEEE Journal of Biomedical and Health Informatics}, 2022.
+K.~Panetta, R.~Rajendran, A.~Ramesh, S.~P. Rao, and S.~Agaian, ``Tufts dental
+  database: A multimodal panoramic {X}-ray dataset for benchmarking diagnostic
+  systems,'' \emph{IEEE J. Biomed. Health Inform.}, vol.~26, no.~4, pp.
+  1650--1659, 2022.
 
 \bibitem{chen2024cariesxrays}
-B.~Chen, S.~Fu, Y.~Liu, J.~Pan, G.~Lu, and Z.~Zhang, ``{CariesXrays: Enhancing
-  Caries Detection in Hospital-Scale Panoramic Dental X-rays via Feature
-  Pyramid Contrastive Learning},'' in \emph{Proceedings of the AAAI Conference
-  on Artificial Intelligence}, 2024.
+B.~Chen, S.~Fu, Y.~Liu, J.~Pan, G.~Lu, and Z.~Zhang, ``{CariesXrays}: Enhancing
+  caries detection in hospital-scale panoramic dental {X}-rays via feature
+  pyramid contrastive learning,'' in \emph{Proc. AAAI Conf. Artif. Intell.},
+  vol.~38, no.~20, 2024, pp. 21\,940--21\,948.
 
 \bibitem{li2024multicenter}
-X.~Li, X.~Ma, Y.~Zhao, J.~Hu, J.~Liu, Z.~Yang, F.~Han, J.~Zhang, W.~Liu, and
-  Z.~Zhou, ``{A Multi-center Dental Panoramic Radiography Image Dataset for
-  Impacted Teeth, Periodontitis, and Dental Caries: Benchmarking Methods and
-  Deep Learning Models},'' \emph{Journal of Imaging Informatics in Medicine},
-  2024.
+X.~Li \emph{et~al.}, ``A multi-center dental panoramic radiography image
+  dataset for impacted teeth, periodontitis, and dental caries: Benchmarking
+  segmentation and classification tasks,'' \emph{J. Imaging Inform. Med.},
+  vol.~37, no.~2, pp. 831--841, 2024.
 
 \bibitem{budagam2024oralbbnet}
 D.~Budagam, A.~Z. Imanbayev, I.~R. Akhmetov, A.~Sinitca, S.~Antonov, and
   D.~Kaplun, ``{OralBBNet}: Spatially guided dental segmentation of panoramic
-  {X}-rays with bounding box priors,'' arXiv:2406.03747, 2024, introduces the
-  UFBA-425 dataset.
+  {X}-rays with bounding box priors,'' arXiv:2406.03747, 2024.
 
-\bibitem{zancan2025ai}
-B.~G. Zancan, J.~A. Carneiro, C.~U. Martins, C.~Tirapelli, C.~P. Capel, E.~D.
-  da~Costa, H.~Gaêta-Araujo, J.~A. Baranauskas, and A.~A. Macedo,
-  ``{AI-powered precision in dental radiographic analysis using tailored CNNs
-  for tooth numbering and cavity detection},'' \emph{PLOS Digital Health},
-  2025.
+\bibitem{mohammadrahimi2022deep}
+H.~Mohammad-Rahimi \emph{et~al.}, ``Deep learning for caries detection: A
+  systematic review,'' \emph{J. Dent.}, vol. 122, p. 104115, 2022.
+
+\bibitem{lim2024dual}
+Y.-S. Lim \emph{et~al.}, ``Dual convolutional neural network framework for
+  segmenting dental caries in panoramic radiographs,'' \emph{J. Prosthet.
+  Dent.}, vol. 135, pp. 403.e1--403.e8, 2026.
 
 \bibitem{bilal2024pdcnet}
-A.~Bilal, A.~H. Khan, K.~Almohammadi, S.~A.~A. Ghamdi, H.~Long, and H.~Malik,
-  ``{PDCNET: Deep Convolutional Neural Network for Classification of
-  Periodontal Disease Using Dental Radiographs},'' \emph{IEEE Access}, 2024.
+A.~Bilal, A.~H. Khan, K.~Almohammadi, S.~A. Al~Ghamdi, H.~Long, and H.~Malik,
+  ``{PDCNET}: Deep convolutional neural network for classification of
+  periodontal disease using dental radiographs,'' \emph{IEEE Access}, vol.~12,
+  pp. 150\,147--150\,168, 2024.
 
-\bibitem{cerda2024determining}
-D.~{Cerda Mardini}, P.~{Cerda Mardini}, D.~P.~V. Iturriaga, and D.~R.~O.
-  Borroto, ``{Determining the efficacy of a machine learning model for
-  measuring periodontal bone loss},'' \emph{BMC Oral Health}, 2024.
+\bibitem{zancan2025ai}
+B.~G. Zancan \emph{et~al.}, ``{AI}-powered precision in dental radiographic
+  analysis using tailored {CNNs} for tooth numbering and cavity detection,''
+  \emph{PLOS Digit. Health}, vol.~4, no.~11, p. e0001074, 2025.
+
+\bibitem{zhang2025reliable}
+Y.~Zhang \emph{et~al.}, ``A reliable multi-stage system for tooth instance
+  segmentation and numbering in panoramic radiographs,'' \emph{IEEE J. Biomed.
+  Health Inform.}, pp. 1--13, 2025, early access.
+
+\bibitem{kim2019design}
+D.~W. Kim, H.~Y. Jang, K.~W. Kim, Y.~Shin, and S.~H. Park, ``Design
+  characteristics of studies reporting the performance of artificial
+  intelligence algorithms for diagnostic analysis of medical images: Results
+  from recently published papers,'' \emph{Korean J. Radiol.}, vol.~20, no.~3,
+  pp. 405--410, 2019.
 
 \bibitem{krois2021generalizability}
-J.~Krois, A.~Garcia~Cantu, A.~Chaurasia, R.~Patil, P.~K. Chaudhari, R.~Gaudin,
-  S.~Gehrung, and F.~Schwendicke, ``Generalizability of deep learning models
-  for dental image analysis,'' \emph{Scientific Reports}, vol.~11, p. 6102,
-  2021.
+J.~Krois \emph{et~al.}, ``Generalizability of deep learning models for dental
+  image analysis,'' \emph{Sci. Rep.}, vol.~11, p. 6102, 2021.
 
-\bibitem{schwendicke2021checklist}
-F.~Schwendicke, T.~Singh, J.-H. Lee, R.~Gaudin, A.~Chaurasia, T.~Wiegand,
-  S.~Uribe, and J.~Krois, ``Artificial intelligence in dental research:
-  Checklist for authors, reviewers, readers,'' \emph{Journal of Dentistry},
-  vol. 107, p. 103610, 2021.
+\bibitem{mutlu2026comparison}
+{\"O}.~Mutlu, E.~Aslan, and A.~Mert, ``Deep learning--based automated
+  diagnostic charting on panoramic radiography: Comparison of {YOLOv11} and
+  {YOLOv12},'' \emph{Odontology}, vol. 114, no.~4, pp. 2658--2668, 2026.
+
+\bibitem{cerda2024determining}
+D.~Cerda~Mardini, P.~Cerda~Mardini, D.~Paz Vicu{\~n}a~Iturriaga, and D.~R.
+  Ortu{\~n}o~Borroto, ``Determining the efficacy of a machine learning model
+  for measuring periodontal bone loss,'' \emph{BMC Oral Health}, vol.~24,
+  no.~1, p. 100, 2024.
+
+\bibitem{bizjak2024advancing}
+{\v{Z}}.~Bizjak and T.~Robi{\v{c}}, ``Advancing dental caries detection in
+  panoramic {X}-rays: {A} two-step deep learning approach,'' \emph{Inform. Med.
+  Slov.}, vol.~29, no.~1, pp. 1--7, 2024.
+
+\bibitem{goyal2017making}
+Y.~Goyal, T.~Khot, D.~Summers-Stay, D.~Batra, and D.~Parikh, ``Making the {V}
+  in {VQA} matter: Elevating the role of image understanding in visual question
+  answering,'' in \emph{Proc. IEEE Conf. Comput. Vis. Pattern Recognit.
+  (CVPR)}, 2017, pp. 6325--6334.
+
+\bibitem{agrawal2018dont}
+A.~Agrawal, D.~Batra, D.~Parikh, and A.~Kembhavi, ``Don't just assume; look and
+  answer: Overcoming priors for visual question answering,'' in \emph{Proc.
+  IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR)}, 2018, pp. 4971--4980.
+
+\bibitem{poliak2018hypothesis}
+A.~Poliak, J.~Naradowsky, A.~Haldar, R.~Rudinger, and B.~Van~Durme,
+  ``Hypothesis only baselines in natural language inference,'' in \emph{Proc.
+  7th Joint Conf. Lexical Comput. Semantics}, 2018, pp. 180--191.
+
+\bibitem{degrave2021ai}
+A.~J. DeGrave, J.~D. Janizek, and S.-I. Lee, ``{AI} for radiographic {COVID-19}
+  detection selects shortcuts over signal,'' \emph{Nat. Mach. Intell.}, vol.~3,
+  no.~7, pp. 610--619, 2021.
+
+\bibitem{zech2018variable}
+J.~R. Zech, M.~A. Badgeley, M.~Liu, A.~B. Costa, J.~J. Titano, and E.~K.
+  Oermann, ``Variable generalization performance of a deep learning model to
+  detect pneumonia in chest radiographs: A cross-sectional study,'' \emph{PLoS
+  Med.}, vol.~15, no.~11, p. e1002683, 2018.
 
 \bibitem{guo2017calibration}
-\BIBentryALTinterwordspacing
-C.~Guo, G.~Pleiss, Y.~Sun, and K.~Q. Weinberger, ``{On Calibration of Modern
-  Neural Networks},'' in \emph{Proceedings of the 34th International Conference
-  on Machine Learning}, 2017. [Online]. Available:
-  \url{https://arxiv.org/abs/1706.04599}
-\BIBentrySTDinterwordspacing
+C.~Guo, G.~Pleiss, Y.~Sun, and K.~Q. Weinberger, ``On calibration of modern
+  neural networks,'' in \emph{Proc. 34th Int. Conf. Mach. Learn. (ICML)},
+  vol.~70, 2017, pp. 1321--1330.
 
 \bibitem{zadrozny2002isotonic}
-B.~Zadrozny and C.~Elkan, ``{Transforming classifier scores into accurate
-  multiclass probability estimates},'' in \emph{Proceedings of the 8th ACM
-  SIGKDD International Conference on Knowledge Discovery and Data Mining},
-  2002.
+B.~Zadrozny and C.~Elkan, ``Transforming classifier scores into accurate
+  multiclass probability estimates,'' in \emph{Proc. 8th ACM SIGKDD Int. Conf.
+  Knowl. Discov. Data Min.}, 2002, pp. 694--699.
+
+\bibitem{geifman2017selective}
+Y.~Geifman and R.~El-Yaniv, ``Selective classification for deep neural
+  networks,'' in \emph{Adv. Neural Inf. Process. Syst.}, vol.~30, 2017, pp.
+  4878--4887.
+
+\bibitem{meng2026dentvlm}
+Z.~Meng \emph{et~al.}, ``A multimodal vision-language model for comprehensive
+  dental diagnosis and enhanced clinical practice,'' \emph{Nat. Commun.},
+  vol.~17, p. 8933, 2026.
 
 \bibitem{bai2025qwen25vl}
-\BIBentryALTinterwordspacing
-S.~Bai, K.~Chen, X.~Liu, J.~Wang, W.~Ge, S.~Song, K.~Dang, and P.~Wang,
-  ``{Qwen2.5-VL Technical Report},'' arXiv preprint, 2025. [Online]. Available:
-  \url{https://arxiv.org/abs/2502.13923}
-\BIBentrySTDinterwordspacing
+S.~Bai, K.~Chen, X.~Liu, J.~Wang \emph{et~al.}, ``{Qwen2.5-VL} technical
+  report,'' 2025, arXiv:2502.13923.
+
+\bibitem{field2007bootstrapping}
+C.~A. Field and A.~H. Welsh, ``Bootstrapping clustered data,'' \emph{J. R.
+  Stat. Soc. B}, vol.~69, no.~3, pp. 369--390, 2007.
+
+\bibitem{dersimonian1986meta}
+R.~DerSimonian and N.~Laird, ``Meta-analysis in clinical trials,''
+  \emph{Control. Clin. Trials}, vol.~7, no.~3, pp. 177--188, 1986.
+
+\bibitem{higgins2002quantifying}
+J.~P.~T. Higgins and S.~G. Thompson, ``Quantifying heterogeneity in a
+  meta-analysis,'' \emph{Stat. Med.}, vol.~21, no.~11, pp. 1539--1558, 2002.
+
+\bibitem{riley2011interpretation}
+R.~D. Riley, J.~P.~T. Higgins, and J.~J. Deeks, ``Interpretation of random
+  effects meta-analyses,'' \emph{BMJ}, vol. 342, p. d549, 2011.
 
 \bibitem{jocher2024yolo11}
-G.~Jocher, J.~Qiu, and A.~Chaurasia, ``{Ultralytics YOLO11},'' Software,
-  version 8.3, 2024, \url{https://github.com/ultralytics/ultralytics}.
+G.~Jocher and J.~Qiu, ``{Ultralytics YOLO11},'' Software, version 11.0.0, 2024,
+  \url{https://github.com/ultralytics/ultralytics}.
 
 \bibitem{he2016resnet}
-K.~He, X.~Zhang, S.~Ren, and J.~Sun, ``{Deep Residual Learning for Image
-  Recognition},'' in \emph{2016 IEEE Conference on Computer Vision and Pattern
-  Recognition (CVPR)}, 2016.
+K.~He, X.~Zhang, S.~Ren, and J.~Sun, ``Deep residual learning for image
+  recognition,'' in \emph{Proc. IEEE Conf. Comput. Vis. Pattern Recognit.
+  (CVPR)}, 2016, pp. 770--778.
 
 \bibitem{kuhn1955hungarian}
-H.~W. Kuhn, ``{The Hungarian method for the assignment problem},'' \emph{Naval
-  Research Logistics Quarterly}, 1955.
+H.~W. Kuhn, ``The {H}ungarian method for the assignment problem,'' \emph{Naval
+  Res. Logist. Q.}, vol.~2, no. 1--2, pp. 83--97, 1955.
+
+\bibitem{naeini2015obtaining}
+M.~Pakdaman~Naeini, G.~Cooper, and M.~Hauskrecht, ``Obtaining well calibrated
+  probabilities using {B}ayesian binning,'' in \emph{Proc. AAAI Conf. Artif.
+  Intell.}, vol.~29, no.~1, 2015, pp. 2901--2907.
+
+\bibitem{mongan2020claim}
+J.~Mongan, L.~Moy, and C.~E. Kahn, ``Checklist for artificial intelligence in
+  medical imaging ({CLAIM}): A guide for authors and reviewers,'' \emph{Radiol.
+  Artif. Intell.}, vol.~2, no.~2, p. e200029, 2020.
+
+\bibitem{schwendicke2021checklist}
+F.~Schwendicke \emph{et~al.}, ``Artificial intelligence in dental research:
+  Checklist for authors, reviewers, readers,'' \emph{J. Dent.}, vol. 107, p.
+  103610, 2021.
 
 \end{thebibliography}

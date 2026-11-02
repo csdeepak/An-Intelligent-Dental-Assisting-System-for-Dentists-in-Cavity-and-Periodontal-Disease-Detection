@@ -155,18 +155,36 @@ classifier branches carry no interval; `model_metrics.md` 0.207 → 0.206; `PAPE
 says 2,000, not 10,000. Work done before the merge on the stale base is kept unmerged on
 `record/2026-10-27-stale-base-revisit` (`8e150fe`) — keep that branch, §8.25 points at it. 215
 claims, 210 tests passing here (3 skipped). §8 edited.
-**28 Oct — the mentor draft rebuilt on the current pipeline, with real radiographs**
-(`RESULTS_LOG` 2026-10-28, `docs/session-memory/2026-10-28-mentor-draft-real-figures.md`). The
-30 Sep draft predated the 11–15 Oct changes (old detector, Stage 4 as "bone loss", pre-switch
-numbers); `paper/paper.md` → `paper/ieee/main.pdf` is now **7 pages** on the numbers `main.tex`
-verifies, plus four new figures rendered by `scripts/figures/make_opg_figures.py` through the
-shipped code path: an OPG reading guide, every stage on one held-out DENTEX radiograph, rule-chosen
-outputs against the expert (7/7, 2/3, 0/4 lesions found) beside the constant, and the training
-curves of all four trained stages. Every one of its 286 distinct numbers traces to `main.tex` or a
-saved file. **New compliance item:** the figures show DENTEX pixels (CC BY-NC-SA 4.0), which the
-4 Sep audit had kept out of the paper — share-alike must be squared with the venue's copyright form
-before submission (`PAPER_MATERIAL.md` §8.19). `main.tex` itself is unchanged and still has no
-radiograph figure.
+**28 Oct — the mentor draft is now a ten-page paper with real radiographs and a checked theory**
+(`RESULTS_LOG` 2026-10-28 and 2026-10-28b,
+`docs/session-memory/2026-10-28-mentor-draft-real-figures.md`). `paper/paper.md` →
+`paper/ieee/main.pdf` is **10 pages** on the numbers `main.tex` verifies. It has three parts:
+- A theory section (`PAPER_MATERIAL.md` §6.8): the closed-form F1 of the image-blind constant and
+  the rule that selects it, which reproduces the eight molars exactly. Every prediction is set
+  against a saved measurement.
+- The real-radiograph figures of `scripts/figures/make_opg_figures.py`.
+- Four data figures from `scripts/figures/make_draft_figures.py`: the positional prior,
+  the architecture, a paired-difference forest plot, and numbering/selective prediction/reliability.
+
+All 363 of its distinct numbers trace. It borrows the structure of two outside drafts the owner
+supplied (which quote archived pre-switch numbers), not their numbers.
+
+**2 Nov — citations audited with the academic-research-skills method** (`RESULTS_LOG`
+2026-11-02, `outputs/citation_audit/2026-11-02_ars/`). Every reference was resolved on four
+indexes, checked for retractions, and each cited claim was checked against the cited text. The draft
+now has 36 references, all from `paper/source.bib` (14 new). It says "four sites" for Ningxia,
+because Li et al. describe three hospitals. The fixes in `source.bib` also reach `main.tex`:
+- **Wrong links:** Zancan's link (an unrelated PMC article) and Bilal's (the wrong IEEE document).
+- **Wrong metadata:** Bizjak's issue and pages; Mutlu's volume and pages; the DENTEX title; the
+  YOLO11 citation.
+- **Printed curation notes:** removed from the reference list.
+
+`main.tex` was rebuilt (16 pages, 215/215). Still open:
+- **Compliance:** the figures show DENTEX pixels (CC BY-NC-SA 4.0). Share-alike must be squared
+  with the venue's copyright form before submission (§8.19).
+- **`main.tex` text:** it still says "four hospitals" for Ningxia, and it cites Cao et al.'s
+  61.83 mAP, which can't be verified (paywalled, no open abstract). Its remaining bibliography
+  follow-ups are in §9.
 
 > **Windows clone, 6 Sep 2026 — the Tufts crop corpus was cut from the wrong frame, and is now
 > rebuilt.** It scored 11.5% crop-level FDI-exact where the published number is 71.5%, with correct

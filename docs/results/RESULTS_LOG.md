@@ -9491,3 +9491,110 @@ manuscript now carries is from 2026-10-11g, -i and -j — and one new check, on 
 - **Follow-ups:** (1) the share-alike question, before any submission; (2) whether the walkthrough
   and outcome figures also go into `main.tex` and the six-page cut; (3) the remaining author items
   (author block, pre-registration public anchor, VLM decoding settings) — `paper/ieee/open_issues.md`.
+
+## 2026-10-28b — ten-page mentor draft: a closed-form theory of the image-blind constant, checked against the data
+
+- **What was done:** At the repo owner's request the mentor draft (`paper/paper.md` ->
+  `paper/ieee/main.pdf`) was rebuilt as a ten-page paper: the 28 Oct draft's real-radiograph
+  evidence, the structure of two outside drafts the owner supplied (`ieee-draft-a.pdf`,
+  `ieee-draft-b.pdf`, 27 Oct: architecture diagram, analysis-population/exposure table,
+  paired-difference forest plot, identity decomposition, repair table), and a new theory section
+  whose every prediction is set against a saved measurement. Four new data figures come from
+  `scripts/figures/make_draft_figures.py` (no model is run; each figure asserts its numbers equal
+  the saved ones before drawing).
+- **Dataset / config:** DENTEX `disease/` labels through the evaluation's own loaders
+  (`c1_vlm_baseline.load_gt` / `load_exemplars`): 78 excluded caries-bearing images (fit set) and
+  the 164 scored images. Saved evaluations: `outputs/stage1_switch/stage1_switch_results.json`,
+  `F_ningxia_random_effects.json`, `I_taxonomy_arm3c/`, `J_coverage_arm3c/`,
+  `B_dentex_arm3c/stage2_rows_head.json`, `outputs/caries_position_bias/`, `outputs/calibration/`.
+- **Metrics — new to the record (DENTEX, scored or fit set as stated):**
+  - FDI-set F1 of a constant S is 2·sum(n_c)/(|S|N + P), and adding code c raises it iff
+    p_c > F1(S)/2. Applied to fit-set prevalences the rule reproduces the greedy constant
+    {16,17,26,27,36,37,46,47} exactly: fit prevalences 0.372 (26) … 0.205 (27); ninth code 15 at
+    0.128 against the final threshold 0.196. Closed form = saved scores: 0.3924 fit, 0.3197 scored
+    (TP 286 / 1,312 named / 477 carious). Constant recall 0.5996 = share of carious teeth at its
+    codes. Scored-set prevalence of 17 and 27: 0.140 and 0.134 (why the test-fitted oracle keeps
+    six molars, 0.3299). Top-k F1 in fit order on the scored set peaks at k = 7 (0.325).
+  - Numbering errors by position, % of detected teeth given a wrong code: 10.1 (pos. 1), 11.3
+    (pos. 2), 4.1 (pos. 5); off-by-one direction 29 mesial / 22 distal. The coverage curve
+    recomputed from the saved per-tooth rows reproduces the saved 0.9324 full-coverage, 0.980 at
+    75% and the 0.30 operating point (96.1%, 0.941).
+  - Flag composition on the FDI-set task (`N_dentex_flagged_teeth`): flagged molars carious 46.3%
+    for the lesion detector, 28.4% for the crop classifier, 21.8% for the constant; flagged
+    premolars 39.7% against 17.0%.
+- **Key decision or insight:** the outside drafts quote the archived pre-switch numbers (e.g.
+  lesion detector minus constant -3.34 / +12.22 / +10.17, numbering 58.3% = 546/936) and no
+  radiographs; their structure was adopted, their numbers were not. One sign convention in the
+  draft: system minus comparator. `fig_baselines.png` and the Stage-4 chart were dropped from the
+  draft for the page budget (their numbers stay in tables and text). The reference list now prints
+  no URLs and none of `source.bib`'s curation notes — and checking that showed `main.tex`'s own
+  reference list does print them (`PAPER_MATERIAL.md` §9).
+- **Traceability:** 364 distinct numbers in the draft; all trace to `paper/main.tex`, a saved run
+  file or the two figure-facts JSONs, except arithmetic (7.2 = 100 - 92.8, 55.5 = 100 - 44.5) and
+  the 97.5th percentile. 10 pages, 0 errors, 0 undefined references, 0 overfull boxes;
+  `scripts/verify_paper_numbers.py` 215/215 (`main.tex` unchanged).
+- **Source:** `scripts/figures/make_draft_figures.py`, `paper/ieee/figures/R05–R08*.pdf`,
+  `paper/ieee/figures/R_draft_figures_facts.json`, `paper/paper.md`, `paper/ieee/md_to_ieee.py`.
+- **Follow-ups:** (1) DENTEX share-alike, unchanged; (2) `main.tex` references print curation
+  notes; (3) whether §III's theory goes into `main.tex`; (4) the draft is 10 pages against
+  CONECCT's 6, so a cut must be chosen; (5) author items in `paper/ieee/open_issues.md`.
+
+## 2026-11-02 — citation audit with the academic-research-skills method; bibliography corrected, ten-page draft re-cited
+
+- **What was done:** At the repo owner's request the citation method of the open-source
+  academic-research-skills suite (`github.com/Imbad0202/academic-research-skills`, commit `a41f3b2`,
+  v3.24.1) was applied to the ten-page mentor draft and to `paper/source.bib`. Its four resolver
+  clients (Crossref, OpenAlex, Semantic Scholar, arXiv; standard library only, read before use)
+  were run unmodified from a driver outside the repo: ID-keyed lookup with a 0.70 title
+  cross-check, exact-title fallback, and the suite's C-V6 rule (an entry is `false` only when a DOI
+  or arXiv ID provably fails; title-only misses are `unresolvable`, a coverage gap). Added: a
+  Crossref retraction/correction check (`filter=updates:<doi>`), a metadata comparison, and the
+  suite's claim-faithfulness step — each cited sentence checked against the cited work's abstract
+  (OpenAlex, Europe PMC, arXiv) or full text (Zancan via Europe PMC; Bizjak via the journal's PDF;
+  ECE attribution via Guo et al. 2017, Sec. 2).
+- **Dataset / config:** the draft's 23 references; all 86 `paper/source.bib` entries; 19 candidate
+  new citations. No model, evaluation or number of this project changed.
+- **Metrics:**
+  - Existence: draft 21/23 resolved on the indexes; `source.bib` 83/86. The rest: Bizjak (journal
+    registers no DOIs) and YOLO11 (software) confirmed at the publisher / Ultralytics docs; DENTEX
+    read `false` only because its v1 title failed the DOI title check (fixed). No retraction notice
+    on any cited work; correction notices on two works (TRIPOD+AI, not used; Zhu 2026, `main.tex`
+    only).
+  - **Errors found and fixed in `paper/source.bib` (printed by `main.tex` too):** Zancan's URL
+    pointed to an unrelated PMC article (PMC11868773, collagen XVII) → PMC12633937, issue 2 → 11;
+    Bilal's IEEE URL was the wrong document (10400831) → 10703069; Bizjak issue/pages 29(1–2):1–10
+    → 29(1):1–7; Mutlu missing volume/pages → 114(4):2658–2668; DENTEX title → current arXiv title;
+    YOLO11 software citation → the form Ultralytics documents (Jocher and Qiu, v11.0.0); "and
+    Others" → "and others" (two entries). 12 curation notes moved from the printed `note` field
+    to `annote`, so `main.tex`'s reference list no longer prints them.
+  - **Error found in the draft's build path:** the local RCE registry carried a wrong title for
+    Li et al. 2024 ("…Benchmarking Methods and Deep Learning Models"; published: "…Benchmarking
+    Segmentation and Classification Tasks"). The draft now cites everything from `source.bib`.
+  - **Claim-faithfulness:** supported — Panetta, DENTEX, CariesXrays, Krois (54.1% → 32.7%),
+    Cerda Mardini (weighted F1 0.29), Mutlu, UFBA-425, Bizjak (0.70 / 0.67), Zancan (0.9988, a
+    class-averaged accuracy; F1 0.9788 now quoted beside it). Not supported: "a multi-centre cohort
+    from **four** Chinese hospitals (Li et al.)" — the paper describes three hospitals (two in
+    Ningxia, one in Shenzhen); the four test splits come from the release's ReadMe. Not verifiable:
+    Cao et al. 2024 "95.06 → 61.83 mAP" (paywalled; no open abstract) — removed from the draft.
+    Reworded: Zhang et al. (no numbers in the abstract) → "outperforms prior methods on Tufts and
+    two other datasets".
+  - **14 citations added** to `source.bib` and the draft, each generated from its Crossref record,
+    resolved, and checked for the specific claim: DerSimonian–Laird, Higgins–Thompson (I²), Riley
+    (prediction interval), Field–Welsh (cluster bootstrap), Naeini (ECE), Geifman–El-Yaniv
+    (selective classification), Goyal and Agrawal (VQA language priors), Poliak (hypothesis-only
+    baselines), DeGrave (COVID-19 shortcuts), Zech (hospital alone AUC 0.861), Kim (6% external
+    validation, 31/516), Mongan (CLAIM), Mohammad-Rahimi (caries review, 86.1–96.1% on panoramics).
+- **Key decision or insight:** the draft now says "four sites", not "four hospitals", and states the
+  three-hospital / four-split discrepancy. The final draft: 10 pages, 36 references (34 resolve on
+  the indexes, 2 confirmed at source), 0 errors, 0 undefined references, 0 overfull boxes; IEEE
+  reference style (abbreviated venues, at most six authors then et al.). 363 distinct numbers
+  traced (main.tex, run files, or the cited work's own text; 7.2 and 55.5 are subtractions).
+  `main.tex` rebuilt: still 16 pages, `verify_paper_numbers.py` 215/215.
+- **Source:** `outputs/citation_audit/2026-11-02_ars/` (driver scripts, per-reference resolver
+  results before and after, the abstracts the claims were checked against, README); `paper/source.bib`;
+  `paper/paper.md`; `paper/ieee/md_to_ieee.py`.
+- **Follow-ups:** (1) `main.tex` still says "four hospitals" for Ningxia and cites Cao's
+  unverifiable 61.83; (2) `main.tex`-only entries with year disagreements against Crossref
+  (`schwendicke2021cost` 2021/2020, `khubrani2025detection` 2025/2024, `zhou2025deep` 2025/2026)
+  and author-field oddities (`sastika2025ai`, `vickram2025extraction`) — check print vs online year;
+  (3) `zhu2026dentfound` has a published correction.

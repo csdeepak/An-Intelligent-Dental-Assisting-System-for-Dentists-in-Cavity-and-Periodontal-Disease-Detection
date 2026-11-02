@@ -503,6 +503,26 @@ an explicit `not_assessable` abstention output, reported as a coverage–accurac
 already-planned fix, scheduled for Week 6, not Week 2. Report the current threshold as
 "uncalibrated 0.5-equivalent argmax" wherever these models are described until R3 lands.
 
+### 6.8 The image-blind constant in closed form (added 28 Oct 2026)
+
+Written for the ten-page mentor draft (`paper/paper.md` §III, `RESULTS_LOG` 2026-10-28b); not yet
+in `main.tex`. With $N$ scored images, $P$ carious teeth and $n_c$ the images in which code $c$ is
+carious, a constant $S$ scores FDI-set F1 $= 2\sum_{c\in S} n_c / (|S|N + P)$ — the scorer's own
+micro-F1, not an approximation — and adding a code raises it if and only if its prevalence
+$p_c = n_c/N$ exceeds $F_1(S)/2$. The F1-optimal constant is therefore the codes sorted by
+prevalence, cut where that test first fails. **Checked against the data**
+(`scripts/figures/make_draft_figures.py`, which asserts each of these): the rule reproduces the
+greedy constant {16, 17, 26, 27, 36, 37, 46, 47} from the 78 excluded caries-bearing images exactly
+(fit-set prevalences 0.372 for 26 down to 0.205 for 27; the ninth code, 15, at 0.128 against a
+threshold of 0.196); the closed form gives 0.3924 on the fit set and 0.3197 on the 164 scored
+images, equal to the saved scores; the constant's recall (0.5996) is the share of carious teeth at
+its codes. The draft pairs it with three further theoretical statements, each matched to a saved
+measurement: the identity chain $P(D)P(N|D)P(F|D,N)$ (Table 1 of the draft, from
+`stage1_switch_results.json` A/B/P); lesion agreement of the constant = the cohort's prior mass on
+the eight molars (0.494–0.709 across the Ningxia sites); and the positional-shortcut signature of
+§8.24 (base-rate tracking on healthy teeth, within-type AUC). Facts:
+`paper/ieee/figures/R_draft_figures_facts.json`.
+
 ---
 
 ## 7. Results
@@ -3233,7 +3253,36 @@ For whoever drafts the actual paper. Tick items off here as they land.
       DENTEX radiograph, rule-chosen outputs against the expert beside the constant (7/7, 2/3, 0/4
       lesions found), and the training logs of all four trained stages under the current defaults.
       Open: whether they go into `main.tex` and the six-page cut, and the DENTEX share-alike
-      question (§8.19).
+      question (§8.19). **Extended 28 Oct 2026 (b)** to a ten-page draft with a theory section
+      (§6.8), an architecture figure, a paired-difference forest plot with the random-effects
+      prediction interval, and a numbering/selective-prediction/reliability figure
+      (`scripts/figures/make_draft_figures.py`, `RESULTS_LOG` 2026-10-28b).
+- [x] **`main.tex`'s reference list prints `paper/source.bib`'s curation notes.** Found 28 Oct
+      2026: IEEEtran prints the `note` field, so `paper/main.bbl` carried text such as "checked
+      Crossref by title and by author 4 Sep 2026, no match" (Bizjak), "Distinct from the unrelated
+      Mure\c{s}anu 2024 …" (Eftimie) and "Metadata verified against the Crossref record" (Meng).
+      **Done 2 Nov 2026** (`RESULTS_LOG` 2026-11-02): 12 curation notes moved to `annote`;
+      `main.tex` rebuilt, its reference list no longer prints them.
+- [x] **Bibliography audit against Crossref, OpenAlex, Semantic Scholar and arXiv — done 2 Nov
+      2026** (`RESULTS_LOG` 2026-11-02, `outputs/citation_audit/2026-11-02_ars/`), with the
+      academic-research-skills resolver clients. Fixed in `source.bib` (so in `main.tex` too): the
+      Zancan link (pointed to an unrelated PMC article) and issue; the Bilal link (wrong IEEE
+      document); Bizjak issue and pages; Mutlu volume and pages; DENTEX title; the YOLO11 software
+      citation; two "and Others". 14 verified citations added for the ten-page draft.
+- [ ] **`main.tex` describes Ningxia as "four hospitals" and cites Li et al. for it.** Li et al.
+      2024 describe three hospitals (two in Ningxia, one in Shenzhen); the four test splits, test2
+      from the training centre and three cross-centre, come from the release's ReadMe. The
+      ten-page draft now says "four sites" and states the discrepancy; `main.tex` does not yet.
+- [ ] **`main.tex` cites Cao et al. 2024 for "95.06 → 61.83 mAP on a public benchmark".** The
+      95.06 own-data figure was verified before (comment in `source.bib`); the 61.83 could not be
+      checked on 2 Nov — the article is paywalled and no index carries its abstract. Verify from the
+      full text or drop it; the ten-page draft dropped it and cites Mutlu et al.'s verified 0.857 →
+      0.806 instead.
+- [ ] **`main.tex`-only bibliography follow-ups from the 2 Nov audit:** year disagrees with
+      Crossref for `schwendicke2021cost` (2021 vs 2020), `khubrani2025detection` (2025 vs 2024) and
+      `zhou2025deep` (2025 vs 2026) — check print vs online year; odd Crossref first-author fields
+      for `sastika2025ai` and `vickram2025extraction`; `zhu2026dentfound` carries a published
+      correction (10.1038/s41551-026-01759-8).
 - [ ] Failure-case figure panel: the 10 false negatives and 7 false positives from the
       bone-loss confusion matrix, with Grad-CAM. **Blocked** on the bone-loss crop rebuild
       (RESULTS_LOG 2026-08-27u). A caries failure panel is buildable from `crops_v3_phase1`.
