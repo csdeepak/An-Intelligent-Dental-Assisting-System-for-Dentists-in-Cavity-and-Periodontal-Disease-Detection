@@ -19,7 +19,8 @@ for p in ["claim_abstracts.json", "new_abstracts.json"]:        # cited works' o
 texts.append("0.9988 0.9788 accuracy F1 tooth numbering (Zancan full text, PMC12633937)")
 texts.append("lesion-level sensitivity 0.70 internal 0.67 external (Bizjak, Inform Med Slov 29(1):1-7)")
 
-jsons = list((R / "outputs/stage1_switch").glob("*.json")) + [R / p for p in (
+# outputs/review_round1: the round-1 analyses (RESULTS_LOG 2026-11-02d), added 2 Nov 2026.
+jsons = list((R / "outputs/stage1_switch").glob("*.json")) + list((R / "outputs/review_round1").glob("*.json")) + [R / p for p in (
     "outputs/caries_position_bias/caries_position_bias_test.json",
     "outputs/calibration/caries_gate_calibration_test.json",
     "outputs/calibration/caries_gate_isotonic.json",

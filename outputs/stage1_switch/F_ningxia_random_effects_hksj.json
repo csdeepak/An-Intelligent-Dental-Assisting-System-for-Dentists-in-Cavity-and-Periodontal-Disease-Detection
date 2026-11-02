@@ -1,0 +1,46 @@
+{
+  "source": "outputs/stage1_switch/stage1_switch_results.json",
+  "comparison": "arm3c: lesion-detector_minus_constant-molars",
+  "method": "per-site SE = 95% percentile CI width / 3.92 (as ningxia_random_effects.py); DL tau^2; HKSJ CI with t(k-1), plain and truncated (scale floored at 1); Q-profile 95% CI for tau^2; I^2 bounds via the Higgins-Thompson typical within-site variance. Post hoc, not pre-registered.",
+  "k": 4,
+  "dl": {
+    "mean_pp": 9.61,
+    "ci95_pp": [
+      -0.54,
+      19.76
+    ],
+    "tau_pp": 9.27,
+    "i2_pct": 81.0,
+    "prediction_interval_pp": [
+      -36.08,
+      55.29
+    ]
+  },
+  "hksj": {
+    "mean_pp": 9.606,
+    "scale_q": 0.788,
+    "se_pp": 4.597,
+    "ci95_pp": [
+      -5.02,
+      24.24
+    ],
+    "ci95_truncated_pp": [
+      -6.88,
+      26.09
+    ],
+    "excludes_zero": false,
+    "excludes_zero_truncated": false
+  },
+  "hksj_prediction_interval_pp": [
+    -34.91,
+    54.12
+  ],
+  "tau_pp_qprofile_ci95": [
+    3.22,
+    33.09
+  ],
+  "i2_pct_ci95": [
+    33.9,
+    98.2
+  ]
+}

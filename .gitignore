@@ -152,6 +152,9 @@ outputs/caries_arms/**/*.pth
 # submission blocker and must travel with the repo.
 !outputs/citation_audit/
 !outputs/citation_audit/**
+# Review round 1 analyses (2 Nov 2026; RESULTS_LOG 2026-11-02d): JSON and a README, 46 KB.
+!outputs/review_round1/
+!outputs/review_round1/**
 # Lever 1 multi-corpus detector retrain (1 Sep 2026). Pre-registration, same-day control,
 # both arms' per-image/summary JSONs and the paired-bootstrap scores. ~650 KB, JSON/MD/CSV
 # only (no weights, no images) -- the evidence behind the ABLATION verdict; must travel.
