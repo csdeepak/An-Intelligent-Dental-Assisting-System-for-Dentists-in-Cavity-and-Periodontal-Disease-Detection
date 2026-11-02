@@ -71,8 +71,41 @@ draft's content correct for an IEEE reviewer who knows computer vision but not O
     (cluster bootstrap, DerSimonian–Laird, I², prediction interval, ECE, selective classification);
     "four hospitals" → "four sites"; Cao's unverifiable number dropped. Build tool: IEEE venue
     abbreviations, six-author et al., figure scaling, unsplittable code listing. Final: 10 pages,
-    36 references (34 resolve on the indexes, 2 confirmed at source), 363 numbers traced. Not
-    committed.
+    36 references (34 resolve on the indexes, 2 confirmed at source), 363 numbers traced.
+    Committed as `2121a0b` (fix: source.bib, main.tex rebuild, audit folder) and `4b314da` (docs:
+    the draft and records); not pushed.
+17. **Fourth request, 2 Nov: "use the skill full-fledged, validate like a reviewer".** Mapped the
+    suite's other skills (35 modes); ran Stage 2.5 integrity (five phases + 7-mode failure
+    checklist): FAIL on two MEDIUM items, fixed with the owner's approval, re-verified, PASS WITH
+    NOTES. Writing-quality and figure checks; workflow audit against the 10 stages. Reviewer Phase 0:
+    four cards (Journal-Fit field-general, by the owner's choice) accepted; five-seat panel written
+    inline, in sequence, with honest provenance; editorial decision **Major revision**, one validated
+    Devil's Advocate CRITICAL, 21-item roadmap. Reports in `paper/ieee/review/`; `RESULTS_LOG`
+    2026-11-02b. Not committed.
+18. **Fifth request, 2 Nov: "Start revision".** Stage 4 REVISE.
+    - Applied all 13 text items, including the CRITICAL RQ2 rewording, plus two Crossref-generated
+      citations (Batchelor & Sheiham 2004; Akarslan et al. 2008) and four acronym definitions.
+    - Folded VI-F and VI-G into one subsection.
+    - Recovered the page budget from restatements and four figure widths; the draft is back to
+      10 pages.
+    - Found and fixed two overstatements the panel had not listed. The conclusion's "on four
+      external sites" now reads "pooled". Table 7's per-type evidence is labelled DENTEX-only.
+    - Response written to `paper/ieee/review/2026-11-02_response_round1.md`: 10 items done,
+      5 partial, 6 planned or open.
+    - Records: `RESULTS_LOG` 2026-11-02c, `PAPER_MATERIAL` §8.43 and the §9 item, `transfer.md`,
+      `open_issues.md`.
+    - Not committed.
+19. **Sixth request, 2 Nov: "Run the analyses".**
+    - Four of five run, all post hoc and all in the draft: HKSJ (item 4), constant stability
+      (15), operating curve plus matched volume (16), DENTEX near-duplicates (6).
+    - Two Crossref-generated citations added: IntHout 2014, Viechtbauer 2007.
+    - Ningxia per-type comparison (item 1) blocked: no per-tooth records were saved, and the raw
+      images are on an unattached drive.
+    - Found and fixed a second copy of the CRITICAL's overclaim, in the introduction's RQ2.
+    - Back to 10 pages: tables and captions condensed, figure widths reduced, converter extended.
+    - `outputs/review_round1/` whitelisted in `.gitignore`.
+    - Records: `RESULTS_LOG` 2026-11-02d, `PAPER_MATERIAL` §7.7 and §8.44.
+    - Not committed.
 
 ## Decisions made
 
@@ -106,6 +139,31 @@ draft's content correct for an IEEE reviewer who knows computer vision but not O
   its F1. New citations were chosen for claims the draft already made, each checked the same way.
 - **Fix `source.bib`, not the draft's copy**, so `main.tex` gets the corrections; the draft's
   build applies only presentation (abbreviations, et al., no URLs).
+- **Follow the reviewer skill's checkpoints rather than run straight through:** the cards were shown
+  and accepted before any report, and the integrity FAIL was fixed before Stage 3, as the suite
+  requires. The panel is labelled persona separation, not independent review, because one model
+  wrote all five seats in a session that had built the manuscript.
+- **The reviewer claim check (#1002) was not run** — it needs a separate subagent as judge, which
+  the user had not asked for; the attachment says so.
+- **Revision round 1 changed wording only.**
+  - No analysis was run, so no new number entered the paper. The five saved-data analyses each
+    need a `RESULTS_LOG` entry and an owner's go-ahead.
+  - Page budget came from restatements and figure width, never from claims. Each removed number was
+    checked to survive elsewhere.
+  - The JSON reflow was reverted because it overflowed the column.
+  - The Figure 4 box-label legibility cost is recorded in `open_issues.md`, not hidden.
+- **The Cerda et al. bone-loss clause was dropped** under item 2: Stage 4 is out of the caries
+  paper's focus.
+- **Matched volume added beyond the panel's literal ask (item 16).**
+  - The operating curve alone shows the floor. Comparing each system with an image-blind answer of
+    its own volume tests the "it just names more teeth" reading directly.
+  - The mixture of S_k and S_{k+1} is chosen by image ID, not by content, so it stays image-blind.
+- **Near-duplicate verdicts by eye are recorded in `outputs/review_round1/README.md`.** No script
+  can make them, and the montages contain DENTEX pixels, so they were not kept.
+- **HKSJ beside, not instead of, DL.** The registered pooled figure and the DL file stay untouched.
+  A new script writes a new JSON.
+- **`main.tex` RQ2 was checked rather than assumed.** Its sentence already carries the caveats, so
+  it was left alone.
 
 ## Open questions
 
@@ -121,8 +179,12 @@ draft's content correct for an IEEE reviewer who knows computer vision but not O
 
 ## Next steps
 
-1. Repo owner reads the ten-page `paper/ieee/main.pdf` and sends change requests.
-2. Settle the DENTEX share-alike question with the mentor and the venue's form.
-3. Move `source.bib` curation notes to a non-printing field and rebuild `main.tex`.
-4. If accepted, port the theory and the radiograph figures into `main.tex` and point
-   `verify_paper_numbers.py` at the chosen cut.
+1. Stage 4 REVISE, continued. Text items and four analyses are done
+   (`paper/ieee/review/2026-11-02_response_round1.md`). Remaining:
+   - the Ningxia per-type re-run, when the raw images are attached (`outputs/review_round1/README.md`);
+   - decide on item 10's experiments and item 11's availability statement;
+   - get the CPU model from the author.
+2. Stage 3′ re-review with the same four cards, then Stage 4.5 final integrity.
+3. Settle the DENTEX share-alike question with the mentor and the venue's form.
+4. Carry the roadmap items that apply to `main.tex` (RQ2 wording, HKSJ, reference standard,
+   availability) into it, with the "four hospitals" and Cao follow-ups.

@@ -179,7 +179,51 @@ because Li et al. describe three hospitals. The fixes in `source.bib` also reach
   YOLO11 citation.
 - **Printed curation notes:** removed from the reference list.
 
-`main.tex` was rebuilt (16 pages, 215/215). Still open:
+`main.tex` was rebuilt (16 pages, 215/215).
+
+**2 Nov — the draft was put through the suite's integrity gate and a five-seat review panel**
+(`RESULTS_LOG` 2026-11-02b, `paper/ieee/review/`). The integrity gate first failed on two medium
+issues: Table 7 called post-hoc checks "predictions", and Table 3 gave the wrong tooth count for
+Stage 4. Both were fixed and re-verified, and the gate now passes with notes. The panel's decision
+is **Major revision**, from all five seats (one model, persona-separated, not independent review).
+One Devil's Advocate CRITICAL was validated: the Discussion's sentence that a lesion detector
+"cannot score by reproducing a prior" contradicts Section III-E. The 21-item revision roadmap is in
+`2026-11-02_panel_round1.md`:
+- **13 text changes** — do these first.
+- **5 analyses computable from saved files:** HKSJ beside DerSimonian–Laird; a DENTEX
+  near-duplicate check; stability of the fitted constant; an image-blind operating curve; the
+  per-tooth-type comparison on Ningxia.
+- **1 needing new experiments:** a learned position-only floor, a content ablation and a
+  site-identification probe.
+- **1 release decision:** code and data availability.
+- **1 editing:** move Stage 4 and the VLM detail to a supplement.
+
+**2 Nov — revision round 1, text items applied** (`RESULTS_LOG` 2026-11-02c,
+`paper/ieee/review/2026-11-02_response_round1.md`). All 13 text items are in, including the RQ2
+rewording. Two citations were added: Batchelor & Sheiham 2004 for the molar prior; Akarslan et al.
+2008 for the panoramic reference standard. The draft is back to 10 pages and every number traces.
+Status: 10 items done, 5 partial, 6 planned or open.
+
+**2 Nov — four of the five saved-data analyses run and in the draft** (`RESULTS_LOG` 2026-11-02d,
+`PAPER_MATERIAL` §7.7 and §8.44, `outputs/review_round1/`).
+- **HKSJ:** wider than DerSimonian–Laird, +9.61 [−5.02, +24.24], with τ between 3 and 33 points.
+- **Constant stability:** the eight-molar set comes back in only 27% of refits, but its score is
+  stable (median 0.320, 95% within 0.279–0.330).
+- **Matched volume:** against an image-blind answer naming as many codes, the lesion detector leads
+  by +22.35 and the crop classifier by +5.50, both separated from zero. The VLMs are level.
+- **DENTEX near-duplicates:** none beyond the 86 MD5 copies.
+- **Ningxia per-type comparison:** not run. The raw images are on `D:\nangxia_dataset`, not
+  attached, and on the Mac.
+
+The draft is still 10 pages, and every number traces. Status: 14 items done, 5 partial, 2 open
+(10 new experiments, 11 availability). Next:
+- **Author inputs:** the CPU model, the availability decision, and the acknowledgment wording.
+- **The Ningxia per-type re-run**, when the drive is attached.
+- **Then** the Stage 3′ re-review and the Stage 4.5 final integrity gate.
+
+Nothing since `4b314da` is committed.
+
+Still open:
 - **Compliance:** the figures show DENTEX pixels (CC BY-NC-SA 4.0). Share-alike must be squared
   with the venue's copyright form before submission (§8.19).
 - **`main.tex` text:** it still says "four hospitals" for Ningxia, and it cites Cao et al.'s

@@ -9598,3 +9598,188 @@ manuscript now carries is from 2026-10-11g, -i and -j — and one new check, on 
   (`schwendicke2021cost` 2021/2020, `khubrani2025detection` 2025/2024, `zhou2025deep` 2025/2026)
   and author-field oddities (`sastika2025ai`, `vickram2025extraction`) — check print vs online year;
   (3) `zhu2026dentfound` has a published correction.
+
+## 2026-11-02b — ten-page draft through the suite's integrity gate and a five-seat review panel: Major revision
+
+- **What was done:** The rest of the academic-research-skills workflow (commit `a41f3b2`) was
+  applied to the ten-page draft: `academic-pipeline` Stage 2.5 (five verification phases and the
+  7-mode AI-research failure checklist), `academic-paper`'s writing-quality and figure checks, a
+  workflow audit against the suite's 10 stages, and `academic-paper-reviewer` full mode (field
+  analysis, four configuration cards accepted by the owner, a fixed Devil's Advocate, editorial
+  synthesis). Panel: one model, one session, five persona-separated seats written in sequence —
+  not independent review; no cross-model check.
+- **Dataset / config:** `paper/paper.md` at `4b314da` and after the corrections below; the saved
+  run files and configs behind every Methods number; the suite's `check_acronyms.py`.
+- **Metrics:**
+  - Gate, first pass: **FAIL** — two MEDIUM issues (Table 7 presented post-hoc checks as
+    "predictions"; Table 3 gave the numbering tooth count, 3,760, for Stage 4, which used 3,892 with
+    182 labelled), two MINOR (Fig. 3's 95.34 M total unexplained; the optimality argument for the
+    constant incomplete), one note (an unsourced claim about pre-cropped teeth). Failure modes:
+    six CLEAR, shortcut reliance FLAGGED for the panel (flag-only at Stage 2.5).
+  - Corrections applied and re-verified; gate **PASS WITH NOTES**. Draft still 10 pages, 0 errors,
+    0 undefined references, 0 overfull boxes; 366 numbers traced.
+  - Writing quality (advisory): none of the 25 flagged terms; 35 em dashes (6.0 per 1,000 words),
+    75 semicolons, 40 of 239 sentences over 40 words.
+  - Panel decision: **Major revision**, all five seats. One Devil's Advocate CRITICAL, validated:
+    the Discussion's "a detector that must place lesion boxes cannot score by reproducing a prior"
+    contradicts Section III-E, and the per-tooth-type evidence for it is on DENTEX only. 21-item
+    revision roadmap: 13 text changes, 5 analyses computable from saved files, 1 needing new
+    experiments (learned position-only floor, content ablation, site-identification probe), 1 release
+    decision (code/data availability), 1 editing.
+  - Four suggested references verified with the four-index check (IntHout 2014; Batchelor and
+    Sheiham 2004; Oakden-Rayner 2020; Sagawa 2020).
+- **Key decision or insight:** the theory section stays, but as a post-hoc account: the paper now
+  says so. The panel's consensus is that the external evidence (one external cohort that informed
+  adoption, four sites) and the shortcut controls for the lesion detector are weaker than the
+  draft's strongest sentences; the core analysis was not disputed.
+- **Source:** `paper/ieee/review/2026-11-02_integrity_gate_and_panel_setup.md`,
+  `paper/ieee/review/2026-11-02_panel_round1.md`; `paper/paper.md`; `paper/ieee/md_to_ieee.py`.
+- **Follow-ups:** the roadmap (Stage 4 REVISE), then re-review (Stage 3′) and the final integrity
+  gate (Stage 4.5). Text items first; the five saved-data analyses next; new experiments by decision.
+
+## 2026-11-02c — review round 1, Stage 4 revision: the text items applied, draft back to ten pages
+
+- **What was done:** Stage 4 (REVISE) of the academic-research-skills pipeline on `paper/paper.md`,
+  against the 21-item roadmap of `paper/ieee/review/2026-11-02_panel_round1.md` (2026-11-02b). The
+  thirteen text items were applied:
+  - the RQ2 conclusion reworded (the validated Devil's Advocate CRITICAL);
+  - novelty stated in proportion to VQA and NLI precedent;
+  - estimation framing, no multiplicity correction, the Ningxia lead "optimistic by construction";
+  - the panoramic reference-standard limitation;
+  - the molar prior tied to caries epidemiology, with a population caveat;
+  - Stage 3b marked as never evaluated;
+  - prior mass "as placed by our front end";
+  - Table 7's non-specific row marked;
+  - title, abstract and conclusion scoped;
+  - single-run caveat;
+  - the assumption behind (2) stated;
+  - Stage 4's label types named and Fig. 8b tied to the identity chain;
+  - the VLM prompt caveat.
+
+  Editing items 2 and 21 were done in part. Two citations were added, each generated from Crossref,
+  resolved on Crossref and OpenAlex, and checked against its abstract: Batchelor and Sheiham 2004
+  (*BMC Oral Health* 4:2) and Akarslan et al. 2008 (*Dentomaxillofac. Radiol.* 37:458). FDI, AUC,
+  IoU and mAP are now defined at first use. A point-by-point response is in
+  `paper/ieee/review/2026-11-02_response_round1.md`.
+- **Dataset / config:** `paper/paper.md` and `paper/source.bib` after `4b314da`, uncommitted;
+  `paper/ieee/md_to_ieee.py` (one venue abbreviation).
+- **Metrics:**
+  - No new analysis was run. Two numbers from existing artefacts entered the text: 8.2% of detected
+    second molars wrong-coded, and 133 Stage-3b development crops. `trace_numbers.py` traces both.
+  - Roadmap status: 10 items done; 5 partial (1, 2, 19, 20, 21); 6 planned or open (4, 6, 10, 15,
+    16; 11).
+  - Build: 10 pages; 0 LaTeX errors, 0 overfull boxes, 0 undefined references; no BibTeX warnings.
+  - Number trace: 367 distinct numbers, 6 untraced — the same six as 2026-11-02.
+    `verify_paper_numbers.py` on `main.tex`: 215/215.
+- **Corrections beyond the roadmap:**
+  - The conclusion said the lesion detector "led it on four external sites". It leads at three of
+    the four, so the text now says "pooled over four external sites".
+  - Table 7's localisation row now labels its per-type evidence as DENTEX-only, the same issue as
+    the CRITICAL.
+  - "Caries and periodontal classification" became "analysis", because Lim et al. segment caries.
+  - A sentence fragment left in Related Work by an earlier trim was repaired.
+- **Key decision or insight:**
+  - The page budget came back from restatements and four figure widths: Fig. 4 at 0.83, Fig. 7 at
+    0.82, and Figs. 5 and 8 at 0.88 of text width. No claims were cut, and every number removed
+    from a sentence remains elsewhere in the paper.
+  - The bone-loss clause in Related Work (Cerda et al.) was dropped under item 2, so that reference
+    leaves the printed list.
+  - `main.tex`'s equivalent of the RQ2 sentence already states the pooled, three-of-four,
+    informed-adoption caveats and was left unchanged.
+- **Source:** `paper/ieee/review/2026-11-02_response_round1.md`; `paper/paper.md`;
+  `paper/source.bib`; `paper/ieee/main.pdf`; `outputs/citation_audit/2026-11-02_ars/trace_numbers.py`.
+- **Follow-ups:**
+  - The five saved-data analyses: HKSJ, a DENTEX perceptual-hash check, constant stability, the
+    image-blind operating curve, and the Ningxia per-type comparison if the records carry tooth
+    codes.
+  - Author inputs: CPU model, the release decision, and the acknowledgment wording.
+  - Item 10 (new experiments) by decision.
+  - Then Stage 3′ re-review and the Stage 4.5 final integrity gate.
+
+## 2026-11-02d — review round 1: four saved-data analyses (HKSJ, constant stability, operating curve, DENTEX near-duplicates)
+
+- **What was done:** Items 4, 15, 16 and 6 of the round-1 roadmap
+  (`paper/ieee/review/2026-11-02_panel_round1.md`), all post hoc. No model was trained or tuned,
+  and no Ningxia image was read. The results were folded into the ten-page draft (`paper/paper.md`),
+  together with two citations generated from Crossref and checked against their abstracts: IntHout,
+  Ioannidis & Borm 2014 (HKSJ) and Viechtbauer 2007 (Q-profile). Item 1's Ningxia per-tooth-type
+  comparison was **not run**. The saved Ningxia outputs hold per-image counts only, so the comparison
+  needs the raw images, which are on `D:\nangxia_dataset` (drive not attached) and on the macOS clone.
+- **Dataset / config:**
+  - Stability and operating curve: DENTEX, 78 fit and 164 scored images. Labels only, via
+    `c1_vlm_baseline.load_gt` and `load_exemplars`.
+  - Matched volume: the saved predictions of four arms
+    (`outputs/stage1_switch/D_fdiset_*_arm3c/`, `outputs/c1_vlm/arm_vlm_{32b_0shot,7b_0shot_rerun}.json`),
+    each re-scored to its Table 4 values by assertion.
+  - HKSJ: the four saved Ningxia per-site deltas.
+  - Near-duplicates: 250 DENTEX `disease/` images against the 1,389 other DENTEX images. pHash
+    and dHash are implemented in the script.
+- **Metrics:**
+  - **HKSJ (item 4).**
+    - The DerSimonian–Laird result is reproduced exactly: +9.61 [−0.54, +19.76], τ 9.27, I² 81%.
+    - HKSJ gives +9.61 [−5.02, +24.24]; the truncated variant gives [−6.88, +26.09].
+    - Q-profile τ is [3.22, 33.09] pp, and I² is [33.9, 98.2]%.
+    - The lead is still not shown for an unseen site.
+  - **Constant stability (item 15).** Rule (3) was refitted on 10,000 resamples (seed 42) of the
+    78 fit images.
+    - Exactly the eight molars come back in 26.7% of resamples. Size distribution: 7 codes 45.3%,
+      8 codes 31.3%, 6 codes 17.9%.
+    - Scored F1 on the 164 images: median 0.3197, 95% range [0.2793, 0.3299], minimum 0.2478.
+    - Rule (3) and the greedy search agree on 198/200 resamples; the 2 disagreements are F1 ties.
+    - Reading: the set is fragile at its margin (teeth 27 and 46), the floor is not.
+  - **Operating curve (item 16).** F1 of the k most prevalent fit-set codes on the scored images:
+    - k = 1 to 5: 0.112, 0.189, 0.252, 0.279, 0.279;
+    - k = 6 to 9 (the plateau): 0.298, 0.325, 0.320, 0.311;
+    - k = 16: 0.261;
+    - oracle order: peaks at 0.330 for k = 6.
+  - **Matched volume (item 16).** System minus an image-blind mixture of S_k and S_{k+1} that names
+    as many codes, with a paired cluster bootstrap over the 164 images (10,000, seed 42):
+
+    | System | Difference (pp) | Matched constant F1 |
+    |---|---|---|
+    | Lesion-detector pipeline | +22.35 [+17.42, +27.18] | 0.274 |
+    | Crop-classifier pipeline | +5.50 [+2.84, +8.22] | 0.307 |
+    | Qwen2.5-VL-32B | +0.39 [−4.90, +5.63] | — |
+    | Qwen2.5-VL-7B | +1.39 [−2.06, +4.85] | — |
+
+    Volume explains neither pipeline lead. The VLMs fall below the eight-molar constant because
+    they name fewer codes; at matched volume they are level with an image-blind answer.
+  - **Near-duplicates (item 6).**
+    - Positive control: all 86 MD5-identical images sit at distance 0 under both hashes, and all
+      86 are already excluded.
+    - No scored image is at distance 0. The closest pHash pair is at 4, with dHash 13.
+    - Unrelated pairs reach pHash 8 at the 0.01th percentile.
+    - The 20 candidates (pHash ≤ 6 or dHash ≤ 4), 40 pairs, were inspected by eye. Every pair
+      differs in its restorations or missing teeth: no further leak.
+    - Not detectable by this method: a second radiograph of the same patient.
+- **Draft:**
+  - Every figure and number above is in the draft or traceable from it: III-B, III-F, VI-B
+    (plus a Table 4 column), VI-D, V and VIII.
+  - The introduction's RQ2 said lesion localisation is "a task a positional prior cannot satisfy",
+    the same overclaim as the round-1 CRITICAL. It now reads "a task a fixed list cannot perform".
+  - VI-B's "by naming 1,537 teeth" became "while naming", to agree with the matched-volume result.
+  - Back to 10 pages. Captions, Table 7 and Table 3 were condensed. The JSON record became one
+    sentence with every value kept. Figure widths: 4 at 0.80, 7 at 0.78, 5 and 8 at 0.86, 2 and 3
+    at 0.92, 6 at 0.88 of column. The converter now sizes page-wide tables at natural width when
+    they fit, and takes a scale for one-column figures.
+  - Checks: 0 errors, 0 overfull boxes, 0 undefined references. Number trace: 390 distinct, the
+    same 6 known untraced; `outputs/review_round1` was added to the tracer's sources.
+    `verify_paper_numbers.py`: 215/215.
+- **Key decision or insight:**
+  - The matched-volume comparison is the strongest new evidence. It removes the "volume" reading
+    of the crop classifier's F1 lead.
+  - It also changes how the VLM result reads: below the constant, but no worse than image-blind
+    at their own volume.
+  - The constant's exact membership should not be over-read; its score should.
+- **Source:**
+  - `outputs/stage1_switch/F_ningxia_random_effects_hksj.json`;
+  - `outputs/review_round1/constant_stability_and_curve.json`;
+  - `outputs/review_round1/dentex_near_duplicates.json`;
+  - `outputs/review_round1/README.md` (the visual inspection);
+  - `outputs/review_round1/new_citation_abstracts.json`;
+  - scripts `scripts/eval/{ningxia_random_effects_hksj,constant_stability_and_curve,dentex_near_duplicates}.py`.
+- **Follow-ups:**
+  - The Ningxia per-type comparison, when the raw images are attached: a frozen-pipeline inference
+    re-run recording per-tooth codes, flags and lesion containment.
+  - Item 10 (new experiments) and item 11 (availability) by decision.
+  - Stage 3′ re-review, then Stage 4.5.

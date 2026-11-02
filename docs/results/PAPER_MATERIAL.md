@@ -693,6 +693,19 @@ motivation for future work (periapical radiographs, or a learned landmark detect
 Single-glance current-best numbers live in `docs/results/model_metrics.md`. Keep the two
 files consistent: any change to a metric here must be mirrored there.
 
+### 7.7 Review round 1 — four analyses from saved data (2 Nov 2026)
+
+*`RESULTS_LOG` 2026-11-02d. Post hoc; no training, no tuning, no Ningxia image read.*
+
+| Question | Answer |
+|---|---|
+| Does the Ningxia random-effects interval hold up with a small-k method? | HKSJ +9.61 [−5.02, +24.24] (DL [−0.54, +19.76]); τ 9.27 pp, Q-profile [3.22, 33.09]; I² 81% [34, 98]. Still not shown for an unseen site. |
+| Is the eight-molar constant an accident of its 78 fit images? | Its exact membership is (26.7% of 10,000 refits; 7 codes most often). Its score is not: refits score median 0.320, 95% within [0.279, 0.330] on the 164 images. F1 is flat from 6 to 9 codes (0.298–0.325). |
+| Do the pipelines' F1 leads come from naming more teeth? | No. Against an image-blind answer naming as many codes: lesion detector +22.35 [+17.42, +27.18], crop classifier +5.50 [+2.84, +8.22]. |
+| Do the VLMs read the image? | Not detectably. At matched volume: 32B +0.39 [−4.90, +5.63], 7B +1.39 [−2.06, +4.85]. They trail the eight molars only by naming fewer teeth. |
+| Did a re-encoded copy of a training image survive the MD5 exclusion? | No. pHash and dHash against all 1,389 other DENTEX images; the 86 MD5 copies at distance 0 as a positive control; the 20 closest scored images differ by eye from their neighbours. |
+| Are the lesion detector's flags more often carious per tooth type on Ningxia too? | Not answered. The saved Ningxia outputs lack per-tooth codes, and the raw images were not on this machine. |
+
 ---
 
 ## 8. Known Limitations — write these in the paper
@@ -3060,6 +3073,35 @@ vary more than the seed when estimating training variance (Bouthillier et al. 20
 splits (leakage literature); false positives per image and patient-level specificity for a
 caries detector (as Bizjak & Robič report).
 
+### 8.43 The reference standard is panoramic — part of the molar prior may be a labelling prior
+
+*2 Nov 2026. `RESULTS_LOG` 2026-11-02c. Raised by the oral-radiology seat of review round 1; a
+wording change only, nothing re-read or re-scored.*
+
+DENTEX's caries labels were drawn on panoramic radiographs alone. Panoramic images detect proximal
+caries less accurately than bitewings (Akarslan et al., *Dentomaxillofac. Radiol.* 2008), so the
+expert lesions are a subset of disease. The image-blind floor is defined against the labels a study
+uses, and the paper's argument concerns scores against those labels, so the floor still stands.
+But part of the molar prior may describe what panoramic labels capture rather than where caries
+is. The ten-page draft states this in Limitations. A re-read of a sample against bitewings would
+measure it and is not planned. The molar prior's epidemiological footing is now cited (first molars
+as the most caries-susceptible teeth: Batchelor & Sheiham, *BMC Oral Health* 2004). The prior, and
+with it the floor, depends on the population's age and exposure.
+
+### 8.44 What the round-1 analyses cannot settle
+
+*2 Nov 2026. `RESULTS_LOG` 2026-11-02d.*
+
+- **The Ningxia lead remains site-conditional.** The HKSJ interval is wider than DerSimonian–Laird
+  and includes zero. The between-site SD could be anywhere from 3 to 33 points with four sites.
+- **Per-tooth-type precision is shown on development data only.** The external comparison needs a
+  re-run on the raw Ningxia images, and the saved outputs cannot answer it.
+- **The duplicate checks find copies, not patients.** MD5 and perceptual hashing catch the same
+  radiograph re-encoded, resized or cropped. They cannot catch a second radiograph of the same
+  patient taken on another day. DENTEX releases no patient identifiers.
+- **The constant's membership is unstable.** Only about a quarter of refits return exactly the
+  eight molars. The paper should cite the floor's score (stable), not its exact set (not stable).
+
 ---
 
 ## 9. What's not yet written — checklist
@@ -3269,6 +3311,27 @@ For whoever drafts the actual paper. Tick items off here as they land.
       Zancan link (pointed to an unrelated PMC article) and issue; the Bilal link (wrong IEEE
       document); Bizjak issue and pages; Mutlu volume and pages; DENTEX title; the YOLO11 software
       citation; two "and Others". 14 verified citations added for the ten-page draft.
+- [~] **Ten-page draft: integrity gate passed, review round 1 = Major revision — text items
+      and four of five analyses applied** (`RESULTS_LOG` 2026-11-02b, 2026-11-02c, 2026-11-02d,
+      `paper/ieee/review/`). Stage 2.5 failed first on two
+      MEDIUM issues (post-hoc Table 7 framed as predictions; a Table 3 tooth count), fixed and
+      re-verified. The five-seat panel (one model, persona-separated) asks for: rewording of the RQ2
+      conclusion (validated Devil's Advocate CRITICAL), HKSJ beside DerSimonian–Laird, a DENTEX
+      near-duplicate check, the panoramic reference-standard limitation, severity validation or a
+      caveat, stronger shortcut controls (learned position-only floor, content ablation, site probe),
+      and a code/data availability statement. 21-item roadmap in `2026-11-02_panel_round1.md`. Several
+      items (RQ2 wording, HKSJ, the reference-standard limitation, availability) apply to `main.tex`
+      too.
+      Revision of 2 Nov (`2026-11-02_response_round1.md`): 10 items done, 5 partial, 6 planned or
+      open. Still to do: HKSJ, the perceptual-hash check, constant stability, the image-blind operating
+      curve, the Ningxia per-type comparison, item 10's experiments, the availability statement, and
+      the CPU model. `main.tex`'s RQ2 sentence was checked and already carries the caveats; the
+      reference-standard limitation (§8.43) is not yet in `main.tex`.
+      Analyses of 2 Nov (§7.7, §8.44): HKSJ, constant stability, operating curve and matched volume,
+      and the DENTEX near-duplicate check are done and in the draft. The Ningxia per-type comparison
+      waits for the raw images. Open: item 10's experiments, item 11's availability statement, the
+      CPU model, then the Stage 3′ re-review. Not yet in `main.tex`: HKSJ, matched volume,
+      near-duplicate check.
 - [ ] **`main.tex` describes Ningxia as "four hospitals" and cites Li et al. for it.** Li et al.
       2024 describe three hospitals (two in Ningxia, one in Shenzhen); the four test splits, test2
       from the training centre and three cross-centre, come from the release's ReadMe. The
