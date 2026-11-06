@@ -1,0 +1,30 @@
+% As-built pipeline in the Phase 2 Figure 3.1 style and palette. Components traced to
+% scripts/run_inference.py (docstring stage list, DEF_* checkpoints, CARIES_LESION_CONF 0.25,
+% ASSESSABILITY_MIN_FDI_CONFIDENCE 0.30) and src/classifiers.py (crop conventions).
+\begin{tikzpicture}[node distance=4.2mm]
+\node[io] (in) {OPG X-ray input\\[-1pt]{\normalfont PNG or JPEG, any size}};
+\node[stage,below=of in] (s1) {1. Tooth detection\\[-1pt]{\normalfont YOLOv11l, multi-corpus, conf.\ 0.25}};
+\node[stage,below=of s1] (s2) {2. FDI numbering\\[-1pt]{\normalfont ResNet18 + box features, Hungarian one-to-one}};
+\node[stage,below=of s2] (s3) {3. Per-tooth processing};
+\node[cari,below left=7mm and 6mm of s3] (c1) {3a. Lesion detector\\[-1pt]{\normalfont whole image, conf.\ 0.25}};
+\node[cari,below=of c1] (c2) {Lesion $\rightarrow$ tooth\\[-1pt]{\normalfont argmax containment}};
+\node[cari,below=of c2] (c3) {3b. Severity\\[-1pt]{\normalfont tight crop, ResNet18}};
+\node[cari,below=of c3] (c4) {Caries finding\\[-1pt]{\normalfont none / caries / deep}};
+\node[bone,below right=7mm and 6mm of s3] (b1) {Expanded crop\\[-1pt]{\normalfont 1.5$\times$ width, 2.0$\times$ height}};
+\node[bone,below=of b1] (b2) {4a. Abnormality flag\\[-1pt]{\normalfont ResNet18, radiograph split}};
+\node[bone,below=of b2] (b3) {4b. Severity\\[-1pt]{\normalfont withheld by default}};
+\node[bone,below=of b3] (b4) {Abnormality finding\\[-1pt]{\normalfont normal / flagged}};
+\coordinate (mid) at ($(c4.south)!0.5!(b4.south)+(0,-6mm)$);
+\node[stage,below=12mm of mid] (s5) {5. Fusion and assessability\\[-1pt]{\normalfont FDI confidence $\geq$ 0.30, alignment check}};
+\node[rept,below=of s5] (s6) {6. Report generation\\[-1pt]{\normalfont JSON \texttt{opg-report/1.6} + overlay}};
+\node[io,below=of s6] (out) {Structured per-tooth report\\[-1pt]{\normalfont with limitations and provenance}};
+\draw[arr] (in) -- (s1); \draw[arr] (s1) -- (s2); \draw[arr] (s2) -- (s3);
+\draw[arr] (s3.south) -- ++(0,-3mm) -| (c1.north);
+\draw[arr] (s3.south) -- ++(0,-3mm) -| (b1.north);
+\draw[arr] (c1) -- (c2); \draw[arr] (c2) -- (c3); \draw[arr] (c3) -- (c4);
+\draw[arr] (b1) -- (b2); \draw[arr] (b2) -- (b3); \draw[arr] (b3) -- (b4);
+\draw[arr] (c4.south) |- ($(s5.north)+(0,5mm)$) -- (s5.north);
+\draw[arr] (b4.south) |- ($(s5.north)+(0,5mm)$);
+\draw[arr] (s5) -- (s6); \draw[arr] (s6) -- (out);
+\node[soft=p2teal,text width=21mm,left=3mm of c2,font=\sffamily\tiny] {retained alternative:\\tight-crop classifier\\(\texttt{-{}-caries-method gate})};
+\end{tikzpicture}

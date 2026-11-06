@@ -1,0 +1,16 @@
+% Error chain of a tooth-indexed report (eq. 2.1). Values traced to paper/paper.md Table 1
+% (DENTEX 164 images, 936 teeth: detected 99.6%, exact of detected 93.2%, end to end 92.8%).
+\begin{tikzpicture}[node distance=5mm and 9mm]
+\node[io,text width=24mm] (in) {OPG\\[-1pt]{\normalfont one radiograph}};
+\node[stage,text width=30mm,right=of in] (d) {Detected?\\[-1pt]{\normalfont $P(D)$ = 99.6\%}};
+\node[stage,text width=30mm,right=of d] (n) {Numbered correctly?\\[-1pt]{\normalfont $P(N\mid D)$ = 93.2\%}};
+\node[cari,text width=30mm,right=of n] (f) {Right finding?\\[-1pt]{\normalfont $P(F\mid D,N)$}};
+\node[rept,text width=24mm,below=13mm of f] (ok) {Correct record};
+\draw[arr] (in) -- (d); \draw[arr] (d) -- node[lbl,above]{yes} (n); \draw[arr] (n) -- node[lbl,above]{yes} (f);
+\draw[arr] (f) -- node[lbl,right]{yes} (ok);
+\node[soft=p2maroon,text width=28mm,below=13mm of d] (e1) {Tooth absent\\from the report};
+\node[soft=p2maroon,text width=28mm,below=13mm of n] (e2) {Findings attached\\to the wrong tooth};
+\draw[arr,draw=p2maroon] (d) -- node[lbl,left]{no} (e1);
+\draw[arr,draw=p2maroon] (n) -- node[lbl,left]{no} (e2);
+\node[lbl,above=1mm of n,xshift=-20mm] {identity: 92.8\% of teeth reach the finding correctly identified};
+\end{tikzpicture}

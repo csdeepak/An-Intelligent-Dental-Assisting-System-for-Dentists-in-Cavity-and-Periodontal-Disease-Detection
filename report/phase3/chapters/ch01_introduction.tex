@@ -1,0 +1,163 @@
+\chapter{Introduction}
+\label{ch:intro}
+
+\section{Background}
+
+Dental panoramic radiography, also called orthopantomography (OPG), gives a single two-dimensional
+view of the full dentition, the alveolar bone, the maxilla, the mandible and the surrounding
+anatomy. Because one image covers most of the clinically relevant oral region, OPGs are used
+routinely to screen for dental caries, periodontal bone loss, impacted teeth and other pathology.
+They are also hard to read: local contrast is weak, structures overlap, the projection distorts,
+and early lesions are subtle, so findings can be missed or reported inconsistently.
+
+An OPG is unfamiliar to a computer-vision reader in two ways (Figure~\ref{fig:opgprimer}). It is
+displayed as if the viewer faces the patient, so the patient's right side is on the image's left.
+And teeth are named in the two-digit notation of the Fédération Dentaire Internationale (FDI): the
+first digit is the quadrant (1 upper right, 2 upper left, 3 lower left, 4 lower right, in the
+patient's frame) and the second the position counted from the midline (1 central incisor to 8 third
+molar). Tooth 16 is therefore the upper-right first molar and 36 the lower-left one. Caries
+dissolves mineral, so a lesion appears as a darker (radiolucent) region inside the bright tooth;
+fillings and crowns are the brightest objects in the image.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.86\textwidth]{figures/repo/R01_opg_primer.pdf}
+\caption{Reading an OPG. One held-out DENTEX radiograph (\texttt{test\_120}) cropped to the teeth.
+Dotted lines separate the quadrants Q1--Q4; the numbers are the FDI codes assigned by the
+project's numbering stage. Yellow: the expert's seven caries annotations, on teeth 12, 16, 28, 35,
+36, 37 and 46. Dashed: the eight-molar set \{16, 17, 26, 27, 36, 37, 46, 47\} named by the
+image-blind constant of Chapter~\ref{ch:method}. Radiograph: DENTEX~\cite{hamamci2023dentex},
+CC~BY-NC-SA~4.0.}
+\label{fig:opgprimer}
+\end{figure}
+
+\section{Motivation}
+
+The project builds an intelligent dental assisting system that moves from a full OPG to a
+structured, tooth-wise report. The system is tooth-centric: instead of classifying the whole
+radiograph as one unit, it decomposes the OPG into tooth-level regions and analyses each tooth with
+task-specific models. The design follows clinical practice. Dentists reason tooth by tooth, and an
+assistant is useful only if it can localise its findings and map them to a standard numbering
+scheme. % {C070}
+
+The survey carried out alongside the project reached a system-level conclusion that has shaped
+every phase since: the dental-AI literature is strong on isolated sub-tasks and weak on complete
+OPG-to-report workflows. A second observation came later, from the project's own measurements, and
+it changed the direction of Phase 3. A caries system is usually scored by which teeth it marks as
+carious, and that score can be earned partly without looking at the image at all, because caries is
+concentrated on a few tooth positions. A fixed list of molars, the same for every patient, sets a
+floor under any such score (Chapter~\ref{ch:problem}). Phase 3 therefore had two jobs: to finish the
+end-to-end system, and to show what in its output a list that never reads the radiograph could not
+produce.
+
+\section{From Phase 2 to Phase 3}
+
+Phase 2 (January--May 2026) delivered the disease-analysis modules separately: a two-stage ResNet18
+caries cascade on DENTEX tooth crops, and a periodontal branch on the Tufts dental
+database~\cite{panetta2022tufts} that included annotation parsing, tooth-level crop generation,
+overlap-based labelling, a binary bone-loss classifier, a severity classifier and an exploratory
+cemento-enamel junction (CEJ) module. Tooth detection, FDI numbering and report generation were
+designed but not integrated, and no script took a full OPG to a report.
+
+Phase 3 (August--December 2026) closed that gap and then tested it. Figure~\ref{fig:timeline}
+summarises the progression, and Table~\ref{tab:phase-status} updates the Phase 2 implementation-status
+table stage by stage.
+
+\begin{figure}[H]
+\centering
+\input{diagrams/timeline}
+\caption{Project progression. Phase 1 surveyed the literature and fixed the tooth-centric design;
+Phase 2 built the disease modules separately; Phase 3 integrated six stages into one pipeline,
+validated it on six cohorts against an image-blind constant, and corrected two Phase 2 results.}
+\label{fig:timeline}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Implementation status at the end of Phase 2 and Phase 3. Phase 2 column: the status table
+of the Phase 2 report. Phase 3 column: the repository on 2 November 2026.}
+\label{tab:phase-status}
+\small
+\begin{tabularx}{\textwidth}{@{}L{4.6cm}L{3.3cm}Y@{}}
+\toprule
+Pipeline stage & End of Phase 2 & End of Phase 3\\
+\midrule
+Tufts data exploration and parsing & Complete & Complete; radiograph-level splits added\\
+Tooth detection (Stage 1) & In progress, architecture only & Complete: YOLOv11l trained on three corpora, the default since 11 Oct 2026\\
+FDI numbering (Stage 2) & Not yet integrated & Complete: ResNet18 head with box-position features and one-to-one Hungarian assignment\\
+Caries detection (Stage 3a) & Complete (crop classifier) & Complete: a whole-image lesion detector, adopted under a pre-registered rule; the crop classifier is retained\\
+Caries severity (Stage 3b) & Complete & Retained; not separately evaluated\\
+Bone-loss / abnormality flag (Stage 4a) & Complete, macro-F1 0.9233 & Retrained with a radiograph-level split; the 0.9233 was a split artefact (Section~\ref{sec:res-stage4})\\
+Bone-loss severity (Stage 4b) & Complete, macro-F1 0.7208 & Withheld from the report: retrained on mask overlap, it did not beat a tooth-position prior\\
+CEJ-based estimation & Exploratory & Kept as a documented negative result\\
+FDI-aware report generation & Not yet integrated & Complete: JSON report (schema \texttt{opg-report/1.6}) with an overlay image\\
+End-to-end single-OPG inference & Not yet integrated & Complete: command-line tool, Streamlit demo and Docker image\\
+\bottomrule
+\end{tabularx}
+\end{table}
+% {C002} {C040} {C041}
+
+\section{Novelties of Phase 3}
+\label{sec:novelties}
+
+The main contributions of Phase 3 are listed below; each is developed in the chapter named beside
+it.
+
+\begin{enumerate}[label=\arabic*.,leftmargin=1.6em]
+\item \textbf{A complete six-stage pipeline.} One OPG in, one per-tooth JSON report out, through
+  detection, numbering, caries localisation, severity, an abnormality flag and report fusion. It runs
+  in 1.70~s per image on a laptop CPU with no GPU, as a command-line tool, a Streamlit demo and a
+  Docker image (Chapters~\ref{ch:system} and~\ref{ch:impl}). % {C001} {C002}
+\item \textbf{A theory of the tooth-level score.} The report is a chain of three decisions
+  (detected, numbered, finding), and the caries score has an image-blind floor whose F1 has a
+  closed form; the best constant contains exactly the codes whose prevalence exceeds half its F1
+  (Chapter~\ref{ch:method}). % {C010}
+\item \textbf{A constant-baseline evaluation protocol.} Two metric families, six cohorts (DENTEX, four
+  Ningxia sites and CariesXrays), paired cluster-bootstrap intervals, random-effects pooling with a
+  Hartung--Knapp--Sidik--Jonkman interval, and a comparison at matched output volume
+  (Chapters~\ref{ch:method} and~\ref{ch:results}).
+\item \textbf{A pre-registered change of task for caries.} Five repairs of the per-crop caries
+  classifier failed; a whole-image lesion detector, adopted under a rule committed before training,
+  led the constant on the pooled external sites while flagging fewer teeth (Section~\ref{sec:res-rq2}). % {C020}
+\item \textbf{Outputs a constant cannot produce.} Tooth numbering with an error analysis, calibrated
+  confidence and confidence-based abstention controlled by a shuffle test (Section~\ref{sec:res-rq3}). % {C034} {C035} {C036}
+\item \textbf{Honest correction of Phase 2.} The bone-loss classifier was retrained with a
+  radiograph-level split, the severity grade was withheld, and the shortcut signature of the
+  per-crop caries classifier was measured (Section~\ref{sec:res-stage4}). % {C040}
+\item \textbf{Traceable engineering.} Hash-pinned default checkpoints, 215 manuscript numbers asserted
+  against saved artefacts, an end-to-end test suite and a reproducible container
+  (Section~\ref{sec:impl-verify}). % {C050}
+\end{enumerate}
+
+\section{Objectives}
+
+\begin{enumerate}[label=O\arabic*.,leftmargin=2.2em]
+\item Integrate tooth detection, FDI numbering, caries analysis and an abnormality flag into one
+  pipeline that produces a structured per-tooth report from a single OPG.
+\item Run on commodity hardware without a GPU and package the system for demonstration.
+\item Evaluate every stage on held-out and external data, beside an image-blind baseline, with
+  intervals that respect the clustering of teeth within radiographs.
+\item Change a model only under a rule written before the evidence, and report the rule's outcome
+  whether or not it favours the change.
+\item Correct any Phase 2 result that does not hold under a stricter split, in the open.
+\end{enumerate}
+
+\section{Scope}
+
+The system is a research prototype. It is not a clinically validated device and makes no diagnosis;
+every report says so (Section~\ref{sec:lld-report}). Its caries output is evaluated against expert
+annotations of panoramic radiographs; its Stage-4 output flags proximity to an expert-marked
+abnormality on the Tufts data and is not a measurement of periodontal bone loss. Training uses only
+public datasets. One external cohort (Ningxia) is treated as locked test data and is never trained
+or tuned on.
+
+\section{Organisation of the Report}
+
+Chapter~\ref{ch:problem} defines the problem and the research questions. Chapter~\ref{ch:lit} reviews
+the literature. Chapter~\ref{ch:prs} specifies requirements. Chapters~\ref{ch:hld}
+and~\ref{ch:lld} give the high- and low-level designs, and Chapter~\ref{ch:system} the detailed
+design of every stage. Chapter~\ref{ch:method} sets out the datasets, the training recipes, the theory
+of the image-blind constant and the evaluation protocol. Chapter~\ref{ch:impl} covers implementation
+and pseudocode. Chapter~\ref{ch:results} reports and discusses the results, and
+Chapter~\ref{ch:conclusion} concludes. Appendix~A lists definitions and acronyms; Appendix~B is the
+user manual.

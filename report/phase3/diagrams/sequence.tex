@@ -1,0 +1,30 @@
+% Sequence of one inference call. Traced to scripts/run_inference.py run_pipeline() (order of calls:
+% check_input, detect_upright, assign_fdi_head, run_caries_lesion_detector, run_bone_loss, build_report)
+% and app.py (load_models once via st.cache_resource, draw_overlay in memory).
+\begin{tikzpicture}[
+  ll/.style={box,fill=#1,text width=19mm,minimum height=7mm,font=\sffamily\tiny\bfseries},
+  msg/.style={-{Stealth[length=2mm]},draw=p2grey,line width=0.6pt},
+  ret/.style={-{Stealth[length=2mm]},draw=p2arrow,line width=0.6pt,dashed},
+  mt/.style={font=\sffamily\tiny,fill=white,inner sep=1pt}]
+\foreach \i/\n/\c/\t in {0/u/p2grey/User, 1/a/p2grey/{app.py / CLI}, 2/r/p2indigo/run\_pipeline,
+                         3/d/p2indigo/Stage 1, 4/f/p2indigo/Stage 2, 5/c/p2teal/Stage 3, 6/b/p2maroon/Stage 4,
+                         7/p/p2orange/build\_report} {
+  \node[ll=\c] (\n) at (\i*2.05,0) {\t};
+  \draw[p2arrow,line width=0.5pt,dotted] (\n.south) -- ++(0,-8.9);
+}
+\def\y#1{-#1*0.62-0.7}
+\draw[msg] (u.south |- 0,{\y{0}}) -- node[mt,above]{OPG} (a.south |- 0,{\y{0}});
+\draw[msg] (a.south |- 0,{\y{1}}) -- node[mt,above]{image, models} (r.south |- 0,{\y{1}});
+\draw[msg] (r.south |- 0,{\y{2}}) -- node[mt,above]{rotate, detect} (d.south |- 0,{\y{2}});
+\draw[ret] (d.south |- 0,{\y{3}}) -- node[mt,above]{boxes} (r.south |- 0,{\y{3}});
+\draw[msg] (r.south |- 0,{\y{4}}) -- node[mt,above]{boxes} (f.south |- 0,{\y{4}});
+\draw[ret] (f.south |- 0,{\y{5}}) -- node[mt,above]{codes} (r.south |- 0,{\y{5}});
+\draw[msg] (r.south |- 0,{\y{6}}) -- node[mt,above]{image, boxes} (c.south |- 0,{\y{6}});
+\draw[ret] (c.south |- 0,{\y{7}}) -- node[mt,above]{caries} (r.south |- 0,{\y{7}});
+\draw[msg] (r.south |- 0,{\y{8}}) -- node[mt,above]{boxes} (b.south |- 0,{\y{8}});
+\draw[ret] (b.south |- 0,{\y{9}}) -- node[mt,above]{flags} (r.south |- 0,{\y{9}});
+\draw[msg] (r.south |- 0,{\y{10}}) -- node[mt,above]{all outputs} (p.south |- 0,{\y{10}});
+\draw[ret] (p.south |- 0,{\y{11}}) -- node[mt,above]{report} (r.south |- 0,{\y{11}});
+\draw[ret] (r.south |- 0,{\y{12}}) -- node[mt,above]{report} (a.south |- 0,{\y{12}});
+\draw[ret] (a.south |- 0,{\y{13}}) -- node[mt,above]{overlay, table, JSON} (u.south |- 0,{\y{13}});
+\end{tikzpicture}

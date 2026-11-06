@@ -1,0 +1,202 @@
+\chapter{Low-Level Design}
+\label{ch:lld}
+
+\section{Module Decomposition}
+
+The code is split into reusable modules under \texttt{src/}, an integration script, a web wrapper and
+evaluation scripts (Table~\ref{tab:modules}, Figure~\ref{fig:modules}). Each module owns one
+convention, such as a crop geometry or a coordinate frame, and defines its constants once, because a
+silent mismatch between training and inference preprocessing degrades accuracy without raising any
+error.
+
+\begin{table}[!htbp]
+\centering
+\caption[Module decomposition]{Module decomposition (repository on 2 November 2026).}
+\label{tab:modules}
+\small
+\begin{tabularx}{\textwidth}{@{}L{4.4cm}YL{4.5cm}@{}}
+\toprule
+Module & Responsibility & Key functions\\
+\midrule
+\nolinkurl{scripts/run_inference.py} & Integration: Stages 5--6, model loading, provenance, CLI & \texttt{load\_models}, \texttt{run\_pipeline}, \texttt{build\_report}, \texttt{draw\_overlay}\\
+\nolinkurl{app.py} & Streamlit web demo, a thin wrapper over the same functions & \texttt{get\_models}, page layout\\
+\nolinkurl{src/orientation.py} & Rotates the image into the detector's training frame and maps boxes back & \texttt{detect\_upright}, \texttt{unrot\_boxes}\\
+\nolinkurl{src/fdi_head_inference.py} & Stage 2: crops, box features, joint scores, one-to-one assignment & \texttt{assign\_fdi\_head}, \texttt{head\_joint\_scores}\\
+\nolinkurl{src/classifiers.py} & Stages 3--4: crop batches, caries gate, lesion detector, severity, abnormality flag & \nolinkurl{run_caries_lesion_detector}, \texttt{run\_caries}, \texttt{run\_bone\_loss}\\
+\nolinkurl{src/crop_generator.py} & Expanded boxes, jitter, mask-aware crops (Phase 2) & \texttt{compute\_expanded\_bbox}\\
+\nolinkurl{src/label_assigner.py} & Overlap-ratio labels for the abnormality flag (Phase 2) & \texttt{compute\_overlap\_ratio}\\
+\nolinkurl{src/data_loader.py} & Tufts annotation parsing and joins (Phase 2) & \texttt{join\_all\_sources}\\
+\nolinkurl{src/fdi_assignment.py} & Rule-based arch ordering, kept for comparison & \texttt{assign\_fdi}\\
+\nolinkurl{src/fdi_structural_repair.py} & Optional sequence repair after assignment (an ablation, off by default) & \texttt{structural\_repair}\\
+\nolinkurl{src/utils/fdi_converter.py} & Universal--FDI conversion and quadrant mirroring & \texttt{universal\_to\_fdi}\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[!htbp]
+\centering
+\input{diagrams/modules}
+\caption[Module dependency diagram]{Module dependency diagram. Arrows point from a caller to the
+module it uses.}
+\label{fig:modules}
+\end{figure}
+
+\section{Stage Interfaces}
+
+Every stage consumes the tooth boxes of Stage~1 and returns exactly one entry per box, in box order,
+so Stage~5 can fuse the outputs by position (Table~\ref{tab:interfaces}).
+
+\begin{table}[!htbp]
+\centering
+\caption[Stage interfaces]{Stage interfaces: input, crop convention, model and output.}
+\label{tab:interfaces}
+\small
+\begin{tabularx}{\textwidth}{@{}L{1.6cm}L{3.0cm}L{2.5cm}L{3.0cm}Y@{}}
+\toprule
+Stage & Input & Crop & Model & Output per tooth\\
+\midrule
+1 & OPG, rotated 90\textdegree\ counter-clockwise & whole image, 1,024 px & YOLOv11l, conf.\ 0.25, NMS IoU 0.50 & box, detection confidence\\
+2 & boxes & $1.5\times1.5$, 224 px, RGB & ResNet18 + 4 box features & FDI code, confidence, flags\\
+3a & OPG, boxes & whole image & YOLOv11l lesion detector, conf.\ 0.25 & caries finding\\
+3b & caries-positive teeth & $1.0\times1.0$ (tight), 224 px & ResNet18 & caries or deep caries\\
+4a & boxes & $1.5\times2.0$, 224 px & ResNet18 & normal or flagged, confidence\\
+4b & flagged teeth & $1.5\times2.0$ & ResNet18 & severity (withheld by default)\\
+5 & all of the above & --- & rules & assessable flag and reasons\\
+6 & tooth records, metadata & --- & --- & JSON report, overlay\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Crop Conventions}
+\label{sec:lld-crops}
+
+The three crop geometries come from three training pipelines (Figure~\ref{fig:crops}). Caries is
+judged on a tight crop of the crown. Numbering sees the tooth and some of its neighbours, so that
+position along the arch is visible. The abnormality flag sees the root and surrounding bone, so its
+crop is widened by 1.5 and lengthened by 2.0 times the box. Crossing the conventions produces
+confident, plausible and wrong output, so each constant is defined once in the module that owns it.
+
+\begin{figure}[!htbp]
+\centering
+\input{diagrams/crops}
+\caption[Crop conventions of the three classifier heads]{Crop conventions. The detected tooth box
+(solid) and the three crops cut from it.}
+\label{fig:crops}
+\end{figure}
+
+\section{Control Flow}
+
+Figure~\ref{fig:sequence} shows one call of \texttt{run\_pipeline}, the function both entry points
+use. Models are loaded once per process and reused. \texttt{run\_pipeline} itself writes nothing to
+disk: the command-line tool writes the report (and the overlay, if asked), and the web demo draws the
+overlay in memory and stores nothing.
+
+\begin{figure}[!htbp]
+\centering
+\input{diagrams/sequence}
+\caption[Sequence diagram of one inference call]{Sequence diagram of one inference call.}
+\label{fig:sequence}
+\end{figure}
+
+\section{Report Data Structure}
+\label{sec:lld-report}
+
+The report is one JSON object with schema version \texttt{opg-report/1.6} and seven top-level fields
+(Table~\ref{tab:schema}). Field names have stayed stable while checkpoints changed, so consumers do
+not break; what each field means for the checkpoint that ran is written into the report's
+\texttt{limitations} block.
+
+\begin{table}[!htbp]
+\centering
+\caption[Report schema]{Top-level fields of the report (\texttt{opg-report/1.6}).}
+\label{tab:schema}
+\small
+\begin{tabularx}{\textwidth}{@{}L{3.2cm}Y@{}}
+\toprule
+Field & Content\\
+\midrule
+\texttt{schema\_version} & \texttt{opg-report/1.6}\\
+\texttt{generated} & ISO timestamp\\
+\texttt{image} & path, width, height, input warnings\\
+\texttt{summary} & teeth detected, teeth assessable, distinct and duplicate FDI codes, caries-positive and flagged counts\\
+\texttt{teeth} & one record per detected tooth, sorted by FDI code (below)\\
+\texttt{models} & for each stage: checkpoint path, SHA-256, version tag and settings; runtime versions, git commit and device\\
+\texttt{limitations} & detector recall and end-to-end numbering accuracy of the detector that ran and where they hold, caveats for the caries method, the meaning and validation of the Stage-4 label, and \texttt{not\_clinically\_validated: true}\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+A tooth record holds the box, the detection confidence, the FDI code with its quadrant, position,
+confidence and flags, the caries finding, the Stage-4 finding, and the assessability decision.
+Listing~\ref{lst:record} is the record for tooth 36 of the radiograph walked through in
+Figure~\ref{fig:walkthrough}.
+
+\begin{lstlisting}[caption={Report record for tooth 36 of DENTEX \texttt{test\_0} (abridged from the saved report).},label=lst:record,language={}]
+{"detection_index": 0, "bbox_xyxy": [1726.8, 845.0, 1913.9, 1150.0],
+ "detection_confidence": 0.8389,
+ "fdi": 36, "quadrant": 3, "position": 6, "fdi_confidence": 0.9999, "fdi_flags": [],
+ "caries": {"finding": "deep_caries", "gate_confidence": 0.8892,
+            "severity": "deep_caries", "severity_confidence": 0.9579,
+            "flags": ["lesion_detector_v1.0", "gate_confidence_is_detection_not_softmax"]},
+ "bone_loss": {"finding": "normal", "confidence": 0.7853, "severity": null},
+ "assessable": true, "not_assessable_reasons": []}
+\end{lstlisting}
+
+\section{Assessability and Error Handling}
+
+\begin{itemize}
+\item \textbf{Assessability.} A tooth is not assessable if no FDI code was assigned or its numbering
+  confidence is below 0.30. The comparison is written as ``not $\ge 0.30$'', so a NaN confidence
+  also fails. The reasons are listed in the record.
+\item \textbf{Alignment check.} Before fusion, \texttt{build\_report} checks that every stage returned
+  one entry per box and raises an error otherwise, instead of attaching one tooth's findings to
+  another.
+\item \textbf{Input checks.} \texttt{check\_input} records warnings such as an unusual bit depth in
+  the report.
+\item \textbf{Non-finite scores.} The numbering head raises an error on a non-finite score rather
+  than assigning codes from it.
+\item \textbf{Empty images.} If no tooth is detected, an empty report is written, not an error.
+\end{itemize}
+
+\section{Configuration and Model Registry}
+
+Every default checkpoint is pinned by its SHA-256 hash, and the hash is written into each report
+(Table~\ref{tab:registry}). A previous default stays selectable from the command line, so every
+number published before a change can be reproduced.
+
+\begin{table}[!htbp]
+\centering
+\caption[Default checkpoints]{Default checkpoints, with the first eight hexadecimal digits of each
+SHA-256 hash as written in the reports.}
+\label{tab:registry}
+\small
+\begin{tabularx}{\textwidth}{@{}L{2.8cm}YL{2.0cm}@{}}
+\toprule
+Stage & Checkpoint & SHA-256\\
+\midrule
+1 Detector & \nolinkurl{models/15_detector_multicorpus_leverA/arm3c_best.pt} & \texttt{5d301f13}\\
+2 Numbering & \nolinkurl{models/10_fdi_head_dentex_tufts_v2/enumeration_head_best.pth} & \texttt{6c675fa0}\\
+3a Lesion detector & \nolinkurl{models/16_lever_b_pooled/.../weights/best.pt} & \texttt{029018db}\\
+3b Severity & \nolinkurl{models/07_caries_cascade/phase2_final_bundle.pth} & \texttt{aa0a8a7e}\\
+4a Abnormality flag & \nolinkurl{models/18_bone_loss_radiograph_split/seed42_best.pth} & \texttt{e4bc8744}\\
+4b Severity (withheld) & \nolinkurl{models/04_bone_loss_severity_notebook_models/..._best.pth} & \texttt{fa93a520}\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Test Design}
+
+The test suite has 23 modules under \texttt{tests/}. They cover:
+\begin{itemize}
+\item the FDI converter and its lower-arch regression;
+\item crop parity between training and inference;
+\item orientation round trips;
+\item assignment and structural repair;
+\item the dataset loaders;
+\item the report;
+\item an end-to-end pipeline run on a fixed image;
+\item a set of invariants checked against the saved artefacts.
+\end{itemize}
+% {C096}
+Tests that need the raw Tufts radiographs skip when the data are absent. Section~\ref{sec:impl-verify}
+reports the verification results.

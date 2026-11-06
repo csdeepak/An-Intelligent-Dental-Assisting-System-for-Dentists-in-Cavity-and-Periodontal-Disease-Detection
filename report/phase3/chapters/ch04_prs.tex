@@ -1,0 +1,204 @@
+\chapter{Project Requirements Specification}
+\label{ch:prs}
+
+\section{Purpose}
+
+This chapter specifies what the OPG analysis system must do and the conditions under which it must
+do it. It is written for the project guide, the examiners and any developer who maintains the code.
+The requirements describe the system as delivered in Phase 3; Chapter~\ref{ch:results} reports how
+well each measurable requirement is met.
+
+\section{Product Scope}
+
+The product is a decision-support prototype that takes one panoramic radiograph and returns a
+structured, per-tooth report: which teeth are present, their FDI numbers, whether each shows caries
+and how deep, and whether each overlaps an expert-style abnormality. It is meant for demonstration,
+teaching and research. It is not a medical device, makes no diagnosis, and states so in every report.
+
+\section{Product Perspective}
+
+The system is self-contained (Figure~\ref{fig:context}). A user supplies an image through a command
+line or a browser; the system loads hash-pinned model checkpoints from local storage, runs on the
+CPU, and writes a JSON report and an optional overlay. It needs no network connection at inference
+time, stores no patient data, and has no external dependencies beyond the Python packages it ships
+with.
+
+\begin{figure}[!htbp]
+\centering
+\input{diagrams/context}
+\caption[System context diagram]{System context. Users and data sources outside the boundary; the
+pipeline, its model store and its outputs inside.}
+\label{fig:context}
+\end{figure}
+
+\section{User Classes and Characteristics}
+
+The system serves four classes of user, each through a different interface
+(Table~\ref{tab:users}).
+
+\begin{table}[!htbp]
+\centering
+\caption[User classes]{User classes and how each uses the system.}
+\label{tab:users}
+\small
+\begin{tabularx}{\textwidth}{@{}L{3.4cm}YL{4.2cm}@{}}
+\toprule
+User class & Needs & Interface\\
+\midrule
+Dentist or dental student & Upload an OPG, see the numbered overlay and the per-tooth findings, read the limitations & Streamlit web demo\\
+Researcher & Run the pipeline on many images, change checkpoints, reproduce a reported number & Command-line tool, evaluation scripts\\
+Developer / maintainer & Retrain a stage, add a test, rebuild the container & Source code, test suite, Dockerfile\\
+Examiner & Check that a number in the report traces to an artefact & Number-verification script, saved outputs\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Operating Environment}
+
+Inference runs on a laptop or desktop CPU under Windows, macOS or Linux with Python 3.12, or inside
+the provided Docker image (a CPU-only build on \texttt{python:3.12-slim}). Training was done on
+cloud and laptop accelerators and is not needed to use the system.
+
+\section{Functional Requirements}
+
+The functional requirements, and the file that implements each, are listed in
+Table~\ref{tab:fr}.
+
+\begin{table}[!htbp]
+\centering
+\caption[Functional requirements]{Functional requirements and where each is implemented.}
+\label{tab:fr}
+\small
+\begin{tabularx}{\textwidth}{@{}L{1.4cm}YL{4.0cm}@{}}
+\toprule
+ID & Requirement & Implemented in\\
+\midrule
+FR-01 & Accept one OPG as PNG or JPEG through a command-line argument or a browser upload. & \texttt{run\_inference.py}, \texttt{app.py}\\
+FR-02 & Check the input and record warnings (for example an unusual bit depth) in the report rather than failing silently. & \texttt{check\_input}\\
+FR-03 & Detect every tooth and return a box and a confidence per tooth, after correcting the image orientation. & Stage 1, \texttt{detect\_upright}\\
+FR-04 & Assign one FDI code to each detected tooth, at most once per code, with a confidence and flags for doubtful codes. & Stage 2, Hungarian assignment\\
+FR-05 & Find caries lesions on the whole image and attach each lesion to the tooth that contains most of it. & Stage 3a, lesion detector\\
+FR-06 & Offer the retained per-crop caries classifier as an alternative method. & \texttt{-{}-caries-method gate}\\
+FR-07 & Grade each caries-positive tooth as caries or deep caries. & Stage 3b\\
+FR-08 & Flag each tooth whose expanded crop overlaps an expert-style abnormality; withhold the severity grade unless requested. & Stage 4a, \texttt{-{}-bone-severity-grade}\\
+FR-09 & Mark each tooth assessable or not, with reasons, when no code was assigned or the numbering confidence is below 0.30. & Stage 5\\
+FR-10 & Write one JSON report with a summary, per-tooth records, model metadata and a limitations block. & Stage 6, schema \texttt{opg-report/1.6}\\
+FR-11 & Optionally write an annotated overlay image. & \texttt{-{}-overlay}, \texttt{draw\_overlay}\\
+FR-12 & In the web demo, show the overlay, a per-tooth table, the limitations and the model versions, and offer the JSON report for download. & \texttt{app.py}\\
+FR-13 & Let the user select any retained checkpoint to reproduce an earlier result. & CLI flags (Appendix~B)\\
+FR-14 & Record provenance in every report: checkpoint paths and SHA-256 hashes, code version and device. & \texttt{runtime\_info}\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Non-Functional Requirements}
+
+The non-functional requirements are listed in Table~\ref{tab:nfr}.
+
+\begin{table}[!htbp]
+\centering
+\caption[Non-functional requirements]{Non-functional requirements, with the measure used to check each.}
+\label{tab:nfr}
+\small
+\begin{tabularx}{\textwidth}{@{}L{1.7cm}L{3.0cm}YL{3.3cm}@{}}
+\toprule
+ID & Quality & Requirement & Measure\\
+\midrule
+NFR-01 & Performance & Report one OPG in a few seconds on a laptop CPU. & 1.70 s per image measured (Section~\ref{sec:res-runtime})\\
+NFR-02 & Hardware independence & Need no GPU at inference. & CPU-only container\\
+NFR-03 & Reproducibility & Pin every default checkpoint by hash; fix random seeds; version the report schema. & SHA-256 pins, seed 42\\
+NFR-04 & Traceability & Trace every reported number to a saved artefact. & 215 numbers asserted\\
+NFR-05 & Reliability & Refuse to fuse misaligned stage outputs; guard against NaN confidences. & Assertions in \texttt{build\_report}\\
+NFR-06 & Usability & One command, or one browser upload; overlay colours distinguishable under red--green colour blindness. & Grey, orange and blue overlay\\
+NFR-07 & Safety and honesty & State in every report that it is not clinically validated, and show the limitations beside the results. & \texttt{limitations} block\\
+NFR-08 & Privacy & Run locally as a single-user demo; store no uploaded image. & No network, no storage\\
+NFR-09 & Portability & Run identically from a Docker image. & Image build self-test\\
+NFR-10 & Maintainability & Keep stages in separate modules with tests. & 23 test modules\\
+NFR-11 & Licence compliance & Show only images whose licence allows it. & DENTEX CC BY-NC-SA 4.0\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Data Requirements}
+
+Each stage needs a different label, and no single public dataset carries all of them. The datasets,
+their labels and their roles are listed in Table~\ref{tab:datasets}. Two rules apply throughout:
+images that are byte-identical to training images are removed from every evaluation set, and the
+Ningxia cohort is never used for training or tuning.
+
+\section{Hardware and Software Requirements}
+
+\begin{table}[!htbp]
+\centering
+\caption[Hardware and software requirements]{Hardware and software requirements for using the system.
+Versions: \texttt{requirements-lock.txt} and the Dockerfile.}
+\label{tab:hwsw}
+\small
+\begin{tabularx}{\textwidth}{@{}L{4.0cm}Y@{}}
+\toprule
+Item & Requirement\\
+\midrule
+Processor & Any 64-bit laptop or desktop CPU; no GPU needed for inference\\
+Operating system & Windows, macOS or Linux; or any host that runs Docker\\
+Python & 3.12\\
+Deep learning & PyTorch 2.2.0 (CPU build), torchvision 0.17.0, Ultralytics 8.4.127 (YOLO11)\\
+Numerical & NumPy 1.26.4 (below 2, which breaks the Hungarian solver import), SciPy 1.12.0, scikit-learn 1.4.0, pandas 2.2.0\\
+Imaging & OpenCV, Pillow 10.2.0, Matplotlib 3.11.1\\
+Interface & Streamlit 1.64.0 for the web demo\\
+Testing & pytest 7.4.4\\
+Storage & The default checkpoints, about 0.3 GB, are kept in the repository\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Design Constraints}
+
+\begin{itemize}
+\item Each stage keeps the crop convention it was trained with: a tight $1.0\times$ crop for caries,
+  $1.5\times$ by $1.5\times$ for numbering and $1.5\times$ by $2.0\times$ for the abnormality flag.
+  Crossing them produces confident, wrong output with no error (Section~\ref{sec:lld-crops}).
+\item The detector input size is fixed at 1,024 pixels, the confidence threshold at 0.25 and the non-maximum suppression (NMS)
+  IoU at 0.50, the values the models were trained and evaluated with.
+\item Field names in the report are stable across versions, so consumers do not break when a
+  checkpoint changes; the meaning of each field is stated in the report itself.
+\end{itemize}
+% {C091}
+
+\section{Assumptions and Dependencies}
+
+\begin{itemize}
+\item Input radiographs are adult panoramic OPGs comparable to the training corpora.
+\item The public datasets remain available under their licences.
+\item Reported accuracy holds only for cohorts like those evaluated; another population may have a
+  different caries prior and therefore a different image-blind floor.
+\end{itemize}
+
+\section{Use Cases}
+
+The actors and their use cases are drawn in Figure~\ref{fig:usecase} and described in
+Table~\ref{tab:usecases}.
+
+\begin{figure}[!htbp]
+\centering
+\input{diagrams/usecase}
+\caption[Use-case diagram]{Use-case diagram of the system.}
+\label{fig:usecase}
+\end{figure}
+
+\begin{table}[!htbp]
+\centering
+\caption[Main use cases]{Main use cases.}
+\label{tab:usecases}
+\small
+\begin{tabularx}{\textwidth}{@{}L{3.3cm}L{2.6cm}Y@{}}
+\toprule
+Use case & Actor & Flow\\
+\midrule
+Analyse one OPG & Dentist, student & Upload the image in the browser; the system runs all stages and shows the overlay, the per-tooth table and the limitations; the user downloads the JSON report.\\
+Batch analysis & Researcher & Run the command-line tool per image (or from a script) and collect the JSON reports.\\
+Reproduce a result & Researcher, examiner & Select the checkpoint named in the result's log and run the matching evaluation script; compare with the saved artefact.\\
+Retrain a stage & Developer & Rebuild the stage's dataset, train with the recorded recipe and seed, register the new checkpoint's hash, rerun the tests.\\
+Deploy the demo & Developer & Build the Docker image; the build fails if a dependency would break the pipeline; run it and open port 8501.\\
+\bottomrule
+\end{tabularx}
+\end{table}

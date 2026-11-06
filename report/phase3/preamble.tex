@@ -1,0 +1,201 @@
+% Phase 3 report preamble. Rules: PLAN.md ("Guidelines" and "Phase 2 theme").
+% Engine: XeLaTeX (Times New Roman from the system, as in the Phase 2 report).
+
+% ---------------------------------------------------------------- page, fonts, spacing
+\usepackage[a4paper,left=2cm,right=2cm,top=2cm,bottom=2cm,
+            includehead,includefoot,headheight=36pt,headsep=12pt,footskip=28pt]{geometry}
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+\setsansfont{Arial}
+\setmonofont{Consolas}[Scale=0.9]
+\usepackage{amsmath,amssymb}
+\usepackage{unicode-math}
+\setmathfont{TeX Gyre Termes Math}
+\usepackage{setspace}
+\onehalfspacing                      % 1.5 line spacing for text; floats and notes stay single
+\usepackage{microtype}
+\usepackage[english]{babel}
+\usepackage{ragged2e}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt}
+\setlength{\emergencystretch}{2.5em}   % lets justified lines absorb long words instead of overflowing
+\hyphenation{ortho-pan-to-mo-gra-phy ortho-pan-to-mo-gram Prog-nos-ti-ca-tion Con-tras-tive}
+
+% ---------------------------------------------------------------- colours (sampled from Phase 2 figures)
+\usepackage[table]{xcolor}
+\definecolor{p2indigo}{HTML}{3C348A}
+\definecolor{p2teal}{HTML}{085142}
+\definecolor{p2maroon}{HTML}{6F271D}
+\definecolor{p2orange}{HTML}{BA7218}
+\definecolor{p2green}{HTML}{244E06}
+\definecolor{p2grey}{HTML}{474348}
+\definecolor{p2arrow}{HTML}{9E9A94}
+\definecolor{p2title}{HTML}{4A86E8}
+\definecolor{p2red}{HTML}{C0504D}
+\definecolor{taxnavy}{HTML}{1B2F3A}
+\definecolor{taxteal}{HTML}{2A4E4F}
+\definecolor{taxmint}{HTML}{DBECE5}
+\definecolor{taxpink}{HTML}{F2D6D0}
+\definecolor{taxsage}{HTML}{528075}
+\definecolor{taxcream}{HTML}{FCF7E9}
+\definecolor{lblue}{HTML}{DAE8FC}
+\definecolor{lyellow}{HTML}{FFF2CC}
+\definecolor{lred}{HTML}{F8CECC}
+\definecolor{lgreen}{HTML}{D5E8D4}
+\definecolor{lgrey}{HTML}{F2F2F2}
+\definecolor{guidebox}{HTML}{F3F5F9}
+
+% ---------------------------------------------------------------- headings (guideline sizes)
+\usepackage{titlesec}
+\titleformat{\chapter}[display]
+  {\centering\bfseries\fontsize{18}{22}\selectfont}
+  {\MakeUppercase{\chaptertitlename}~\thechapter}{14pt}
+  {\MakeUppercase}
+\titlespacing*{\chapter}{0pt}{0pt}{22pt}
+\titleformat{\section}{\bfseries\fontsize{16}{19}\selectfont}{\thesection}{0.9em}{}
+\titlespacing*{\section}{0pt}{16pt}{8pt}
+\titleformat{\subsection}{\bfseries\fontsize{14}{17}\selectfont}{\thesubsection}{0.9em}{}
+\titlespacing*{\subsection}{0pt}{12pt}{6pt}
+\titleformat{\subsubsection}{\bfseries\fontsize{12}{15}\selectfont}{\thesubsubsection}{0.9em}{}
+\titlespacing*{\subsubsection}{0pt}{10pt}{4pt}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{2}
+
+% Unnumbered front-matter and back-matter titles (centred, bold, Phase 2 style).
+\newcommand{\frontheading}[2][16]{%
+  \begin{center}\bfseries\fontsize{#1}{#1pt}\selectfont #2\end{center}\vspace{6pt}}
+
+% ---------------------------------------------------------------- header and footer (guideline 20-21)
+\usepackage{fancyhdr}
+\newcommand{\reporttitle}{An Intelligent Dental Assisting System for Dentists in Cavity and Periodontal Disease Detection}
+\newcommand{\semester}{August -- Dec, 2026}
+\fancypagestyle{report}{%
+  \fancyhf{}%
+  \fancyhead[L]{\parbox[b]{0.74\textwidth}{\itshape\fontsize{11}{13}\selectfont
+     An Intelligent Dental Assisting System for Dentists in Cavity and Periodontal\\ Disease Detection}}%
+  \fancyhead[R]{\includegraphics[height=26pt]{figures/pes_logo.png}}%
+  \fancyfoot[L]{\fontsize{10}{12}\selectfont Dept. of CSE}%
+  \fancyfoot[C]{\fontsize{10}{12}\selectfont \semester}%
+  \fancyfoot[R]{\fontsize{10}{12}\selectfont Page No. \thepage}%
+  \renewcommand{\headrulewidth}{0.8pt}%
+  \renewcommand{\footrulewidth}{0.5pt}}
+% A chapter's first page: footer only (guideline 21).
+\fancypagestyle{plain}{%
+  \fancyhf{}%
+  \fancyfoot[L]{\fontsize{10}{12}\selectfont Dept. of CSE}%
+  \fancyfoot[C]{\fontsize{10}{12}\selectfont \semester}%
+  \fancyfoot[R]{\fontsize{10}{12}\selectfont Page No. \thepage}%
+  \renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\footrulewidth}{0.5pt}}
+% Front matter: no header or footer (guideline 21: they start from the Introduction).
+\fancypagestyle{front}{\fancyhf{}\renewcommand{\headrulewidth}{0pt}\renewcommand{\footrulewidth}{0pt}}
+
+% ---------------------------------------------------------------- floats, captions, tables
+\usepackage{graphicx}
+% Images kept out of git (report/phase3/.gitignore): the figures reproduced from the reviewed papers,
+% the Tufts crops and the app screenshots. A fresh clone without them still builds, with a framed
+% placeholder; tools/restore_images.py restores them.
+\newcommand{\optionalgraphics}[2][]{\IfFileExists{#2}{\includegraphics[#1]{#2}}{%
+  \fbox{\parbox[c][2.4cm][c]{0.9\linewidth}{\centering\footnotesize Image kept out of git:\\
+  \texttt{\detokenize{#2}}\\ restore with \texttt{tools/restore\_images.py}}}}}
+\usepackage{float}
+\usepackage[labelfont=bf,labelsep=colon,font=small,justification=centering,
+            figurename=Figure,tablename=Table]{caption}
+\captionsetup[table]{position=top,skip=6pt}
+\captionsetup[figure]{skip=6pt}
+\usepackage{subcaption}
+\usepackage{booktabs,tabularx,longtable,multirow,makecell,array}
+\usepackage{threeparttable}
+\renewcommand{\arraystretch}{1.18}
+\newcolumntype{L}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\RaggedRight\arraybackslash}X}
+% longtable splits pages itself; a stretchable \parskip inside it gives "infinite glue shrinkage".
+\AtBeginEnvironment{longtable}{\setlength{\parskip}{0pt}}
+\setlength{\abovecaptionskip}{6pt}
+\setlength{\belowcaptionskip}{4pt}
+\renewcommand{\floatpagefraction}{0.8}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\textfraction}{0.08}
+
+% Figure and table helpers: the caption is single-spaced, the source note optional.
+\newcommand{\srcnote}[1]{\par\vspace{2pt}{\footnotesize\itshape #1\par}}
+
+% ---------------------------------------------------------------- lists, algorithms, code
+\usepackage{enumitem}
+\setlist{itemsep=2pt,topsep=4pt,parsep=0pt}
+\setlist[itemize]{label=\textbullet,leftmargin=1.4em}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\makeatletter\@addtoreset{algorithm}{chapter}\makeatother
+\renewcommand{\thealgorithm}{\thechapter.\arabic{algorithm}}
+\usepackage{listings}
+\lstset{basicstyle=\ttfamily\footnotesize,breaklines=true,frame=single,rulecolor=\color{p2arrow},
+        backgroundcolor=\color{lgrey},columns=fullflexible,keepspaces=true,xleftmargin=4pt,xrightmargin=4pt,
+        aboveskip=6pt,belowskip=6pt,showstringspaces=false}
+\usepackage{dirtree}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins,breakable}
+\newtcolorbox{keybox}[1][]{enhanced,breakable,colback=lgrey,colframe=p2indigo,boxrule=0.6pt,
+  arc=2pt,left=6pt,right=6pt,top=4pt,bottom=4pt,fonttitle=\bfseries,title={#1}}
+
+% ---------------------------------------------------------------- diagrams and plots
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,shapes.geometric,shapes.misc,shapes.multipart,fit,calc,
+                backgrounds,shadows,decorations.pathreplacing,matrix,chains}
+\tikzset{
+  >={Stealth[length=2.6mm]},
+  arr/.style={-{Stealth[length=2.4mm]},draw=p2arrow,line width=0.9pt},
+  darr/.style={-{Stealth[length=2.4mm]},draw=p2arrow,line width=0.9pt,dashed},
+  box/.style={rectangle,rounded corners=2.5pt,draw=none,text=white,font=\sffamily\scriptsize\bfseries,
+              align=center,minimum height=8.5mm,inner sep=3pt},
+  stage/.style={box,fill=p2indigo,text width=46mm},
+  cari/.style={box,fill=p2teal,text width=36mm},
+  bone/.style={box,fill=p2maroon,text width=36mm},
+  filt/.style={box,fill=p2orange,text width=46mm},
+  rept/.style={box,fill=p2green,text width=46mm},
+  io/.style={box,fill=p2grey,text width=38mm},
+  soft/.style={rectangle,rounded corners=2.5pt,draw=#1,line width=0.7pt,fill=#1!8,text=black,
+               font=\sffamily\scriptsize,align=center,minimum height=7mm,inner sep=3pt},
+  soft/.default=p2indigo,
+  lbl/.style={font=\sffamily\scriptsize,text=p2grey,align=center},
+}
+
+% ---------------------------------------------------------------- TOC, LOF, LOT (Phase 2 style)
+\usepackage{tocloft}
+\renewcommand{\cfttoctitlefont}{\hfill\bfseries\fontsize{16}{19}\selectfont}
+\renewcommand{\cftaftertoctitle}{\hfill}
+\renewcommand{\cftloftitlefont}{\hfill\bfseries\fontsize{16}{19}\selectfont}
+\renewcommand{\cftafterloftitle}{\hfill}
+\renewcommand{\cftlottitlefont}{\hfill\bfseries\fontsize{16}{19}\selectfont}
+\renewcommand{\cftafterlottitle}{\hfill}
+\addto\captionsenglish{%
+  \renewcommand{\contentsname}{TABLE OF CONTENTS}%
+  \renewcommand{\listfigurename}{LIST OF FIGURES}%
+  \renewcommand{\listtablename}{LIST OF TABLES}%
+  \renewcommand{\bibname}{REFERENCES}}
+\renewcommand{\cftchapfont}{\bfseries}
+\renewcommand{\cftchappagefont}{\bfseries}
+\renewcommand{\cftchapleader}{\hfill}
+\setlength{\cftbeforechapskip}{8pt}
+\setlength{\cftfignumwidth}{3.2em}
+\setlength{\cfttabnumwidth}{3.2em}
+\setlength{\cftsecnumwidth}{2.9em}      % room for 10.10--10.14
+\setlength{\cftsubsecindent}{4.4em}
+\setlength{\cftsubsecnumwidth}{3.4em}
+\renewcommand{\cftdotsep}{1.5}
+
+% ---------------------------------------------------------------- references, links, misc
+\usepackage[hidelinks]{hyperref}
+\usepackage{xurl}
+\usepackage{siunitx}
+\sisetup{group-separator={,},group-minimum-digits=4}
+
+% RCE claim tags live in TeX comments: % {C001}. They never print; tools/export_md.py reads them.
+% \pp is "percentage points".
+\newcommand{\pp}{\,pp}
+\newcommand{\ci}[2]{[#1,\,#2]}
+\newcommand{\fdi}[1]{\textsf{#1}}
+% Literature-survey entry header, as in the Phase 2 report.
+\newcommand{\litmeta}[3]{\par\noindent\textbf{Authors:} #1\quad\textbf{Year:} #2\quad\textbf{Venue:} #3\par}
+\newcommand{\litpart}[1]{\par\noindent\textbf{#1}\enspace}

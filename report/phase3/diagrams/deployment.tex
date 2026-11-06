@@ -1,0 +1,22 @@
+% Deployment. Traced to Dockerfile (FROM python:3.12.12-slim; COPY app.py scripts/ src/ models/;
+% build self-test; EXPOSE 8501; HEALTHCHECK /_stcore/health; CMD streamlit run app.py).
+\begin{tikzpicture}[
+  host/.style={rectangle,rounded corners=4pt,draw=p2grey,line width=0.9pt,fill=lgrey,inner sep=6pt},
+  ctr/.style={rectangle,rounded corners=4pt,draw=p2indigo,line width=0.9pt,fill=p2indigo!5,inner sep=6pt},
+  cmp/.style={box,fill=#1,text width=34mm,minimum height=8mm,font=\sffamily\tiny\bfseries}]
+\node[cmp=p2indigo] (st) at (0,0) {Streamlit server\\\texttt{app.py}, port 8501};
+\node[cmp=p2teal]   (pl) at (0,-1.25) {Pipeline\\\texttt{load\_models}, \texttt{run\_pipeline}};
+\node[cmp=p2green]  (md) at (0,-2.5) {Model checkpoints\\\texttt{models/} (copied at build)};
+\node[cmp=p2grey]   (py) at (0,-3.75) {Python 3.12 slim + CPU PyTorch\\pinned packages};
+\node[soft=p2orange,text width=34mm] (hc) at (4.3,0) {Health check every 30 s\\\texttt{/\_stcore/health}};
+\node[soft=p2orange,text width=34mm] (bt) at (4.3,-3.75) {Build self-test: imports,\\Hungarian solver, numpy below 2};
+\begin{scope}[on background layer]
+\node[ctr,fit=(st)(py)(hc)(bt),label={[lbl,anchor=south]north:Docker container}] (c) {};
+\end{scope}
+\node[cmp=p2grey,text width=26mm] (br) at (-5.0,0) {Browser\\\texttt{localhost:8501}};
+\node[cmp=p2grey,text width=26mm] (cli) at (-5.0,-2.0) {Host CLI\\\texttt{run\_inference.py}};
+\draw[arr] (br) -- node[lbl,above]{upload} (st);
+\draw[arr] (st) -- (pl); \draw[darr] (md) -- (pl); \draw[p2arrow,line width=0.6pt] (py) -- (md);
+\draw[arr] (cli.east) -- node[lbl,below,sloped]{same functions} ($(pl.west)+(-0.3,0)$) -- (pl.west);
+\draw[p2arrow,line width=0.6pt,dashed] (hc.west) -- (st.east);
+\end{tikzpicture}

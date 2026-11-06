@@ -1,0 +1,130 @@
+\chapter{High-Level Design}
+\label{ch:hld}
+
+\section{Design Goals}
+
+\begin{itemize}
+\item \textbf{Tooth-centric output.} The unit of every result is a numbered tooth, because that is
+  how a dentist reads and records an OPG.
+\item \textbf{One code path.} The command-line tool and the web demo call the same two functions
+  (\texttt{load\_models}, \texttt{run\_pipeline}), so a fix or a new caveat reaches both and the demo
+  cannot drift from what the evaluation measured.
+\item \textbf{Modular stages.} Each stage is trained on the dataset that carries its label and can
+  be replaced by another checkpoint without touching the others.
+\item \textbf{Honest output.} The report carries the measured limitations of whichever checkpoints
+  ran, next to the findings.
+\item \textbf{Commodity hardware.} Inference on a CPU, packaged in a container.
+\end{itemize}
+
+\section{System Architecture}
+
+The system is organised in five layers (Figure~\ref{fig:layers}). The presentation layer holds the
+two entry points. The orchestration layer loads the models once, checks the input, runs the stages
+in order and records provenance. The stage layer contains the six pipeline stages. The model and
+artefact layer holds the hash-pinned checkpoints and the outputs. Beside them, an evaluation layer of
+scripts and tests reproduces every number reported in Chapter~\ref{ch:results}.
+
+\begin{figure}[!htbp]
+\centering
+\input{diagrams/layers}
+\caption[Layered system architecture]{Layered architecture. Arrows show calls; dashed arrows show
+data read from or written to storage.}
+\label{fig:layers}
+\end{figure}
+
+\section{Data Flow}
+
+At level 0 the system is one process: an OPG goes in, a report and an overlay come out. At level 1
+(Figure~\ref{fig:dfd}) the six stages exchange well-defined intermediate data: boxes and detection
+confidences, FDI assignments, lesion boxes and caries findings, abnormality flags, and fused
+per-tooth records.
+
+\begin{figure}[!htbp]
+\centering
+\input{diagrams/dfd}
+\caption[Data-flow diagram, levels 0 and 1]{Data-flow diagram. Top: level 0. Bottom: level 1, with
+the model store (D1) read by every stage and the report store (D2) written by Stage~6.}
+\label{fig:dfd}
+\end{figure}
+
+\section{Deployment Architecture}
+
+The demo is distributed as a Docker image (Figure~\ref{fig:deploy}). The image starts from a slim
+Python 3.12 base, installs a CPU-only PyTorch build and the pinned packages, and copies the
+application, the scripts, the source modules and the model checkpoints. During the build a self-test
+imports every dependency and runs the Hungarian solver once, so an incompatible package fails the
+build instead of the first upload. The container serves Streamlit on port 8501 and reports its health
+on Streamlit's health endpoint.
+
+\begin{figure}[!htbp]
+\centering
+\input{diagrams/deployment}
+\caption[Deployment architecture]{Deployment. The same pipeline runs on the host through the command
+line or inside the container behind the Streamlit server.}
+\label{fig:deploy}
+\end{figure}
+
+\section{From the Phase 2 Target to the As-Built Pipeline}
+
+The Phase 2 report drew the target pipeline reproduced in Figure~\ref{fig:p2target}: YOLO tooth
+detection, sorting into FDI order, a per-tooth loop with a tight crop for caries and an expanded crop
+for bone loss, a filter that kept only positive teeth, and a final report. Phase 3 built that design
+with four deliberate changes (Table~\ref{tab:target-vs-built}); the as-built pipeline is shown in
+Figure~\ref{fig:arch} of Chapter~\ref{ch:system}. % {C092}
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.62\textwidth]{figures/phase2/p2_3_01_target_pipeline.jpg}
+\caption[Phase 2 target architecture]{The target end-to-end architecture drawn in the Phase 2 report
+(Figure 3.1 there).}
+\label{fig:p2target}
+\end{figure}
+
+\begin{table}[!htbp]
+\centering
+\caption[Phase 2 target design against the as-built design]{Phase 2 target design against the
+as-built design, with the reason for each change.}
+\label{tab:target-vs-built}
+\small
+\begin{tabularx}{\textwidth}{@{}L{3.0cm}L{3.6cm}L{3.8cm}Y@{}}
+\toprule
+Element & Phase 2 target & Phase 3 as built & Reason\\
+\midrule
+Numbering & Sort boxes into FDI order & Learned ResNet18 head plus Hungarian one-to-one assignment & Sorting fails when teeth are missing or tilted; a learned head with a one-to-one constraint cannot emit duplicate codes\\
+Caries & Tight-crop classifier & Whole-image lesion detector, crop classifier retained & Five repairs of the classifier failed; the detector met a pre-registered rule\\
+Bone loss & Overlap-labelled classifier with severity & Abnormality flag, severity withheld & The label marks expert abnormalities, not bone loss; the severity head did not beat a position prior\\
+Filtering & Keep only positive teeth & Report every tooth, with an assessable flag & A missing tooth must be distinguishable from a healthy one\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Design Rationale}
+
+The tooth-centric formulation was chosen over an image-level classifier because the deliverable is a
+tooth-wise report, not one disease flag for the whole OPG. A modular pipeline is also the practical
+answer to the available data: DENTEX provides tooth-level caries labels, Tufts is richer for
+abnormality masks after region-to-tooth mapping, CariesXrays provides lesion boxes, and no single
+dataset contains every label in one consistent format. A monolithic multi-task model would add
+supervision mismatch without a clear advantage.
+
+ResNet18 is the common backbone of the four classifier heads because it is light, well understood
+and stable under transfer learning on small dental datasets; larger backbones were avoided because
+the extra capacity raises overfitting risk without a demonstrated benefit. The two detectors are
+YOLOv11l~\cite{jocher2024yolo11}, which balances accuracy and speed on a large panoramic image.
+
+The modular design moves responsibility to integration: numbering, report assembly, consistency
+checks and confidence handling must make independently trained models behave as one system. Phase 3
+therefore added four mechanisms:
+\begin{itemize}
+\item a one-to-one assignment that forbids duplicate FDI codes;
+\item an assessability rule that marks a tooth whose number is uncertain;
+\item a check that refuses to fuse stage outputs of different lengths;
+\item a limitations block in the report, keyed to the hash of each checkpoint that ran.
+\end{itemize}
+
+The caries stage changed form during Phase 3. The per-crop classifier of Phase 2 sees one tight crop
+and answers yes or no, a task in which a strong positional prior can earn much of the score; five
+direct repairs of it, each against a same-day control, gave no gain that separated from zero
+(Section~\ref{sec:res-rq2}). The task was therefore changed to locating lesions on the whole image,
+under an acceptance rule committed before any candidate was trained, and the classifier was kept as
+a selectable alternative. % {C071}

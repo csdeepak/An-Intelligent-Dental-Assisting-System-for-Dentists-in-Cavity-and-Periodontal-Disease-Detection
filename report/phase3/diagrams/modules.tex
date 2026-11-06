@@ -1,0 +1,18 @@
+% Module dependencies. Traced to the import statements of app.py, scripts/run_inference.py and src/*.py.
+\begin{tikzpicture}[
+  mod/.style={rectangle,rounded corners=2.5pt,draw=#1,line width=0.8pt,fill=#1!7,font=\sffamily\tiny,
+              align=left,text width=40mm,inner sep=3pt},
+  mt/.style={font=\sffamily\scriptsize\bfseries,text=#1}]
+\node[mod=p2grey] (app) at (-3.2,0) {\textbf{app.py}\\get\_models()\\page: upload, overlay, table, limitations};
+\node[mod=p2grey] (cli) at (3.2,0) {\textbf{scripts/run\_inference.py}\\main(), load\_models(), run\_pipeline()\\build\_report(), draw\_overlay(), runtime\_info()};
+\node[mod=p2indigo] (ori) at (-5.2,-2.3) {\textbf{src/orientation.py}\\detect\_upright()\\rot\_boxes(), unrot\_boxes()};
+\node[mod=p2indigo] (fdi) at (0,-2.3) {\textbf{src/fdi\_head\_inference.py}\\assign\_fdi\_head()\\head\_joint\_scores() (32 codes)};
+\node[mod=p2teal] (cls) at (5.2,-2.3) {\textbf{src/classifiers.py}\\run\_caries\_lesion\_detector()\\run\_caries(), run\_bone\_loss()\\lesion\_preds\_to\_tooth\_idx()};
+\node[mod=p2maroon] (crop) at (2.6,-4.6) {\textbf{src/crop\_generator.py}\\compute\_expanded\_bbox()};
+\node[mod=p2orange] (rep) at (-2.6,-4.6) {\textbf{src/fdi\_structural\_repair.py}\\structural\_repair() (optional)};
+\node[mod=p2green] (ext) at (0,-6.5) {\textbf{External}\\Ultralytics YOLO11, PyTorch, OpenCV, SciPy (linear\_sum\_assignment)};
+\draw[arr] (app) -- node[lbl,above]{imports} (cli);
+\draw[arr] (cli) -- (ori); \draw[arr] (cli) -- (fdi); \draw[arr] (cli) -- (cls);
+\draw[arr] (fdi) -- (crop); \draw[arr] (cls) -- (crop); \draw[darr] (fdi) -- (rep);
+\draw[darr] (ori.south) |- (ext.west); \draw[darr] (cls.south) |- (ext.east);
+\end{tikzpicture}

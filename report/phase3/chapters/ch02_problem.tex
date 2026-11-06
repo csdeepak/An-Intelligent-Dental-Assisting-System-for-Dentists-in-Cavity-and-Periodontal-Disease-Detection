@@ -1,0 +1,99 @@
+\chapter{Problem Statement}
+\label{ch:problem}
+
+\section{Problem Definition}
+
+Given one panoramic radiograph $I$ of a patient, the system must produce a report $R(I)$ with one
+record per tooth present in the image. Each record $t_i$ carries:
+\begin{itemize}
+\item the tooth's box in image coordinates and the detector's confidence;
+\item its FDI code $c_i \in \{11,\dots,18,\,21,\dots,28,\,31,\dots,38,\,41,\dots,48\}$ and the
+  numbering confidence;
+\item a caries finding in $\{\textit{no caries},\ \textit{caries},\ \textit{deep caries}\}$ with its
+  confidence;
+\item an abnormality flag (the Stage-4 output) with its confidence;
+\item an \emph{assessable} flag that says whether the record is reliable enough to read.
+\end{itemize}
+The report must be produced on a CPU in a few seconds, must state its own limitations, and must be
+traceable to the exact model checkpoints that produced it. The problem is therefore not a single
+classification but a structured prediction: which teeth are present, which tooth each one is, and
+what each one shows.
+
+\section{The Report as a Chain of Decisions}
+
+A record is correct only if the tooth is detected ($D$), numbered correctly once detected ($N$), and
+given the right finding ($F$):
+\begin{equation}
+P(\text{record correct}) = P(D)\;P(N \mid D)\;P(F \mid D, N).
+\label{eq:chain}
+\end{equation}
+The first two factors concern identity, not disease, and bound everything after them
+(Figure~\ref{fig:errorchain}). A perfect caries model still writes a wrong report on every tooth that
+was missed or misnumbered: a lesion correctly recognised but attached to the wrong tooth number is a
+wrong report. A score that summarises only the last decision is silent about the two that condition
+it. On the DENTEX evaluation images the first two factors are 99.6\% and 93.2\%, so 92.8\% of teeth
+reach the third decision correctly identified (Table~\ref{tab:identity}). % {C030}
+
+\begin{figure}[H]
+\centering
+\input{diagrams/error_chain}
+\caption{The error chain of a tooth-indexed report. An error in an early decision cannot be repaired
+by a later one. Percentages: the pipeline on 164 held-out DENTEX images (936 teeth), from
+Table~\ref{tab:identity}.}
+\label{fig:errorchain}
+\end{figure}
+
+\section{Why the Usual Caries Score Can Mislead}
+
+Caries is not spread evenly over the mouth. In the project's data the first and second molars carry
+most of it (Figure~\ref{fig:prior}). A learner trained to minimise error over a population will use
+any cue that predicts the label, and tooth position predicts it, so a model can earn part of its
+score by knowing \emph{where caries usually is} rather than seeing where it is in this image, a
+shortcut in the sense of Geirhos et al.~\cite{geirhos2020shortcut}. The usual metric cannot tell the
+two apart, because a set of tooth codes can be chosen without any image.
+
+Two consequences follow. First, a reported score has a floor set by this prior, and it means little
+until an image-blind constant is scored beside it. Second, the floor moves with the population: a
+constant's lesion agreement is the share of a cohort's lesions that lie on its teeth, so agreement
+measured on one development cohort cannot separate a model that reads the lesion from one that has
+absorbed the prior. External cohorts, paired with the constant and reported per site, can.
+Chapter~\ref{ch:method} derives the best image-blind constant in closed form.
+
+\section{Research Questions}
+
+\begin{description}[leftmargin=1.2cm,style=nextline]
+\item[RQ1] Does tooth-level agreement separate the full pipeline from an image-blind constant, on
+  development data and on external cohorts?
+\item[RQ2] Does changing the caries stage from classifying tooth crops to localising lesions in the
+  whole image, a task a fixed list cannot perform, separate them?
+\item[RQ3] What does the pipeline show on outputs a fixed list cannot produce: numbering, calibrated
+  confidence and abstention?
+\end{description}
+
+\section{Constraints and Challenges}
+
+\begin{itemize}
+\item \textbf{No single dataset carries every label.} Tooth boxes and numbers, caries labels,
+  lesion boxes and abnormality masks come from different public datasets with different conventions,
+  so each stage is trained on the data that carries its label (Table~\ref{tab:datasets}).
+\item \textbf{Labels are not diagnoses.} DENTEX caries labels were read from panoramic radiographs
+  alone, and the Tufts abnormality masks mark apical lesions, sclerosis and cysts, not periodontal
+  bone loss.
+\item \textbf{Evaluation sets are small and clustered.} Teeth within one radiograph share exposure
+  and annotator, so intervals must resample radiographs, not teeth.
+\item \textbf{Domain shift.} Radiographs from another hospital differ in device, exposure and
+  population; one external cohort (Ningxia) is kept locked for testing.
+\item \textbf{Deployment.} Inference must run on a CPU, and the report must carry its own caveats.
+\item \textbf{Licences.} DENTEX images may be shown under CC~BY-NC-SA~4.0; Tufts images may not be
+  redistributed.
+\end{itemize}
+
+\section{Success Criteria}
+
+A change to the pipeline is accepted only under a rule written before the evidence. For the caries
+stage the rule, committed before any candidate was trained, required the new method to beat both
+the image-blind constant and the existing crop classifier on at least two of three cohorts, with the
+interval excluding zero, at no more than 1.5 times their rate of flagged teeth
+(Section~\ref{sec:method-prereg}). % {C020} {C021}
+Every reported number must trace to a saved artefact, and a
+result that fails is reported beside one that passes.

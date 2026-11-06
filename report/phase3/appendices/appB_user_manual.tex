@@ -1,0 +1,158 @@
+\chapter{User Manual}
+\label{app:manual}
+
+\section{What the System Does}
+
+The system takes one panoramic dental radiograph (OPG) and returns a per-tooth report: the FDI number
+of every detected tooth, whether it shows caries and how deep, whether it overlaps an expert-style
+abnormality, and whether the record is reliable enough to read. It is a research and teaching
+prototype, \textbf{not a medical device}. Every report states that it is not clinically validated, and
+its findings must not be used for diagnosis.
+
+\section{Installation}
+
+\begin{enumerate}[label=\arabic*.,leftmargin=1.6em]
+\item Install Python 3.12 and Git.
+\item Clone the repository; the default model checkpoints (313 MB) come with it.
+\item Create a virtual environment and install the pinned packages:
+\begin{lstlisting}
+python -m venv .venv
+.venv\Scripts\activate            (Windows)   or   source .venv/bin/activate
+pip install -r requirements-lock.txt
+\end{lstlisting}
+\item Check the installation by running the tests (about one minute on a laptop):
+\begin{lstlisting}
+python -m pytest -q
+\end{lstlisting}
+\end{enumerate}
+
+\section{Command-Line Use}
+
+One image in, one report out:
+\begin{lstlisting}
+python scripts/run_inference.py --image opg.png --output report.json
+python scripts/run_inference.py --image opg.png --output report.json --overlay overlay.jpg
+\end{lstlisting}
+
+\begin{table}[!htbp]
+\centering
+\caption[Command-line options]{Command-line options of \texttt{scripts/run\_inference.py}.}
+\label{tab:cli}
+\small
+\begin{tabularx}{\textwidth}{@{}L{4.6cm}L{3.2cm}Y@{}}
+\toprule
+Option & Default & Effect\\
+\midrule
+\texttt{-{}-image} & (required) & the OPG to analyse (PNG or JPEG)\\
+\texttt{-{}-output} & \texttt{report.json} & where to write the JSON report\\
+\texttt{-{}-overlay} & none & also write an annotated image\\
+\texttt{-{}-caries-method} & \texttt{lesion-detector} & \texttt{gate} selects the retained per-crop classifier\\
+\texttt{-{}-caries-lesion-conf} & 0.25 & lesion detector confidence threshold (frozen; change only to experiment)\\
+\texttt{-{}-assignment} & \texttt{hungarian} & optional structural numbering post-pass (an ablation)\\
+\texttt{-{}-no-one-to-one} & off & plain argmax numbering, which can emit duplicate codes\\
+\texttt{-{}-bone-severity-grade} & off & report the withheld Stage-4 severity grade\\
+\texttt{-{}-detector}, \texttt{-{}-fdi-head} & shipped defaults & select another detector or numbering checkpoint\\
+\texttt{-{}-caries-lesion-model}, \texttt{-{}-caries-gate}, \texttt{-{}-caries-severity} & shipped defaults & select other caries checkpoints\\
+\texttt{-{}-bone-loss}, \texttt{-{}-bone-severity} & shipped defaults & select other Stage-4 checkpoints\\
+\texttt{-{}-conf}, \texttt{-{}-det-iou}, \texttt{-{}-imgsz} & 0.25, 0.50, 1024 & detector settings (keep the defaults)\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Reading the Report}
+
+\begin{itemize}
+\item \textbf{\texttt{summary}} counts the detected and assessable teeth, the distinct and duplicate FDI
+  codes (duplicates should be 0) and the positive findings.
+\item \textbf{\texttt{teeth}} has one record per detected tooth, sorted by FDI code
+  (Listing~\ref{lst:record}). Read a finding only if \texttt{assessable} is true; otherwise
+  \texttt{not\_assessable\_reasons} says why.
+\item \textbf{\texttt{caries.finding}} is \texttt{no\_caries}, \texttt{caries} or \texttt{deep\_caries}.
+  With the default method its confidence is a detection score, not a calibrated probability.
+\item \textbf{\texttt{bone\_loss.finding}} is \texttt{normal} or \texttt{bone\_loss}. It means that the
+  tooth crop overlaps an expert-style abnormality, \emph{not} a periodontal bone-loss measurement.
+\item \textbf{\texttt{limitations}} gives the measured accuracy of the checkpoints that ran and where it
+  holds. Read it before trusting any number above it.
+\item \textbf{Overlay colours.} Orange: a finding; blue: no finding; grey: not assessable. A thin line
+  marks a numbering doubt.
+\end{itemize}
+
+\section{Web Demo}
+
+\begin{enumerate}[label=\arabic*.,leftmargin=1.6em]
+\item Start the demo from the repository root:
+\begin{lstlisting}
+python -m streamlit run app.py
+\end{lstlisting}
+\item Open \texttt{http://localhost:8501} in a browser. The first run loads the models, which takes a
+  few seconds; later runs reuse them.
+\item Upload an OPG (PNG or JPEG). The page shows the counts, the annotated overlay, the per-tooth table
+  and the limitations (Figure~\ref{fig:app}).
+\item Use \emph{Download full JSON report} to save the report, and \emph{Model versions used} to see
+  which checkpoints ran.
+\end{enumerate}
+The demo is single-user, runs locally and stores nothing: the overlay is drawn in memory.
+
+\begin{figure}[!htbp]
+\centering
+\begin{subfigure}[b]{0.49\textwidth}
+\optionalgraphics[width=\textwidth]{figures/screens/app_01_landing.jpg}
+\caption{Start page, waiting for an image.}
+\end{subfigure}\hfill
+\begin{subfigure}[b]{0.49\textwidth}
+\optionalgraphics[width=\textwidth]{figures/screens/app_02_results.jpg}
+\caption{Counts, overlay and per-tooth table.}
+\end{subfigure}\\[3mm]
+\begin{subfigure}[b]{0.72\textwidth}
+\optionalgraphics[width=\textwidth]{figures/screens/app_03_limitations.jpg}
+\caption{Limitations, the not-validated notice, the JSON download and the model versions.}
+\end{subfigure}
+\caption[The web demo]{The Streamlit web demo, captured on 6 November 2026 with DENTEX
+\texttt{test\_0} (the radiograph of Figure~\ref{fig:walkthrough}). Its counts (30 teeth detected, 28
+assessable, 4 caries-positive, no Stage-4 flag) match the saved report. Tooth 24 is not assessable
+because its numbering confidence is 0.262. Radiograph: DENTEX~\cite{hamamci2023dentex},
+CC~BY-NC-SA~4.0.}
+\label{fig:app}
+\end{figure}
+
+\section{Docker}
+
+\begin{lstlisting}
+docker build -t opg-pipeline .
+docker run -p 8501:8501 opg-pipeline
+\end{lstlisting}
+Then open \texttt{http://localhost:8501}. The build fails if a dependency would break the pipeline (a
+CUDA build of PyTorch, NumPy 2 or an old Streamlit). The container's health is checked every 30 seconds.
+
+\section{Reproducing a Reported Number}
+
+\begin{lstlisting}
+python scripts/verify_paper_numbers.py        # asserts 215 numbers against saved artefacts
+python scripts/eval/verify_invariants.py      # twelve invariants of the saved outputs
+\end{lstlisting}
+Each evaluation script under \texttt{scripts/eval/} names its inputs and writes its result under
+\texttt{outputs/}. The checkpoint behind any older number can be selected with the options in
+Table~\ref{tab:cli}.
+
+\section{Troubleshooting}
+
+Common problems and their fixes are listed in Table~\ref{tab:trouble}.
+
+\begin{table}[!htbp]
+\centering
+\caption[Troubleshooting]{Common problems and their fixes.}
+\label{tab:trouble}
+\small
+\begin{tabularx}{\textwidth}{@{}L{5.2cm}Y@{}}
+\toprule
+Symptom & Fix\\
+\midrule
+\texttt{ImportError} from \texttt{scipy.optimize} & NumPy 2 is installed; install the pinned NumPy 1.26.4\\
+``checkpoint not found'' & pull the repository again; the default checkpoints are versioned in it\\
+The demo raises an error on upload & Streamlit is older than 1.62; install the pinned version\\
+Report has input warnings & the image's bit depth or format is unusual; convert it to an 8-bit PNG\\
+Many teeth not assessable & the image differs from the training corpora; read the limitations block\\
+Duplicate FDI codes reported & \texttt{-{}-no-one-to-one} was given; remove it\\
+\bottomrule
+\end{tabularx}
+\end{table}

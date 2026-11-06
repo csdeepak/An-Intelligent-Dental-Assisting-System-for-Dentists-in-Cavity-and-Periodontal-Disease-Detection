@@ -1,0 +1,19 @@
+% Methodology workflow. Traced to: data roles (Table 8.1), leakage control (MD5 exclusion, pHash check,
+% radiograph-level splits), training recipes (Table 8.4), the constant (eq. 8.2-8.3), evaluation protocol
+% (Section 8.7), pre-registration (ef3f453).
+\begin{tikzpicture}[node distance=5mm and 6mm]
+\node[io,text width=27mm] (d) {Public datasets\\[-1pt]{\normalfont each with one role}};
+\node[stage,text width=29mm,right=of d] (l) {Leakage control\\[-1pt]{\normalfont MD5, pHash, split by radiograph}};
+\node[stage,text width=27mm,right=of l] (t) {Train each stage\\[-1pt]{\normalfont recorded recipe, seed 42}};
+\node[stage,text width=27mm,right=of t] (v) {Select on validation\\[-1pt]{\normalfont never on a test set}};
+\node[cari,text width=29mm,below=9mm of d] (c) {Image-blind constant\\[-1pt]{\normalfont fitted off the test set}};
+\node[cari,text width=29mm,right=of c] (e) {Paired evaluation\\[-1pt]{\normalfont per cohort, per site}};
+\node[cari,text width=27mm,right=of e] (s) {Intervals\\[-1pt]{\normalfont cluster bootstrap, DL + HKSJ}};
+\node[filt,text width=27mm,right=of s] (r) {Pre-registered rule\\[-1pt]{\normalfont committed before training}};
+\node[rept,text width=40mm,below=9mm of r] (a) {Adopt, or keep as ablation;\\report both};
+\draw[arr] (d) -- (l); \draw[arr] (l) -- (t); \draw[arr] (t) -- (v);
+\draw[arr] (v.south) -- ++(0,-3mm) -| (e.north);
+\draw[arr] (c) -- (e); \draw[arr] (e) -- (s); \draw[arr] (s) -- (r); \draw[arr] (r) -- (a);
+\node[soft=p2maroon,text width=35mm,below=9mm of e] (lock) {Ningxia locked: test only, never tuned on};
+\draw[darr] (lock) -- (e);
+\end{tikzpicture}

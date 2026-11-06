@@ -1,0 +1,25 @@
+% Abstract: at most 150 words (guideline 5), at most two paragraphs (template). Checked by tools/check_report.py.
+\thispagestyle{empty}
+\vspace*{12mm}
+\frontheading[16]{ABSTRACT}
+\vspace{4mm}
+\begingroup
+\justifying
+% RCE-ABSTRACT-BEGIN
+A panoramic radiograph (OPG) is read tooth by tooth, yet caries systems are scored by which teeth
+they mark carious, a score an image-blind list can partly earn. % {C010}
+Phase 3 completes an assistant that turns one OPG into a per-tooth report in six stages: tooth
+detection (YOLOv11l), numbering (ResNet18, one-to-one assignment), caries lesion detection, severity
+grading, an abnormality flag and report fusion. % {C002}
+It runs at 1.70 s per image on a laptop CPU, from a command line, a Streamlit demo or Docker. % {C001} {C002}
+
+An image-blind constant fitted in closed form, the eight first and second molars, scores F1 0.320 on
+164 held-out DENTEX images; the pipeline scores 0.498. % {C010} {C013}
+On 337 external radiographs from four sites the lesion detector leads the constant by 9.28 points
+(95\% interval 4.72--13.73), though not at every site. % {C022} {C024}
+Retrained with a radiograph-level split, the Phase 2 bone-loss flag finds 27.5\% of labelled teeth at
+95.9\% specificity. % {C040}
+% RCE-ABSTRACT-END
+\par
+\endgroup
+\clearpage

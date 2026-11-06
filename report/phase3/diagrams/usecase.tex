@@ -1,0 +1,35 @@
+% Use-case diagram. Use cases traced to: app.py (upload, overlay, table, limitations, JSON download,
+% model versions), scripts/run_inference.py (CLI flags), scripts/verify_paper_numbers.py, Dockerfile.
+\begin{tikzpicture}[
+  actor/.style={font=\sffamily\scriptsize,align=center},
+  uc/.style={ellipse,draw=p2indigo,line width=0.7pt,fill=p2indigo!6,font=\sffamily\scriptsize,
+             align=center,minimum width=40mm,minimum height=8.5mm,inner sep=1pt}]
+\newcommand{\stick}[2]{%
+  \begin{scope}[shift={#1}]
+  \draw[p2grey,line width=0.8pt] (0,0.42) circle (0.13);
+  \draw[p2grey,line width=0.8pt] (0,0.29) -- (0,-0.05) (-0.22,0.18) -- (0.22,0.18)
+        (0,-0.05) -- (-0.17,-0.35) (0,-0.05) -- (0.17,-0.35);
+  \node[actor] at (0,-0.6) {#2};
+  \end{scope}}
+\node[uc] (u1) at (0,3.0) {Analyse one OPG in the browser};
+\node[uc] (u2) at (0,1.9) {View findings and limitations};
+\node[uc] (u3) at (0,0.8) {Download the JSON report};
+\node[uc] (u4) at (0,-0.3) {Run batch analysis (CLI)};
+\node[uc] (u5) at (0,-1.4) {Select a retained checkpoint};
+\node[uc] (u6) at (0,-2.5) {Reproduce a reported number};
+\node[uc] (u7) at (5.4,-0.9) {Retrain a stage};
+\node[uc] (u8) at (5.4,-2.0) {Build and run the container};
+\begin{scope}[on background layer]
+\node[draw=p2grey,rounded corners=4pt,line width=0.8pt,fit=(u1)(u6)(u7)(u8),inner sep=8pt,
+      label={[lbl,anchor=south]north:OPG analysis system}] {};
+\end{scope}
+\stick{(-4.6,2.2)}{Dentist /\\student}
+\stick{(-4.6,-1.0)}{Researcher}
+\stick{(-4.6,-3.4)}{Examiner}
+\stick{(9.0,-1.5)}{Developer}
+\foreach \u in {u1,u2,u3} \draw[p2arrow,line width=0.7pt] (-4.3,2.3) -- (\u.west);
+\foreach \u in {u4,u5,u6} \draw[p2arrow,line width=0.7pt] (-4.3,-0.9) -- (\u.west);
+\draw[p2arrow,line width=0.7pt] (-4.3,-3.3) -- (u6.west);
+\foreach \u in {u7,u8} \draw[p2arrow,line width=0.7pt] (8.7,-1.4) -- (\u.east);
+\draw[darr] (u1.south) -- node[lbl,right]{\guillemotleft include\guillemotright} (u2.north);
+\end{tikzpicture}

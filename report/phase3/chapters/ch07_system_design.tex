@@ -1,0 +1,165 @@
+\chapter{System Design (Detailed)}
+\label{ch:system}
+
+\section{Overview}
+
+The pipeline maps an OPG to a per-tooth record in six stages. Figure~\ref{fig:flow} draws it in the
+style of the Phase 2 target pipeline. Figure~\ref{fig:arch} gives the as-shipped version with each
+default checkpoint and its learnable parameter count. Figure~\ref{fig:walkthrough} follows one
+held-out radiograph through every stage.
+
+\begin{figure}[!htbp]
+\centering
+\input{diagrams/pipeline_p2style}
+\caption[As-built pipeline]{The as-built pipeline, drawn in the style and colours of the Phase 2
+target architecture. Teal: the caries branch; maroon: the abnormality branch.}
+\label{fig:flow}
+\end{figure}
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/repo/R06_architecture.pdf}
+\caption[The pipeline as it ships, with parameter counts]{The pipeline as it ships, with its default
+checkpoints and learnable parameter counts read from the saved weights. The default configuration
+(Stages 1, 2, default 3a, 3b, 4a, and the withheld 4b with 11.18\,M) totals 95.34\,M. Blue: identity
+stages; dark blue: the default caries path; dashed orange: the retained caries variant, the
+comparison arm throughout; green: the abnormality flag. Thresholds are fixed in code; none was tuned
+on an evaluation cohort.}
+\label{fig:arch}
+\end{figure}
+% {C002} {C003}
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.94\textwidth]{figures/repo/R02_walkthrough.pdf}
+\caption[One held-out radiograph through the shipped pipeline]{One held-out DENTEX radiograph
+(\texttt{test\_0}, not used to train any model) through the shipped pipeline. (a) Input, 2,829 by
+1,316 pixels; dashed: the region shown in (b)--(f). (b) Stage 1: 30 teeth, with detection
+confidences. (c) Stage 2: one FDI code per tooth; ``?'' marks its two unsure codes (24, 42).
+(d) Stage 3a: one lesion-detector pass over the whole image, four boxes (confidence 0.35 to 0.89).
+(e) Each box goes to the tooth holding most of it: 26 and 46 flagged as caries, 36 and 45 as deep
+caries; no Stage-4 flag. (f) The written overlay with the expert's three caries annotations (26, 45,
+48) in yellow: two found, 48 missed, 36 flagged with no annotated lesion. Radiograph:
+DENTEX~\cite{hamamci2023dentex}, CC~BY-NC-SA~4.0.}
+\label{fig:walkthrough}
+\end{figure}
+
+\section{Stage 1: Tooth Detection}
+
+Stage 1 is a YOLOv11l detector~\cite{jocher2024yolo11} with 25.31\,M learnable parameters. The image is
+rotated by 90\textdegree\ counter-clockwise into the orientation the detector was trained on, detection
+runs at an input size of 1,024 pixels with confidence threshold 0.25 and non-maximum-suppression IoU
+0.50, and the boxes are rotated back into the upright frame. The shipped detector, the default since
+11 October 2026, was trained on three corpora (Tufts, DENTEX and the Kaggle dual-labelled set) with
+per-corpus balancing. It replaced a Tufts-only YOLOv11l-seg detector, which stays selectable. The
+replacement missed one of its pre-registered guards and was adopted by a separate, dated decision for
+its numbering and caries behaviour; Section~\ref{sec:res-train} reports both. % {C031}
+
+\section{Stage 2: FDI Numbering}
+
+Stage 2 scores every FDI code for each detected tooth. A crop of the box expanded 1.5 times in each
+direction is resized to 224 pixels and passed through a ResNet18~\cite{he2016resnet}, together with four
+box-position features (centre $x$, centre $y$, width and height, each divided by the image's full
+width or height). The network has two heads, one for the quadrant (four classes) and one for the
+position (eight classes). Their log-probabilities are summed into a joint score for each of the 32
+codes. The Hungarian algorithm~\cite{kuhn1955hungarian} then chooses the one-to-one matching of teeth to
+codes with the highest total joint log-probability, so no code can be emitted twice, which an
+independent per-tooth argmax would allow when two adjacent molars both look most like tooth 17. The
+reported confidence is the exponential of the chosen code's joint log-probability. The head has
+11.19\,M parameters and was trained on DENTEX and Tufts crops.
+
+An optional structural post-pass that enforces the anatomical order of codes along the arch was built
+and evaluated under its own pre-registration; it was a null result and ships off by default.
+
+\section{Stage 3: Caries}
+
+\subsection{Stage 3a, Default: Whole-Image Lesion Detector}
+
+The default caries stage is a second YOLOv11l, trained with a single class to draw boxes around
+carious lesions anywhere in the radiograph. It needs no tooth identity. Each predicted lesion box is
+assigned to the tooth box that contains the largest share of it (intersection area divided by
+lesion-box area, ``argmax containment''), and that tooth is flagged as carious. The confidence
+threshold, 0.25, was frozen by the pre-registration and never tuned on a cohort. In the report, the
+\texttt{gate\_confidence} of a lesion-flagged tooth is the detection score and is marked as such,
+because it is not a calibrated probability.
+
+\subsection{Stage 3a, Retained: Per-Crop Classifier}
+
+The retained variant, selected with \texttt{-{}-caries-method gate}, is the Phase 2 design: a ResNet18
+judges each tight tooth crop (no expansion, 224 pixels) as carious or not. It was retrained in Phase 3
+with a real negative class of healthy teeth. It is kept so that every number measured before the
+change of default can be reproduced, and it is the comparison arm of Chapter~\ref{ch:results}.
+
+\subsection{Stage 3b: Severity}
+
+Teeth flagged by either Stage-3a method are graded as caries or deep caries, the two caries labels
+DENTEX releases, by the second stage of the Phase 2 cascade: a ResNet18 on the tight crop, trained in
+two steps (the final layer first, then the whole network at a low learning rate) with class weights.
+It was validated on 133 crops during development and is not evaluated separately in this report.
+
+\section{Stage 4: Abnormality Flag}
+\label{sec:sys-stage4}
+
+\subsection{From the Phase 2 Bone-Loss Branch}
+
+Phase 2 built this branch on the Tufts data, and its construction is kept:
+\begin{itemize}
+\item Annotation parsing joins the expert descriptions, the tooth boxes and the pathology masks on
+  the image identifier; box corners are converted from the raw corner format to $[x, y, w, h]$.
+\item Each tooth box is expanded asymmetrically, 1.5 times in width and 2.0 times in height, so that
+  the crop contains the root and the surrounding bone.
+\item A crop is labelled positive when the share of mask pixels inside it exceeds 0.01, an overlap
+  ratio rather than an intersection over union, because the masks are sparse relative to the crop.
+\end{itemize}
+% {C082}
+
+Phase 3 found that the masks behind this label mark expert abnormalities (apical lesions, sclerosis,
+cysts), not periodontal bone loss. The field keeps its name, \texttt{bone\_loss}, so that report
+consumers do not break, but it is described as an abnormality-proximity flag everywhere, including in
+the report's own limitations block.
+
+\subsection{Stage 4a in Phase 3}
+
+The Phase 2 binary model's validation split shared radiographs with its training set
+(Section~\ref{sec:res-stage4}). The shipped model was therefore retrained with the split made by
+radiograph: a ResNet18 on 224-pixel greyscale crops, focal loss, trained on 678 Tufts radiographs, with
+the checkpoint chosen on validation macro-F1 and tested once on 143 held-out radiographs. Three seeds
+of the recipe were trained; seed 42 is shipped.
+
+\subsection{Stage 4b: Severity, Withheld}
+
+The Phase 2 severity head grades flagged teeth as mild, moderate or severe. Phase 3 found that its
+classes had been derived from crop contrast rather than from the mask overlap they were meant to
+encode. Retrained on true overlap bands, it did not beat an image-blind tooth-position prior, so the
+grade is withheld from the report unless \texttt{-{}-bone-severity-grade} is given.
+
+\subsection{CEJ-Based Estimation (Phase 2, Exploratory)}
+
+The Phase 2 report also explored a cemento-enamel junction (CEJ) heuristic. Each crop was enhanced
+with contrast-limited adaptive histogram equalisation (CLAHE) and a candidate CEJ and bone crest were located, so that bone loss could be expressed as a
+CEJ-to-crest distance, the measurement closest to clinical practice. On 296 crops the heuristic was
+judged reliable on 62.5\%, and its severity agreed with the overlap labels exactly on 15.1\% and within
+one class on 61.6\%. It is kept as a documented negative result and is not part of the pipeline. % {C081}
+
+\section{Stage 5: Fusion and Assessability}
+
+Stage 5 joins the per-stage outputs by box index into one record per tooth. Before joining it checks
+that every stage returned one entry per box. A tooth is marked not assessable, with the reason, if it
+has no FDI code or its numbering confidence is below 0.30. The records are sorted by FDI code, and the
+report summary counts detected and assessable teeth, distinct and duplicate codes, and positive
+findings.
+
+\section{Stage 6: Report and Overlay}
+
+Stage 6 writes the JSON report described in Section~\ref{sec:lld-report} and, if asked, an overlay. The
+overlay draws each tooth box with its FDI code. Colour encodes the finding: orange for a finding, blue
+for none and grey for not assessable. Grey replaced red because red read as the most urgent tooth when
+it meant that the pipeline could not say; orange and blue stay distinguishable under red--green colour
+blindness. A thin line marks a numbering doubt.
+
+\section{Explainability}
+
+Phase 2 planned Grad-CAM saliency maps for every tooth-level prediction. Phase 3 did not implement
+them. The visual evidence the system gives is the overlay: every finding is drawn on the tooth it
+refers to, with the lesion boxes that produced it, so a reader can check the claim against the image.
+Saliency maps remain future work (Chapter~\ref{ch:conclusion}).

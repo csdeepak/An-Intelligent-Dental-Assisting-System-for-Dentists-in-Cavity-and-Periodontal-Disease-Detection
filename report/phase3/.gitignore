@@ -1,0 +1,30 @@
+# Phase 3 report: what stays out of git (side-deliverable rule: rendered media and images derived from
+# datasets or third parties are not committed). Everything here is rebuilt or restored; see PLAN.md.
+
+# Build outputs (tools/build.sh)
+build/
+references.bib
+Phase3_Report_PW26_MHR_06.pdf
+tools/__pycache__/
+
+# Byte copies of figures tracked elsewhere in the repository, refreshed by tools/build.sh
+figures/repo/
+
+# Figures reproduced from the reviewed papers (third-party), restored by tools/restore_images.py
+figures/phase2/p2_2_*
+
+# Tufts radiograph crops (Tufts licence: no redistribution), restored by tools/restore_images.py
+figures/phase2/p2_5_*
+
+# Screenshots of the web demo showing a DENTEX radiograph (rendered media); recapture as described in
+# tools/restore_images.py. The build shows a placeholder without them.
+figures/screens/
+
+# The repository ignores *.jpg and *.png (root .gitignore, dataset rule) and keeps the RCE trail .rcs/
+# local. Re-included here, so that a fresh clone builds: the university logo used in every header, and
+# the project's own Phase 2 charts and diagrams (no radiograph pixels, no third-party figures).
+!figures/pes_logo.png
+!figures/phase2/p2_3_*
+!figures/phase2/p2_4_*
+!figures/phase2/p2_6_*
+!figures/phase2/p2_7_*

@@ -1,0 +1,22 @@
+% Crop conventions. Traced to src/classifiers.py (CARIES_EXPAND (1.0,1.0), BONE_LOSS_EXPAND (1.5,2.0))
+% and src/fdi_head_inference.py (EXPAND 1.5). Schematic, not to scale of any real tooth.
+\begin{tikzpicture}[scale=0.9]
+\def\w{1.2}\def\h{2.0}
+\foreach \x/\name/\fw/\fh/\col/\lab in {0/a/1.0/1.0/p2teal/{Caries: $1.0\times1.0$ (tight)},
+                                        4.2/b/1.5/1.5/p2indigo/{Numbering: $1.5\times1.5$},
+                                        8.6/c/1.5/2.0/p2maroon/{Abnormality: $1.5\times2.0$}} {
+  \begin{scope}[shift={(\x,0)}]
+  % tooth silhouette
+  \fill[lgrey] (-0.45,0.9) .. controls (-0.55,0.3) and (-0.35,-0.2) .. (-0.25,-0.95)
+               -- (-0.05,-0.95) -- (0,-0.3) -- (0.05,-0.95) -- (0.25,-0.95)
+               .. controls (0.35,-0.2) and (0.55,0.3) .. (0.45,0.9) -- cycle;
+  \draw[p2grey,line width=0.6pt] (-0.45,0.9) .. controls (-0.55,0.3) and (-0.35,-0.2) .. (-0.25,-0.95)
+               -- (-0.05,-0.95) -- (0,-0.3) -- (0.05,-0.95) -- (0.25,-0.95)
+               .. controls (0.35,-0.2) and (0.55,0.3) .. (0.45,0.9) -- cycle;
+  \draw[black,line width=0.8pt] (-\w/2,-\h/2) rectangle (\w/2,\h/2);
+  \draw[\col,line width=1.2pt,dashed] (-\w*\fw/2,-\h*\fh/2) rectangle (\w*\fw/2,\h*\fh/2);
+  \node[font=\sffamily\scriptsize,text=\col,align=center] at (0,-\h*\fh/2-0.4) {\lab};
+  \end{scope}}
+\node[font=\sffamily\tiny,text=p2grey] at (11.4,1.0) {solid: detected box};
+\node[font=\sffamily\tiny,text=p2grey] at (11.4,0.6) {dashed: crop};
+\end{tikzpicture}

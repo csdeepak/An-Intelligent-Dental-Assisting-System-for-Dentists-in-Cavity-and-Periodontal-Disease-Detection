@@ -1,0 +1,45 @@
+% Layered architecture. Components traced to: app.py, scripts/run_inference.py (main, load_models,
+% run_pipeline, runtime_info, check_input, build_report, draw_overlay), src/*.py, models/README.md,
+% scripts/eval/, scripts/verify_paper_numbers.py, tests/.
+\begin{tikzpicture}[
+  lay/.style={rectangle,rounded corners=3pt,draw=#1,line width=0.8pt,fill=#1!6,minimum width=128mm,
+              minimum height=14mm,inner sep=3pt},
+  lname/.style={font=\sffamily\scriptsize\bfseries,text=#1,anchor=west},
+  comp/.style={box,fill=#1,text width=27mm,minimum height=8mm,font=\sffamily\tiny\bfseries}]
+% layers
+\node[lay=p2grey]   (L1) at (0,0)     {};
+\node[lay=p2indigo] (L2) at (0,-1.75) {};
+\node[lay=p2teal,minimum height=17mm] (L3) at (0,-3.85) {};
+\node[lay=p2green]  (L4) at (0,-5.75) {};
+\node[lname=p2grey]   at ($(L1.north west)+(1mm,-2mm)$) {Presentation};
+\node[lname=p2indigo] at ($(L2.north west)+(1mm,-2mm)$) {Orchestration};
+\node[lname=p2teal]   at ($(L3.north west)+(1mm,-2mm)$) {Stages};
+\node[lname=p2green]  at ($(L4.north west)+(1mm,-2mm)$) {Models and artefacts};
+% presentation
+\node[comp=p2grey] at (-2.2,-0.15) {CLI\\\texttt{run\_inference.py main}};
+\node[comp=p2grey] at (2.2,-0.15)  {Web demo\\\texttt{app.py} (Streamlit)};
+% orchestration
+\node[comp=p2indigo] at (-4.4,-1.9) {\texttt{load\_models}\\hash-pinned loads};
+\node[comp=p2indigo] at (-1.45,-1.9) {\texttt{check\_input}\\input warnings};
+\node[comp=p2indigo] at (1.5,-1.9)  {\texttt{run\_pipeline}\\Stages 1--6};
+\node[comp=p2indigo] at (4.45,-1.9) {\texttt{runtime\_info}\\provenance};
+% stages (two rows)
+\node[comp=p2teal,text width=19mm] at (-5.05,-4.0) {1 Detect\\YOLOv11l};
+\node[comp=p2teal,text width=19mm] at (-2.95,-4.0) {2 Number\\ResNet18 + Hungarian};
+\node[comp=p2teal,text width=19mm] at (-0.85,-4.0) {3a Caries\\lesion detector};
+\node[comp=p2teal,text width=19mm] at (1.25,-4.0) {3b Severity\\ResNet18};
+\node[comp=p2maroon,text width=19mm] at (3.35,-4.0) {4a Abnormality\\ResNet18};
+\node[comp=p2orange,text width=19mm] at (5.45,-4.0) {5--6 Fuse +\\report, overlay};
+% models
+\node[comp=p2green,text width=36mm] at (-3.6,-5.9) {Checkpoints \texttt{models/<NN>\_*}\\SHA-256 pinned};
+\node[comp=p2green,text width=36mm] at (0.6,-5.9)  {JSON report\\\texttt{opg-report/1.6}};
+\node[comp=p2green,text width=30mm] at (4.6,-5.9)  {Overlay image};
+% evaluation layer at the side
+\node[rectangle,rounded corners=3pt,draw=p2orange,line width=0.8pt,fill=p2orange!8,text width=24mm,
+      minimum height=73mm,font=\sffamily\tiny,align=center] (ev) at (8.25,-2.9)
+      {\textbf{\scriptsize Evaluation}\\[2mm]\texttt{scripts/eval/}\\40 scripts\\[2mm]\texttt{verify\_paper\_numbers}\\215 numbers\\[2mm]\texttt{tests/}\\23 modules};
+\draw[arr] (L1.south) -- (L2.north);
+\draw[arr] (L2.south) -- (L3.north);
+\draw[darr] (L3.south) -- (L4.north);
+\draw[darr] (ev.west|-L3) -- (L3.east);
+\end{tikzpicture}

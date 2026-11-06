@@ -1,0 +1,39 @@
+% Data-flow diagram, levels 0 and 1. Flows traced to scripts/run_inference.py run_pipeline() and
+% build_report(): boxes+confs -> fdi_assign -> caries -> bone -> teeth records -> report.
+\begin{tikzpicture}[
+  proc/.style={circle,draw=none,fill=#1,text=white,font=\sffamily\tiny\bfseries,align=center,
+               minimum size=15mm,inner sep=1pt},
+  ext/.style={rectangle,draw=p2grey,line width=0.8pt,fill=lgrey,font=\sffamily\scriptsize,align=center,
+              minimum width=20mm,minimum height=8mm},
+  store/.style={rectangle,draw=p2grey,line width=0.6pt,font=\sffamily\tiny,align=left,
+                minimum width=30mm,minimum height=6mm,path picture={\draw[p2grey,line width=0.6pt]
+                ([xshift=5mm]path picture bounding box.north west) -- ([xshift=5mm]path picture bounding box.south west);}},
+  fl/.style={font=\sffamily\tiny,text=p2grey,align=center}]
+% level 0
+\node[ext] (u0) at (-5.4,0) {User};
+\node[proc=p2indigo,minimum size=17mm] (p0) at (0,0) {0\\OPG analysis\\system};
+\node[ext] (o0) at (5.4,0) {Report and\\overlay};
+\draw[arr] (u0) -- node[fl,above]{OPG image} (p0);
+\draw[arr] (p0) -- node[fl,above]{per-tooth JSON, JPG} (o0);
+\node[lbl] at (0,1.25) {\textbf{Level 0}};
+% level 1
+\node[lbl] at (-6.0,-1.55) {\textbf{Level 1}};
+\node[ext] (u1) at (-6.6,-3.3) {User};
+\node[proc=p2indigo] (s1) at (-4.4,-3.3) {1.0\\Detect\\teeth};
+\node[proc=p2indigo] (s2) at (-1.9,-3.3) {2.0\\Number\\(FDI)};
+\node[proc=p2teal]   (s3) at (0.6,-3.3)  {3.0\\Find\\caries};
+\node[proc=p2maroon] (s4) at (3.1,-3.3)  {4.0\\Flag\\abnorm.};
+\node[proc=p2orange] (s5) at (5.6,-3.3)  {5.0\\Fuse +\\assess};
+\node[proc=p2green]  (s6) at (5.6,-5.8)  {6.0\\Write\\report};
+\node[store] (d1) at (-1.9,-5.8) {D1\quad Model checkpoints};
+\node[store] (d2) at (2.0,-5.8) {D2\quad Report, overlay};
+\draw[arr] (u1) -- node[fl,above]{image} (s1);
+\draw[arr] (s1) -- node[fl,above]{boxes,\\conf.} (s2);
+\draw[arr] (s2) -- node[fl,above]{codes,\\conf.} (s3);
+\draw[arr] (s3) -- node[fl,above]{caries\\finding} (s4);
+\draw[arr] (s4) -- node[fl,above]{flag} (s5);
+\draw[arr] (s5) -- node[fl,right]{tooth\\records} (s6);
+\draw[arr] (s6) -- (d2);
+\foreach \s in {s1,s2,s3,s4} \draw[darr] (d1.north) -- (\s.south);
+\draw[darr] (s1.north) to[bend left=22] node[fl,above]{boxes reused by every stage} (s4.north);
+\end{tikzpicture}

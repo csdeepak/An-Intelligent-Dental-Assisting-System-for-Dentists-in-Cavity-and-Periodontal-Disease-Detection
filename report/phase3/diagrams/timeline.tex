@@ -1,0 +1,30 @@
+% Project progression, Phase 1 -> Phase 3. Components traced to: Phase 2 report (Ch. 1, Table 3.1);
+% transfer.md section 1-2; this report Table 1.1.
+\begin{tikzpicture}[node distance=6mm and 7mm,
+  ph/.style={box,fill=#1,text width=44mm,minimum height=10mm,font=\sffamily\small\bfseries},
+  items/.style={rectangle,rounded corners=2pt,draw=#1,line width=0.7pt,fill=#1!7,text width=44mm,
+                font=\sffamily\scriptsize,align=left,inner sep=4pt}]
+\node[ph=p2grey]   (p1) {Phase 1 \\[-1pt]{\normalfont\scriptsize Survey and design}};
+\node[ph=p2indigo,right=of p1] (p2) {Phase 2 \\[-1pt]{\normalfont\scriptsize Jan--May 2026: modules}};
+\node[ph=p2teal,right=of p2]   (p3) {Phase 3 \\[-1pt]{\normalfont\scriptsize Aug--Dec 2026: integrate, validate}};
+\draw[arr] (p1) -- (p2); \draw[arr] (p2) -- (p3);
+\node[items=p2grey,below=4mm of p1] (i1) {%
+  \textbullet~Survey of OPG analysis\\
+  \textbullet~Tooth-centric design\\
+  \textbullet~Dataset roles chosen\\
+  \textbullet~Pipeline-based taxonomy};
+\node[items=p2indigo,below=4mm of p2] (i2) {%
+  \textbullet~Caries cascade (ResNet18)\\
+  \textbullet~Tufts parsing and crops\\
+  \textbullet~Bone-loss binary + severity\\
+  \textbullet~CEJ heuristic (exploratory)};
+\node[items=p2teal,below=4mm of p3] (i3) {%
+  \textbullet~Detector + FDI head + report\\
+  \textbullet~Lesion detector (pre-registered)\\
+  \textbullet~Image-blind constant theory\\
+  \textbullet~Six cohorts, paired intervals\\
+  \textbullet~CLI, Streamlit, Docker\\
+  \textbullet~Phase 2 results corrected};
+\draw[p2arrow,line width=0.6pt] (p1) -- (i1); \draw[p2arrow,line width=0.6pt] (p2) -- (i2);
+\draw[p2arrow,line width=0.6pt] (p3) -- (i3);
+\end{tikzpicture}

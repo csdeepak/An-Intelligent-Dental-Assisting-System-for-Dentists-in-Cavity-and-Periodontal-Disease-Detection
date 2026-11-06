@@ -1,0 +1,17 @@
+% Experiment lineage. Traced to transfer.md section 2.6 (levers 1, 2, A, A2, B, C) and models/README.md.
+\begin{tikzpicture}[node distance=5mm and 7mm,
+  lev/.style={box,fill=#1,text width=32mm,minimum height=10mm,font=\sffamily\tiny\bfseries}]
+\node[io,text width=32mm] (base) {Phase 2 modules\\[-1pt]{\normalfont crop classifier, Tufts-only detector}};
+\node[lev=p2arrow,right=of base,yshift=13mm] (l1) {Lever 1: multi-corpus detector\\[-1pt]{\normalfont Tufts guard failed}};
+\node[lev=p2orange,right=of l1] (la) {Lever A: 3- and 4-corpus detector\\[-1pt]{\normalfont arm 3C made default, 11 Oct}};
+\node[lev=p2arrow,right=of la] (la2) {Lever A2: frozen fine-tune\\[-1pt]{\normalfont Tufts guard failed}};
+\node[lev=p2arrow,right=of base,yshift=-1mm] (l2) {Lever 2: CariesXrays detector\\[-1pt]{\normalfont benchmark row}};
+\node[lev=p2green,right=of l2] (lb) {Lever B: lesion detector\\[-1pt]{\normalfont adopted 4 Sep, 2 of 3 cohorts}};
+\node[lev=p2arrow,right=of base,yshift=-15mm] (rep) {Five crop-classifier repairs\\[-1pt]{\normalfont none separated from zero}};
+\node[lev=p2arrow,right=of rep] (lc) {Lever C: FDI structural repair\\[-1pt]{\normalfont null}};
+\node[lev=p2green,right=of lc] (s4) {Stage 4a by radiograph\\[-1pt]{\normalfont default 13 Oct}};
+\draw[arr] (base.east) -- ++(2mm,0) |- (l1.west); \draw[arr] (l1) -- (la); \draw[arr] (la) -- (la2);
+\draw[arr] (base.east) -- ++(2mm,0) |- (l2.west); \draw[arr] (l2) -- node[lbl,above]{same arch.} (lb);
+\draw[arr] (base.east) -- ++(2mm,0) |- (rep.west); \draw[arr] (rep) -- (lc);
+\draw[darr] (rep.north) -- node[lbl,right]{task changed} (lb.south west);
+\end{tikzpicture}

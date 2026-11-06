@@ -1,0 +1,68 @@
+% Phase 3 capstone report (UE23CS441A). Build: tools/build.sh (XeLaTeX + BibTeX).
+% Conventions and sources of every number: PLAN.md.
+\documentclass[12pt,a4paper,oneside]{report}
+\input{preamble}
+
+\begin{document}
+
+% ================================================================ front matter (no header/footer)
+\pagenumbering{roman}
+\pagestyle{front}
+\newgeometry{left=2cm,right=2cm,top=2cm,bottom=2cm,nohead,nofoot}
+\input{frontmatter/cover}
+\input{frontmatter/certificate}
+\input{frontmatter/declaration}
+\input{frontmatter/acknowledgement}
+\input{frontmatter/abstract}
+\restoregeometry
+
+\cleardoublepage
+% Each list opens with a \chapter* page, which takes the plain style (footer only). The guideline starts
+% headers and footers at the Introduction (item 21), so plain is emptied inside this group; the last
+% \clearpage ships the final list page before the group ends.
+\begingroup
+\fancypagestyle{plain}{\fancyhf{}\renewcommand{\headrulewidth}{0pt}\renewcommand{\footrulewidth}{0pt}}
+\phantomsection
+\tableofcontents
+\clearpage
+\phantomsection
+\listoffigures
+\clearpage
+\phantomsection
+\listoftables
+\clearpage
+\endgroup
+
+% ================================================================ main matter (header + footer)
+\pagenumbering{arabic}
+\pagestyle{report}
+\input{chapters/ch01_introduction}
+\input{chapters/ch02_problem}
+\input{chapters/ch03_literature}
+\input{chapters/ch04_prs}
+\input{chapters/ch05_hld}
+\input{chapters/ch06_lld}
+\input{chapters/ch07_system_design}
+\input{chapters/ch08_methodology}
+\input{chapters/ch09_implementation}
+\input{chapters/ch10_results}
+\input{chapters/ch11_conclusion}
+
+% ================================================================ references and appendices
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{REFERENCES}
+\renewcommand{\bibname}{REFERENCES}
+\begingroup
+\titleformat{\chapter}[display]{\centering\bfseries\fontsize{18}{22}\selectfont}{}{0pt}{\MakeUppercase}
+\singlespacing\small
+\bibliographystyle{IEEEtran}
+\bibliography{IEEEabrv,references}
+\endgroup
+
+\appendix
+\renewcommand{\chaptertitlename}{Appendix}
+\input{appendices/appA_acronyms}
+\input{appendices/appB_user_manual}
+
+\end{document}

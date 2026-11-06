@@ -1,0 +1,24 @@
+% System context. Components traced to: scripts/run_inference.py (CLI, load_models, run_pipeline),
+% app.py (Streamlit), Dockerfile, models/README.md (checkpoint store), paper/paper.md Table 3 (datasets).
+\begin{tikzpicture}[node distance=7mm and 10mm]
+\node[stage,text width=50mm,minimum height=13mm] (sys) {OPG analysis system\\[-1pt]{\normalfont six-stage pipeline, CPU}};
+\node[soft=p2grey,text width=50mm,below=4mm of sys] (store) {Model store: seven hash-pinned checkpoints (313 MB)};
+\begin{scope}[on background layer]
+\node[draw=p2indigo,dashed,rounded corners=4pt,line width=0.8pt,fit=(sys)(store),inner sep=6pt,
+      label={[lbl,anchor=south]north:system boundary}] (bd) {};
+\end{scope}
+\node[io,text width=30mm,left=22mm of sys,yshift=10mm] (den) {Dentist / student\\[-1pt]{\normalfont browser}};
+\node[io,text width=30mm,left=22mm of sys,yshift=-10mm] (res) {Researcher\\[-1pt]{\normalfont command line}};
+\node[rept,text width=30mm,right=22mm of sys,yshift=10mm] (rep) {JSON report\\[-1pt]{\normalfont \texttt{opg-report/1.6}}};
+\node[rept,text width=30mm,right=22mm of sys,yshift=-10mm] (ovl) {Overlay image};
+\node[soft=p2teal,text width=44mm,below=10mm of store] (data) {Public datasets: DENTEX, Tufts, CariesXrays, Kaggle (training only, offline)};
+\node[soft=p2maroon,text width=40mm,left=8mm of data] (ext) {Locked external cohorts: Ningxia, UFBA-425 (evaluation only)};
+\node[soft=p2orange,text width=36mm,right=8mm of data] (dev) {Developer: tests, Docker build};
+\draw[arr] (den.east) -- node[lbl,above,sloped]{upload OPG} (sys.west|-den.east);
+\draw[arr] (res.east) -- node[lbl,below,sloped]{\texttt{-{}-image}} (sys.west|-res.east);
+\draw[arr] (sys.east|-rep.west) -- (rep.west);
+\draw[arr] (sys.east|-ovl.west) -- (ovl.west);
+\draw[darr] (data.north) -- node[lbl,right]{trained checkpoints} (store.south);
+\draw[darr] (ext.north) |- ($(store.south west)+(0,-2mm)$);
+\draw[darr] (dev.north) |- ($(store.south east)+(0,-2mm)$);
+\end{tikzpicture}

@@ -1,0 +1,25 @@
+% Repository structure (top levels). Traced to `git ls-files` of the repository on 2 Nov 2026.
+\begin{minipage}{0.92\textwidth}
+\small
+\renewcommand{\DTstyle}{\ttfamily\small}
+\renewcommand{\DTcomment}{\rmfamily\itshape\color{p2grey}}
+\dirtree{%
+.1 An-Intelligent-Dental-Assisting-System/.
+.2 app.py\DTcomment{Streamlit web demo}.
+.2 Dockerfile\DTcomment{CPU-only container with a build self-test}.
+.2 src/\DTcomment{reusable stage modules (orientation, numbering, classifiers, crops)}.
+.2 scripts/.
+.3 run\_inference.py\DTcomment{Stages 5--6: one OPG in, one JSON report out}.
+.3 eval/\DTcomment{40 evaluation scripts}.
+.3 dentex/, tufts/, yolo/\DTcomment{dataset builders and trainers}.
+.3 figures/\DTcomment{figure scripts with asserted values}.
+.3 verify\_paper\_numbers.py\DTcomment{asserts 215 reported numbers}.
+.2 models/\DTcomment{one folder per trained stage, with run summaries}.
+.2 outputs/\DTcomment{saved evaluation results (JSON, CSV)}.
+.2 tests/\DTcomment{23 test modules}.
+.2 notebooks/\DTcomment{Phase 2 development notebooks}.
+.2 docs/\DTcomment{results log, model metrics, session memory}.
+.2 paper/\DTcomment{manuscript and the ten-page IEEE draft}.
+.2 requirements.txt, requirements-lock.txt\DTcomment{dependencies}.
+}
+\end{minipage}

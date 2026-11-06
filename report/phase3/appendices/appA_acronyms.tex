@@ -1,0 +1,69 @@
+\chapter{Definitions, Acronyms and Abbreviations}
+\label{app:acronyms}
+
+\section{Definitions}
+
+The terms used in this report are defined in Table~\ref{tab:defs}.
+
+\begin{table}[!htbp]
+\centering
+\caption[Definitions of terms used in the report]{Definitions of terms used in the report.}
+\label{tab:defs}
+\small
+\begin{tabularx}{\textwidth}{@{}L{4.0cm}Y@{}}
+\toprule
+Term & Meaning in this report\\
+\midrule
+Assessable & A tooth record with an FDI code whose numbering confidence is at least 0.30\\
+Constant (image-blind) & A fixed set of FDI codes answered for every image, without reading it; here the eight first and second molars\\
+Fit set & The 78 DENTEX images, excluded from scoring because the models trained on them, on which the constant is fitted\\
+Scored set & The 164 held-out DENTEX images on which the systems are compared\\
+FDI-set F1 & Micro-averaged F1 over the set of tooth codes a system marks carious, per image\\
+Lesion agreement & The share of expert lesions whose containing tooth is flagged by a system\\
+Prior mass & The share of a cohort's lesions that lie on the constant's teeth\\
+Matched-volume constant & An image-blind answer that names as many codes per image as a given system\\
+Identity factors & Detection recall and numbering accuracy, the first two factors of the decision chain\\
+Paired cluster bootstrap & Resampling radiographs (not teeth) with replacement, both systems on the same draw\\
+Pre-registration & An acceptance rule committed to version control before the experiment it judges\\
+Lever & A numbered, pre-registered proposal to change a pipeline component\\
+Guard & A condition of a lever that must not get worse, such as Tufts detection accuracy\\
+Abnormality flag & Stage 4a's output: the tooth crop overlaps an expert-marked Tufts abnormality\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Acronyms and Abbreviations}
+
+The acronyms and abbreviations are expanded in Table~\ref{tab:acronyms}.
+
+\begin{table}[!htbp]
+\centering
+\caption[Acronyms and abbreviations]{Acronyms and abbreviations.}
+\label{tab:acronyms}
+\small
+\begin{tabularx}{\textwidth}{@{}L{2.2cm}YL{2.2cm}Y@{}}
+\toprule
+Acronym & Meaning & Acronym & Meaning\\
+\midrule
+AI & Artificial intelligence & JSON & JavaScript Object Notation\\
+AP & Average precision & LLD & Low-level design\\
+AP50 & Average precision at IoU 0.5 & mAP & Mean average precision\\
+AUC & Area under the (ROC) curve & MD5 & Message-Digest 5 hash\\
+CEJ & Cemento-enamel junction & NMS & Non-maximum suppression\\
+CLAHE & Contrast-limited adaptive histogram equalisation & OPG & Orthopantomogram (panoramic radiograph)\\
+CLI & Command-line interface & pHash, dHash & Perceptual and difference hashes\\
+CNN & Convolutional neural network & PRS & Project requirements specification\\
+CPU & Central processing unit & PRISMA & Preferred Reporting Items for Systematic Reviews and Meta-Analyses\\
+DFD & Data-flow diagram & QUADAS-2 & Quality Assessment of Diagnostic Accuracy Studies, version 2\\
+DL & DerSimonian--Laird (random effects) & ResNet & Residual network\\
+ECE & Expected calibration error & ROC & Receiver operating characteristic\\
+FDI & Fédération Dentaire Internationale (tooth notation) & RQ & Research question\\
+FDP & Fixed dental prosthesis & SHA-256 & Secure Hash Algorithm, 256-bit\\
+FPCL & Feature pyramid contrastive learning & UFBA-425 & The 425-radiograph dataset released with OralBBNet~\cite{budagam2024oralbbnet}\\
+GPU & Graphics processing unit & VLM & Vision-language model\\
+HKSJ & Hartung--Knapp--Sidik--Jonkman (interval) & YOLO & You Only Look Once (detector family)\\
+HLD & High-level design & & \\
+IoU & Intersection over union & & \\
+\bottomrule
+\end{tabularx}
+\end{table}

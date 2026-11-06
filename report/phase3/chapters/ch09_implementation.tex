@@ -1,0 +1,315 @@
+\chapter{Implementation and Pseudocode}
+\label{ch:impl}
+
+\section{Technology Stack}
+
+The implementation is in Python 3.12. PyTorch and torchvision run the ResNet18 heads; Ultralytics
+YOLO11 trains and runs the two detectors; OpenCV and NumPy cut crops and process masks; SciPy supplies
+the linear-assignment solver for numbering; pandas joins annotations; scikit-learn computes metrics and
+fits the isotonic calibrator; Matplotlib draws the figures; Streamlit serves the demo; pytest runs the
+tests; and Docker packages the demo. Exact versions are pinned in \texttt{requirements-lock.txt}
+(Table~\ref{tab:hwsw}). NumPy is held below version 2, which breaks the SciPy import that the
+Hungarian assignment needs.
+
+\section{Repository Structure}
+
+The repository layout, to two levels, is shown in Figure~\ref{fig:repotree}.
+
+\begin{figure}[!htbp]
+\centering
+\input{diagrams/repo_tree}
+\caption[Repository structure]{Repository structure (top two levels, main folders only).}
+\label{fig:repotree}
+\end{figure}
+
+The working rules of the repository are part of the implementation. Every result is logged in a
+dated, append-only results log. Every default checkpoint is pinned by hash. Superseded checkpoints are
+kept, not deleted, so that earlier numbers stay reproducible. Large raw data stay outside version
+control.
+
+\section{Modules Carried Over from Phase 2}
+
+\subsection{Module 1: Caries Cascade}
+
+The Phase 2 caries work is a two-stage cascade rather than one three-class model. The first stage, a
+ResNet18 on tight tooth crops resized to 224 by 224 with ImageNet normalisation, predicts caries
+against no caries; the second reuses the backbone for caries against deep caries, with the final layer
+reset and the network fine-tuned at a lower learning rate so that it adapts to severity cues. In
+Phase 3 the first stage was retrained with a real negative class of 5,366 healthy teeth, becoming the
+retained crop classifier, and the second stage is the shipped severity grader (Stage~3b). % {C084}
+
+\subsection{Module 2: Dataset Exploration and Annotation Parsing}
+
+\texttt{src/data\_loader.py} turns the raw Tufts annotations into a form suitable for tooth-level
+analysis. Three parsing bugs were decisive in Phase 2:
+\begin{itemize}
+\item the expert and box files are lists of records keyed by the stem of their External ID, not
+  dictionaries keyed by image name;
+\item the boxes are stored as $[y_1, x_1, y_2, x_2]$;
+\item the mask values encode lesion instances, not severity classes.
+\end{itemize}
+The module therefore loads the expert descriptions and derives the image stems, converts the boxes to
+$[x, y, w, h]$, classifies each mask as empty or annotated, and joins all sources on the stem.
+
+\subsection{Module 3: Abnormality Dataset Construction}
+
+\texttt{src/crop\_generator.py} and \texttt{src/label\_assigner.py} build the expanded crop from a tooth
+box, optionally jitter it, crop the expert mask to the same region and compute the overlap
+ratio~\eqref{eq:overlap} that sets the label. This turns sparse region annotations into a tooth-wise
+label without lesion segmentation at inference (Figures~\ref{fig:p2grid} and~\ref{fig:p2samples}).
+
+\begin{figure}[!htbp]
+\centering
+\optionalgraphics[width=0.66\textwidth]{figures/phase2/p2_5_01_crop_validation_grid.jpg}
+\caption[Validation grid of tooth boxes, expanded crops and mask-aligned crops]{Validation grid of
+tooth boxes, expanded crops and mask-aligned crops (Phase 2 report, Figure 5.1). Tufts radiographs.}
+\label{fig:p2grid}
+\end{figure}
+
+\begin{figure}[!htbp]
+\centering
+\optionalgraphics[width=0.86\textwidth]{figures/phase2/p2_5_02_crop_samples.jpg}
+\caption[Representative tooth crops of the abnormality dataset]{Representative tooth crops of the
+abnormality dataset (Phase 2 report, Figure 5.2). Tufts radiographs.}
+\label{fig:p2samples}
+\end{figure}
+
+One limitation noted in Phase 2 remains true: the abnormal pool contained jittered near-duplicates of
+the same teeth, and offline augmentation multiplied them. The Phase 3 retrain replaced offline
+augmentation with an epoch that draws every abnormal crop once and 3.5 normal crops for each, redrawn
+every epoch.
+
+\subsection{Modules 4 and 5: Binary Flag and Severity Training}
+
+The Phase 2 binary model fine-tuned a ResNet18 on the expanded crops with focal loss, Adam,
+learning-rate reduction on plateau and early stopping; its best epoch was 22. The Phase 2 severity
+model was a three-class ResNet18 trained with focal loss on the positive crops. Phase 3 kept both
+recipes and changed the split (Section~\ref{sec:sys-stage4}). % {C085}
+
+\subsection{Module 6: CEJ-Based Estimation}
+
+The CEJ heuristic used CLAHE preprocessing, column-wise CEJ and apex detection, a focused search window
+for the bone crest, interquartile-range outlier removal and a confidence score
+(Figure~\ref{fig:p2cej}). Its results are in Section~\ref{sec:sys-stage4}. % {C086}
+
+\begin{figure}[!htbp]
+\centering
+\optionalgraphics[width=0.66\textwidth]{figures/phase2/p2_5_03_cej_overlays.jpg}
+\caption[CEJ-estimation overlays on tooth crops]{CEJ-estimation overlays on tooth crops from the
+exploratory branch (Phase 2 report, Figure 5.3). Tufts radiographs.}
+\label{fig:p2cej}
+\end{figure}
+
+\section{Modules Added in Phase 3}
+
+\begin{description}[leftmargin=0pt,style=nextline]
+\item[Module 7: Tooth detector.] Dataset builders under \texttt{scripts/yolo/} convert each corpus to
+  the YOLO format in the detector's rotated frame, balance the corpora and train with Ultralytics.
+\item[Module 8: Numbering head.] \texttt{scripts/dentex/build\_enumeration\_crops.py} builds the
+  $1.5\times$ crops and box features from DENTEX and Tufts, splitting by source image before any crop
+  exists, and \texttt{train\_enumeration\_head.py} trains the two-headed ResNet18.
+\item[Module 9: Lesion detector.] \texttt{build\_dentex\_caries\_boxes.py} converts the 705 DENTEX
+  disease images into single-class lesion boxes (650 kept), pooled with CariesXrays, with a live MD5
+  check against the scored cohort.
+\item[Module 10: Integration.] \texttt{scripts/run\_inference.py} composes the stages
+  (Algorithm~\ref{alg:pipeline}) and writes the report.
+\item[Module 11: Web demo and container.] \texttt{app.py} renders the report in a browser, and the
+  Dockerfile packages it with a build-time self-test.
+\item[Module 12: Evaluation suite.] Forty scripts under \texttt{scripts/eval/} reproduce every result:
+  lesion agreement on DENTEX, Ningxia and CariesXrays; the vision-language and constant baselines;
+  numbering, abstention and calibration; the shortcut test; random-effects pooling; constant
+  stability; and the near-duplicate check.
+\end{description}
+
+\section{Pseudocode}
+
+Eight algorithms give the pseudocode of the pipeline and of the evaluation: end-to-end inference
+(Algorithm~\ref{alg:pipeline}), one-to-one FDI assignment (Algorithm~\ref{alg:fdi}), lesion-to-tooth
+assignment (Algorithm~\ref{alg:lesion}), the fit of the image-blind constant
+(Algorithm~\ref{alg:constant}), the paired cluster bootstrap (Algorithm~\ref{alg:bootstrap}), the
+matched-volume comparison (Algorithm~\ref{alg:matched}), random-effects pooling across sites
+(Algorithm~\ref{alg:re}) and the near-duplicate check (Algorithm~\ref{alg:nearDup}).
+
+\begin{algorithm}[!htbp]
+\caption{End-to-end inference (\texttt{run\_pipeline})}
+\label{alg:pipeline}
+\begin{algorithmic}[1]
+\Require OPG image $I$; loaded models; caries method $m \in \{\text{lesion-detector}, \text{gate}\}$
+\Ensure report $R$
+\State $W \gets \textsc{CheckInput}(I)$ \Comment{warnings, never a silent failure}
+\State $(B, s) \gets \textsc{DetectUpright}(\text{detector}, I)$ \Comment{rotate 90\textdegree, detect at 1,024 px, conf.\ 0.25, NMS 0.50, rotate back}
+\State $(c, q) \gets \textsc{AssignFDI}(\text{head}, I, B)$ \Comment{Algorithm~\ref{alg:fdi}}
+\If{$m = \text{lesion-detector}$}
+  \State $K \gets \textsc{LesionCaries}(I, B)$ \Comment{Algorithm~\ref{alg:lesion}}
+\Else
+  \State $K \gets \textsc{GateCaries}(I, B)$ \Comment{tight crops, ResNet18, then severity}
+\EndIf
+\State $A \gets \textsc{AbnormalityFlag}(I, B)$ \Comment{$1.5\times2.0$ crops, ResNet18}
+\State \textbf{assert} $|B| = |c| = |K| = |A|$ \Comment{refuse to fuse misaligned outputs}
+\For{each tooth $i$}
+  \State $\text{assessable}_i \gets (c_i \neq \varnothing) \wedge (q_i \geq 0.30)$
+\EndFor
+\State $R \gets \textsc{BuildReport}(B, s, c, q, K, A, W)$; sort records by FDI code
+\State attach checkpoint hashes, runtime versions and the limitations of the checkpoints that ran
+\State \Return $R$
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[!htbp]
+\caption{One-to-one FDI assignment (\texttt{assign\_fdi\_head})}
+\label{alg:fdi}
+\begin{algorithmic}[1]
+\Require image $I$ of width $W$ and height $H$; tooth boxes $b_1,\dots,b_n$; two-headed network $g$
+\For{$i = 1$ to $n$}
+  \State $x_i \gets \textsc{Resize}(\textsc{Crop}(I, \textsc{Expand}(b_i, 1.5, 1.5)), 224)$
+  \State $f_i \gets (c_x/W,\ c_y/H,\ w/W,\ h/H)$ of $b_i$
+\EndFor
+\State $(\ell^{q}, \ell^{p}) \gets g(x, f)$ \Comment{log-softmax over 4 quadrants and 8 positions}
+\State $J_{i,(Q,P)} \gets \ell^{q}_{i,Q} + \ell^{p}_{i,P}$ for all 32 codes \Comment{joint log-probability}
+\If{any $J$ is not finite} \State \textbf{raise} an error \EndIf
+\State $\pi \gets \textsc{LinearSumAssignment}(-J)$ \Comment{Hungarian: maximise $\sum_i J_{i,\pi(i)}$, one code per tooth}
+\For{$i = 1$ to $n$}
+  \State $c_i \gets \pi(i)$, or none if more than 32 teeth were detected and $i$ is unmatched
+  \State $q_i \gets \exp(J_{i,c_i})$; flag $c_i$ as doubtful if $q_i < 0.30$
+\EndFor
+\State \Return $(c, q)$
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[!htbp]
+\caption{Lesion-to-tooth assignment (\texttt{run\_caries\_lesion\_detector})}
+\label{alg:lesion}
+\begin{algorithmic}[1]
+\Require upright image $I$; tooth boxes $b_1,\dots,b_n$; lesion detector $D$; severity network $h$
+\State $\mathcal{L} \gets D(I)$ at 1,024 px, confidence $\geq 0.25$ \Comment{no rotation: trained upright}
+\State $\text{best} \gets \{\}$
+\For{each lesion box $l$ with score $\sigma$ in $\mathcal{L}$}
+  \State $r_i \gets \text{area}(l \cap b_i) / \text{area}(l)$ for every tooth $i$ \Comment{containment}
+  \If{$\max_i r_i > 0$}
+    \State $i^{*} \gets \arg\max_i r_i$
+    \State $\text{best}[i^{*}] \gets \max(\text{best}[i^{*}], \sigma)$ \Comment{one tooth per lesion}
+  \EndIf \Comment{a lesion outside every tooth is dropped}
+\EndFor
+\For{each tooth $i$}
+  \If{$i \in \text{best}$}
+    \State severity $\gets h(\textsc{TightCrop}(I, b_i))$; finding $\gets$ caries or deep caries
+  \Else
+    \State finding $\gets$ no caries
+  \EndIf
+\EndFor
+\State \Return one finding per tooth, with the detection score marked as such
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[!htbp]
+\caption{Fitting the image-blind constant (rule~\eqref{eq:rule})}
+\label{alg:constant}
+\begin{algorithmic}[1]
+\Require fit images, $N$ of them, with carious codes; $n_c$ = images with code $c$ carious; $P = \sum_c n_c$
+\State order the 32 codes by $n_c$, largest first
+\State $S \gets \varnothing$; $A \gets 0$
+\For{each code $c$ in that order}
+  \State $k \gets |S|$
+  \If{$n_c > 0$ \textbf{and} $2(A + n_c)(kN + P) > 2A((k+1)N + P)$} \Comment{adding $c$ raises F1}
+    \State $S \gets S \cup \{c\}$; $A \gets A + n_c$
+  \Else
+    \State \textbf{break} \Comment{single peak: every later code fails too}
+  \EndIf
+\EndFor
+\State \Return $S$, frozen before it is scored
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[!htbp]
+\caption{Paired cluster bootstrap}
+\label{alg:bootstrap}
+\begin{algorithmic}[1]
+\Require images $1,\dots,N$; per-image counts for systems $X$ and $Y$; metric $M$; $R = 10{,}000$; seed 42
+\For{$r = 1$ to $R$}
+  \State draw $N$ image indices with replacement \Comment{resample radiographs, not teeth}
+  \State $\Delta_r \gets M_X(\text{draw}) - M_Y(\text{draw})$ \Comment{both systems on the same draw}
+\EndFor
+\State \Return point estimate on all images; interval $[\Delta_{(2.5\%)}, \Delta_{(97.5\%)}]$
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[!htbp]
+\caption{Matched-volume image-blind comparison}
+\label{alg:matched}
+\begin{algorithmic}[1]
+\Require system predictions on $N$ images; fit-set prevalence order of codes; $P$ carious teeth
+\State $v \gets (\text{codes the system names}) / N$; $k \gets \lfloor v \rfloor$; $f \gets v - k$
+\For{each image $j$}
+  \State $\mathit{TP}^{\text{mix}}_j \gets (1-f)\,\mathit{TP}_j(S_k) + f\,\mathit{TP}_j(S_{k+1})$ \Comment{mixture chosen by image ID, not content}
+\EndFor
+\State $F_1^{\text{mix}} \gets 2\sum_j \mathit{TP}^{\text{mix}}_j / (vN + P)$
+\State $\Delta \gets F_1^{\text{system}} - F_1^{\text{mix}}$; interval by Algorithm~\ref{alg:bootstrap} with $f$ fixed
+\State \Return $\Delta$ and its interval
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[!htbp]
+\caption{Random-effects pooling across sites, with HKSJ and Q-profile intervals}
+\label{alg:re}
+\begin{algorithmic}[1]
+\Require per-site differences $\Delta_j$ and 95\% intervals $[l_j, u_j]$, $j = 1,\dots,k$
+\State $v_j \gets ((u_j - l_j)/3.92)^2$; $w_j \gets 1/v_j$
+\State $Q \gets \sum_j w_j (\Delta_j - \bar\Delta_w)^2$; $\hat\tau^2 \gets \max\!\big(0, \frac{Q-(k-1)}{\sum w_j - \sum w_j^2/\sum w_j}\big)$ \Comment{DerSimonian--Laird}
+\State $w^{*}_j \gets 1/(v_j + \hat\tau^2)$; $\hat\mu \gets \sum w^{*}_j \Delta_j / \sum w^{*}_j$
+\State DL interval: $\hat\mu \pm 1.96\,(\sum w^{*}_j)^{-1/2}$
+\State $q \gets \sum w^{*}_j(\Delta_j - \hat\mu)^2/(k-1)$; HKSJ interval: $\hat\mu \pm t_{k-1}\sqrt{q/\sum w^{*}_j}$
+\State Q-profile: solve $Q(\tau^2) = \chi^2_{k-1}$ quantiles for the bounds of $\tau^2$
+\State prediction interval: $\hat\mu \pm t_{k-2}\sqrt{\hat\tau^2 + \text{SE}^2}$
+\State \Return $\hat\mu$, DL and HKSJ intervals, $\tau$ interval, $I^2$, prediction interval
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[!htbp]
+\caption{Near-duplicate check (\texttt{dentex\_near\_duplicates.py})}
+\label{alg:nearDup}
+\begin{algorithmic}[1]
+\Require query images (scored cohort); reference images (all other DENTEX images)
+\For{each image $x$}
+  \State pHash$(x)$: 32$\times$32 greyscale, 2-D DCT, top-left 8$\times$8 thresholded at its median (64 bits)
+  \State dHash$(x)$: 9$\times$8 greyscale, sign of the horizontal gradient (64 bits)
+\EndFor
+\State Hamming distance from every query to every reference, for both hashes
+\State positive control: every MD5-identical pair must be at distance 0 under both hashes
+\State candidates $\gets$ queries with pHash distance $\leq 6$ or dHash distance $\leq 4$
+\State inspect each candidate beside its nearest neighbours by eye; record the verdict
+\end{algorithmic}
+\end{algorithm}
+
+\section{Verification and Testing}
+\label{sec:impl-verify}
+
+The code and the reported numbers were checked in six ways, summarised in Table~\ref{tab:verify}. % {C050}
+
+\begin{table}[!htbp]
+\centering
+\caption[Verification results]{Verification results of the code and of the reported numbers, re-run
+on 6 November 2026 unless stated.}
+\label{tab:verify}
+\small
+\begin{tabularx}{\textwidth}{@{}L{4.0cm}YL{3.4cm}@{}}
+\toprule
+Check & What it verifies & Result\\
+\midrule
+Unit and integration tests & 23 modules, including an end-to-end pipeline run & 210 passed, 3 skipped\textsuperscript{a}\\
+Number verification & 215 manuscript numbers asserted against their saved artefacts & 215 of 215, no drift\\
+Number trace (2 Nov) & every number in the ten-page paper draft traced to a file & 390 numbers; 6 untraced, each explained\\
+Invariants & twelve properties of the saved outputs, such as the 86-image exclusion list & 12 of 12 hold\\
+Citation audit & every reference resolved on Crossref, OpenAlex, Semantic Scholar or arXiv & verified\\
+Container build & imports, the Hungarian solver and the NumPy version, at build time & build self-test\\
+\bottomrule
+\end{tabularx}
+\srcnote{\textsuperscript{a}\,The three skipped tests need the raw Tufts radiographs, which are not on
+the machine that ran them.}
+\end{table}
+
+\section{Deployment}
+
+The demo container is built with \texttt{docker build -t opg-pipeline .} and run with
+\texttt{docker run -p 8501:8501 opg-pipeline}; the page opens at \texttt{http://localhost:8501}. The
+build installs the CPU wheel of PyTorch and fails if a dependency would break the pipeline. The running
+container is health-checked every 30 seconds. Appendix~B gives the full instructions.
