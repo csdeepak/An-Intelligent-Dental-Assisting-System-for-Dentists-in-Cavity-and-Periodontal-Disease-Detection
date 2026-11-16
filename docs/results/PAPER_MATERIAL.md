@@ -15,7 +15,7 @@ not in a saved notebook output or a summary file, mark it `[UNVERIFIED]`. Never 
 limitation to make the work look better — Section 8 exists precisely so reviewers'
 questions are answered before they are asked.
 
-**Last updated:** 2026-08-22
+**Last updated:** 2026-11-02 (§7.7, §8.43, §8.44). This line read 2026-08-22 until 16 Nov 2026: it was not maintained, and each section carries its own date.
 
 ---
 
@@ -623,7 +623,7 @@ precision stays ~0.57, i.e. the model over-calls deep caries. In a screening too
 the correct direction of error, but it must be stated.
 
 **Phase 1 (gate) results are not available** — the saved notebook contains no
-classification report for `caries` vs `no_caries`. See Section 9.
+classification report for `caries` vs `no_caries`. See Section 9. *(True of the original Phase-1 notebook only. The gate was rebuilt as v3.0 on 25 Aug 2026 with a held-out test: macro-F1 0.6948, caries precision 0.40 and recall 0.74, AP 0.550 — §8.24 and `model_metrics.md`.)*
 
 ### 7.3 Stage 4a — Bone loss binary (Tufts, ResNet18 + Focal Loss)
 
@@ -641,7 +641,7 @@ Validation set: 1,558 crops at the **untouched real-world distribution** (1,499 
 Confusion matrix: TN 1,492 | FP 7 | FN 10 | TP 49. Best epoch 22 of 32 run (of 50 budgeted),
 14.8 min training. Source: `models/03_bone_loss_model_training_notebook_models/training_summary.txt`.
 
-This is the strongest result in the project and the one to lead the results section with.
+~~This is the strongest result in the project and the one to lead the results section with.~~ **Withdrawn (10–13 Oct 2026):** this table is validation on radiographs the model also trained on (§8.28); held out, the same model finds 7.6% of its label (§8.34), and the default since 13 Oct is a retrained model at 27.5%, 16.5% and 11.0% test sensitivity over three seeds (§8.35, §8.36). Do not report 0.9233 as performance.
 
 ### 7.4 Stage 4b — Bone loss severity, 3-class (Tufts, ResNet18 + Focal Loss)
 

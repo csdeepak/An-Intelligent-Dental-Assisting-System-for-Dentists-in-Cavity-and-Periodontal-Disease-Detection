@@ -1,3 +1,5 @@
+> **SUPERSEDED — 4 Sep 2026.** Lever B was frozen, run and **adopted** the same day (`RESULTS_LOG` 2026-09-04f to 04h): the pooled lesion detector (`models/16_lever_b_pooled/`) is the Stage-3a default. The "NOT STARTED" status below is the 3 Sep handoff state, kept as the record. Current state: `transfer.md` §2.4. *(Banner added 16 Nov 2026.)*
+
 # Lever B — start here (cold-start handoff, updated 3 Sep 2026)
 
 **Status: NOT STARTED.** Pre-registration drafted (`PRE_REGISTRATION.md`), bars **not yet frozen**.

@@ -101,7 +101,7 @@ folder outside git. Git has tracked `_repo_archive/ARCHIVE_MANIFEST.md` at the r
   checkpoints `models/{09,10,11}` and, once Lever B was adopted, `models/16` — plus `models/14`,
   its single-corpus arm — are committed via `.gitignore` exceptions so a fresh clone runs the
   pipeline without a Drive round-trip. Three of them are over the line: `models/11` at 56 MB,
-  `models/14` and `models/16` at 51 MB each. Private repo; `transfer.md` §4 records it and how
+  `models/14` and `models/16` at 51 MB each. Private repo at the time (checked 16 Nov 2026: GitHub serves it without sign-in); `transfer.md` §4 records it and how
   to undo. This does not open the door to committing other weights — `models/06`, the
   `models/{13,15,17}` ablation weights, and anything new stay out. **11 Oct 2026:** one file
   under `models/15`, `arm3c_best.pt` (51 MB), became the Stage-1 default and is committed for

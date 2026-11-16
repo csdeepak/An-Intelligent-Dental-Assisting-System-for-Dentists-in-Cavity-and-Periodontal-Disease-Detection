@@ -3,7 +3,7 @@
 **Last verified: 1 September 2026** (Stage 2 head v2.0 still the default; `orientation.rot_box`
 added for Lever 1). Importable modules that implement pipeline stages. The runnable entry points
 live in `scripts/`; these are the pieces they call. Everything here is covered by `tests/`
-(159 tests, all passing).
+(213 tests as of 15 Oct 2026 — `tests/README.md`).
 
 ## Modules, by pipeline stage
 
