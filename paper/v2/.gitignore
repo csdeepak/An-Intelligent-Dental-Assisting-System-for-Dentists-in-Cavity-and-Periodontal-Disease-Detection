@@ -1,0 +1,7 @@
+# LaTeX build by-products; main.tex, main.bbl, references.bib and main.pdf are kept.
+*.aux
+*.log
+*.out
+*.blg
+*.toc
+*.synctex.gz
