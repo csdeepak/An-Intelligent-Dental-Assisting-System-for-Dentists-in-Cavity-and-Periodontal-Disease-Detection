@@ -1,0 +1,3394 @@
+{
+  "sources": [
+    {
+      "id": "SRC-001",
+      "cite_key": "akarslan2008comparison",
+      "title": "A comparison of the diagnostic accuracy of bitewing, periapical, unfiltered and filtered digital panoramic images for approximal caries detection in posterior teeth",
+      "authors": [
+        "Akarslan, Z. Z.",
+        "Akdevelio\\uglu, M.",
+        "G\\\"ung\\\"or, K.",
+        "Erten, H."
+      ],
+      "year": 2008,
+      "venue": "Dentomaxillofacial Radiology",
+      "doi": "10.1259/dmfr/84698143",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "partial",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "A comparison of the diagnostic accuracy of bitewing, periapical, unfiltered and filtered digital panoramic images for approximal caries detection in posterior teeth",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "A comparison of the diagnostic accuracy of bitewing, periapical, unfiltered and filtered digital panoramic images for approximal caries detection in posterior teeth",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-002",
+      "cite_key": "hamamci2023dentex",
+      "title": "DENTEX: Dental Enumeration and Tooth Pathosis Detection Benchmark for Panoramic X-ray",
+      "authors": [
+        "Hamamci, Ibrahim Ethem",
+        "Er, Sezgin",
+        "Simsar, Enis",
+        "Sekuboyina, Anjany",
+        "others"
+      ],
+      "year": 2023,
+      "venue": null,
+      "doi": "10.48550/arXiv.2305.19112",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "not_found",
+            "match_score": null
+          },
+          {
+            "index": "arxiv",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "abstract",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "DENTEX: Dental Enumeration and Tooth Pathosis Detection Benchmark for Panoramic X-ray",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "DENTEX: Dental Enumeration and Tooth Pathosis Detection Benchmark for Panoramic X-ray",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-003",
+      "cite_key": "geirhos2020shortcut",
+      "title": "Shortcut learning in deep neural networks",
+      "authors": [
+        "Geirhos, Robert",
+        "Jacobsen, J\\\"orn-Henrik",
+        "Michaelis, Claudio",
+        "Zemel, Richard",
+        "Brendel, Wieland",
+        "Bethge, Matthias",
+        "Wichmann, Felix A."
+      ],
+      "year": 2020,
+      "venue": "Nature Machine Intelligence",
+      "doi": "10.1038/s42256-020-00257-z",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "partial",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "Shortcut learning in deep neural networks",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Shortcut learning in deep neural networks",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-004",
+      "cite_key": "lipton2014optimal",
+      "title": "Optimal Thresholding of Classifiers to Maximize F1 Measure",
+      "authors": [
+        "Lipton, Zachary C.",
+        "Elkan, Charles",
+        "Naryanaswamy, Balakrishnan"
+      ],
+      "year": 2014,
+      "venue": "Lecture Notes in Computer Science",
+      "doi": "10.1007/978-3-662-44851-9_15",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "lookup_verified": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": []
+      },
+      "read_depth": "abstract",
+      "establishes": [
+        {
+          "statement": "cited for: the optimal threshold is half the optimal F1 score",
+          "support_quote": "the optimal threshold is half the optimal F1 score",
+          "location": "abstract (research_paper/literature/abstracts_lipton2014_2026-11-23.json)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Optimal Thresholding of Classifiers to Maximize F1 Measure",
+      "title_status": "verified",
+      "retraction": {
+        "status": "not_retracted",
+        "checked_at": "2026-11-23",
+        "source": "crossref+openalex",
+        "observations": [
+          {
+            "source": "crossref",
+            "retracted": false
+          },
+          {
+            "source": "openalex",
+            "retracted": false
+          }
+        ]
+      },
+      "flags": []
+    },
+    {
+      "id": "SRC-005",
+      "cite_key": "panetta2022tufts",
+      "title": "Tufts Dental Database: A Multimodal Panoramic X-Ray Dataset for Benchmarking Diagnostic Systems",
+      "authors": [
+        "Panetta, Karen",
+        "Rajendran, Rahul",
+        "Ramesh, Aruna",
+        "Rao, Shishir P.",
+        "Agaian, Sos"
+      ],
+      "year": 2022,
+      "venue": "IEEE Journal of Biomedical and Health Informatics",
+      "doi": "10.1109/JBHI.2021.3117575",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [
+          {
+            "field": "year",
+            "values": {
+              "crossref": 2022,
+              "openalex": 2021,
+              "semantic_scholar": 2021
+            },
+            "minor": true
+          }
+        ],
+        "lookup_verified": true
+      },
+      "read_depth": "abstract",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "Tufts Dental Database: A Multimodal Panoramic X-Ray Dataset for Benchmarking Diagnostic Systems",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Tufts Dental Database: A Multimodal Panoramic X-Ray Dataset for Benchmarking Diagnostic Systems",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-006",
+      "cite_key": "chen2024cariesxrays",
+      "title": "CariesXrays: Enhancing Caries Detection in Hospital-Scale Panoramic Dental X-rays via Feature Pyramid Contrastive Learning",
+      "authors": [
+        "Chen, Bingzhi",
+        "Fu, Sisi",
+        "Liu, Yishu",
+        "Pan, Jiahui",
+        "Lu, Guangming",
+        "Zhang, Zheng"
+      ],
+      "year": 2024,
+      "venue": "Proceedings of the AAAI Conference on Artificial Intelligence",
+      "doi": "10.1609/aaai.v38i20.30196",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "abstract",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "CariesXrays: Enhancing Caries Detection in Hospital-Scale Panoramic Dental X-rays via Feature Pyramid Contrastive Learning",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "CariesXrays: Enhancing Caries Detection in Hospital-Scale Panoramic Dental X-rays via Feature Pyramid Contrastive Learning",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-007",
+      "cite_key": "li2024multicenter",
+      "title": "A Multi-center Dental Panoramic Radiography Image Dataset for Impacted Teeth, Periodontitis, and Dental Caries: Benchmarking Segmentation and Classification Tasks",
+      "authors": [
+        "Li, Xiang",
+        "Ma, Xuan",
+        "Zhao, Yibai",
+        "Hu, Jingjing",
+        "Liu, Jie",
+        "Yang, Zhicheng",
+        "Han, Fangkai",
+        "Zhang, Jie",
+        "Liu, Weifan",
+        "Zhou, Zhongwei"
+      ],
+      "year": 2024,
+      "venue": "Journal of Imaging Informatics in Medicine",
+      "doi": "10.1007/s10278-024-00972-8",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "partial",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "A Multi-center Dental Panoramic Radiography Image Dataset for Impacted Teeth, Periodontitis, and Dental Caries: Benchmarking Segmentation and Classification Tasks",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "A Multi-center Dental Panoramic Radiography Image Dataset for Impacted Teeth, Periodontitis, and Dental Caries: Benchmarking Segmentation and Classification Tasks",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-008",
+      "cite_key": "budagam2024oralbbnet",
+      "title": "OralBBNet: Spatially Guided Dental Segmentation of Panoramic X-Rays with Bounding Box Priors",
+      "authors": [
+        "Budagam, Devichand",
+        "Imanbayev, Azamat Zhanatuly",
+        "Akhmetov, Iskander Rafailovich",
+        "Sinitca, Aleksandr",
+        "Antonov, Sergey",
+        "Kaplun, Dmitrii"
+      ],
+      "year": 2024,
+      "venue": "arXiv:2406.03747",
+      "doi": null,
+      "url": null,
+      "publication_status": "PREPRINT",
+      "level": 2,
+      "verification": {
+        "method": "index_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "crossref",
+            "status": "not_found",
+            "match_score": 0.275
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "abstract",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "OralBBNet: Spatially Guided Dental Segmentation of Panoramic X-Rays with Bounding Box Priors",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "OralBBNet: Spatially Guided Dental Segmentation of Panoramic X-Rays with Bounding Box Priors",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-009",
+      "cite_key": "tuzoff2019tooth",
+      "title": "Tooth detection and numbering in panoramic radiographs using convolutional neural networks",
+      "authors": [
+        "Tuzoff, Dmitry V.",
+        "Tuzova, Lyudmila N.",
+        "Bornstein, Michael M.",
+        "Krasnov, Alexey S.",
+        "Kharchenko, Max A.",
+        "Nikolenko, Sergey I.",
+        "Sveshnikov, Mikhail M.",
+        "Bednenko, Georgiy B."
+      ],
+      "year": 2019,
+      "venue": "Dentomaxillofacial Radiology",
+      "doi": "10.1259/dmfr.20180051",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "abstract",
+      "establishes": [
+        {
+          "statement": "cited for: For teeth numbering, its sensitivity is 0.9800 and specificity is 0.9994.",
+          "support_quote": "For teeth numbering, its sensitivity is 0.9800 and specificity is 0.9994.",
+          "location": "abstract (research_paper/literature/abstracts_new_2026-11-23.json)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Tooth detection and numbering in panoramic radiographs using convolutional neural networks",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-010",
+      "cite_key": "zancan2025ai",
+      "title": "AI-powered precision in dental radiographic analysis using tailored CNNs for tooth numbering and cavity detection",
+      "authors": [
+        "Zancan, Breno Guerra",
+        "Carneiro, Jos\\'e Andery",
+        "Martins, Caio Uehara",
+        "Tirapelli, Camila",
+        "Capel, Camila Porto",
+        "da Costa, Eliana Dantas",
+        "Ga\\^eta-Araujo, Hugo",
+        "Baranauskas, Jos\\'e Augusto",
+        "Macedo, Alessandra Alaniz"
+      ],
+      "year": 2025,
+      "venue": "PLOS Digital Health",
+      "doi": "10.1371/journal.pdig.0001074",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "abstract",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "AI-powered precision in dental radiographic analysis using tailored CNNs for tooth numbering and cavity detection",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "AI-powered precision in dental radiographic analysis using tailored CNNs for tooth numbering and cavity detection",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-011",
+      "cite_key": "zhang2025reliable",
+      "title": "A Reliable Multi-Stage System for Tooth Instance Segmentation and Numbering in Panoramic Radiographs",
+      "authors": [
+        "Zhang, Yani",
+        "Yu, Yuzhou",
+        "Li, Qiankun",
+        "Chen, Huabao",
+        "Liang, Yuci",
+        "Chen, Junxin",
+        "Yin, Jiayue"
+      ],
+      "year": 2025,
+      "venue": "IEEE Journal of Biomedical and Health Informatics",
+      "doi": "10.1109/JBHI.2025.3643805",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "abstract",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "A Reliable Multi-Stage System for Tooth Instance Segmentation and Numbering in Panoramic Radiographs",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "A Reliable Multi-Stage System for Tooth Instance Segmentation and Numbering in Panoramic Radiographs",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-012",
+      "cite_key": "vannistelrooij2024combining",
+      "title": "Combining public datasets for automated tooth assessment in panoramic radiographs",
+      "authors": [
+        "van Nistelrooij, Niels",
+        "Tr\\\"oltzsch, Matthias",
+        "S\\'anchez-Cisneros, Alejandro",
+        "Kuhlemann, Ingmar",
+        "van Lierop, Timo",
+        "Xi, Tong",
+        "de Jong, Guido",
+        "Maal, Thomas",
+        "Vinayahalingam, Shankeeth"
+      ],
+      "year": 2024,
+      "venue": "BMC Oral Health",
+      "doi": "10.1186/s12903-024-04129-5",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [
+          {
+            "field": "first_author",
+            "values": {
+              "crossref": "van nistelrooij",
+              "openalex": "nistelrooij",
+              "semantic_scholar": "nistelrooij"
+            },
+            "minor": false
+          }
+        ],
+        "lookup_verified": true
+      },
+      "read_depth": "abstract",
+      "establishes": [
+        {
+          "statement": "cited for: Datasets from the OdontoAI platform (tooth instance segmentations) and the DENTE",
+          "support_quote": "Datasets from the OdontoAI platform (tooth instance segmentations) and the DENTEX challenge (tooth bounding boxes with associated diagnoses) were combined",
+          "location": "abstract (research_paper/literature/abstracts_sourcebib_2026-11-23.json)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Combining public datasets for automated tooth assessment in panoramic radiographs",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-013",
+      "cite_key": "mohammadrahimi2022deep",
+      "title": "Deep learning for caries detection: A systematic review",
+      "authors": [
+        "Mohammad-Rahimi, Hossein",
+        "Motamedian, Saeed Reza",
+        "Rohban, Mohammad Hossein",
+        "Krois, Joachim",
+        "Uribe, Sergio E.",
+        "Mahmoudinia, Erfan",
+        "Rokhshad, Rata",
+        "Nadimi, Mohadeseh",
+        "Schwendicke, Falk"
+      ],
+      "year": 2022,
+      "venue": "Journal of Dentistry",
+      "doi": "10.1016/j.jdent.2022.104115",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 0.692
+          }
+        ],
+        "conflicts": [
+          {
+            "field": "first_author",
+            "values": {
+              "crossref": "mohammad-rahimi",
+              "openalex": "mohammad‐rahimi"
+            },
+            "minor": false
+          }
+        ],
+        "lookup_verified": true
+      },
+      "read_depth": "abstract",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "Deep learning for caries detection: A systematic review",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Deep learning for caries detection: A systematic review",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-014",
+      "cite_key": "lim2024dual",
+      "title": "Dual convolutional neural network framework for segmenting dental caries in panoramic radiographs",
+      "authors": [
+        "Lim, Yeong-Su",
+        "Chun, Dohyun",
+        "Kim, Jihun",
+        "Lee, Jong-yeol",
+        "Ju, Myeong Jin",
+        "Park, Jae Hyung",
+        "Jeon, Hee-Jae"
+      ],
+      "year": 2026,
+      "venue": "Journal of Prosthetic Dentistry",
+      "doi": "10.1016/j.prosdent.2025.09.040",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [
+          {
+            "field": "year",
+            "values": {
+              "crossref": 2026,
+              "openalex": 2025,
+              "semantic_scholar": 2025
+            },
+            "minor": true
+          }
+        ],
+        "lookup_verified": true
+      },
+      "read_depth": "partial",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "Dual convolutional neural network framework for segmenting dental caries in panoramic radiographs",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Dual convolutional neural network framework for segmenting dental caries in panoramic radiographs",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-015",
+      "cite_key": "bilal2024pdcnet",
+      "title": "PDCNET: Deep Convolutional Neural Network for Classification of Periodontal Disease Using Dental Radiographs",
+      "authors": [
+        "Bilal, Anas",
+        "Khan, Ali Haider",
+        "Almohammadi, Khalid",
+        "Al Ghamdi, Sami A.",
+        "Long, Haixia",
+        "Malik, Hassaan"
+      ],
+      "year": 2024,
+      "venue": "IEEE Access",
+      "doi": "10.1109/ACCESS.2024.3472012",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "partial",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "PDCNET: Deep Convolutional Neural Network for Classification of Periodontal Disease Using Dental Radiographs",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "PDCNET: Deep Convolutional Neural Network for Classification of Periodontal Disease Using Dental Radiographs",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-016",
+      "cite_key": "bizjak2024advancing",
+      "title": "Advancing Dental Caries Detection in Panoramic X-rays: A Two-Step Deep Learning Approach",
+      "authors": [
+        "Bizjak, \\vZiga",
+        "Robi\\vc, Tina"
+      ],
+      "year": 2024,
+      "venue": "Informatica Medica Slovenica",
+      "doi": null,
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "index_lookup",
+        "date": "2026-11-02",
+        "verified_by": "agent",
+        "retraction_checked": false,
+        "code": "NOT_INDEXED",
+        "indexes": [
+          {
+            "index": "crossref",
+            "status": "not_found",
+            "match_score": 0.552
+          },
+          {
+            "index": "openalex",
+            "status": "not_found",
+            "match_score": 0.292
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "skipped",
+            "match_score": null,
+            "reason": "rate limited (429)"
+          },
+          {
+            "index": "arxiv",
+            "status": "not_found",
+            "match_score": 0.244
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": "unresolvable"
+      },
+      "read_depth": "partial",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "Advancing Dental Caries Detection in Panoramic X-rays: A Two-Step Deep Learning Approach",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Advancing Dental Caries Detection in Panoramic X-rays: A Two-Step Deep Learning Approach",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-017",
+      "cite_key": "krois2019deep",
+      "title": "Deep Learning for the Radiographic Detection of Periodontal Bone Loss",
+      "authors": [
+        "Krois, Joachim",
+        "Ekert, Thomas",
+        "Meinhold, Leonie",
+        "Golla, Tatiana",
+        "Kharbot, Basel",
+        "Wittemeier, Agnes",
+        "D\\\"orfer, Christof",
+        "Schwendicke, Falk"
+      ],
+      "year": 2019,
+      "venue": "Scientific Reports",
+      "doi": "10.1038/s41598-019-44839-3",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "abstract",
+      "establishes": [
+        {
+          "statement": "cited for: Our reference test was the measured % of PBL.",
+          "support_quote": "Our reference test was the measured % of PBL.",
+          "location": "abstract (research_paper/literature/abstracts_new_2026-11-23.json)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Deep Learning for the Radiographic Detection of Periodontal Bone Loss",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-018",
+      "cite_key": "chang2020deep",
+      "title": "Deep Learning Hybrid Method to Automatically Diagnose Periodontal Bone Loss and Stage Periodontitis",
+      "authors": [
+        "Chang, Hyuk-Joon",
+        "Lee, Sang-Jeong",
+        "Yong, Tae-Hoon",
+        "Shin, Nan-Young",
+        "Jang, Bong-Geun",
+        "Kim, Jo-Eun",
+        "Huh, Kyung-Hoe",
+        "Lee, Sam-Sun",
+        "Heo, Min-Suk",
+        "Choi, Soon-Chul",
+        "Kim, Tae-Il",
+        "Yi, Won-Jin"
+      ],
+      "year": 2020,
+      "venue": "Scientific Reports",
+      "doi": "10.1038/s41598-020-64509-z",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "abstract",
+      "establishes": [
+        {
+          "statement": "cited for: Deep learning was used to detect the radiographic bone level (or the CEJ level)",
+          "support_quote": "Deep learning was used to detect the radiographic bone level (or the CEJ level)",
+          "location": "abstract (research_paper/literature/abstracts_new_2026-11-23.json)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Deep Learning Hybrid Method to Automatically Diagnose Periodontal Bone Loss and Stage Periodontitis",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-019",
+      "cite_key": "cerda2024determining",
+      "title": "Determining the efficacy of a machine learning model for measuring periodontal bone loss",
+      "authors": [
+        "Cerda Mardini, Diego",
+        "Cerda Mardini, Patricio",
+        "Paz Vicu\\~na Iturriaga, Daniela",
+        "Ortu\\~no Borroto, Duniel Ricardo"
+      ],
+      "year": 2024,
+      "venue": "BMC Oral Health",
+      "doi": "10.1186/s12903-023-03819-w",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [
+          {
+            "field": "first_author",
+            "values": {
+              "crossref": "cerda mardini",
+              "openalex": "mardini",
+              "semantic_scholar": "cerda-mardini"
+            },
+            "minor": false
+          }
+        ],
+        "lookup_verified": true
+      },
+      "read_depth": "abstract",
+      "establishes": [
+        {
+          "statement": "cited for: weighted F1-score 0.29",
+          "support_quote": "weighted F1-score 0.29",
+          "location": "abstract (outputs/citation_audit/2026-11-02_ars/claim_abstracts.json)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Determining the efficacy of a machine learning model for measuring periodontal bone loss",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-020",
+      "cite_key": "li2025novel",
+      "title": "A novel AI-powered radiographic analysis surpasses specialists in stage II--IV periodontitis detection: a multicenter diagnostic study",
+      "authors": [
+        "Li, Yuan",
+        "Cui, Zhiming",
+        "Mei, Lanzhuju",
+        "Xie, Yu",
+        "Marini, Lorenzo",
+        "Pelekos, George",
+        "Gu, Wen",
+        "Yu, Xiaoyu",
+        "Wu, Xinyu",
+        "Wei, Xindi",
+        "Tao, Leran",
+        "Deng, Ke",
+        "Pilloni, Andrea",
+        "Shen, Dinggang",
+        "Tonetti, Maurizio S."
+      ],
+      "year": 2025,
+      "venue": "npj Digital Medicine",
+      "doi": "10.1038/s41746-025-02077-0",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "abstract",
+      "establishes": [
+        {
+          "statement": "cited for: This is the first AI model developed from orthopantomograms (OPGs) linked to cli",
+          "support_quote": "This is the first AI model developed from orthopantomograms (OPGs) linked to clinical diagnoses",
+          "location": "abstract (research_paper/literature/abstracts_sourcebib_2026-11-23.json)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "A novel AI-powered radiographic analysis surpasses specialists in stage II--IV periodontitis detection: a multicenter diagnostic study",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-021",
+      "cite_key": "tonetti2018staging",
+      "title": "Staging and grading of periodontitis: Framework and proposal of a new classification and case definition",
+      "authors": [
+        "Tonetti, Maurizio S.",
+        "Greenwell, Henry",
+        "Kornman, Kenneth S."
+      ],
+      "year": 2018,
+      "venue": "Journal of Periodontology",
+      "doi": "10.1002/jper.18-0006",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "abstract",
+      "establishes": [
+        {
+          "statement": "cited for: Stage I to IV of periodontitis is defined based on severity (primarily periodont",
+          "support_quote": "Stage I to IV of periodontitis is defined based on severity (primarily periodontal breakdown with reference to root length and periodontitis-associated tooth loss), complexity of management (pocket depth, infrabony defects, furcation involvement, tooth hypermobility, masticatory dysfunction)",
+          "location": "abstract (research_paper/literature/abstracts_new_2026-11-23.json)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Staging and grading of periodontitis: Framework and proposal of a new classification and case definition",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-022",
+      "cite_key": "kim2019design",
+      "title": "Design characteristics of studies reporting the performance of artificial intelligence algorithms for diagnostic analysis of medical images: Results from recently published papers",
+      "authors": [
+        "Kim, Dong Wook",
+        "Jang, Hye Young",
+        "Kim, Kyung Won",
+        "Shin, Youngbin",
+        "Park, Seong Ho"
+      ],
+      "year": 2019,
+      "venue": "Korean Journal of Radiology",
+      "doi": "10.3348/kjr.2019.0025",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "partial",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "Design characteristics of studies reporting the performance of artificial intelligence algorithms for diagnostic analysis of medical images: Results from recently published papers",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Design characteristics of studies reporting the performance of artificial intelligence algorithms for diagnostic analysis of medical images: Results from recently published papers",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-023",
+      "cite_key": "krois2021generalizability",
+      "title": "Generalizability of deep learning models for dental image analysis",
+      "authors": [
+        "Krois, Joachim",
+        "Garcia Cantu, Anselmo",
+        "Chaurasia, Akhilanand",
+        "Patil, Ranjitkumar",
+        "Chaudhari, Prabhat Kumar",
+        "Gaudin, Robert",
+        "Gehrung, Sascha",
+        "Schwendicke, Falk"
+      ],
+      "year": 2021,
+      "venue": "Scientific Reports",
+      "doi": "10.1038/s41598-021-85454-5",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "abstract",
+      "establishes": [
+        {
+          "statement": "cited for: F1-score of 54.1",
+          "support_quote": "F1-score of 54.1",
+          "location": "abstract (outputs/citation_audit/2026-11-02_ars/claim_abstracts.json)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Generalizability of deep learning models for dental image analysis",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-024",
+      "cite_key": "mutlu2026comparison",
+      "title": "Deep Learning--Based Automated Diagnostic Charting on Panoramic Radiography: Comparison of YOLOv11 and YOLOv12",
+      "authors": [
+        "Mutlu, \\\"O.",
+        "Aslan, E.",
+        "Mert, A."
+      ],
+      "year": 2026,
+      "venue": "Odontology",
+      "doi": "10.1007/s10266-026-01333-3",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "abstract",
+      "establishes": [
+        {
+          "statement": "cited for: maintaining a mAP@0.5 of 0.806 on the unseen external dataset",
+          "support_quote": "maintaining a mAP@0.5 of 0.806 on the unseen external dataset",
+          "location": "abstract (outputs/citation_audit/2026-11-02_ars/claim_abstracts.json)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Deep Learning--Based Automated Diagnostic Charting on Panoramic Radiography: Comparison of YOLOv11 and YOLOv12",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-025",
+      "cite_key": "oakdenrayner2020hidden",
+      "title": "Hidden stratification causes clinically meaningful failures in machine learning for medical imaging",
+      "authors": [
+        "Oakden-Rayner, Luke",
+        "Dunnmon, Jared",
+        "Carneiro, Gustavo",
+        "Re, Christopher"
+      ],
+      "year": 2020,
+      "venue": "Proceedings of the ACM Conference on Health, Inference, and Learning",
+      "doi": "10.1145/3368555.3384468",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [
+          {
+            "field": "year",
+            "values": {
+              "crossref": 2020,
+              "openalex": 2020,
+              "semantic_scholar": 2019
+            },
+            "minor": true
+          },
+          {
+            "field": "first_author",
+            "values": {
+              "crossref": "oakden-rayner",
+              "openalex": "oakden‐rayner",
+              "semantic_scholar": "oakden-rayner"
+            },
+            "minor": false
+          }
+        ],
+        "lookup_verified": true
+      },
+      "read_depth": "abstract",
+      "establishes": [
+        {
+          "statement": "cited for: Machine learning models for medical image analysis often suffer from poor perfor",
+          "support_quote": "Machine learning models for medical image analysis often suffer from poor performance on important subsets of a population that are not identified during training or testing.",
+          "location": "abstract (research_paper/literature/abstracts_new_2026-11-23.json)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Hidden stratification causes clinically meaningful failures in machine learning for medical imaging",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-026",
+      "cite_key": "varoquaux2022machine",
+      "title": "Machine learning for medical imaging: methodological failures and recommendations for the future",
+      "authors": [
+        "Varoquaux, Ga\\\"el",
+        "Cheplygina, Veronika"
+      ],
+      "year": 2022,
+      "venue": "npj Digital Medicine",
+      "doi": "10.1038/s41746-022-00592-y",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [
+          {
+            "field": "year",
+            "values": {
+              "crossref": 2022,
+              "openalex": 2022,
+              "semantic_scholar": 2021
+            },
+            "minor": true
+          }
+        ],
+        "lookup_verified": true
+      },
+      "read_depth": "abstract",
+      "establishes": [
+        {
+          "statement": "cited for: we show that at every step, potential biases can creep in.",
+          "support_quote": "we show that at every step, potential biases can creep in.",
+          "location": "abstract (research_paper/literature/abstracts_new_2026-11-23.json)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Machine learning for medical imaging: methodological failures and recommendations for the future",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-027",
+      "cite_key": "goyal2017making",
+      "title": "Making the V in VQA matter: Elevating the role of image understanding in visual question answering",
+      "authors": [
+        "Goyal, Yash",
+        "Khot, Tejas",
+        "Summers-Stay, Douglas",
+        "Batra, Dhruv",
+        "Parikh, Devi"
+      ],
+      "year": 2017,
+      "venue": "2017 IEEE Conference on Computer Vision and Pattern Recognition (CVPR)",
+      "doi": "10.1109/cvpr.2017.670",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "not_found",
+            "match_score": null
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "partial",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "Making the V in VQA matter: Elevating the role of image understanding in visual question answering",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Making the V in VQA matter: Elevating the role of image understanding in visual question answering",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-028",
+      "cite_key": "agrawal2018dont",
+      "title": "Don't just assume; look and answer: Overcoming priors for visual question answering",
+      "authors": [
+        "Agrawal, Aishwarya",
+        "Batra, Dhruv",
+        "Parikh, Devi",
+        "Kembhavi, Aniruddha"
+      ],
+      "year": 2018,
+      "venue": "2018 IEEE/CVF Conference on Computer Vision and Pattern Recognition",
+      "doi": "10.1109/cvpr.2018.00522",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "not_found",
+            "match_score": null
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "partial",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "Don't just assume; look and answer: Overcoming priors for visual question answering",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Don't just assume; look and answer: Overcoming priors for visual question answering",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-029",
+      "cite_key": "poliak2018hypothesis",
+      "title": "Hypothesis only baselines in natural language inference",
+      "authors": [
+        "Poliak, Adam",
+        "Naradowsky, Jason",
+        "Haldar, Aparajita",
+        "Rudinger, Rachel",
+        "Van Durme, Benjamin"
+      ],
+      "year": 2018,
+      "venue": "Proceedings of the Seventh Joint Conference on Lexical and Computational Semantics",
+      "doi": "10.18653/v1/s18-2023",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "partial",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "Hypothesis only baselines in natural language inference",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Hypothesis only baselines in natural language inference",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-030",
+      "cite_key": "degrave2021ai",
+      "title": "AI for radiographic COVID-19 detection selects shortcuts over signal",
+      "authors": [
+        "DeGrave, Alex J.",
+        "Janizek, Joseph D.",
+        "Lee, Su-In"
+      ],
+      "year": 2021,
+      "venue": "Nature Machine Intelligence",
+      "doi": "10.1038/s42256-021-00338-7",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [
+          {
+            "field": "year",
+            "values": {
+              "crossref": 2021,
+              "openalex": 2021,
+              "semantic_scholar": 2020
+            },
+            "minor": true
+          }
+        ],
+        "lookup_verified": true
+      },
+      "read_depth": "partial",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "AI for radiographic COVID-19 detection selects shortcuts over signal",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "AI for radiographic COVID-19 detection selects shortcuts over signal",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-031",
+      "cite_key": "zech2018variable",
+      "title": "Variable generalization performance of a deep learning model to detect pneumonia in chest radiographs: A cross-sectional study",
+      "authors": [
+        "Zech, John R.",
+        "Badgeley, Marcus A.",
+        "Liu, Manway",
+        "Costa, Anthony B.",
+        "Titano, Joseph J.",
+        "Oermann, Eric Karl"
+      ],
+      "year": 2018,
+      "venue": "PLOS Medicine",
+      "doi": "10.1371/journal.pmed.1002683",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "partial",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "Variable generalization performance of a deep learning model to detect pneumonia in chest radiographs: A cross-sectional study",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Variable generalization performance of a deep learning model to detect pneumonia in chest radiographs: A cross-sectional study",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-032",
+      "cite_key": "guo2017calibration",
+      "title": "On Calibration of Modern Neural Networks",
+      "authors": [
+        "Guo, Chuan",
+        "Pleiss, Geoff",
+        "Sun, Yu",
+        "Weinberger, Kilian Q."
+      ],
+      "year": 2017,
+      "venue": "Proceedings of the 34th International Conference on Machine Learning (ICML)",
+      "doi": null,
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "index_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "crossref",
+            "status": "not_found",
+            "match_score": 0.608
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "partial",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "On Calibration of Modern Neural Networks",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "On Calibration of Modern Neural Networks",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-033",
+      "cite_key": "zadrozny2002isotonic",
+      "title": "Transforming Classifier Scores into Accurate Multiclass Probability Estimates",
+      "authors": [
+        "Zadrozny, Bianca",
+        "Elkan, Charles"
+      ],
+      "year": 2002,
+      "venue": "Proceedings of the 8th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining",
+      "doi": "10.1145/775047.775151",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "partial",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "Transforming Classifier Scores into Accurate Multiclass Probability Estimates",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Transforming Classifier Scores into Accurate Multiclass Probability Estimates",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-034",
+      "cite_key": "geifman2017selective",
+      "title": "Selective classification for deep neural networks",
+      "authors": [
+        "Geifman, Yonatan",
+        "El-Yaniv, Ran"
+      ],
+      "year": 2017,
+      "venue": "Advances in Neural Information Processing Systems",
+      "doi": null,
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "index_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 0.76
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "skipped",
+            "match_score": null,
+            "reason": "rate limited (429)"
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "partial",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "Selective classification for deep neural networks",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Selective classification for deep neural networks",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-035",
+      "cite_key": "meng2026dentvlm",
+      "title": "A multimodal vision-language model for comprehensive dental diagnosis and enhanced clinical practice",
+      "authors": [
+        "Meng, Zijie",
+        "Hao, Jin",
+        "Dai, Xiwei",
+        "Feng, Yang",
+        "Liu, Jiaxiang",
+        "Feng, Bin",
+        "Wu, Huikai",
+        "Gai, Xiaotang",
+        "Zhu, Hengchuan",
+        "Hu, Tianxiang",
+        "Wu, Yangyang",
+        "Xu, Hongxia",
+        "Li, Jin",
+        "Xiao, Jun",
+        "Liu, Xiaoqiang",
+        "Zhou, Joey Tianyi",
+        "Zhu, Fudong",
+        "Zhao, Zhihe",
+        "Xia, Lunguo",
+        "Fang, Bing",
+        "Sun, Jimeng",
+        "Wu, Jian",
+        "Liu, Zuozhu"
+      ],
+      "year": 2026,
+      "venue": "Nature Communications",
+      "doi": "10.1038/s41467-026-75718-x",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "partial",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "A multimodal vision-language model for comprehensive dental diagnosis and enhanced clinical practice",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "A multimodal vision-language model for comprehensive dental diagnosis and enhanced clinical practice",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-036",
+      "cite_key": "bai2025qwen25vl",
+      "title": "Qwen2.5-VL Technical Report",
+      "authors": [
+        "Bai, Shuai",
+        "Chen, Keqin",
+        "Liu, Xuejing",
+        "Wang, Jialin",
+        "others"
+      ],
+      "year": 2025,
+      "venue": null,
+      "doi": "10.48550/arXiv.2502.13923",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "arxiv",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "partial",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "Qwen2.5-VL Technical Report",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Qwen2.5-VL Technical Report",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-037",
+      "cite_key": "kelly2019key",
+      "title": "Key challenges for delivering clinical impact with artificial intelligence",
+      "authors": [
+        "Kelly, Christopher J.",
+        "Karthikesalingam, Alan",
+        "Suleyman, Mustafa",
+        "Corrado, Greg",
+        "King, Dominic"
+      ],
+      "year": 2019,
+      "venue": "BMC Medicine",
+      "doi": "10.1186/s12916-019-1426-2",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "abstract",
+      "establishes": [
+        {
+          "statement": "cited for: Robust peer-reviewed clinical evaluation as part of randomised controlled trials",
+          "support_quote": "Robust peer-reviewed clinical evaluation as part of randomised controlled trials should be viewed as the gold standard",
+          "location": "abstract (research_paper/literature/abstracts_new_2026-11-23.json)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Key challenges for delivering clinical impact with artificial intelligence",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-038",
+      "cite_key": "schwendicke2020artificial",
+      "title": "Artificial Intelligence in Dentistry: Chances and Challenges",
+      "authors": [
+        "Schwendicke, F.",
+        "Samek, W.",
+        "Krois, J."
+      ],
+      "year": 2020,
+      "venue": "Journal of Dental Research",
+      "doi": "10.1177/0022034520915714",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "abstract",
+      "establishes": [
+        {
+          "statement": "cited for: This succinct narrative review describes the application, limitations and possib",
+          "support_quote": "This succinct narrative review describes the application, limitations and possible future of AI-based dental diagnostics",
+          "location": "abstract (research_paper/literature/abstracts_new_2026-11-23.json)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Artificial Intelligence in Dentistry: Chances and Challenges",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-039",
+      "cite_key": "batchelor2004grouping",
+      "title": "Grouping of tooth surfaces by susceptibility to caries: A study in 5--16 year-old children",
+      "authors": [
+        "Batchelor, Paul A.",
+        "Sheiham, Aubrey"
+      ],
+      "year": 2004,
+      "venue": "BMC Oral Health",
+      "doi": "10.1186/1472-6831-4-2",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "partial",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "Grouping of tooth surfaces by susceptibility to caries: A study in 5--16 year-old children",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Grouping of tooth surfaces by susceptibility to caries: A study in 5--16 year-old children",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-040",
+      "cite_key": "field2007bootstrapping",
+      "title": "Bootstrapping clustered data",
+      "authors": [
+        "Field, Christopher A.",
+        "Welsh, Alan H."
+      ],
+      "year": 2007,
+      "venue": "Journal of the Royal Statistical Society Series B: Statistical Methodology",
+      "doi": "10.1111/j.1467-9868.2007.00593.x",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "partial",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "Bootstrapping clustered data",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Bootstrapping clustered data",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-041",
+      "cite_key": "dersimonian1986meta",
+      "title": "Meta-analysis in clinical trials",
+      "authors": [
+        "DerSimonian, Rebecca",
+        "Laird, Nan"
+      ],
+      "year": 1986,
+      "venue": "Controlled Clinical Trials",
+      "doi": "10.1016/0197-2456(86)90046-2",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "partial",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "Meta-analysis in clinical trials",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Meta-analysis in clinical trials",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-042",
+      "cite_key": "higgins2002quantifying",
+      "title": "Quantifying heterogeneity in a meta-analysis",
+      "authors": [
+        "Higgins, Julian P. T.",
+        "Thompson, Simon G."
+      ],
+      "year": 2002,
+      "venue": "Statistics in Medicine",
+      "doi": "10.1002/sim.1186",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "partial",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "Quantifying heterogeneity in a meta-analysis",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Quantifying heterogeneity in a meta-analysis",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-043",
+      "cite_key": "riley2011interpretation",
+      "title": "Interpretation of random effects meta-analyses",
+      "authors": [
+        "Riley, Richard D.",
+        "Higgins, Julian P. T.",
+        "Deeks, Jonathan J."
+      ],
+      "year": 2011,
+      "venue": "BMJ",
+      "doi": "10.1136/bmj.d549",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "partial",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "Interpretation of random effects meta-analyses",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Interpretation of random effects meta-analyses",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-044",
+      "cite_key": "inthout2014hartung",
+      "title": "The Hartung-Knapp-Sidik-Jonkman method for random effects meta-analysis is straightforward and considerably outperforms the standard DerSimonian-Laird method",
+      "authors": [
+        "IntHout, Joanna",
+        "Ioannidis, John P. A.",
+        "Borm, George F."
+      ],
+      "year": 2014,
+      "venue": "BMC Medical Research Methodology",
+      "doi": "10.1186/1471-2288-14-25",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "partial",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "The Hartung-Knapp-Sidik-Jonkman method for random effects meta-analysis is straightforward and considerably outperforms the standard DerSimonian-Laird method",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "The Hartung-Knapp-Sidik-Jonkman method for random effects meta-analysis is straightforward and considerably outperforms the standard DerSimonian-Laird method",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-045",
+      "cite_key": "viechtbauer2007confidence",
+      "title": "Confidence intervals for the amount of heterogeneity in meta-analysis",
+      "authors": [
+        "Viechtbauer, Wolfgang"
+      ],
+      "year": 2007,
+      "venue": "Statistics in Medicine",
+      "doi": "10.1002/sim.2514",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [
+          {
+            "field": "year",
+            "values": {
+              "crossref": 2006,
+              "openalex": 2006,
+              "semantic_scholar": 2007
+            },
+            "minor": true
+          }
+        ],
+        "lookup_verified": true
+      },
+      "read_depth": "partial",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "Confidence intervals for the amount of heterogeneity in meta-analysis",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Confidence intervals for the amount of heterogeneity in meta-analysis",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-046",
+      "cite_key": "jocher2024yolo11",
+      "title": "Ultralytics YOLO11",
+      "authors": [
+        "Jocher, Glenn",
+        "Qiu, Jing"
+      ],
+      "year": 2024,
+      "venue": "Software, version 11.0.0",
+      "doi": null,
+      "url": null,
+      "publication_status": "DOCUMENTATION",
+      "level": 2,
+      "verification": {
+        "method": "index_lookup",
+        "date": "2026-11-02",
+        "verified_by": "agent",
+        "retraction_checked": false,
+        "code": "NOT_INDEXED",
+        "indexes": [
+          {
+            "index": "crossref",
+            "status": "not_found",
+            "match_score": 0.217
+          },
+          {
+            "index": "openalex",
+            "status": "not_found",
+            "match_score": 0.235
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "skipped",
+            "match_score": null,
+            "reason": "rate limited (429)"
+          },
+          {
+            "index": "arxiv",
+            "status": "not_found",
+            "match_score": 0.262
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": "unresolvable"
+      },
+      "read_depth": "partial",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "Ultralytics YOLO11",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Ultralytics YOLO11",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-047",
+      "cite_key": "he2016resnet",
+      "title": "Deep Residual Learning for Image Recognition",
+      "authors": [
+        "He, Kaiming",
+        "Zhang, Xiangyu",
+        "Ren, Shaoqing",
+        "Sun, Jian"
+      ],
+      "year": 2016,
+      "venue": "IEEE Conference on Computer Vision and Pattern Recognition (CVPR)",
+      "doi": "10.1109/CVPR.2016.90",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [
+          {
+            "field": "year",
+            "values": {
+              "crossref": 2016,
+              "openalex": 2016,
+              "semantic_scholar": 2015
+            },
+            "minor": true
+          }
+        ],
+        "lookup_verified": true
+      },
+      "read_depth": "partial",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "Deep Residual Learning for Image Recognition",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Deep Residual Learning for Image Recognition",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-048",
+      "cite_key": "kuhn1955hungarian",
+      "title": "The Hungarian method for the assignment problem",
+      "authors": [
+        "Kuhn, Harold W."
+      ],
+      "year": 1955,
+      "venue": "Naval Research Logistics Quarterly",
+      "doi": "10.1002/nav.3800020109",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "not_found",
+            "match_score": null
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "partial",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "The Hungarian method for the assignment problem",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "The Hungarian method for the assignment problem",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-049",
+      "cite_key": "naeini2015obtaining",
+      "title": "Obtaining well calibrated probabilities using Bayesian binning",
+      "authors": [
+        "Pakdaman Naeini, Mahdi",
+        "Cooper, Gregory",
+        "Hauskrecht, Milos"
+      ],
+      "year": 2015,
+      "venue": "Proceedings of the AAAI Conference on Artificial Intelligence",
+      "doi": "10.1609/aaai.v29i1.9602",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [
+          {
+            "field": "first_author",
+            "values": {
+              "crossref": "pakdaman naeini",
+              "openalex": "naeini",
+              "semantic_scholar": "naeini"
+            },
+            "minor": false
+          }
+        ],
+        "lookup_verified": true
+      },
+      "read_depth": "partial",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "Obtaining well calibrated probabilities using Bayesian binning",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Obtaining well calibrated probabilities using Bayesian binning",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-050",
+      "cite_key": "mongan2020claim",
+      "title": "Checklist for artificial intelligence in medical imaging (CLAIM): A guide for authors and reviewers",
+      "authors": [
+        "Mongan, John",
+        "Moy, Linda",
+        "Kahn, Charles E."
+      ],
+      "year": 2020,
+      "venue": "Radiology: Artificial Intelligence",
+      "doi": "10.1148/ryai.2020200029",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "partial",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "Checklist for artificial intelligence in medical imaging (CLAIM): A guide for authors and reviewers",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Checklist for artificial intelligence in medical imaging (CLAIM): A guide for authors and reviewers",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-051",
+      "cite_key": "collins2024tripod",
+      "title": "TRIPOD+AI statement: updated guidance for reporting clinical prediction models that use regression or machine learning methods",
+      "authors": [
+        "Collins, Gary S",
+        "Moons, Karel G M",
+        "Dhiman, Paula",
+        "Riley, Richard D",
+        "Beam, Andrew L",
+        "Van Calster, Ben",
+        "Ghassemi, Marzyeh",
+        "Liu, Xiaoxuan",
+        "Reitsma, Johannes B",
+        "van Smeden, Maarten",
+        "Boulesteix, Anne-Laure",
+        "Camaradou, Jennifer Catherine",
+        "Celi, Leo Anthony",
+        "Denaxas, Spiros",
+        "Denniston, Alastair K",
+        "Glocker, Ben",
+        "Golub, Robert M",
+        "Harvey, Hugh",
+        "Heinze, Georg",
+        "Hoffman, Michael M",
+        "Kengne, Andr\\'e Pascal",
+        "Lam, Emily",
+        "Lee, Naomi",
+        "Loder, Elizabeth W",
+        "Maier-Hein, Lena",
+        "Mateen, Bilal A",
+        "McCradden, Melissa D",
+        "Oakden-Rayner, Lauren",
+        "Ordish, Johan",
+        "Parnell, Richard",
+        "Rose, Sherri",
+        "Singh, Karandeep",
+        "Wynants, Laure",
+        "Logullo, Patricia"
+      ],
+      "year": 2024,
+      "venue": "BMJ",
+      "doi": "10.1136/bmj-2023-078378",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "abstract",
+      "establishes": [
+        {
+          "statement": "cited for: TRIPOD+AI provides harmonised guidance for reporting prediction model studies",
+          "support_quote": "TRIPOD+AI provides harmonised guidance for reporting prediction model studies",
+          "location": "abstract (research_paper/literature/abstracts_new_2026-11-23.json)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "TRIPOD+AI statement: updated guidance for reporting clinical prediction models that use regression or machine learning methods",
+      "title_status": "verified"
+    },
+    {
+      "id": "SRC-052",
+      "cite_key": "schwendicke2021checklist",
+      "title": "Artificial intelligence in dental research: Checklist for authors, reviewers, readers",
+      "authors": [
+        "Schwendicke, Falk",
+        "Singh, Tarry",
+        "Lee, Jae-Hong",
+        "Gaudin, Robert",
+        "Chaurasia, Akhilanand",
+        "Wiegand, Thomas",
+        "Uribe, Sergio",
+        "Krois, Joachim"
+      ],
+      "year": 2021,
+      "venue": "Journal of Dentistry",
+      "doi": "10.1016/j.jdent.2021.103610",
+      "url": null,
+      "publication_status": "PEER-REVIEWED",
+      "level": 2,
+      "verification": {
+        "method": "doi_lookup",
+        "date": "2026-11-23",
+        "verified_by": "agent",
+        "retraction_checked": true,
+        "code": null,
+        "indexes": [
+          {
+            "index": "doi.org",
+            "status": "found",
+            "match_score": null
+          },
+          {
+            "index": "crossref",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "openalex",
+            "status": "found",
+            "match_score": 1.0
+          },
+          {
+            "index": "semantic_scholar",
+            "status": "found",
+            "match_score": 1.0
+          }
+        ],
+        "conflicts": [],
+        "lookup_verified": true
+      },
+      "read_depth": "partial",
+      "establishes": [
+        {
+          "statement": "cited as the source of a dataset, method, software or reported figure; claim checked on 2 Nov 2026 (outputs/citation_audit/2026-11-02_ars/)",
+          "support_quote": "Artificial intelligence in dental research: Checklist for authors, reviewers, readers",
+          "location": "title (claim check recorded in the 2 Nov 2026 citation audit)"
+        }
+      ],
+      "permitted_use": [
+        "content_citation"
+      ],
+      "as_cited": "Artificial intelligence in dental research: Checklist for authors, reviewers, readers",
+      "title_status": "verified"
+    }
+  ]
+}

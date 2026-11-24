@@ -126,6 +126,11 @@ where it was not separable from it before. DENTEX is in-domain for arm3c.
 Default pipeline − constant **+17.80 pp [+13.48, +22.02]**; − its own previous front end
 +12.16 pp [+8.86, +15.52]. In-domain for the front end.
 
+**Against an image-blind constant restricted to the molars the front end detected** (`RESULTS_LOG`
+2026-11-23; post hoc): that constant scores F1 **0.358** (P 0.259, R 0.581). Gate pipeline − it
++0.41 pp [−2.24, +3.14], **not separable**; default pipeline − it **+13.94 pp [+9.63, +18.15]**. A
+Windows rerun of the default flags different codes on 12 of 164 images (F1 0.490 vs 0.498).
+
 **Stage 4 flag, Ningxia periodontitis, 736 images** — 2.43% (165 of 6,792 affected teeth) →
 2.17% (153 of 7,049); −0.26 pp [−0.74, +0.23], not separable. Not a periodontal finding.
 Per hospital under arm3c: 2.91% [2.23, 3.65], 0.64% [0.34, 0.96], 3.96% [2.03, 6.36] and

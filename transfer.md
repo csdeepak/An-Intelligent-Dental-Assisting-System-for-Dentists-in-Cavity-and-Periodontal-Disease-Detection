@@ -223,6 +223,26 @@ The draft is still 10 pages, and every number traces. Status: 14 items done, 5 p
 
 Nothing since `4b314da` is committed.
 
+**23 Nov — a separate, evidence-locked revision in `research_paper/`** (`RESULTS_LOG` 2026-11-23,
+`docs/session-memory/2026-11-23-research-paper-rce-revision.md`). `paper/` is untouched. Read
+`research_paper/open_issues.md` first, then `research_paper/final_research_paper.pdf` (14 pp).
+- Built with the RCE skill at `3e4411f` (0.5.0 candidate). 52 live-verified citations, 10 of them new,
+  including Lipton et al. 2014: the half-F1 selection rule is known, so the theory is now framed as
+  an application of it.
+- Three reviewer perspectives and an integrity VERIFIER ran as isolated subagents. All three asked for
+  major revision, and GI round 1 blocked. Their findings were applied, and GI **passed on round 3**
+  (`research_paper/integrity_check_report.md`). Stage-final GI will block until six literature
+  quotes are saved (`research_paper/open_issues.md`).
+- **Two results that change what may be said:**
+  - Against an image-blind constant that names only the molars the front end detected (F1 0.358), the
+    crop classifier's DENTEX lead is +0.41 [−2.24, +3.14], not separable. The lesion detector still
+    leads, +13.94.
+  - DENTEX caries annotations outline whole teeth, so DENTEX "lesion agreement" is tooth-level.
+- **Newly disclosed in that text:** Ningxia informed the Stage-1 choice (2026-10-11f/g). A Windows
+  rerun differs from the saved macOS run on 12 of 164 images.
+- `paper/main.tex` still carries the superseded wording; `PAPER_MATERIAL` §9 has the item.
+- Nothing is committed. `research_paper/.rcs/` is gitignored by the existing `.rcs/` rule.
+
 Still open:
 - **Compliance:** the figures show DENTEX pixels (CC BY-NC-SA 4.0). Share-alike must be squared
   with the venue's copyright form before submission (§8.19).

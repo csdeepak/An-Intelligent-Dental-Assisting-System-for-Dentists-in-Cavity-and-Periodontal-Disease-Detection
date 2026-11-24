@@ -1,0 +1,7 @@
+"# Table 2. The positional-shortcut test on the crop classifier: 863 held-out crops from 34 radiographs. Base rate: share carious in its training data. Within-type AUC interval: cluster bootstrap over the 34 radiographs, 5,000 resamples."
+Tooth type,Crops,Carious,Base rate,"Mean score, not carious","Not carious, flagged",Within-type AUC
+Incisor,266,8,0.017,0.075,0.039,0.681
+Canine,129,5,0.023,0.087,0.016,0.748
+Premolar,221,31,0.157,0.273,0.268,0.781
+Molar,247,83,0.343,0.478,0.482,0.781
+"All, within type",863,127,—,—,—,"0.745 [0.660, 0.842]"

@@ -708,6 +708,16 @@ files consistent: any change to a metric here must be mirrored there.
 
 ---
 
+### 7.8 Review of `research_paper/` — two post-hoc analyses (23 Nov 2026)
+
+*`RESULTS_LOG` 2026-11-23. 164 DENTEX images, development data; no training, no tuning.*
+
+| Question | Answer |
+|---|---|
+| Does the pipeline lead a constant that cannot name absent teeth? | Constant restricted to detected molars: F1 0.358. Crop classifier − it +0.41 [−2.24, +3.14], not separable; lesion detector − it +13.94 [+9.63, +18.15]. |
+| Are DENTEX caries annotations lesions or teeth? | Teeth: polygon box / tooth box median 0.907, IoU median 0.814, 99.6% above 0.5. DENTEX agreement is tooth-level. |
+| Does the shipped pipeline reproduce across machines? | Not exactly: 12 of 164 images flag different caries codes on Windows than the saved macOS run (F1 0.490 vs 0.498). |
+
 ## 8. Known Limitations — write these in the paper
 
 Reviewers will find these anyway. Stating them first is cheaper than defending them later.
@@ -3104,6 +3114,20 @@ with it the floor, depends on the population's age and exposure.
 
 ---
 
+### 8.45 The development-data F1 lead of the crop classifier, and what DENTEX lesions are
+
+*23 Nov 2026. `RESULTS_LOG` 2026-11-23.*
+
+- **The crop classifier's +4.27 F1 lead on DENTEX does not survive a constant restricted to detected
+  teeth** (+0.41 [−2.24, +3.14]). Any sentence saying the gate pipeline beats the constant on DENTEX
+  F1 must name the unrestricted constant or be withdrawn. The lesion detector's lead survives.
+- **DENTEX caries annotations outline whole teeth.** "Lesion agreement" on DENTEX is tooth-level, and
+  "479 lesions" should read "479 annotated carious-tooth outlines".
+- **Cross-machine reproducibility is imperfect.** 12 of 164 images differ between the Windows and
+  macOS runs of the default pipeline, the second such difference after 0.294 vs 0.300.
+
+---
+
 ## 9. What's not yet written — checklist
 
 For whoever drafts the actual paper. Tick items off here as they land.
@@ -3435,6 +3459,10 @@ For whoever drafts the actual paper. Tick items off here as they land.
       recall 0.74 → 0.35.
 - [ ] Threshold sweep for the bone-loss decision boundary, reported as a PR curve rather
       than a single operating point.
+
+- [ ] **(23 Nov 2026)** Carry the `research_paper/` corrections into `paper/main.tex` if it stays the
+      maintained manuscript: restricted constant (§8.45), DENTEX tooth-level annotations, Ningxia's role
+      in the Stage-1 choice, Lipton et al. 2014 at the selection rule. See `research_paper/reviewer_report.md`.
 
 ---
 

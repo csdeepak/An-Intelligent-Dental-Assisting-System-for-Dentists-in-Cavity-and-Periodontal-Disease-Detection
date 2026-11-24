@@ -9783,3 +9783,42 @@ manuscript now carries is from 2026-10-11g, -i and -j — and one new check, on 
     re-run recording per-tooth codes, flags and lesion containment.
   - Item 10 (new experiments) and item 11 (availability) by decision.
   - Stage 3′ re-review, then Stage 4.5.
+
+## 2026-11-23 — research_paper/: evidence-locked revision, three-perspective review, and two post-hoc DENTEX analyses
+
+- **What was done:** a new, separate manuscript revision in `research_paper/` (the ten-page draft of
+  2 Nov extended; `paper/` untouched), built with the RCE skill at `3e4411f` (0.5.0 candidate):
+  evidence and claim maps, 52 live-verified citations (10 new, incl. Lipton et al. 2014), three
+  reviewer perspectives and an integrity VERIFIER as isolated subagents (all three: major revision;
+  GI round 1 blocked on M4–M7), about 90 text corrections in three scripted batches, and two
+  analyses the reviewers asked for.
+- **Dataset / config:** 164 leak-free DENTEX disease images (development; in-domain for the default
+  detector); shipped default pipeline (`DEF_*`), CPU, this Windows clone; 10,000 image-cluster
+  bootstrap resamples, seed 42. Post hoc; no training, no tuning, no Ningxia or Tufts-test image read.
+- **Metrics:**
+  - *Image-blind constant restricted to the molars the front end detected and numbered* (FDI-set F1):
+    P 0.259, R 0.581, **F1 0.358** (1,069 codes named), against 0.320 for the unrestricted constant
+    (restricted − unrestricted +3.86 pp [+2.83, +4.90]).
+  - Against it: **crop-classifier pipeline +0.41 pp [−2.24, +3.14], not separable** (was +4.27 against
+    the unrestricted constant); **lesion-detector pipeline +13.94 pp [+9.63, +18.15]** (saved run);
+    +13.12 [+8.84, +17.36] on this machine's rerun.
+  - *Reproducibility:* the rerun's lesion-detector caries codes differ from the saved (macOS) run on
+    **12 of 164 images**; F1 0.490 vs 0.498. The first run of the script stopped on this control
+    gate (`research_paper/audit_runs/review_round_analyses_run1_gate_failed.json`); the second scores
+    both.
+  - *DENTEX caries annotations are tooth outlines, not lesion outlines:* polygon bounding box / matched
+    detected tooth box, median 0.907 (IQR 0.814–1.016); IoU with the tooth box median 0.814; 99.6% of
+    the 479 above 0.5.
+- **Key decision or insight:**
+  - The crop classifier's development-data F1 lead over the image-blind floor was an artefact of a
+    constant that names absent teeth. The lesion detector's lead survives it.
+  - DENTEX lesion agreement is a tooth-level measure. "479 lesions" in earlier text is 479 annotated
+    carious-tooth outlines.
+  - Disclosed in the revision: Ningxia informed the Stage-1 choice (2026-10-11f/g); the Lever B rule
+    was committed after its single-corpus arm trained and counted the detector's validation split;
+    the theory is post hoc and an application of Lipton et al. 2014.
+- **Source:** `research_paper/tools/detected_constant.py`; `research_paper/audit_runs/review_round_analyses.json`,
+  `dentex_rerun_windows_2026-11-23.json`; reviews in `research_paper/review/`; gates in
+  `research_paper/.rcs/audits/gates/` (gitignored; summarised in `research_paper/integrity_check_report.md`).
+- **Follow-ups:** why the two machines differ on 12 images; restate any `main.tex` sentence that says the
+  gate pipeline leads the constant on DENTEX F1; author inputs in `research_paper/open_issues.md`.

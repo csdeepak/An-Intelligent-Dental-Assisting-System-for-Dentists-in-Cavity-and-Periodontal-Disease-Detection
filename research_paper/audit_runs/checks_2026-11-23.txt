@@ -1,0 +1,10 @@
+.....ss................................................................. [ 67%]
+..............................................s......................    [100%]
+210 passed, 3 skipped in 20.19s
+  leakage exclusion list       OK    85 enumeration + 1 detector, 86 excluded total — matches disk
+  caries v3 MD5 join           OK    260 shared images, FDI agreement 98.28%
+
+all invariants hold.
+
+======================================================================
+215 numeric claims verified against saved artefacts. No drift.

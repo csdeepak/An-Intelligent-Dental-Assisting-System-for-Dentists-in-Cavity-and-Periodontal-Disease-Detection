@@ -1,0 +1,51 @@
+SRC-001    true                               not_retracted  preprint  DENTEX: Dental Enumeration and Tooth Pathosis Dete
+SRC-002    true                               not_retracted    Shortcut learning in deep neural networks
+SRC-003    true                               not_retracted    Tufts Dental Database: A Multimodal Panoramic X-Ra
+SRC-004    true                               not_retracted    CariesXrays: Enhancing Caries Detection in Hospita
+SRC-005    true                               not_retracted    A Multi-center Dental Panoramic Radiography Image 
+SRC-006    true                               not_retracted  preprint  OralBBNet: Spatially Guided Dental Segmentation of
+SRC-007    true                               not_retracted    Tooth detection and numbering in panoramic radiogr
+SRC-008    true                               not_retracted    AI-powered precision in dental radiographic analys
+SRC-009    true                               not_retracted    A Reliable Multi-Stage System for Tooth Instance S
+SRC-010    true                               not_retracted  metadata_conflict  Combining public datasets for automated tooth asse
+SRC-011    true                               not_retracted  metadata_conflict  Deep learning for caries detection: A systematic r
+SRC-012    true                               not_retracted    Dual convolutional neural network framework for se
+SRC-013    true                               not_retracted    PDCNET: Deep Convolutional Neural Network for Clas
+SRC-014    unresolvable  NOT_INDEXED          unknown          Advancing Dental Caries Detection in Panoramic X-r
+SRC-015    true                               not_retracted    Deep Learning for the Radiographic Detection of Pe
+SRC-016    true                               not_retracted    Deep Learning Hybrid Method to Automatically Diagn
+SRC-017    true                               not_retracted  metadata_conflict  Determining the efficacy of a machine learning mod
+SRC-018    true                               not_retracted    A novel AI-powered radiographic analysis surpasses
+SRC-019    true                               not_retracted    Staging and grading of periodontitis: Framework an
+SRC-020    true                               not_retracted    Design Characteristics of Studies Reporting the Pe
+SRC-021    true                               not_retracted    Generalizability of deep learning models for denta
+SRC-022    true                               not_retracted    Deep Learning–Based Automated Diagnostic Charting 
+SRC-023    true                               not_retracted  metadata_conflict  Hidden stratification causes clinically meaningful
+SRC-024    true                               not_retracted    Machine learning for medical imaging: methodologic
+SRC-025    true                               not_retracted    Making the V in VQA Matter: Elevating the Role of 
+SRC-026    true                               not_retracted    Don't Just Assume; Look and Answer: Overcoming Pri
+SRC-027    true                               not_retracted    Hypothesis Only Baselines in Natural Language Infe
+SRC-028    true                               not_retracted    AI for radiographic COVID-19 detection selects sho
+SRC-029    true                               not_retracted    Variable generalization performance of a deep lear
+SRC-030    true                               not_retracted  preprint  On Calibration of Modern Neural Networks
+SRC-031    true                               not_retracted    Transforming classifier scores into accurate multi
+SRC-032    true                               not_retracted  preprint,single_index  Selective Classification for Deep Neural Networks
+SRC-033    true                               not_retracted    A multimodal vision-language model for comprehensi
+SRC-034    true                               not_retracted  preprint  Qwen2.5-VL Technical Report
+SRC-035    true                               not_retracted    Key challenges for delivering clinical impact with
+SRC-036    true                               not_retracted    Artificial Intelligence in Dentistry: Chances and 
+SRC-037    true                               not_retracted    Grouping of tooth surfaces by susceptibility to ca
+SRC-038    true                               not_retracted    Bootstrapping Clustered Data
+SRC-039    true                               not_retracted    Meta-analysis in clinical trials
+SRC-040    true                               not_retracted    Quantifying heterogeneity in a meta‐analysis
+SRC-041    true                               not_retracted    Interpretation of random effects meta-analyses
+SRC-042    true                               not_retracted    The Hartung-Knapp-Sidik-Jonkman method for random 
+SRC-043    true                               not_retracted    Confidence intervals for the amount of heterogenei
+SRC-044    unresolvable  NOT_INDEXED          unknown          Ultralytics YOLO11
+SRC-045    true                               not_retracted    Deep Residual Learning for Image Recognition
+SRC-046    true                               not_retracted    The Hungarian method for the assignment problem
+SRC-047    true                               not_retracted  metadata_conflict  Obtaining well calibrated probabilities using Baye
+SRC-048    true                               not_retracted    Checklist for Artificial Intelligence in Medical I
+SRC-049    true                               not_retracted    TRIPOD+AI statement: updated guidance for reportin
+SRC-050    true                               not_retracted    Artificial intelligence in dental research: Checkl
+SRC-051    true                               not_retracted    A comparison of the diagnostic accuracy of bitewin
