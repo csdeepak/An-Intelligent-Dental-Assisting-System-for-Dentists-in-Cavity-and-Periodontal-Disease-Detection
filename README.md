@@ -374,7 +374,8 @@ predated the Lever B adoption). Every one is version-tagged and SHA-256 pinned, 
 | 2 | FDI head v1.0 *(superseded)* | [`models/08_fdi_enumeration_head/`](models/08_fdi_enumeration_head/) | 11.2 M | `fdi-enumeration-head-resnet18-v1.0` | ✅ |
 | 3a | YOLOv11l caries lesion detector **(default, Lever B, 4 Sep)** | [`models/16_lever_b_pooled/`](models/16_lever_b_pooled/) | 25,311,251 | `caries-lesion-detector-yolo11l-leverb-bpooled-v1.0` | ✅ *(committed 4 Sep, 51 MB)* |
 | 3a′ | ResNet18 caries gate *(retained variant, `--caries-method gate`)* | [`models/09_caries_gate_v3/`](models/09_caries_gate_v3/) | 11,177,538 | `caries-gate-resnet18-v3.0` | ✅ *(committed 3 Sep, 43 MB)* |
-| 3b | ResNet18 caries severity | [`models/07_caries_cascade/`](models/07_caries_cascade/) | 11,177,538 | `caries-cascade-resnet18-v1.0` | ✅ |
+| 3b | ResNet18 caries severity **(default since 24 Nov 2026, tested once on 395 held-out crops)** | [`models/20_caries_severity_v2/`](models/20_caries_severity_v2/) | 11,177,538 | `caries-severity-resnet18-splits-v2-v2.0` | ✅ *(committed 24 Nov, 44.8 MB)* |
+| 3b′ | ResNet18 caries severity *(superseded 24 Nov, retained, `--caries-severity`)* | [`models/07_caries_cascade/`](models/07_caries_cascade/) | 11,177,538 | `caries-cascade-resnet18-v1.0` | ✅ |
 | 4a | ResNet18 bone-loss gate | [`models/03_bone_loss_model_training_notebook_models/`](models/03_bone_loss_model_training_notebook_models/) | 11,177,538 | `bone-loss-binary-resnet18-v1.0` | ✅ |
 | 4b | ResNet18 bone-loss severity | [`models/04_bone_loss_severity_notebook_models/`](models/04_bone_loss_severity_notebook_models/) | 11,178,051 | `bone-loss-severity-resnet18-v1.0` | ✅ |
 | | **Total, six default models** (3a = lesion detector) | | **95,343,545** | | |

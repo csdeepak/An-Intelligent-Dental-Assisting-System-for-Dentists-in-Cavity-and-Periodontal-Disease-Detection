@@ -3172,6 +3172,11 @@ decision owner adopts seed 42 as `DEF_CARIES_SEVERITY`. Until then, Table 3's "1
 crops, no test; no claim" stays true of the shipped head, and the paper may at most add that a
 retrained head of the same architecture was tested.
 
+**Adopted the same day** (`RESULTS_LOG` 2026-11-24b). The sentence above now describes the shipped
+head. `research_paper/` was updated: Section IV, the Table 3 row, the Figure-4 record (both
+severity scores, each named) and the caveats. Its PDFs are not yet rebuilt. Parity: no caries flag
+changed; 10 of 40 flagged teeth in 8 reports changed grade.
+
 **What it is not.**
 
 - **Not evidence the shipped head is wrong.** The two are not separable on extern50.

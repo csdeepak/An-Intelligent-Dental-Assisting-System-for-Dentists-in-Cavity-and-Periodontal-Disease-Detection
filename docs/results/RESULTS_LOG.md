@@ -9910,3 +9910,69 @@ manuscript now carries is from 2026-10-11g, -i and -j — and one new check, on 
     - a parity check;
     - the Table 3 row in `research_paper/`.
   - Why `models/07` gives 0.738, not 0.77, on the regenerated extern50 crops.
+
+## 2026-11-24b — Stage-3b default changed to the retrained head (seed 42); report schema 1.7; paper text updated
+
+- **What was done:** On the decision owner's instruction ("Yes, adopt seed 42"), the 2026-11-24
+  candidate became `DEF_CARIES_SEVERITY`. The previous head (`models/07`) is retained and pinned,
+  reachable with `--caries-severity models/07_caries_cascade/phase2_final_bundle.pth`.
+- **Code:**
+  - **`scripts/run_inference.py`:**
+    - the default path, its sha256 pin (`b0e006e2…`) and its tag
+      `caries-severity-resnet18-splits-v2-v2.0`;
+    - `limitations.caries_severity_not_evaluated` now follows the severity weights loaded
+      (`CARIES_SEVERITY_TEXTS`, as the bone-loss texts do), with an unvalidated text for an
+      unregistered file;
+    - schema **opg-report/1.7**.
+  - **`scripts/eval/verify_invariants.py`:** the new pin pair and class order; the default must
+    carry a tested text, `models/07` keeps its "133 crops" basis, and a report with no hash gets
+    the unvalidated text.
+  - **Tests:** schema 1.7, the three text cases, and the new class order.
+  - **Other:** `scripts/count_model_params.py` now points at the new default (same 11,177,538
+    parameters).
+  - **`.gitignore`:** an exception, so `seed42_best.pth` (44,785,398 B) is committed; seeds 43 and
+    44 stay local.
+- **Dataset / config:** parity on 4 radiographs in 2 modes, the 15 Oct precedent plus the
+  paper's Figure 4 image. macOS, default devices, reports before and after the switch.
+  - **Radiographs:** DENTEX `train_0` and `train_1`; DENTEX `disease/test_0` (Figure 4); Tufts `1`.
+  - **Modes:** lesion-detector (the default) and gate.
+- **Metrics:** no new model number.
+  - **Parity:** asserted in `outputs/caries_severity_v2/adoption_parity.json`. All 8 summaries are
+    identical, and the same teeth are flagged. Every per-tooth field is identical except caries
+    `finding`, `severity` and `severity_confidence`. **10 of the 40 flagged teeth changed grade:**
+    6 caries → deep caries and 4 deep caries → caries.
+  - **Figure 4** (`test_0`, default mode): grades unchanged (26 and 46 caries, 36 and 45 deep
+    caries). Tooth 36's severity score goes from 0.9579 to 0.9996.
+  - **Golden report:** `tests/golden/tufts_1_cpu.json` was regenerated with the test's own
+    `--write-golden`. Two teeth changed caries → deep caries, nothing else.
+  - **Checks:** `pytest` 214 passed; `verify_invariants.py` all hold.
+  - **Paper numbers:** `trace_numbers_rp.py` was given the test summary and the new `test_0`
+    report as sources. It leaves 9 numbers untraced, none of them new.
+- **Key decision or insight:**
+  - **What adoption buys.** A default with a held-out test, not a better grade: the two heads are
+    not separable on extern50.
+  - **No caries flag, count or metric changes.** Ningxia, CariesXrays and lesion localisation
+    score flags only. The grade a report shows for a flagged tooth does change.
+  - **The key name stays.** `caries_severity_not_evaluated` is still true of every checkpoint for
+    the grade as the pipeline makes it (detector boxes, flagged teeth).
+- **Paper (`research_paper/`):**
+  - **Edited:** `paper.md`. The Stage-3b sentence in IV, the Table 3 row, the Figure-4 record
+    sentence (both scores, each named), and the caveats ("every model but Stages 3b and 4a is a
+    single run"; the grade was tested on annotation boxes, not on flagged teeth).
+  - **Regenerated with its own tools:** `paper.tex`, `paper_clean.md`, `tables/table_3.*` and the
+    `turnitin/` md and tex.
+  - **Not rebuilt:** the PDFs. This Mac has no pdfLaTeX (`build_paper.py`,
+    `build_no_citations.py`).
+  - **Not regenerated:** the RCE evidence registry. L010 still says "untested severity grade".
+  - **Also edited:** the `clinical_validity_assessment.md` row.
+  - **Not touched:** `paper/main.tex` still says the head was "never tested".
+- **Source:**
+  - `outputs/caries_severity_v2/adoption_parity.json`
+  - `research_paper/audit_runs/test_0_report_stage3b_v2_macos_2026-11-24.json`
+  - `models/20_caries_severity_v2/run_summary.txt`
+- **Follow-ups:**
+  - Rebuild `final_research_paper.pdf` and the `turnitin` PDF with pdfLaTeX (Windows), and
+    regenerate the evidence registry there.
+  - Rebuild the Docker image: it loads the defaults at build time.
+  - Tell the mentor: the demo's deep-caries labels change.
+  - The panel video's scene 10 ("validated, never tested") now describes the replaced head.

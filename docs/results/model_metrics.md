@@ -3,10 +3,11 @@
 Current best numbers only. One table per model, nothing else. For how a number was
 obtained see `PAPER_MATERIAL.md`; for when and why it changed see `RESULTS_LOG.md`.
 
-**Last updated:** 2026-11-24 — **Stage 3b retrained on DENTEX's image-level split has its first
-held-out figure: test macro-F1 0.772 [0.711, 0.828] on 395 crops for the seed fixed in advance
-(0.745–0.817 across three seeds), eligible; not the default** — `models/07` still ships, untested
-(`RESULTS_LOG` 2026-11-24; Phase 2 severity below).
+**Last updated:** 2026-11-24 — **Stage 3b default changed** to the head retrained on DENTEX's
+image-level split (`models/20_caries_severity_v2/seed42_best.pth`), by the decision owner
+(`RESULTS_LOG` 2026-11-24b): **test macro-F1 0.772 [0.711, 0.828] on 395 held-out crops** for the
+seed fixed in advance (0.745–0.817 across three seeds), against 0.483 for the strongest
+image-blind prior (`RESULTS_LOG` 2026-11-24; Phase 2 severity below). `models/07` is retained.
 
 **Before that:** 2026-10-13 (night) — **Stage 4a default changed** to the model retrained
 with a radiograph-level split (`models/18_bone_loss_radiograph_split/seed42_best.pth`), by
@@ -697,13 +698,15 @@ R 0.80 on *its own* test split — a 2.2× prevalence difference, not a gain; sp
 here no longer applies; this machine's environment was fixed 24 Aug 2026. Still trained on
 `phase1_legacy`-era crops and not re-run this session — **only the gate was rebuilt**, not the
 severity head. Validation-only, and it cannot be tested: it was trained on crops of all 705 DENTEX training
-radiographs, the `splits_v2` test split included. **This is still the pipeline default.** Under the
+radiographs, the `splits_v2` test split included. **It was the pipeline default until 24 Nov 2026**
+(retained, pinned, `--caries-severity`). Under the
 pipeline's argmax, on the regenerated crops, it scores macro-F1 0.738 [0.640, 0.818] on these same
 133 crops, deep recall 23/32, not the notebook's 0.77 (`RESULTS_LOG` 2026-11-24; cause not
 investigated).
 
 **Phase 2 retrained on `splits_v2` — held-out test, 395 crops (311 caries / 84 deep) on 98
-radiographs. `models/20_caries_severity_v2/`, three registered seeds; NOT the default.** Protocol
+radiographs. `models/20_caries_severity_v2/`, three registered seeds; seed 42 is the pipeline
+default since 24 Nov 2026 (`RESULTS_LOG` 2026-11-24b).** Protocol
 `outputs/caries_severity_v2/PRE_REGISTRATION.md` (`cf3090a`); one test pass, 24 Nov 2026.
 Radiograph-cluster 95% intervals.
 
@@ -716,7 +719,8 @@ Radiograph-cluster 95% intervals.
 | Majority (= tooth-majority prior) | 0.440 [0.425, 0.455] | — | 0/84 | 311/311 |
 
 Seed 42 minus the tooth-rate prior +0.290 [+0.209, +0.367]: **eligible** under the registered
-rule, which allows it to be *proposed* as the default and decides nothing. On extern50 (the 133
+rule, which allowed it to be *proposed* as the default; the decision owner adopted it the same day.
+On extern50 (the 133
 crops `models/07` was tuned on) seed 42 scores 0.748 [0.654, 0.842], and seed 42 minus `models/07` is
 +0.010 [−0.084, +0.109], not separable. Annotation boxes of truly carious teeth, not detector
 boxes of flagged teeth.
@@ -1223,7 +1227,7 @@ ultralytics prints — a third quantity again, and also not an error.
 | 2  | ResNet18 + 4 positional feats | `models/10_fdi_head_dentex_tufts_v2/` | 11,187,916 |
 | **3a (default)** | **YOLOv11l lesion detector** | **`models/16_lever_b_pooled/.../best.pt`** | **25,311,251** |
 | 3a (`--caries-method gate`) | ResNet18 caries gate | `models/09_caries_gate_v3/` | 11,177,538 |
-| 3b | ResNet18 caries severity | `models/07_caries_cascade/` | 11,177,538 |
+| 3b | ResNet18 caries severity | `models/20_caries_severity_v2/` (default since 24 Nov 2026; `models/07` before) | 11,177,538 |
 | 4a | ResNet18 bone-loss gate | `models/03_bone_loss_model_training_notebook_models/` | 11,177,538 |
 | 4b | ResNet18 bone-loss severity | `models/04_bone_loss_severity_notebook_models/` | 11,178,051 |
 | | **Total, all six, current default (lesion detector)** | | **95,343,545** |

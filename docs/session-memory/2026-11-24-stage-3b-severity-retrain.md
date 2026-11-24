@@ -39,7 +39,30 @@ No Ningxia data was read.
      `transfer.md` §1 and §4, `research_paper/open_issues.md` item 10, `models/README.md`, and
      `models/20_caries_severity_v2/run_summary.txt`.
 
+6. **Adopted seed 42 as `DEF_CARIES_SEVERITY`** on the user's "Yes, adopt seed 42"
+   (`RESULTS_LOG` 2026-11-24b).
+   - **Pipeline:** hash pin, tag, and a per-weights `CARIES_SEVERITY_TEXTS`; schema 1.7.
+   - **Checks and tests:** new pin pair, class order and text checks in `verify_invariants.py`;
+     tests updated; golden Tufts report regenerated (2 teeth caries → deep caries);
+     `.gitignore` exception so the 44.8 MB weights are committed.
+   - **Parity:** 4 images × 2 modes. No flag, summary or non-severity field changed; 10 of 40
+     flagged teeth changed grade (`outputs/caries_severity_v2/adoption_parity.json`).
+   - **`research_paper/`:** source edited and regenerated, with CRLF restored to match the
+     Windows-built files. The number tracer was given the new sources. The PDFs were not
+     rebuilt (no pdfLaTeX).
+   - **Results:** `pytest` 214 passed; invariants all hold.
+
 ## Decisions made
+
+- **The report key `caries_severity_not_evaluated` was kept.** Its text now follows the weights
+  loaded. The grade as the pipeline makes it (detector boxes, flagged teeth) is still untested
+  for every checkpoint, so the key name stays true and no consumer breaks.
+- **Figure 4's saved report (Windows, old head) was left as it is.** Its grades are unchanged
+  under the new head. The text names both severity scores rather than mixing a Mac re-run into
+  the figure's numbers.
+- **`paper/main.tex` and `lesion_localization.py`'s own copy of the old default were not
+  touched.** The first is the superseded manuscript. The second reproduces saved numbers, and
+  the grade enters none of them.
 
 - **The shipped head is not the subject, because it cannot be.** It trained on all 705 DENTEX
   training radiographs, the test split included. Scoring it there would be scoring training
@@ -59,13 +82,7 @@ No Ningxia data was read.
 
 ## Open questions
 
-- **Adopt seed 42 as `DEF_CARIES_SEVERITY`?** The two heads are not separable on extern50, so
-  the argument for adopting is "tested", not "better". Adopting needs:
-  - a hash pin in `run_inference.py`;
-  - a `.gitignore` exception (44.8 MB);
-  - `CARIES_SEVERITY_NOT_EVALUATED` rewritten, and a schema bump;
-  - a parity run;
-  - Table 3 and the Limitations line in `research_paper/`.
+- **Adoption was decided later this session (item 6).** The mentor has not been told.
 - **Why does `models/07` score 0.738, not 0.77, on the regenerated extern50 crops?** Candidates
   are crop regeneration (21k verified 4 sample crops; 3 bit-identical, 1 off by ±1) and the
   notebook's evaluation preprocessing. Not investigated.
@@ -77,9 +94,11 @@ No Ningxia data was read.
 
 ## Next steps
 
-1. The decision owner (and the mentor) decide: adopt, keep, or withhold (`transfer.md` §4).
-2. If adopt: wire the default with a hash pin, update the report text and the schema, run the
-   parity check, and update the `research_paper/` Table 3 row from `PAPER_MATERIAL.md` §8.46.
-3. If keep: the paper may add one clause, saying a retrained head of the same architecture was
-   tested. Table 3 stays as is.
-4. Re-check the panel video's scene 19 and Part 3 against `main` before showing it.
+1. On Windows: rebuild `research_paper/final_research_paper.pdf` and the `turnitin` PDF with
+   pdfLaTeX, and regenerate the RCE evidence registry (L010).
+2. Rebuild the Docker image, which loads the defaults at build time.
+3. Tell the mentor the Stage-3b default changed, and that the demo's deep-caries labels change.
+4. Re-check the panel video against `main` before showing it: scene 10 now describes the
+   replaced head, and scene 19 and Part 3 counts have moved.
+5. Push this branch and merge to `main` when the owner asks. Four commits from the first half,
+   plus this change.

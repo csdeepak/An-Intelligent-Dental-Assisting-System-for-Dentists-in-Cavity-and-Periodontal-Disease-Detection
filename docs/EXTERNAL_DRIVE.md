@@ -62,7 +62,8 @@ has not changed with the v2.0 adoption, since v2.0 is 43 MB and already tracked 
 | File | Loaded as |
 |---|---|
 | `models/07_caries_cascade/final_model.pth` | (superseded by v3 below, kept for reproducibility) |
-| `models/07_caries_cascade/phase2_final_bundle.pth` | `DEF_CARIES_SEVERITY` |
+| `models/07_caries_cascade/phase2_final_bundle.pth` | Stage-3b head superseded 24 Nov 2026; retained and hash-pinned (`--caries-severity`) |
+| **`models/20_caries_severity_v2/seed42_best.pth`** (44.8 MB) | **`DEF_CARIES_SEVERITY` since 24 Nov 2026** — committed via a `.gitignore` exception; seeds 43 and 44 stay local (`models/20_caries_severity_v2/run_summary.txt`) |
 | `models/08_fdi_enumeration_head/enumeration_head_best.pth` | Stage-2 head **v1.0** — superseded 26 Aug but retained and hash-pinned |
 | `models/10_fdi_head_dentex_tufts_v2/enumeration_head_best.pth` | `DEF_FDI_HEAD` (**v2.0**, DENTEX+Tufts) |
 | **`models/15_detector_multicorpus_leverA/arm3c_best.pt`** (51 MB) | **`DEF_DETECTOR` since 11 Oct 2026** — committed that day via a `.gitignore` exception (`7dd3ff4`, private repo). SHA-256 `5d301f13…8f161e` in its `run_summary.txt` |
