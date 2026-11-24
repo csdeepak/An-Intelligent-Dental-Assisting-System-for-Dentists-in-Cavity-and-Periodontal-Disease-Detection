@@ -218,6 +218,7 @@ def test_mild_severity_carries_the_low_support_flag():
 @pytest.mark.parametrize("weights,expected", [
     ("models/07_caries_cascade/final_model.pth", {"caries": 0, "no_caries": 1}),
     ("models/07_caries_cascade/phase2_final_bundle.pth", {"caries": 0, "deep_caries": 1}),
+    ("models/20_caries_severity_v2/seed42_best.pth", {"caries": 0, "deep_caries": 1}),
 ])
 def test_checkpoint_class_order_matches_the_constants(weights, expected):
     """Reads the checkpoint's own class_to_idx: fails if a model is swapped for one with a

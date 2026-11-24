@@ -43,7 +43,10 @@ jsons = list((R / "outputs/stage1_switch").glob("*.json")) + list((R / "outputs/
     "outputs/caries_arms/arms_comparison.json",
     "paper/ieee/figures/R_figures_facts.json",
     "paper/ieee/figures/R_draft_figures_facts.json",
-    "paper/ieee/figures/R02_test_0_report.json")]
+    "paper/ieee/figures/R02_test_0_report.json",
+    # 24 Nov 2026: the Stage-3b retrain's test pass, and test_0 re-run under the new Stage-3b default (macOS)
+    "outputs/caries_severity_v2/test_summary.json",
+    "research_paper/audit_runs/test_0_report_stage3b_v2_macos_2026-11-24.json")]
 vals = set()
 def walk(o):
     if isinstance(o, dict):

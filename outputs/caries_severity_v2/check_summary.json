@@ -1,0 +1,175 @@
+{
+  "checks": {
+    "H1": true,
+    "H2": true,
+    "H4": true,
+    "H3": true,
+    "H5": true
+  },
+  "counts": {
+    "train": [
+      [
+        1564,
+        400
+      ],
+      456
+    ],
+    "val": [
+      [
+        314,
+        94
+      ],
+      96
+    ],
+    "test": [
+      [
+        311,
+        84
+      ],
+      98
+    ],
+    "extern50": [
+      [
+        101,
+        32
+      ],
+      44
+    ]
+  },
+  "split_image_overlap": {
+    "train&val": 0,
+    "train&test": 0,
+    "train&extern50": 0,
+    "val&test": 0,
+    "val&extern50": 0,
+    "test&extern50": 0
+  },
+  "near_duplicates": {
+    "test": {
+      "md5_identical": 0,
+      "close_under_both": 0,
+      "candidates_for_inspection": [
+        [
+          "train_218.png",
+          "train_655.png",
+          24,
+          3
+        ],
+        [
+          "train_22.png",
+          "train_160.png",
+          6,
+          11
+        ],
+        [
+          "train_236.png",
+          "train_257.png",
+          26,
+          4
+        ],
+        [
+          "train_369.png",
+          "train_379.png",
+          18,
+          4
+        ],
+        [
+          "train_369.png",
+          "train_320.png",
+          22,
+          3
+        ],
+        [
+          "train_479.png",
+          "train_334.png",
+          18,
+          3
+        ],
+        [
+          "train_518.png",
+          "train_472.png",
+          12,
+          4
+        ],
+        [
+          "train_54.png",
+          "train_515.png",
+          16,
+          4
+        ],
+        [
+          "train_568.png",
+          "train_13.png",
+          26,
+          3
+        ]
+      ],
+      "min_phash": 6,
+      "min_dhash": 3
+    },
+    "extern50": {
+      "md5_identical": 0,
+      "close_under_both": 0,
+      "candidates_for_inspection": [
+        [
+          "val_40.png",
+          "train_352.png",
+          4,
+          10
+        ],
+        [
+          "val_44.png",
+          "train_680.png",
+          10,
+          2
+        ],
+        [
+          "val_49.png",
+          "train_335.png",
+          20,
+          4
+        ]
+      ],
+      "min_phash": 4,
+      "min_dhash": 2
+    },
+    "val": {
+      "md5_identical": 0,
+      "close_under_both": 0,
+      "candidates_for_inspection": [
+        [
+          "train_181.png",
+          "train_462.png",
+          6,
+          14
+        ],
+        [
+          "train_376.png",
+          "train_463.png",
+          14,
+          4
+        ],
+        [
+          "train_439.png",
+          "train_23.png",
+          6,
+          15
+        ],
+        [
+          "train_443.png",
+          "train_310.png",
+          6,
+          16
+        ],
+        [
+          "train_515.png",
+          "train_680.png",
+          18,
+          3
+        ]
+      ],
+      "min_phash": 6,
+      "min_dhash": 3
+    }
+  }
+}

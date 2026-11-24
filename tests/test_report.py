@@ -15,12 +15,19 @@ ri = pytest.importorskip("scripts.run_inference")
 cv2 = pytest.importorskip("cv2")
 
 
-def test_every_report_states_both_untested_severity_grades():
-    rep = ri.build_report("x", np.zeros((8, 8, 3), np.uint8), [], [], [], [], [],
-                          {"caries": {"method": "lesion-detector"}})
-    assert rep["schema_version"] == "opg-report/1.6"
-    assert "contrast" in rep["limitations"]["bone_severity_not_evaluated"]
-    assert "133 crops" in rep["limitations"]["caries_severity_not_evaluated"]
+def test_every_report_states_what_is_known_of_both_severity_grades():
+    def caries_text(sha):
+        rep = ri.build_report("x", np.zeros((8, 8, 3), np.uint8), [], [], [], [], [],
+                              {"caries": {"method": "lesion-detector", "sha256_severity": sha}})
+        assert rep["schema_version"] == "opg-report/1.7"
+        assert "contrast" in rep["limitations"]["bone_severity_not_evaluated"]
+        return rep["limitations"]["caries_severity_not_evaluated"]
+
+    # The text follows the severity weights loaded (schema 1.7): the default's held-out test, the
+    # previous head's validation-only basis, and nothing claimed for an unknown file.
+    assert "395 held-out" in caries_text(ri.DEFAULT_SHA256[ri.DEF_CARIES_SEVERITY.resolve()])
+    assert "133 crops" in caries_text("aa0a8a7ebf47a8acab0d24a6ecd948542c220196d1c71cbebbf56952beacbc86")
+    assert caries_text(None) == ri.CARIES_SEVERITY_UNREGISTERED
 
 
 def _tooth(x, assessable=True, fdi_flags=(), caries="no_caries", flagged=False):

@@ -1,0 +1,28 @@
+train 1964 crops ([1564, 400], 456)   val 408 crops ([314, 94], 96)
+  epoch  1  loss 0.6668  val macro-F1 0.6645  lr 1.0e-04  10s
+  epoch  2  loss 0.5365  val macro-F1 0.6303  lr 1.0e-04  10s
+  epoch  3  loss 0.4453  val macro-F1 0.7127  lr 1.0e-04  10s
+  epoch  4  loss 0.3849  val macro-F1 0.7235  lr 1.0e-04  10s
+  epoch  5  loss 0.3210  val macro-F1 0.7185  lr 1.0e-04  10s
+  epoch  6  loss 0.2452  val macro-F1 0.7225  lr 1.0e-04  11s
+  epoch  7  loss 0.2092  val macro-F1 0.6923  lr 1.0e-04  12s
+  epoch  8  loss 0.1840  val macro-F1 0.7063  lr 1.0e-04  10s
+  epoch  9  loss 0.1417  val macro-F1 0.7202  lr 1.0e-04  11s
+  epoch 10  loss 0.1255  val macro-F1 0.7253  lr 1.0e-04  11s
+  epoch 11  loss 0.1110  val macro-F1 0.7474  lr 1.0e-04  11s
+  epoch 12  loss 0.1203  val macro-F1 0.7463  lr 1.0e-04  11s
+  epoch 13  loss 0.0975  val macro-F1 0.7316  lr 1.0e-04  11s
+  epoch 14  loss 0.0658  val macro-F1 0.7744  lr 1.0e-04  10s
+  epoch 15  loss 0.0678  val macro-F1 0.7512  lr 1.0e-04  11s
+  epoch 16  loss 0.0544  val macro-F1 0.7825  lr 1.0e-04  11s
+  epoch 17  loss 0.0482  val macro-F1 0.7622  lr 1.0e-04  11s
+  epoch 18  loss 0.0475  val macro-F1 0.7512  lr 1.0e-04  11s
+  epoch 19  loss 0.0453  val macro-F1 0.7763  lr 1.0e-04  10s
+  epoch 20  loss 0.0467  val macro-F1 0.7409  lr 1.0e-04  10s
+  epoch 21  loss 0.0509  val macro-F1 0.7455  lr 1.0e-04  10s
+  epoch 22  loss 0.0524  val macro-F1 0.7455  lr 5.0e-05  10s
+  epoch 23  loss 0.0374  val macro-F1 0.7383  lr 5.0e-05  10s
+  epoch 24  loss 0.0210  val macro-F1 0.7662  lr 5.0e-05  10s
+  epoch 25  loss 0.0199  val macro-F1 0.7305  lr 5.0e-05  10s
+  epoch 26  loss 0.0142  val macro-F1 0.7432  lr 5.0e-05  10s
+seed 44: best validation macro-F1 0.7825 at epoch 16 of 26 -> seed44_best.pth  sha256 3467aebcf4be

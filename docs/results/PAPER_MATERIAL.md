@@ -3128,6 +3128,67 @@ with it the floor, depends on the population's age and exposure.
 
 ---
 
+### 8.46 Stage 3b retrained and tested once: eligible, but the shipped head is still untested
+
+*24 Nov 2026. `RESULTS_LOG` 2026-11-24; protocol `outputs/caries_severity_v2/PRE_REGISTRATION.md`
+(`cf3090a`); seeds frozen in `f8bc016` before the test pass.*
+
+**Method.**
+
+- **Why a retrain.** The shipped caries-severity head (`models/07`) was trained on crops of all
+  705 radiographs of DENTEX's training release, and tuned and reported on the same 133 crops of
+  the separate 50-image release. It has no held-out figure and cannot be given one.
+- **Model.** The same ResNet18, retrained from ImageNet weights with Stage 4a/4b's recipe and a
+  class-weighted loss.
+- **Data.** Tight annotation-box crops (the pipeline's caries crop contract) of the `Caries` and
+  `Deep Caries` annotations under `data/dentex/splits_v2.json`: train 1,964 crops on 456
+  radiographs, val 408 on 96.
+- **Seeds.** Three, each trained once; seed 42 was fixed in advance.
+- **Test.** One pass on 395 test crops from 98 radiographs, against three image-blind priors.
+
+**Result.**
+
+- **Seed 42: macro-F1 0.772 [0.711, 0.828]** (validation 0.773). The other two seeds gave 0.745
+  and 0.817.
+- **Against the priors.** The strongest image-blind prior (deep caries where a tooth code's
+  training deep rate exceeds the overall rate) reached 0.483. Seed 42 minus it: +0.290
+  [+0.209, +0.367]. **Eligible.**
+- **The deep-caries call.** Precision 66/116 (56.9%), recall 66/84 (78.6%).
+- **On extern50** (the crops `models/07` was tuned on): seed 42 scores 0.748, `models/07` 0.738.
+  The difference, +0.010 [−0.084, +0.109], is not separable.
+- **The shipped head reproduces lower.** It scores 0.738, not its notebook's 0.77, under the
+  pipeline's argmax on the regenerated crops. Cause not investigated.
+
+**What the paper may say.** Protocol §8, filled in:
+
+> "Retrained on DENTEX's image-level split, the caries-severity head (caries vs deep caries, as
+> annotated) reached macro-F1 0.772 [0.711, 0.828] on 395 held-out crops from 98 radiographs,
+> against 0.483 for the strongest image-blind prior; two further runs gave 0.745 and 0.817. The
+> crops are annotation boxes of truly carious teeth; in the pipeline the head grades detector
+> boxes of flagged teeth, some of which carry no caries."
+
+This sentence describes `models/20`. It may be used for the shipped pipeline **only if** the
+decision owner adopts seed 42 as `DEF_CARIES_SEVERITY`. Until then, Table 3's "133 validation
+crops, no test; no claim" stays true of the shipped head, and the paper may at most add that a
+retrained head of the same architecture was tested.
+
+**Adopted the same day** (`RESULTS_LOG` 2026-11-24b). The sentence above now describes the shipped
+head. `research_paper/` was updated: Section IV, the Table 3 row, the Figure-4 record (both
+severity scores, each named) and the caveats. Its PDFs are not yet rebuilt. Parity: no caries flag
+changed; 10 of 40 flagged teeth in 8 reports changed grade.
+
+**What it is not.**
+
+- **Not evidence the shipped head is wrong.** The two are not separable on extern50.
+- **Not a pipeline test.** The detector boxes and the flagged teeth without caries are not in it.
+- **Not a clinical depth grade.** The label is one annotation round.
+- **Not a strong result.**
+  - The priors are weak for this label (0.44–0.48): tooth position carries little information
+    about depth.
+  - About four in ten deep-caries calls on truly carious teeth are wrong (50 of 116 for seed 42).
+
+---
+
 ## 9. What's not yet written — checklist
 
 For whoever drafts the actual paper. Tick items off here as they land.

@@ -1,0 +1,224 @@
+{
+  "device": "mps",
+  "epochs": [
+    {
+      "epoch": 1,
+      "train_loss": 0.66679,
+      "val_macro_f1": 0.6645,
+      "lr": 0.0001,
+      "seconds": 10.0
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.53652,
+      "val_macro_f1": 0.6303,
+      "lr": 0.0001,
+      "seconds": 10.1
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.44532,
+      "val_macro_f1": 0.7127,
+      "lr": 0.0001,
+      "seconds": 10.1
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.38488,
+      "val_macro_f1": 0.7235,
+      "lr": 0.0001,
+      "seconds": 10.1
+    },
+    {
+      "epoch": 5,
+      "train_loss": 0.32104,
+      "val_macro_f1": 0.7185,
+      "lr": 0.0001,
+      "seconds": 10.1
+    },
+    {
+      "epoch": 6,
+      "train_loss": 0.24525,
+      "val_macro_f1": 0.7225,
+      "lr": 0.0001,
+      "seconds": 10.6
+    },
+    {
+      "epoch": 7,
+      "train_loss": 0.20921,
+      "val_macro_f1": 0.6923,
+      "lr": 0.0001,
+      "seconds": 11.8
+    },
+    {
+      "epoch": 8,
+      "train_loss": 0.18398,
+      "val_macro_f1": 0.7063,
+      "lr": 0.0001,
+      "seconds": 10.3
+    },
+    {
+      "epoch": 9,
+      "train_loss": 0.14169,
+      "val_macro_f1": 0.7202,
+      "lr": 0.0001,
+      "seconds": 10.5
+    },
+    {
+      "epoch": 10,
+      "train_loss": 0.12551,
+      "val_macro_f1": 0.7253,
+      "lr": 0.0001,
+      "seconds": 11.4
+    },
+    {
+      "epoch": 11,
+      "train_loss": 0.11097,
+      "val_macro_f1": 0.7474,
+      "lr": 0.0001,
+      "seconds": 11.3
+    },
+    {
+      "epoch": 12,
+      "train_loss": 0.12029,
+      "val_macro_f1": 0.7463,
+      "lr": 0.0001,
+      "seconds": 10.7
+    },
+    {
+      "epoch": 13,
+      "train_loss": 0.0975,
+      "val_macro_f1": 0.7316,
+      "lr": 0.0001,
+      "seconds": 10.6
+    },
+    {
+      "epoch": 14,
+      "train_loss": 0.06576,
+      "val_macro_f1": 0.7744,
+      "lr": 0.0001,
+      "seconds": 10.3
+    },
+    {
+      "epoch": 15,
+      "train_loss": 0.06777,
+      "val_macro_f1": 0.7512,
+      "lr": 0.0001,
+      "seconds": 10.6
+    },
+    {
+      "epoch": 16,
+      "train_loss": 0.05436,
+      "val_macro_f1": 0.7825,
+      "lr": 0.0001,
+      "seconds": 10.5
+    },
+    {
+      "epoch": 17,
+      "train_loss": 0.04824,
+      "val_macro_f1": 0.7622,
+      "lr": 0.0001,
+      "seconds": 11.3
+    },
+    {
+      "epoch": 18,
+      "train_loss": 0.04751,
+      "val_macro_f1": 0.7512,
+      "lr": 0.0001,
+      "seconds": 10.7
+    },
+    {
+      "epoch": 19,
+      "train_loss": 0.04527,
+      "val_macro_f1": 0.7763,
+      "lr": 0.0001,
+      "seconds": 10.3
+    },
+    {
+      "epoch": 20,
+      "train_loss": 0.04669,
+      "val_macro_f1": 0.7409,
+      "lr": 0.0001,
+      "seconds": 10.3
+    },
+    {
+      "epoch": 21,
+      "train_loss": 0.05092,
+      "val_macro_f1": 0.7455,
+      "lr": 0.0001,
+      "seconds": 10.3
+    },
+    {
+      "epoch": 22,
+      "train_loss": 0.05242,
+      "val_macro_f1": 0.7455,
+      "lr": 5e-05,
+      "seconds": 10.0
+    },
+    {
+      "epoch": 23,
+      "train_loss": 0.03736,
+      "val_macro_f1": 0.7383,
+      "lr": 5e-05,
+      "seconds": 10.1
+    },
+    {
+      "epoch": 24,
+      "train_loss": 0.021,
+      "val_macro_f1": 0.7662,
+      "lr": 5e-05,
+      "seconds": 10.0
+    },
+    {
+      "epoch": 25,
+      "train_loss": 0.0199,
+      "val_macro_f1": 0.7305,
+      "lr": 5e-05,
+      "seconds": 10.0
+    },
+    {
+      "epoch": 26,
+      "train_loss": 0.01418,
+      "val_macro_f1": 0.7432,
+      "lr": 5e-05,
+      "seconds": 10.0
+    }
+  ],
+  "best_val_macro_f1": 0.7825,
+  "best_epoch": 16,
+  "class_weight": [
+    0.6279,
+    2.455
+  ],
+  "seed": 44,
+  "sha256": "3467aebcf4be21b61b916966850a100e84e9e3812157c100951935cd094471e2",
+  "pre_registration": "outputs/caries_severity_v2/PRE_REGISTRATION.md",
+  "torch": "2.2.0",
+  "classes": [
+    "caries",
+    "deep_caries"
+  ],
+  "label": "DENTEX disease annotation class (Caries / Deep Caries) of a tight annotation-box crop",
+  "split": "data/dentex/splits_v2.json, image level",
+  "train_crops": 1964,
+  "train_counts": [
+    1564,
+    400
+  ],
+  "val_crops": 408,
+  "val_counts": [
+    314,
+    94
+  ],
+  "recipe": {
+    "init": "ImageNet ResNet18",
+    "lr": 0.0001,
+    "weight_decay": 0.0001,
+    "batch": 32,
+    "max_epochs": 50,
+    "patience": 10,
+    "loss": "class-weighted cross-entropy",
+    "augmentation": "scripts/tufts/train_bone_loss_v2.augment",
+    "scheduler": "ReduceLROnPlateau(max, 0.5, 5)"
+  }
+}

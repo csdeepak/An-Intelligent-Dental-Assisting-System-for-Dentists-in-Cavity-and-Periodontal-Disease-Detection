@@ -1,0 +1,161 @@
+{
+  "device": "mps",
+  "epochs": [
+    {
+      "epoch": 1,
+      "train_loss": 0.65691,
+      "val_macro_f1": 0.5568,
+      "lr": 0.0001,
+      "seconds": 10.0
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.53469,
+      "val_macro_f1": 0.6572,
+      "lr": 0.0001,
+      "seconds": 9.8
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.44201,
+      "val_macro_f1": 0.7004,
+      "lr": 0.0001,
+      "seconds": 10.5
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.34459,
+      "val_macro_f1": 0.6607,
+      "lr": 0.0001,
+      "seconds": 10.8
+    },
+    {
+      "epoch": 5,
+      "train_loss": 0.28506,
+      "val_macro_f1": 0.6912,
+      "lr": 0.0001,
+      "seconds": 10.3
+    },
+    {
+      "epoch": 6,
+      "train_loss": 0.27346,
+      "val_macro_f1": 0.7199,
+      "lr": 0.0001,
+      "seconds": 10.0
+    },
+    {
+      "epoch": 7,
+      "train_loss": 0.22386,
+      "val_macro_f1": 0.7628,
+      "lr": 0.0001,
+      "seconds": 9.9
+    },
+    {
+      "epoch": 8,
+      "train_loss": 0.17473,
+      "val_macro_f1": 0.6813,
+      "lr": 0.0001,
+      "seconds": 10.3
+    },
+    {
+      "epoch": 9,
+      "train_loss": 0.13018,
+      "val_macro_f1": 0.6968,
+      "lr": 0.0001,
+      "seconds": 10.4
+    },
+    {
+      "epoch": 10,
+      "train_loss": 0.1354,
+      "val_macro_f1": 0.6975,
+      "lr": 0.0001,
+      "seconds": 10.4
+    },
+    {
+      "epoch": 11,
+      "train_loss": 0.12522,
+      "val_macro_f1": 0.7351,
+      "lr": 0.0001,
+      "seconds": 10.5
+    },
+    {
+      "epoch": 12,
+      "train_loss": 0.11289,
+      "val_macro_f1": 0.7122,
+      "lr": 0.0001,
+      "seconds": 11.3
+    },
+    {
+      "epoch": 13,
+      "train_loss": 0.12156,
+      "val_macro_f1": 0.7196,
+      "lr": 5e-05,
+      "seconds": 11.1
+    },
+    {
+      "epoch": 14,
+      "train_loss": 0.07683,
+      "val_macro_f1": 0.7474,
+      "lr": 5e-05,
+      "seconds": 10.8
+    },
+    {
+      "epoch": 15,
+      "train_loss": 0.04559,
+      "val_macro_f1": 0.7461,
+      "lr": 5e-05,
+      "seconds": 10.6
+    },
+    {
+      "epoch": 16,
+      "train_loss": 0.02947,
+      "val_macro_f1": 0.7437,
+      "lr": 5e-05,
+      "seconds": 10.6
+    },
+    {
+      "epoch": 17,
+      "train_loss": 0.02715,
+      "val_macro_f1": 0.7412,
+      "lr": 5e-05,
+      "seconds": 10.4
+    }
+  ],
+  "best_val_macro_f1": 0.7628,
+  "best_epoch": 7,
+  "class_weight": [
+    0.6279,
+    2.455
+  ],
+  "seed": 43,
+  "sha256": "aab94ddf2fbb4c5ec1c2f4db3e5345db4e28fa1cbd927e07e1e263a5e8c3bc7d",
+  "pre_registration": "outputs/caries_severity_v2/PRE_REGISTRATION.md",
+  "torch": "2.2.0",
+  "classes": [
+    "caries",
+    "deep_caries"
+  ],
+  "label": "DENTEX disease annotation class (Caries / Deep Caries) of a tight annotation-box crop",
+  "split": "data/dentex/splits_v2.json, image level",
+  "train_crops": 1964,
+  "train_counts": [
+    1564,
+    400
+  ],
+  "val_crops": 408,
+  "val_counts": [
+    314,
+    94
+  ],
+  "recipe": {
+    "init": "ImageNet ResNet18",
+    "lr": 0.0001,
+    "weight_decay": 0.0001,
+    "batch": 32,
+    "max_epochs": 50,
+    "patience": 10,
+    "loss": "class-weighted cross-entropy",
+    "augmentation": "scripts/tufts/train_bone_loss_v2.augment",
+    "scheduler": "ReduceLROnPlateau(max, 0.5, 5)"
+  }
+}

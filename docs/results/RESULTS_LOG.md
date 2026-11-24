@@ -9822,3 +9822,157 @@ manuscript now carries is from 2026-10-11g, -i and -j — and one new check, on 
   `research_paper/.rcs/audits/gates/` (gitignored; summarised in `research_paper/integrity_check_report.md`).
 - **Follow-ups:** why the two machines differ on 12 images; restate any `main.tex` sentence that says the
   gate pipeline leads the constant on DENTEX F1; author inputs in `research_paper/open_issues.md`.
+
+## 2026-11-24 — Stage 3b retrained on DENTEX's image-level split and tested once: eligible; the shipped head stays untested and stays the default
+
+- **What was done:** The caries-severity head (caries vs deep caries) got its first held-out figure,
+  under a protocol committed before any training (`outputs/caries_severity_v2/PRE_REGISTRATION.md`,
+  `cf3090a`). Three registered seeds were trained once each and frozen in `f8bc016`. Then one test
+  pass was made against three image-blind priors. The shipped head (`models/07`) could not be the
+  subject: it was trained on crops of all 705 radiographs of DENTEX's training release, this test
+  split included, and was tuned and reported on the same 133 crops. The decision owner asked for
+  this on 24 Nov ("pre-register first"). It is the 15 Oct council's "Stage 3b: retrain on
+  `splits_v2` train, test once on its test images".
+- **Dataset / config:**
+  - **Split:** `data/dentex/splits_v2.json` (image level).
+  - **Crops:** `data/dentex/crops_v2/phase2`, tight annotation boxes at 224×224, the pipeline's
+    caries crop contract.
+
+    | Split | Caries | Deep | Radiographs |
+    |---|---|---|---|
+    | train | 1,564 | 400 | 456 |
+    | val | 314 | 94 | 96 |
+    | test | 311 | 84 | 98 |
+    | extern50 (secondary; the 50-image release `models/07` was tuned on) | 101 | 32 | 44 |
+
+  - **Recipe:** Stage 4a/4b's (ImageNet ResNet18, Adam 1e-4, class-weighted cross-entropy,
+    plateau schedule, early stop, best validation macro-F1, argmax). MPS on the Mac.
+  - **Harness checks:** H1–H5 pass (`check_summary.json`). The near-duplicate screen found no
+    MD5 copy and no pair close under both hashes. Its 17 single-hash candidates were inspected by
+    eye; all are different patients.
+- **Metrics:** test, 395 crops on 98 radiographs. Macro-F1 has a radiograph-cluster 95%
+  interval (10,000 resamples, seed 42).
+
+  | Arm | Macro-F1 | Deep precision | Deep recall | Caries recall | Validation macro-F1 |
+  |---|---|---|---|---|---|
+  | **Seed 42 (candidate)** | **0.772 [0.711, 0.828]** | 66/116 (56.9%) | 66/84 (78.6%) | 261/311 (83.9%) | 0.773 |
+  | Seed 43 | 0.745 [0.686, 0.798] | 66/127 (52.0%) | 66/84 (78.6%) | 250/311 (80.4%) | 0.763 |
+  | Seed 44 | 0.817 [0.754, 0.871] | 67/102 (65.7%) | 67/84 (79.8%) | 276/311 (88.7%) | 0.783 |
+  | Tooth-rate prior | 0.483 [0.429, 0.535] | 49/203 (24.1%) | 49/84 (58.3%) | 157/311 (50.5%) | — |
+  | Majority = tooth-majority prior | 0.440 [0.425, 0.455] | — | 0/84 | 311/311 | — |
+
+  - The tooth-majority prior predicts caries on every test crop, as the majority prior does.
+  - **Seed 42 minus the tooth-rate prior: +0.290 [+0.209, +0.367].** Minus the majority (and
+    tooth-majority) prior: +0.332 [+0.261, +0.395]. **Eligible** under the registered rule.
+  - Seed 42 scored 0.7727 on validation and 0.7724 on test.
+  - **extern50 (secondary):**
+    - Seed 42: 0.748 [0.654, 0.842].
+    - Seeds 43 and 44: 0.779 and 0.761.
+    - `models/07`: **0.738 [0.640, 0.818]**, deep recall 23/32 (71.9%), deep precision 23/42.
+    - Seed 42 minus `models/07`: +0.010 [−0.084, +0.109], **not separable**.
+- **Key decision or insight:**
+  - **The architecture and label can be learned and tested.** About 0.77 macro-F1 on held-out
+    radiographs, and the validation figure did not overstate it.
+  - **The deep-caries call is still weak where it matters.** On truly carious teeth, 50 of the
+    candidate's 116 deep calls are wrong (43.1%). It misses 18 of 84 deep lesions.
+  - **Beating the priors is a low bar here.** Tooth position says little about caries vs deep
+    caries (0.44–0.48), unlike caries presence. Quote the absolute figure and the deep-caries
+    precision, not the margin.
+  - **The shipped head is not shown worse.** On extern50 the two cannot be told apart, so this
+    is not evidence for a swap on performance. What a swap would buy is a head with a held-out
+    test.
+  - **The shipped head reproduces lower than its notebook printed.** On the same 133 crops,
+    under the pipeline's own argmax and on the regenerated crops, it scores 0.738 with deep
+    recall 23/32. Its notebook printed macro-F1 0.77 and deep recall 0.84 (27/32). The cause was
+    not investigated: crop regeneration or notebook preprocessing are the candidates. The
+    published 0.77 stays a validation number of the notebook, not of the pipeline.
+  - **No default changed.** `models/07` stays `DEF_CARIES_SEVERITY`, and every report still
+    says its grade has no test. Adopting seed 42 is the decision owner's call (`transfer.md`
+    §4).
+- **What it is not:**
+  - Not a test of the pipeline. The crops are annotation boxes of truly carious teeth; the
+    pipeline grades detector boxes of flagged teeth, some carrying no caries.
+  - Not a clinical depth measurement. The label is one DENTEX annotation round.
+  - Not external. DENTEX is in-domain for the lesion detector, and extern50 is the same
+    equipment.
+- **Source:**
+  - `scripts/dentex/train_caries_severity_v2.py`
+  - `outputs/caries_severity_v2/` (`PRE_REGISTRATION.md`, `check_summary.json`,
+    `train_seed*.log`, `test_rows.json`, `test_summary.json`, `score_stdout.log`)
+  - `models/20_caries_severity_v2/` (`seed*_history.json`, `run_summary.txt`; weights local,
+    gitignored)
+- **Follow-ups:**
+  - Decision owner: adopt seed 42 as `DEF_CARIES_SEVERITY`, keep `models/07` with its "no test"
+    line, or withhold the grade. Adopting means:
+    - a hash pin;
+    - a `.gitignore` exception (44.8 MB);
+    - a new `CARIES_SEVERITY_NOT_EVALUATED` text and a schema bump;
+    - a parity check;
+    - the Table 3 row in `research_paper/`.
+  - Why `models/07` gives 0.738, not 0.77, on the regenerated extern50 crops.
+
+## 2026-11-24b — Stage-3b default changed to the retrained head (seed 42); report schema 1.7; paper text updated
+
+- **What was done:** On the decision owner's instruction ("Yes, adopt seed 42"), the 2026-11-24
+  candidate became `DEF_CARIES_SEVERITY`. The previous head (`models/07`) is retained and pinned,
+  reachable with `--caries-severity models/07_caries_cascade/phase2_final_bundle.pth`.
+- **Code:**
+  - **`scripts/run_inference.py`:**
+    - the default path, its sha256 pin (`b0e006e2…`) and its tag
+      `caries-severity-resnet18-splits-v2-v2.0`;
+    - `limitations.caries_severity_not_evaluated` now follows the severity weights loaded
+      (`CARIES_SEVERITY_TEXTS`, as the bone-loss texts do), with an unvalidated text for an
+      unregistered file;
+    - schema **opg-report/1.7**.
+  - **`scripts/eval/verify_invariants.py`:** the new pin pair and class order; the default must
+    carry a tested text, `models/07` keeps its "133 crops" basis, and a report with no hash gets
+    the unvalidated text.
+  - **Tests:** schema 1.7, the three text cases, and the new class order.
+  - **Other:** `scripts/count_model_params.py` now points at the new default (same 11,177,538
+    parameters).
+  - **`.gitignore`:** an exception, so `seed42_best.pth` (44,785,398 B) is committed; seeds 43 and
+    44 stay local.
+- **Dataset / config:** parity on 4 radiographs in 2 modes, the 15 Oct precedent plus the
+  paper's Figure 4 image. macOS, default devices, reports before and after the switch.
+  - **Radiographs:** DENTEX `train_0` and `train_1`; DENTEX `disease/test_0` (Figure 4); Tufts `1`.
+  - **Modes:** lesion-detector (the default) and gate.
+- **Metrics:** no new model number.
+  - **Parity:** asserted in `outputs/caries_severity_v2/adoption_parity.json`. All 8 summaries are
+    identical, and the same teeth are flagged. Every per-tooth field is identical except caries
+    `finding`, `severity` and `severity_confidence`. **10 of the 40 flagged teeth changed grade:**
+    6 caries → deep caries and 4 deep caries → caries.
+  - **Figure 4** (`test_0`, default mode): grades unchanged (26 and 46 caries, 36 and 45 deep
+    caries). Tooth 36's severity score goes from 0.9579 to 0.9996.
+  - **Golden report:** `tests/golden/tufts_1_cpu.json` was regenerated with the test's own
+    `--write-golden`. Two teeth changed caries → deep caries, nothing else.
+  - **Checks:** `pytest` 214 passed; `verify_invariants.py` all hold.
+  - **Paper numbers:** `trace_numbers_rp.py` was given the test summary and the new `test_0`
+    report as sources. It leaves 9 numbers untraced, none of them new.
+- **Key decision or insight:**
+  - **What adoption buys.** A default with a held-out test, not a better grade: the two heads are
+    not separable on extern50.
+  - **No caries flag, count or metric changes.** Ningxia, CariesXrays and lesion localisation
+    score flags only. The grade a report shows for a flagged tooth does change.
+  - **The key name stays.** `caries_severity_not_evaluated` is still true of every checkpoint for
+    the grade as the pipeline makes it (detector boxes, flagged teeth).
+- **Paper (`research_paper/`):**
+  - **Edited:** `paper.md`. The Stage-3b sentence in IV, the Table 3 row, the Figure-4 record
+    sentence (both scores, each named), and the caveats ("every model but Stages 3b and 4a is a
+    single run"; the grade was tested on annotation boxes, not on flagged teeth).
+  - **Regenerated with its own tools:** `paper.tex`, `paper_clean.md`, `tables/table_3.*` and the
+    `turnitin/` md and tex.
+  - **Not rebuilt:** the PDFs. This Mac has no pdfLaTeX (`build_paper.py`,
+    `build_no_citations.py`).
+  - **Not regenerated:** the RCE evidence registry. L010 still says "untested severity grade".
+  - **Also edited:** the `clinical_validity_assessment.md` row.
+  - **Not touched:** `paper/main.tex` still says the head was "never tested".
+- **Source:**
+  - `outputs/caries_severity_v2/adoption_parity.json`
+  - `research_paper/audit_runs/test_0_report_stage3b_v2_macos_2026-11-24.json`
+  - `models/20_caries_severity_v2/run_summary.txt`
+- **Follow-ups:**
+  - Rebuild `final_research_paper.pdf` and the `turnitin` PDF with pdfLaTeX (Windows), and
+    regenerate the evidence registry there.
+  - Rebuild the Docker image: it loads the defaults at build time.
+  - Tell the mentor: the demo's deep-caries labels change.
+  - The panel video's scene 10 ("validated, never tested") now describes the replaced head.
