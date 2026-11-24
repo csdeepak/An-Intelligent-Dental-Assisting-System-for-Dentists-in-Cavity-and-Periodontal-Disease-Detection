@@ -500,7 +500,12 @@
     $("#cLes").textContent = order.filter((idx, j) => t >= tl0 + j * ((tl1 - tl0) / order.length)).length;
     $("#cFlag").textContent = flagged.filter(f => t >= flagTimes[f] + 0.2).length;
     // ---------------- Stage 3b: severity badges
-    const tg = cue("s10_severity", "grades"), t21 = cue("s10_severity", "twenty-one"), t46 = cue("s10_severity", "forty-six");
+    // Each deep tooth pulses when the narration says its number. Which teeth are deep comes from the traced
+    // report (24 Nov 2026; this was hard-coded to 21 and 46, the previous severity head's calls).
+    const say = f => ({ 11: "eleven", 12: "twelve", 13: "thirteen", 14: "fourteen", 15: "fifteen", 16: "sixteen",
+      17: "seventeen", 18: "eighteen" })[f] || `${["", "", "twenty", "thirty", "forty"][Math.floor(f / 10)]}-${
+      ["", "one", "two", "three", "four", "five", "six", "seven", "eight"][f % 10]}`;
+    const tg = cue("s10_severity", "grades"), tSay = f => cue("s10_severity", say(f));
     const badgeOut = 1 - 0.15 * P(t, s12 - 0.4, 0.4);
     teeth.forEach((tt, i) => {
       const B = SVG.badges[i];
@@ -513,13 +518,13 @@
       B.tx.setAttribute("fill", deep ? "#2A0A10" : "#1A1206");
       B.bg.setAttribute("x", tt.cx - wB / 2); B.bg.setAttribute("y", by - fs * 0.86 - px(3)); B.bg.setAttribute("width", wB); B.bg.setAttribute("height", fs + px(6));
       B.bg.setAttribute("fill", deep ? "#FB7185" : "#F59E0B");
-      const pulse = deep ? Math.max(Math.sin(Math.PI * P(t, tt.fdi === 21 ? t21 : t46, 0.7)), 0) : 0;
+      const pulse = deep ? Math.max(Math.sin(Math.PI * P(t, tSay(tt.fdi), 0.7)), 0) : 0;
       B.g.setAttribute("opacity", clamp(p) * badgeOut * (t >= cue("s11_abnormal", "Stage") ? 0.7 : 1) * (1 - 0.75 * P(t, s13 - 0.2, 0.5)));
       B.g.setAttribute("transform", `translate(${tt.cx} ${by}) scale(${(0.6 + 0.4 * clamp(p)) * (1 + 0.35 * pulse)}) translate(${-tt.cx} ${-by})`);
     });
     $$("#sevlist div").forEach((d, j) => { rv(d, t, tg + 0.15 * j, { dy: 10, d: 0.4 }); const f = +d.dataset.fdi;
-      if (f === 21 || f === 46) d.style.transform += ` scale(${1 + 0.12 * Math.max(Math.sin(Math.PI * P(t, f === 21 ? t21 : t46, 0.7)), 0)})`; });
-    rv($("#sevWarn"), t, cue("s10_severity", "validated") - 0.2, { dy: 14 });
+      if (byFdi[f].caries === "deep_caries") d.style.transform += ` scale(${1 + 0.12 * Math.max(Math.sin(Math.PI * P(t, tSay(f), 0.7)), 0)})`; });
+    rv($("#sevWarn"), t, cue("s10_severity", "tested") - 0.2, { dy: 14 });
     // ---------------- Stage 4: taller crop, flight, rings
     const tTall = cue("s11_abnormal", "taller"), tEach = cue("s11_abnormal", "each");
     const c4 = Math.min(E.out(P(t, tTall - 0.1, 0.5)), 1 - P(t, cue("s11_abnormal", "here") - 0.5, 0.4));

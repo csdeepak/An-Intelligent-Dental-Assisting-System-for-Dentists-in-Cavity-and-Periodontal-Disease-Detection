@@ -158,7 +158,7 @@
         <div class="ov">Stage 3b</div><h2>Caries severity</h2>
         <div class="model">ResNet-18 · caries vs deep caries<br><span>runs on flagged teeth only</span></div>
         <div class="sevlist" id="sevlist"></div>
-        <div class="warn" id="sevWarn"><b>Validated, never tested</b><span>133 validation crops, macro-F1 0.77 · no test split exists</span></div>
+        <div class="warn" id="sevWarn"><b>Tested once, on held-out data</b><span>395 test crops · macro-F1 0.772<br>image-blind rule 0.483 · annotated teeth only</span></div>
       </div>
       <div class="pblock" id="pb_s11">
         <div class="ov">Stage 4</div><h2>Abnormality flag</h2>
@@ -166,7 +166,7 @@
         <div class="netrow" id="netrow4">
           <div class="slot tall" id="slotS4"></div>
           <div class="net v">ResNet-18</div>
-          <div class="pred v" id="predS4">tooth <b>48</b><span>flag · p = 0.67</span></div>
+          <div class="pred v" id="predS4">tooth <b>48</b><span>flag · p = 0.68</span></div>
         </div>
         <div class="io"><span class="k">Out</span> flags on teeth <b>11</b>, <b>37</b>, <b>48</b></div>
         <div class="warn" id="s4Warn"><b>Not a periodontal diagnosis</b><span>Stage 4b severity grade: withheld by default (schema 1.5)</span></div>
@@ -191,9 +191,9 @@
   <section class="scene ghost" id="s07_detect" data-source="Pipeline output on this image · models/15_detector_multicorpus_leverA/arm3c_best.pt"></section>
   <section class="scene ghost" id="s08_number" data-source="Pipeline output on this image · models/10_fdi_head_dentex_tufts_v2"></section>
   <section class="scene ghost" id="s09_lesion" data-source="Pipeline output on this image · models/16_lever_b_pooled · mapping: src/classifiers.lesion_preds_to_tooth_idx"></section>
-  <section class="scene ghost" id="s10_severity" data-source="Severity validation: model_metrics.md — Phase 2 severity (133 crops)"></section>
+  <section class="scene ghost" id="s10_severity" data-source="Severity test: RESULTS_LOG 2026-11-24 — models/20 seed 42, 395 held-out DENTEX crops (outputs/caries_severity_v2/test_summary.json)"></section>
   <section class="scene ghost" id="s11_abnormal" data-source="Pipeline output on this image · models/18_bone_loss_radiograph_split/seed42_best.pth"></section>
-  <section class="scene ghost" id="s12_report" data-source="Report: opg-report/1.5, written by scripts/run_inference.py for this image"></section>
+  <section class="scene ghost" id="s12_report" data-source="Report: opg-report/1.7, written by scripts/run_inference.py for this image"></section>
   <section class="scene ghost" id="s13_truth" data-source="Annotations: DENTEX disease labels for test_211 (class 1 = caries)"></section>
 
   <!-- ===================== PART 3 TIMELINE (persistent across s14–s15) ===================== -->

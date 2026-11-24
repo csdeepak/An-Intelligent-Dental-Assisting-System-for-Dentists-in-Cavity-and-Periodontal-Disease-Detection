@@ -60,7 +60,7 @@
    "id": "s10_severity",
    "part": 2,
    "min": 6.5,
-   "text": "A severity head grades each flagged tooth as caries or deep caries. Teeth twenty-one and forty-six are graded deep. This head is validated, but it has never been tested."
+   "text": "A severity head grades each flagged tooth as caries or deep caries. Only tooth twenty-one is graded deep. Retrained on an image-level split, the head was tested once on held-out radiographs: macro-F1 zero point seven seven, on annotated teeth, not yet on the teeth the pipeline flags."
   },
   {
    "id": "s11_abnormal",
@@ -72,7 +72,7 @@
    "id": "s12_report",
    "part": 2,
    "min": 8.0,
-   "text": "Stages five and six fuse it all into one record per tooth, in report schema one point five, stamped with the hash of every model that ran. The overlay shows findings in orange, and the rest in blue."
+   "text": "Stages five and six fuse it all into one record per tooth, in report schema one point seven, stamped with the hash of every model that ran. The overlay shows findings in orange, and the rest in blue."
   },
   {
    "id": "s13_truth",
