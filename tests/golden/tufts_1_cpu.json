@@ -12,7 +12,7 @@
     {
       "fdi": 14,
       "assessable": true,
-      "caries": "caries",
+      "caries": "deep_caries",
       "stage4": "normal",
       "bbox": [
         622,
@@ -24,7 +24,7 @@
     {
       "fdi": 24,
       "assessable": true,
-      "caries": "caries",
+      "caries": "deep_caries",
       "stage4": "bone_loss",
       "bbox": [
         907,

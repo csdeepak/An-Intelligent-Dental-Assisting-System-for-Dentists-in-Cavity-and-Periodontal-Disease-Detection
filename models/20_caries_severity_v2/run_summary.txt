@@ -3,9 +3,10 @@
 ================================================================================
 Status:   Three registered training runs, each made once, then one test pass: ELIGIBLE under
           the registered rule (seed 42 beats all three image-blind priors on test, every
-          interval clear of zero). NOT a pipeline default: models/07 stays DEF_CARIES_SEVERITY
-          until the decision owner decides otherwise. Eligible means only that seed 42 MAY be
-          proposed to replace it.
+          interval clear of zero). ADOPTED 24 Nov 2026 by the decision owner: seed42_best.pth
+          is DEF_CARIES_SEVERITY (RESULTS_LOG 2026-11-24b), committed under a .gitignore
+          exception; models/07 is retained and pinned (--caries-severity). The sections down to
+          RESULTS -- TEST were written before adoption and say "not a default"; that was true then.
 Date:     24 November 2026
 Pre-reg:  outputs/caries_severity_v2/PRE_REGISTRATION.md, commit cf3090a (with the trainer and
           the H1-H5 check output). Seeds frozen in f8bc016 before the test pass.
@@ -40,11 +41,14 @@ argmax. Saved as {model_state_dict, class_to_idx {caries: 0, deep_caries: 1}}, t
 models/07, so load_classifier and the pipeline's class check accept it unchanged.
 
 --------------------------------------------------------------------------------
-FILES (weights local only, macOS clone; .gitignore models/20_caries_severity_v2/*.pth)
+FILES (seed 42 tracked since adoption; seeds 43 and 44 local, macOS clone only)
 --------------------------------------------------------------------------------
-seed42_best.pth  44,785,398 B  sha256 b0e006e2b3f58bf7...  val macro-F1 0.7727, epoch 10 of 20
-seed43_best.pth  44,785,398 B  sha256 aab94ddf2fbb4c5e...  val macro-F1 0.7628, epoch 7 of 17
-seed44_best.pth  44,785,398 B  sha256 3467aebcf4be21b6...  val macro-F1 0.7825, epoch 16 of 26
+seed42_best.pth  44,785,398 B  val macro-F1 0.7727, epoch 10 of 20   [TRACKED IN GIT, DEFAULT]
+    sha256 b0e006e2b3f58bf79e99b028b3eeebd336cda9edfd399020a64ef1a1e05a1e0c
+seed43_best.pth  44,785,398 B  val macro-F1 0.7628, epoch 7 of 17    [local only]
+    sha256 aab94ddf2fbb4c5ec1c2f4db3e5345db4e28fa1cbd927e07e1e263a5e8c3bc7d
+seed44_best.pth  44,785,398 B  val macro-F1 0.7825, epoch 16 of 26   [local only]
+    sha256 3467aebcf4be21b61b916966850a100e84e9e3812157c100951935cd094471e2
 Full sha256 in seed*_history.json (tracked). Train logs: outputs/caries_severity_v2/.
 
 --------------------------------------------------------------------------------

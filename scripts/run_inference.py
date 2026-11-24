@@ -118,7 +118,13 @@ sys.path.insert(0, str(REPO_ROOT))
 # versions, git commit, and the device each component actually ran on); in lesion-detector mode
 # `models.caries` gained `lesion_boxes_detected` and `lesion_boxes_unmapped`. The caries-severity
 # limitation text was corrected. Every per-tooth record is unchanged. RESULTS_LOG 2026-10-15b.
-SCHEMA_VERSION = "opg-report/1.6"
+# 1.7 (24 Nov 2026): the Stage-3b default changed to models/20 (seed 42), retrained on DENTEX's
+# image-level split and tested once (RESULTS_LOG 2026-11-24, -24b). A flagged tooth's caries
+# `finding` (caries | deep_caries) and `severity_confidence` can therefore differ from a 1.6
+# report of the same image; which teeth are flagged does not change. The text of
+# `limitations.caries_severity_not_evaluated` now follows the severity weights actually loaded
+# (CARIES_SEVERITY_TEXTS). Nothing renamed or removed.
+SCHEMA_VERSION = "opg-report/1.7"
 
 # Measured Stage-1/Stage-2 performance, stamped into every report's "limitations" block so a
 # report always carries the accuracy of the pipeline that produced it.
@@ -268,7 +274,13 @@ DEF_FDI_HEAD = REPO_ROOT / "models/10_fdi_head_dentex_tufts_v2/enumeration_head_
 DEF_CARIES_LESION_MODEL = REPO_ROOT / "models/16_lever_b_pooled/lever_b_pooled_yolo11l-2/weights/best.pt"
 CARIES_LESION_CONF = 0.25   # frozen per the pre-registration -- never tuned on any cohort
 DEF_CARIES_GATE = REPO_ROOT / "models/09_caries_gate_v3/caries_gate_v3.pth"
-DEF_CARIES_SEVERITY = REPO_ROOT / "models/07_caries_cascade/phase2_final_bundle.pth"
+# Stage 3b grades the teeth Stage 3a flags: caries or deep_caries. The default changed on 24 Nov 2026
+# to a head retrained on DENTEX's image-level split (data/dentex/splits_v2.json) and tested once on
+# its 395 held-out crops under a pre-registration (RESULTS_LOG 2026-11-24, -24b). The head it
+# replaced was trained on every radiograph of that split and has no test; it is retained and
+# pinned, and every report made before that date used it:
+#   --caries-severity models/07_caries_cascade/phase2_final_bundle.pth
+DEF_CARIES_SEVERITY = REPO_ROOT / "models/20_caries_severity_v2/seed42_best.pth"
 
 # Report-limitations text, keyed by which caries mechanism actually ran -- read by build_report
 # so a report never carries the OTHER method's caveat by accident.
@@ -322,7 +334,7 @@ DEFAULT_SHA256 = {path.resolve(): sha for path, sha in {
     DEF_DETECTOR: "5d301f13fb48da5c74e7ef01bd0f91226f9b6800cb433dee5aebc8f8db8f161e",
     DEF_FDI_HEAD: "6c675fa014551a0f184cf87a52d55ea26d21f23ae84dd5df1f7efce78a43004b",
     DEF_CARIES_GATE: "8f4a99ba412c5562e0bc444fef9b856af091d3d1c8b5ba74876735e616357a76",
-    DEF_CARIES_SEVERITY: "aa0a8a7ebf47a8acab0d24a6ecd948542c220196d1c71cbebbf56952beacbc86",
+    DEF_CARIES_SEVERITY: "b0e006e2b3f58bf79e99b028b3eeebd336cda9edfd399020a64ef1a1e05a1e0c",
     DEF_CARIES_LESION_MODEL: "029018dbe37a92d1fd764322fa1c38b229698750e34d36c533b4338793e870ed",
     DEF_BONE_LOSS: "e4bc874423e7c17752bb949d510862e4b4fd618f9a7602a95743663a3c27a0b2",
     DEF_BONE_SEVERITY: "fa93a5201833d8137bd2ae328d3afd63c2c1f9e4ac82a621d1b430a51eba8a4a",
@@ -337,6 +349,7 @@ CHECKPOINT_TAGS = {
     "6c675fa014551a0f184cf87a52d55ea26d21f23ae84dd5df1f7efce78a43004b": "fdi-enumeration-head-resnet18-v2.0",
     "8f4a99ba412c5562e0bc444fef9b856af091d3d1c8b5ba74876735e616357a76": "caries-gate-resnet18-v3.0",
     "aa0a8a7ebf47a8acab0d24a6ecd948542c220196d1c71cbebbf56952beacbc86": "caries-cascade-resnet18-v1.0",
+    "b0e006e2b3f58bf79e99b028b3eeebd336cda9edfd399020a64ef1a1e05a1e0c": "caries-severity-resnet18-splits-v2-v2.0",
     "029018dbe37a92d1fd764322fa1c38b229698750e34d36c533b4338793e870ed": "caries-lesion-detector-yolo11l-leverb-bpooled-v1.0",
     "fa93a5201833d8137bd2ae328d3afd63c2c1f9e4ac82a621d1b430a51eba8a4a": "bone-loss-severity-resnet18-v1.0",
 }
@@ -346,7 +359,8 @@ def checkpoint_tag(sha):
     return CHECKPOINT_TAGS.get(sha, f"unregistered-{sha[:8]}")
 
 
-# Two severity grades no held-out set can test, stated in every report (RESULTS_LOG 2026-10-13d).
+# What is known about the two severity grades, stated in every report (RESULTS_LOG 2026-10-13d,
+# 2026-11-24). The Stage-4 grade has no test and none can be made.
 BONE_SEVERITY_NOT_EVALUATED = (
     "The Stage-4 severity head ('Mild' / 'Moderate' / 'Severe', models/04) was trained on the "
     "standard deviation of each crop's grey levels -- a stand-in its notebook built because the "
@@ -355,12 +369,32 @@ BONE_SEVERITY_NOT_EVALUATED = (
     "tooth then carries severity null and the flag severity_withheld_contrast_proxy, and "
     "models.bone_loss.severity_reported says whether this report carries the grade "
     "(--bone-severity-grade). RESULTS_LOG 2026-10-13d.")
-CARIES_SEVERITY_NOT_EVALUATED = (
-    "The caries / deep_caries distinction comes from a severity head (models/07) validated on "
-    "133 crops (macro-F1 0.77, tuned and reported on the same crops) and never tested on held-out "
-    "data. An image-level DENTEX test split that labels deep caries exists "
-    "(data/dentex/splits_v2.json), but this head predates it and has not been scored on it. Read "
-    "deep_caries as unvalidated.")
+# The caries-severity text follows the weights actually loaded, as the bone-loss texts do (schema
+# 1.7). The key stays `caries_severity_not_evaluated`: the grade as this pipeline makes it -- on
+# detector boxes of flagged teeth, some carrying no caries -- has no figure for any checkpoint.
+# A checkpoint with no entry gets CARIES_SEVERITY_UNREGISTERED; add one only from a measurement.
+CARIES_SEVERITY_TEXTS = {
+    "b0e006e2b3f58bf79e99b028b3eeebd336cda9edfd399020a64ef1a1e05a1e0c": (
+        "The caries / deep_caries grade comes from a severity head (models/20, seed 42) retrained "
+        "on DENTEX's image-level split and tested once under a pre-registration: on 395 held-out "
+        "crops from 98 radiographs, macro-F1 0.772 (95% interval 0.711 to 0.828), against 0.483 "
+        "for an image-blind tooth-position rule. On teeth annotated carious, 66 of its 116 "
+        "deep_caries calls were right (57%) and it found 66 of 84 deep lesions (79%). Those crops "
+        "are annotation boxes; in this pipeline the head grades detector boxes of flagged teeth, "
+        "some of which carry no caries, and that has not been measured. The label is one DENTEX "
+        "annotation round, not a depth measurement: read deep_caries as a pointer for review, "
+        "not a diagnosis. RESULTS_LOG 2026-11-24."),
+    "aa0a8a7ebf47a8acab0d24a6ecd948542c220196d1c71cbebbf56952beacbc86": (
+        "The caries / deep_caries distinction comes from a severity head (models/07) validated on "
+        "133 crops (macro-F1 0.77 in its notebook, tuned and reported on the same crops; 0.738 "
+        "under this pipeline's argmax on regenerated crops) and never tested on held-out data: it "
+        "was trained on every radiograph of DENTEX's image-level test split, so it cannot be. "
+        "Read deep_caries as unvalidated. Not the default since 24 Nov 2026 (RESULTS_LOG "
+        "2026-11-24)."),
+}
+CARIES_SEVERITY_UNREGISTERED = (
+    "The caries / deep_caries grade comes from a severity checkpoint with no entry in "
+    "CARIES_SEVERITY_TEXTS, so no figure is known for it. Read deep_caries as unvalidated.")
 
 # What is known about each Stage-4a (binary) checkpoint, keyed by the sha256 of its weights, so
 # that the tag and the figures stamped into a report belong to the model that produced it -- the
@@ -558,7 +592,8 @@ def build_report(image_path, img_bgr, boxes, confs, fdi_assign, caries, bone, me
             "bone_loss_label_and_validation": bone_profile["label_and_validation"],
             "bone_loss_domain_shift": bone_profile["transfer"],
             "bone_severity_not_evaluated": BONE_SEVERITY_NOT_EVALUATED,
-            "caries_severity_not_evaluated": CARIES_SEVERITY_NOT_EVALUATED,
+            "caries_severity_not_evaluated": CARIES_SEVERITY_TEXTS.get(
+                meta.get("caries", {}).get("sha256_severity"), CARIES_SEVERITY_UNREGISTERED),
             "not_clinically_validated": True,
         },
     }
