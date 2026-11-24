@@ -1,0 +1,8 @@
+**Table 1.** Identity before disease: the first two factors of (1) per tooth, in percent. Det.: detected; Exact: numbered exactly, of those detected; End to end: their product, with a 95% cluster-bootstrap interval. DENTEX 164 images, whose 936 teeth are those labelled in its disease release (about six per image, not the full dentition), so its figures are not comparable with the full-dentition Tufts and UFBA rows; Tufts test 143, UFBA-425 425 (as distributed, and widened to a panoramic shape).
+
+| Corpus | Teeth | Det. | Exact | End to end |
+|---|---|---|---|---|
+| DENTEX | 936 | 99.6 | 93.2 | 92.8 [90.6, 94.9] |
+| Tufts test | 3,760 | 89.3 | 71.1 | 63.5 [59.3, 67.5] |
+| UFBA as is | 11,591 | 66.6 | 66.8 | 44.5 [42.4, 46.6] |
+| UFBA widened | 11,591 | 95.6 | 80.8 | 77.2 [75.2, 79.1] |

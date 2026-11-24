@@ -130,6 +130,125 @@ Windows clone lacks for the Stage-4 scripts).
 no stage needs a new experiment; the gaps are claims and scope. Defaults are now hash-checked
 before loading; the shipped Stage-3a mapping has tests. 204 tests, 207 claims, 16 pages. §1, §3
 and §8 edited.
+**15 Oct — a second publishability council, checked against published practice; 24 manuscript
+corrections** (`RESULTS_LOG` 2026-10-15, `docs/session-memory/2026-10-15-publishability-council-2.md`):
+numbering is no longer called calibrated, the 0.30 threshold no longer pre-registered, and the
+Ningxia lead is reported as holding at three of four hospitals — pooled as a sample of hospitals
+it is +9.61 [−0.54, +19.76]. Three citations added. 205 tests, 214 claims, 16 pages. §1 and §3
+edited.
+**15 Oct, later — an implementation-only council** (`docs/session-memory/2026-10-15b-implementation-council.md`):
+every stage's code is sound or sound with fixes; a ranked list of ten fixes that change no output,
+and a separate list for after 20 Oct. Nothing applied. Paper changes it found are only noted, in
+`docs/paper/paper_change_notes_2026-10-15.md` — including that the 15 Oct Stage-3b sentence is
+wrong: a held-out DENTEX test split with 84 deep-caries annotations exists (`data/dentex/splits_v2.json`).
+**15 Oct, later still — the council's ten implementation fixes applied, no output changed**
+(`RESULTS_LOG` 2026-10-15b, `docs/session-memory/2026-10-15c-implementation-fixes.md`): input
+warnings, an end-to-end test, every YOLO load hash-checked, runtime provenance in the report, NaN
+guards, app and Docker hygiene; schema 1.6; 213 tests. Six before/after reports identical per
+tooth. The Docker image still has to be built, on Windows. §1 and §8 edited.
+**27 Oct — the Windows clone caught up, and a resample-count audit** (`RESULTS_LOG` 2026-10-27,
+`docs/session-memory/2026-10-27-repo-revisit-paired-ci.md`). This clone had sat at 7 Sep; `origin`
+was merged in (`5dc5c09`), together with the 30 Sep RCE **mentor draft** (8 pp, IEEEtran,
+`paper/paper.md` + `paper/ieee/main.pdf`, `3cc15fe`; not the maintained manuscript). Fixed on top:
+`main.tex` now states that the abstention intervals use 1,000 resamples (seed 0), and no longer says the
+classifier branches carry no interval; `model_metrics.md` 0.207 → 0.206; `PAPER_MATERIAL.md` §8.15
+says 2,000, not 10,000. Work done before the merge on the stale base is kept unmerged on
+`record/2026-10-27-stale-base-revisit` (`8e150fe`) — keep that branch, §8.25 points at it. 215
+claims, 210 tests passing here (3 skipped). §8 edited.
+**28 Oct — the mentor draft is now a ten-page paper with real radiographs and a checked theory**
+(`RESULTS_LOG` 2026-10-28 and 2026-10-28b,
+`docs/session-memory/2026-10-28-mentor-draft-real-figures.md`). `paper/paper.md` →
+`paper/ieee/main.pdf` is **10 pages** on the numbers `main.tex` verifies. It has three parts:
+- A theory section (`PAPER_MATERIAL.md` §6.8): the closed-form F1 of the image-blind constant and
+  the rule that selects it, which reproduces the eight molars exactly. Every prediction is set
+  against a saved measurement.
+- The real-radiograph figures of `scripts/figures/make_opg_figures.py`.
+- Four data figures from `scripts/figures/make_draft_figures.py`: the positional prior,
+  the architecture, a paired-difference forest plot, and numbering/selective prediction/reliability.
+
+All 363 of its distinct numbers trace. It borrows the structure of two outside drafts the owner
+supplied (which quote archived pre-switch numbers), not their numbers.
+
+**2 Nov — citations audited with the academic-research-skills method** (`RESULTS_LOG`
+2026-11-02, `outputs/citation_audit/2026-11-02_ars/`). Every reference was resolved on four
+indexes, checked for retractions, and each cited claim was checked against the cited text. The draft
+now has 36 references, all from `paper/source.bib` (14 new). It says "four sites" for Ningxia,
+because Li et al. describe three hospitals. The fixes in `source.bib` also reach `main.tex`:
+- **Wrong links:** Zancan's link (an unrelated PMC article) and Bilal's (the wrong IEEE document).
+- **Wrong metadata:** Bizjak's issue and pages; Mutlu's volume and pages; the DENTEX title; the
+  YOLO11 citation.
+- **Printed curation notes:** removed from the reference list.
+
+`main.tex` was rebuilt (16 pages, 215/215).
+
+**2 Nov — the draft was put through the suite's integrity gate and a five-seat review panel**
+(`RESULTS_LOG` 2026-11-02b, `paper/ieee/review/`). The integrity gate first failed on two medium
+issues: Table 7 called post-hoc checks "predictions", and Table 3 gave the wrong tooth count for
+Stage 4. Both were fixed and re-verified, and the gate now passes with notes. The panel's decision
+is **Major revision**, from all five seats (one model, persona-separated, not independent review).
+One Devil's Advocate CRITICAL was validated: the Discussion's sentence that a lesion detector
+"cannot score by reproducing a prior" contradicts Section III-E. The 21-item revision roadmap is in
+`2026-11-02_panel_round1.md`:
+- **13 text changes** — do these first.
+- **5 analyses computable from saved files:** HKSJ beside DerSimonian–Laird; a DENTEX
+  near-duplicate check; stability of the fitted constant; an image-blind operating curve; the
+  per-tooth-type comparison on Ningxia.
+- **1 needing new experiments:** a learned position-only floor, a content ablation and a
+  site-identification probe.
+- **1 release decision:** code and data availability.
+- **1 editing:** move Stage 4 and the VLM detail to a supplement.
+
+**2 Nov — revision round 1, text items applied** (`RESULTS_LOG` 2026-11-02c,
+`paper/ieee/review/2026-11-02_response_round1.md`). All 13 text items are in, including the RQ2
+rewording. Two citations were added: Batchelor & Sheiham 2004 for the molar prior; Akarslan et al.
+2008 for the panoramic reference standard. The draft is back to 10 pages and every number traces.
+Status: 10 items done, 5 partial, 6 planned or open.
+
+**2 Nov — four of the five saved-data analyses run and in the draft** (`RESULTS_LOG` 2026-11-02d,
+`PAPER_MATERIAL` §7.7 and §8.44, `outputs/review_round1/`).
+- **HKSJ:** wider than DerSimonian–Laird, +9.61 [−5.02, +24.24], with τ between 3 and 33 points.
+- **Constant stability:** the eight-molar set comes back in only 27% of refits, but its score is
+  stable (median 0.320, 95% within 0.279–0.330).
+- **Matched volume:** against an image-blind answer naming as many codes, the lesion detector leads
+  by +22.35 and the crop classifier by +5.50, both separated from zero. The VLMs are level.
+- **DENTEX near-duplicates:** none beyond the 86 MD5 copies.
+- **Ningxia per-type comparison:** not run. The raw images are on `D:\nangxia_dataset`, not
+  attached, and on the Mac.
+
+The draft is still 10 pages, and every number traces. Status: 14 items done, 5 partial, 2 open
+(10 new experiments, 11 availability). Next:
+- **Author inputs:** the CPU model, the availability decision, and the acknowledgment wording.
+- **The Ningxia per-type re-run**, when the drive is attached.
+- **Then** the Stage 3′ re-review and the Stage 4.5 final integrity gate.
+
+Nothing since `4b314da` is committed.
+
+**23 Nov — a separate, evidence-locked revision in `research_paper/`** (`RESULTS_LOG` 2026-11-23,
+`docs/session-memory/2026-11-23-research-paper-rce-revision.md`). `paper/` is untouched. Read
+`research_paper/open_issues.md` first, then `research_paper/final_research_paper.pdf` (14 pp).
+- Built with the RCE skill at `3e4411f` (0.5.0 candidate). 52 live-verified citations, 10 of them new,
+  including Lipton et al. 2014: the half-F1 selection rule is known, so the theory is now framed as
+  an application of it.
+- Three reviewer perspectives and an integrity VERIFIER ran as isolated subagents. All three asked for
+  major revision, and GI round 1 blocked. Their findings were applied, and GI **passed on round 3**
+  (`research_paper/integrity_check_report.md`). Stage-final GI will block until six literature
+  quotes are saved (`research_paper/open_issues.md`).
+- **Two results that change what may be said:**
+  - Against an image-blind constant that names only the molars the front end detected (F1 0.358), the
+    crop classifier's DENTEX lead is +0.41 [−2.24, +3.14], not separable. The lesion detector still
+    leads, +13.94.
+  - DENTEX caries annotations outline whole teeth, so DENTEX "lesion agreement" is tooth-level.
+- **Newly disclosed in that text:** Ningxia informed the Stage-1 choice (2026-10-11f/g). A Windows
+  rerun differs from the saved macOS run on 12 of 164 images.
+- `paper/main.tex` still carries the superseded wording; `PAPER_MATERIAL` §9 has the item.
+- Nothing is committed. `research_paper/.rcs/` is gitignored by the existing `.rcs/` rule.
+
+Still open:
+- **Compliance:** the figures show DENTEX pixels (CC BY-NC-SA 4.0). Share-alike must be squared
+  with the venue's copyright form before submission (§8.19).
+- **`main.tex` text:** it still says "four hospitals" for Ningxia, and it cites Cao et al.'s
+  61.83 mAP, which can't be verified (paywalled, no open abstract). Its remaining bibliography
+  follow-ups are in §9.
 
 > **Windows clone, 6 Sep 2026 — the Tufts crop corpus was cut from the wrong frame, and is now
 > rebuilt.** It scored 11.5% crop-level FDI-exact where the published number is 71.5%, with correct
@@ -248,8 +367,8 @@ The six-stage pipeline runs end to end on CPU alone (1.70 s/image on the macOS c
 deployed in a Streamlit +
 Docker demo, and has been evaluated on **six independent cohorts**: DENTEX (development), four
 Ningxia hospitals, and the CariesXrays benchmark. Every reported number traces to a saved
-artefact — `scripts/verify_paper_numbers.py` asserts **207 manuscript claims** (14 Oct, late night) against those
-artefacts and all pass; `pytest` is **204/204**; `verify_invariants.py` all twelve hold (14 Oct). The manuscript
+artefact — `scripts/verify_paper_numbers.py` asserts **214 manuscript claims** (15 Oct) against those
+artefacts and all pass; `pytest` is **213/213**; `verify_invariants.py` all twelve hold (14 Oct). The manuscript
 (`paper/main.tex`) compiles clean under tectonic: **16 pages (the 16th holds four references), 0 errors, 0 undefined
 references**, one 4 pt overfull box; a pdfLaTeX build is still owed. Its core finding — a
 tooth-level score
@@ -266,6 +385,19 @@ and tested once — **not eligible**: seed 42 macro-F1 0.294 [0.214, 0.385] on 1
 positives against 0.334 for an image-blind tooth-position prior. The grade stays withheld, no
 default changed, and the manuscript says so. Every Stage-4 training and evaluation script needs the
 raw Tufts radiographs and masks, which only the macOS clone holds (§8).
+
+**Stage 3b (24 Nov):** the caries-severity head was retrained on DENTEX's image-level split
+(`splits_v2`) under a committed protocol (`cf3090a`) and tested once — **eligible**:
+- **Result:** seed 42 macro-F1 0.772 [0.711, 0.828] on 395 held-out crops, against 0.483 for
+  the strongest image-blind prior. Deep-caries precision 66/116, recall 66/84.
+- **Adopted the same day by the decision owner** (`RESULTS_LOG` 2026-11-24b): seed 42 is
+  `DEF_CARIES_SEVERITY`, committed (44.8 MB); report schema 1.7. `models/07` is retained and
+  pinned. It never had a test: it trained on every radiograph in that split. The two cannot be
+  told apart on extern50, so what changed is that the shipped grade now has a test.
+- **Parity:** no caries flag or count changed; 10 of 40 flagged teeth on 8 parity reports
+  changed grade.
+- **Still owed:** the `research_paper/` PDFs (pdfLaTeX, Windows), the RCE evidence registry
+  and a Docker rebuild; the mentor should hear that the demo's deep-caries labels change.
 
 Full results ledger: **§2**. What's still open and who owns it: **§3–§4**. Publication target:
 **§5**. Where each fact in the codebase lives: **§7**. Machine/environment setup for a fresh
@@ -290,7 +422,7 @@ failed ones).
 | 2 Number (FDI) | ResNet18 + 4 positional feats | 11.19 M | `models/10_fdi_head_dentex_tufts_v2/` |
 | 3a Caries localisation **(default)** | YOLOv11l lesion detector | 25.31 M | `models/16_lever_b_pooled/.../best.pt` |
 | 3a Caries gate **(retained variant, `--caries-method gate`)** | ResNet18 | 11.18 M | `models/09_caries_gate_v3/` |
-| 3b Caries severity | ResNet18 | 11.18 M | `models/07_caries_cascade/` |
+| 3b Caries severity | ResNet18 | 11.18 M | `models/20_caries_severity_v2/` (since 24 Nov; `models/07` retained) |
 | 4a Abnormality flag **(default since 13 Oct)** — the field is still named `bone_loss` | ResNet18, retrained with a radiograph-level split | 11.18 M | `models/18_bone_loss_radiograph_split/seed42_best.pth` |
 | 4a (previous default, retained, `--bone-loss`) | ResNet18, crop-level split | 11.18 M | `models/03_bone_loss_model_training_notebook_models/` |
 | 4b Severity of flagged teeth — **trained on a crop-contrast stand-in, not on mask overlap (found 13 Oct; §3); withheld from the report by default since 14 Oct (`--bone-severity-grade`)** | ResNet18 | 11.18 M | `models/04_bone_loss_severity_notebook_models/` |
@@ -852,6 +984,14 @@ councilled on how** (`RESULTS_LOG` 2026-10-12c,
   CLAIM 2024 and a referee read. **Decisions for the owner:** Stage 4 in the cut (council: one
   sentence on 4a, nothing on 4b); a fallback date for the Kaggle licence; whether to freeze code
   now. Declined: a confidence sweep on DENTEX and CariesXrays validation.
+- **15 Oct: councilled a fifth time, against published practice** (`RESULTS_LOG` 2026-10-15,
+  `PAPER_MATERIAL.md` §8.42). Every stage publishable after edits; 24 corrections applied in the
+  15-page text — the claims the artefacts did not support (numbering calibration, the 0.30
+  threshold's provenance, the F1 lead "failing" externally, Ningxia's "robust sign", Stage 3b's
+  silence, six factual slips) — and three citations. **The Ningxia lead is not shown for a new
+  hospital:** pooled as a sample of hospitals it is +9.61 [−0.54, +19.76], I² 81%. Optional for
+  the authors: abstention per cohort under shift, Tufts in the patient-level limitation, false
+  positives per image.
 - **On the other machine:** the pdfLaTeX build is needed; the Docker rebuild is needed only if
   the paper mentions Docker.
 - **"Are all the metrics good?" No, as on 12 Oct.** Several are weak and two outputs are
@@ -929,6 +1069,7 @@ depends on this.
 | **The Stage-4a default was changed on 13 Oct without the repo owner or the mentor.** The retrained model met a pre-registered eligibility rule and the previous checkpoint is retained; reverting is one line. It puts a 44.8 MB file into git once committed, and changes what the demo shows: about eight times as many Stage-4 flags on DENTEX, each with a severity grade from a model that has never been tested (`RESULTS_LOG` 2026-10-13c). | They own the repo and the supervision |
 | **Decided 14 Oct: the Stage-4 severity grade is withheld by default** (schema 1.5; `--bone-severity-grade` restores it, flagged as not evaluated). Stage 4b was trained on a crop-contrast stand-in (`RESULTS_LOG` 2026-10-13d, 2026-10-14). The Stage-3b caries grade stays, with a line in every report that it has no test. | The mentor should hear it: it changes what the demo shows |
 | **The Stage-1 switch was made without the repo owner or the mentor.** It overrides two pre-registered verdicts, re-scored the locked Ningxia cohort, and put a 51 MB file into git history for good (`arm3c_best.pt`, pushed 11 Oct in `7dd3ff4`). Reverting the default is still one line; the file stays in history either way. Whether either of them has been told since is not recorded in this repo. | They own the repo and the supervision |
+| **DECIDED 24 Nov 2026: adopted** (`RESULTS_LOG` 2026-11-24b; schema 1.7; `models/07` retained and pinned). The mentor has not been told. The row as it stood: **Adopt the retrained Stage-3b head (`models/20_caries_severity_v2/seed42_best.pth`) as `DEF_CARIES_SEVERITY`?** It met its pre-registered rule (test macro-F1 0.772 [0.711, 0.828] vs 0.483 for the best image-blind prior; `RESULTS_LOG` 2026-11-24), but it is not separable from the shipped `models/07` on extern50 (+0.010 [−0.084, +0.109]). What adoption buys is a severity grade with a held-out test. What it costs: a hash pin, a 44.8 MB `.gitignore` exception, new report text and a schema bump, a parity check, and the paper's Table 3 row. Alternatives: keep `models/07` with its "no test" line, or withhold the grade by default as Stage 4b's is. | Changes what every report and the demo show; the decision owner's call, and the mentor should hear it |
 | **The Kaggle "dual-labeled" licence is unstated, and the default detector was trained on it.** Acceptable for an ablation; a publication question for a shipped default. | Needs a person to ask the dataset's authors, or a decision to retrain without it |
 | **`models/11` (53 MB) is committed to git, over the ~50 MB rule-4 line, and git history keeps it forever.** Deferred by the 3 Sep handoff decision (needed for a working fresh-clone demo). To undo: `git rm --cached`, restore `.gitignore`, re-host on Drive. | Revisit before any public release |
 | **What else to use `DENTEX/disease/`'s 91 healthy ("saglam") teeth for**, beyond the current Stage-2 eval set and lesion-localisation source | Scoping call, not urgent |
@@ -1081,7 +1222,7 @@ the raw-datasets table).
    working with numpy 2.x — see the numpy note below). For the exact stack behind the
    11–14 Oct figures (Python 3.12, torch 2.2.0): `pip install -r requirements-lock.txt`.
 2. Fetch the Drive-only checkpoints per `docs/EXTERNAL_DRIVE.md` (see table below for which).
-3. `python -m pytest tests/ -q` → should read **204 passed** (202 passed, 2 skipped where the
+3. `python -m pytest tests/ -q` → should read **213 passed** (210 passed, 3 skipped where the
    Tufts radiographs are absent).
 4. `python scripts/eval/verify_invariants.py` → should read **all invariants hold**.
 5. `python scripts/run_inference.py --image <any_opg.png> --output report.json` → should
@@ -1089,8 +1230,8 @@ the raw-datasets table).
    tag `tooth-detector-multicorpus-1024-v1.0`), `models/16_lever_b_pooled` (Stage 3a default) and
    `models/10_fdi_head_dentex_tufts_v2` (Stage 2 default) in the report's `models` block, and
    since 13 Oct `models/18_bone_loss_radiograph_split/seed42_best.pth` under `bone_loss`
-   (tag `abnormality-flag-resnet18-radiograph-split-v2.0`, schema `opg-report/1.5` since
-   14 Oct). **That
+   (tag `abnormality-flag-resnet18-radiograph-split-v2.0`, schema `opg-report/1.6` since
+   15 Oct). **That
    file is in git only once the 13 Oct adoption has been committed — check `git ls-files`.**
    arm3c's weights are in git since `7dd3ff4` (11 Oct), so a clone has them; this step was
    verified on a checkout holding tracked files only (`RESULTS_LOG` 2026-10-11h).
@@ -1154,9 +1295,13 @@ different machine than the one searched.
   Hungarian FDI assignment) and torch↔numpy conversion both correct, full suite green. The pin
   protects older stacks (numpy 1.x-built torch/scipy); on a from-scratch 3.13 install there is no
   numpy 1.x wheel anyway, so numpy 2.x is what you'll get regardless.
-- **Docker:** Desktop is installed on this machine; its daemon was not running when last checked
-  (4 Sep). `docker build` has never actually executed end-to-end here — treat "verified" claims
-  from before that check with caution until it's actually run once.
+- **Docker:** `opg-demo` was built and smoke-tested end-to-end on this machine on 7 Sep (5.03 GB,
+  `RESULTS_LOG` 2026-09-07c), so the build itself works here. That image predates the 11 Oct
+  detector switch, the 13 Oct Stage-4a default and the 15 Oct schema-1.6 fixes — rebuild before
+  any demo.
+- **Which Python on Windows:** in Git Bash, `python` resolves to msys64's 3.11, which has no numpy —
+  every check then fails at import. Use `C:\venvs\dental312\Scripts\python.exe` (numpy 1.26,
+  matches the pin; 210 passed / 3 skipped and 215 claims on 27 Oct) or `py -3.13`.
 - **LaTeX on the macOS clone:** tectonic 0.17 (Homebrew, installed 11 Oct). `cd paper &&
   tectonic main.tex --outdir <somewhere>`; it is XeTeX, so `main.tex` loads a Times clone for
   non-pdfLaTeX engines, and with that the page count matches pdfLaTeX's on the previous

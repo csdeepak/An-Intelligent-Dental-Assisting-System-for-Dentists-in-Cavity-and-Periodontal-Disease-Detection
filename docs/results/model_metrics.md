@@ -3,7 +3,13 @@
 Current best numbers only. One table per model, nothing else. For how a number was
 obtained see `PAPER_MATERIAL.md`; for when and why it changed see `RESULTS_LOG.md`.
 
-**Last updated:** 2026-10-13 (night) — **Stage 4a default changed** to the model retrained
+**Last updated:** 2026-11-24 — **Stage 3b default changed** to the head retrained on DENTEX's
+image-level split (`models/20_caries_severity_v2/seed42_best.pth`), by the decision owner
+(`RESULTS_LOG` 2026-11-24b): **test macro-F1 0.772 [0.711, 0.828] on 395 held-out crops** for the
+seed fixed in advance (0.745–0.817 across three seeds), against 0.483 for the strongest
+image-blind prior (`RESULTS_LOG` 2026-11-24; Phase 2 severity below). `models/07` is retained.
+
+**Before that:** 2026-10-13 (night) — **Stage 4a default changed** to the model retrained
 with a radiograph-level split (`models/18_bone_loss_radiograph_split/seed42_best.pth`), by
 the decision owner (`RESULTS_LOG` 2026-10-13c). Its DENTEX firing rate is 6.1%; the previous
 checkpoint's 0.75% and its Ningxia 2.17% are the previous checkpoint's.
@@ -90,6 +96,12 @@ CariesXrays +37.80 pp; Ningxia +8.39 pp [+4.06, +12.67]. The constant rises with
 (+13.99, +4.12, +19.25 pp), so the rise in every column is mostly the front end. Lever B's
 4 Sep verdict is not re-decided by this table. Per hospital: `RESULTS_LOG` 2026-10-11g.
 
+*15 Oct 2026, post hoc (`RESULTS_LOG` 2026-10-15):* the Ningxia lead pooled as a sample of
+hospitals rather than four fixed ones — DerSimonian–Laird on the four per-hospital differences —
+is **+9.61 pp [−0.54, +19.76]**, I² 81%, prediction interval for a further hospital
+[−36.08, +55.29]. It holds at three of these four hospitals and is not shown for a new one.
+`outputs/stage1_switch/F_ningxia_random_effects.json`.
+
 *12 Oct 2026:* the CariesXrays 1,200 images are the lesion detector's **validation split** —
 not trained on, but used for early stopping and to choose `best.pt`. Its 0.757 there is a
 validation-split figure. The gate and the constant never saw those images. `RESULTS_LOG`
@@ -119,6 +131,11 @@ where it was not separable from it before. DENTEX is in-domain for arm3c.
 
 Default pipeline − constant **+17.80 pp [+13.48, +22.02]**; − its own previous front end
 +12.16 pp [+8.86, +15.52]. In-domain for the front end.
+
+**Against an image-blind constant restricted to the molars the front end detected** (`RESULTS_LOG`
+2026-11-23; post hoc): that constant scores F1 **0.358** (P 0.259, R 0.581). Gate pipeline − it
++0.41 pp [−2.24, +3.14], **not separable**; default pipeline − it **+13.94 pp [+9.63, +18.15]**. A
+Windows rerun of the default flags different codes on 12 of 164 images (F1 0.490 vs 0.498).
 
 **Stage 4 flag, Ningxia periodontitis, 736 images** — 2.43% (165 of 6,792 affected teeth) →
 2.17% (153 of 7,049); −0.26 pp [−0.74, +0.23], not separable. Not a periodontal finding.
@@ -680,7 +697,33 @@ R 0.80 on *its own* test split — a 2.2× prevalence difference, not a gain; sp
 (`DEF_CARIES_SEVERITY`) — the "structurally only, no torch available" caveat that used to sit
 here no longer applies; this machine's environment was fixed 24 Aug 2026. Still trained on
 `phase1_legacy`-era crops and not re-run this session — **only the gate was rebuilt**, not the
-severity head. Validation-only; no held-out test split for Phase 2 exists yet.
+severity head. Validation-only, and it cannot be tested: it was trained on crops of all 705 DENTEX training
+radiographs, the `splits_v2` test split included. **It was the pipeline default until 24 Nov 2026**
+(retained, pinned, `--caries-severity`). Under the
+pipeline's argmax, on the regenerated crops, it scores macro-F1 0.738 [0.640, 0.818] on these same
+133 crops, deep recall 23/32, not the notebook's 0.77 (`RESULTS_LOG` 2026-11-24; cause not
+investigated).
+
+**Phase 2 retrained on `splits_v2` — held-out test, 395 crops (311 caries / 84 deep) on 98
+radiographs. `models/20_caries_severity_v2/`, three registered seeds; seed 42 is the pipeline
+default since 24 Nov 2026 (`RESULTS_LOG` 2026-11-24b).** Protocol
+`outputs/caries_severity_v2/PRE_REGISTRATION.md` (`cf3090a`); one test pass, 24 Nov 2026.
+Radiograph-cluster 95% intervals.
+
+| Arm | Macro-F1 | Deep P | Deep R | Caries R |
+|-----|----------|--------|--------|----------|
+| **Seed 42 (registered candidate)** | **0.772 [0.711, 0.828]** | 66/116 (0.57) | 66/84 (0.79) | 261/311 (0.84) |
+| Seed 43 | 0.745 [0.686, 0.798] | 66/127 (0.52) | 66/84 (0.79) | 250/311 (0.80) |
+| Seed 44 | 0.817 [0.754, 0.871] | 67/102 (0.66) | 67/84 (0.80) | 276/311 (0.89) |
+| Image-blind tooth-rate prior | 0.483 [0.429, 0.535] | 49/203 (0.24) | 49/84 (0.58) | 157/311 (0.50) |
+| Majority (= tooth-majority prior) | 0.440 [0.425, 0.455] | — | 0/84 | 311/311 |
+
+Seed 42 minus the tooth-rate prior +0.290 [+0.209, +0.367]: **eligible** under the registered
+rule, which allowed it to be *proposed* as the default; the decision owner adopted it the same day.
+On extern50 (the 133
+crops `models/07` was tuned on) seed 42 scores 0.748 [0.654, 0.842], and seed 42 minus `models/07` is
++0.010 [−0.084, +0.109], not separable. Annotation boxes of truly carious teeth, not detector
+boxes of flagged teeth.
 
 ---
 
@@ -864,7 +907,11 @@ Not integrated. Reported as a negative result.
 checkpoint's sha256 and tag stamped in `models`; the Stage-4 severity grade withheld by default;
 overlay orange = finding, blue = no finding (thin, `?` = numbering uncertain), grey = not
 assessable. `pytest` 194 passed; `verify_invariants.py` 12 hold (ten weight files pinned, the
-Tufts split disjoint). **14 Oct, late night:** 204 tests — the seven default checkpoints are now
+Tufts split disjoint). **15 Oct:** schema `opg-report/1.6` — input warnings, the runtime that
+produced a report (versions, commit, and each component's device: on the Mac the classifiers run on
+MPS and both YOLO models on the CPU), and lesion boxes that fall on no tooth; 213 tests, including
+an end-to-end run of the seven defaults; per-tooth outputs unchanged on six before/after reports
+(`RESULTS_LOG` 2026-10-15b). **14 Oct, late night:** 204 tests (205 from 15 Oct, with a check that every default has a pin) — the seven default checkpoints are now
 checked against their pinned sha256 before loading, and the shipped Stage-3a lesion-to-tooth
 mapping has its own tests (`RESULTS_LOG` 2026-10-14e).
 
@@ -1053,10 +1100,13 @@ by every row. Paired cluster bootstrap over images, 10,000 resamples, seed 42.
 | **CariesXrays** | **1,500 img / 3,421 lesions** | **0.309** | **0.561** | **+0.252 [+0.232, +0.273]** | **constant wins decisively** |
 
 Frozen pipeline throughout — nothing trained, no checkpoint changed. CariesXrays is the largest
-cohort in the project by lesion count (more than DENTEX and Ningxia combined). Mechanism measured:
+cohort in the project by lesion count (more than DENTEX and Ningxia combined). Mechanism measured
+on a 300-image / 859-lesion sample, no saved artefact **[UNVERIFIED]**:
 **72.0% of its lesions are on molars and 60.2% on exactly the eight constant teeth**, against the
 constant's ~0.60 structural ceiling. Unlike DENTEX, the brute-force defence fails — the constant
-flags 64% more teeth *and* has the higher match rate (0.207 vs 0.190). 22.1% of lesions fall
+flags 64% more teeth *and* has the higher match rate (0.206 vs 0.190; 1,997 / 9,672 — was
+double-rounded to 0.207 until 27 Oct 2026). The three intervals in this table were never saved;
+see `PAPER_MATERIAL.md` §8.25. 22.1% of lesions fall
 inside no detected tooth, bounding every tooth-level arm here.
 
 **CariesXrays is a peer-reviewed public benchmark** — Chen et al., *CariesXrays: Enhancing Caries Detection in Hospital-Scale Panoramic Dental X-rays via Feature Pyramid Contrastive Learning*, **AAAI 2024**, 38(20) 21940–21948, DOI 10.1609/aaai.v38i20.30196 — verified against AAAI OJS, ACM DL and DBLP. 6,000 images matches their count exactly; 13,784 non-degenerate boxes vs their stated 13,783 is a +1 convention difference. Licence not stated. Leakage verified three ways (0 MD5 vs all corpora; positive control at distance 0; 1.5M-pair distribution).
@@ -1177,7 +1227,7 @@ ultralytics prints — a third quantity again, and also not an error.
 | 2  | ResNet18 + 4 positional feats | `models/10_fdi_head_dentex_tufts_v2/` | 11,187,916 |
 | **3a (default)** | **YOLOv11l lesion detector** | **`models/16_lever_b_pooled/.../best.pt`** | **25,311,251** |
 | 3a (`--caries-method gate`) | ResNet18 caries gate | `models/09_caries_gate_v3/` | 11,177,538 |
-| 3b | ResNet18 caries severity | `models/07_caries_cascade/` | 11,177,538 |
+| 3b | ResNet18 caries severity | `models/20_caries_severity_v2/` (default since 24 Nov 2026; `models/07` before) | 11,177,538 |
 | 4a | ResNet18 bone-loss gate | `models/03_bone_loss_model_training_notebook_models/` | 11,177,538 |
 | 4b | ResNet18 bone-loss severity | `models/04_bone_loss_severity_notebook_models/` | 11,178,051 |
 | | **Total, all six, current default (lesion detector)** | | **95,343,545** |

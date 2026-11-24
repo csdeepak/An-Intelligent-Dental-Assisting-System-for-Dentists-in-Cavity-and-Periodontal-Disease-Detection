@@ -1,0 +1,17 @@
+{
+ "control_gate": "FAILED",
+ "mismatched_images": [
+  "test_147",
+  "test_151",
+  "test_168",
+  "test_172",
+  "test_182",
+  "test_30",
+  "test_33",
+  "test_5",
+  "test_76",
+  "test_91",
+  "test_92",
+  "test_95"
+ ]
+}

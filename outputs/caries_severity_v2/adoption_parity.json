@@ -1,0 +1,120 @@
+{
+  "what": "parity of the Stage-3b default switch (models/07 -> models/20 seed 42), 24 Nov 2026, macOS, default devices",
+  "images": [
+    "DENTEX training_data/quadrant-enumeration-disease/xrays/train_0.png, train_1.png",
+    "DENTEX disease/input/test_0.png (paper Figure 4)",
+    "Tufts Radiographs/1.JPG"
+  ],
+  "modes": [
+    "lesion-detector (default)",
+    "gate"
+  ],
+  "asserted": "summary identical; same teeth flagged; every per-tooth field identical except caries finding / severity / severity_confidence",
+  "reports": [
+    {
+      "report": "1_gate",
+      "teeth": 9,
+      "flagged": 0,
+      "grade_changed": []
+    },
+    {
+      "report": "1_lesion-detector",
+      "teeth": 9,
+      "flagged": 3,
+      "grade_changed": [
+        {
+          "fdi": 14,
+          "before": "caries",
+          "after": "deep_caries"
+        },
+        {
+          "fdi": 24,
+          "before": "caries",
+          "after": "deep_caries"
+        }
+      ]
+    },
+    {
+      "report": "test_0_gate",
+      "teeth": 30,
+      "flagged": 9,
+      "grade_changed": [
+        {
+          "fdi": 38,
+          "before": "deep_caries",
+          "after": "caries"
+        }
+      ]
+    },
+    {
+      "report": "test_0_lesion-detector",
+      "teeth": 30,
+      "flagged": 4,
+      "grade_changed": []
+    },
+    {
+      "report": "train_0_gate",
+      "teeth": 28,
+      "flagged": 9,
+      "grade_changed": [
+        {
+          "fdi": 35,
+          "before": "caries",
+          "after": "deep_caries"
+        },
+        {
+          "fdi": 38,
+          "before": "deep_caries",
+          "after": "caries"
+        },
+        {
+          "fdi": 45,
+          "before": "caries",
+          "after": "deep_caries"
+        },
+        {
+          "fdi": 46,
+          "before": "caries",
+          "after": "deep_caries"
+        }
+      ]
+    },
+    {
+      "report": "train_0_lesion-detector",
+      "teeth": 28,
+      "flagged": 2,
+      "grade_changed": []
+    },
+    {
+      "report": "train_1_gate",
+      "teeth": 26,
+      "flagged": 9,
+      "grade_changed": [
+        {
+          "fdi": 46,
+          "before": "deep_caries",
+          "after": "caries"
+        },
+        {
+          "fdi": 48,
+          "before": "caries",
+          "after": "deep_caries"
+        }
+      ]
+    },
+    {
+      "report": "train_1_lesion-detector",
+      "teeth": 26,
+      "flagged": 4,
+      "grade_changed": [
+        {
+          "fdi": 46,
+          "before": "deep_caries",
+          "after": "caries"
+        }
+      ]
+    }
+  ],
+  "flagged_total": 40,
+  "grade_changed_total": 10
+}

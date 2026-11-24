@@ -218,6 +218,7 @@ def test_mild_severity_carries_the_low_support_flag():
 @pytest.mark.parametrize("weights,expected", [
     ("models/07_caries_cascade/final_model.pth", {"caries": 0, "no_caries": 1}),
     ("models/07_caries_cascade/phase2_final_bundle.pth", {"caries": 0, "deep_caries": 1}),
+    ("models/20_caries_severity_v2/seed42_best.pth", {"caries": 0, "deep_caries": 1}),
 ])
 def test_checkpoint_class_order_matches_the_constants(weights, expected):
     """Reads the checkpoint's own class_to_idx: fails if a model is swapped for one with a
@@ -280,3 +281,21 @@ def test_calibration_never_changes_the_verdict():
         cal = float(np.interp(p_caries, k[0], k[1]))
         assert isinstance(cal, float)
         assert verdict_raw == (p_caries >= 0.5), "verdict must follow the raw probability"
+
+
+class _NaN(torch.nn.Module):
+    def forward(self, x):
+        return torch.full((len(x), 2), float("nan"))
+
+
+def test_a_nan_classifier_output_raises_instead_of_reading_as_class_0():
+    """argmax over NaN is 0 -- 'caries' for the gate, 'normal' for Stage 4 -- with no error."""
+    with pytest.raises(ValueError, match="non-finite"):
+        run_caries(_NaN(), _Fixed(2, 0), _img(7), [BOX], DEV)
+
+
+def test_lesion_boxes_on_no_tooth_are_counted():
+    stats = {}
+    run_caries_lesion_detector(_Lesions([([1010, 650, 1040, 680], 0.7), ([1500, 700, 1540, 750], 0.6)]),
+                               _Fixed(2, 0), _img(8), [TOOTH_A, TOOTH_B], DEV, stats=stats)
+    assert stats == {"lesion_boxes": 2, "lesion_boxes_unmapped": 1}

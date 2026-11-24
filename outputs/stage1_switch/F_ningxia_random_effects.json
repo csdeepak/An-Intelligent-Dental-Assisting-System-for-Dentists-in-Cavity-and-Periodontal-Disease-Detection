@@ -1,0 +1,59 @@
+{
+  "source": "outputs/stage1_switch/stage1_switch_results.json",
+  "comparison": "arm3c: lesion-detector_minus_constant-molars",
+  "method": "DerSimonian-Laird random effects; per-site SE = 95% percentile CI width / 3.92; prediction interval t(k-2). Post hoc sensitivity analysis, not pre-registered.",
+  "per_site": {
+    "test1": {
+      "delta_pp": -3.16,
+      "ci95_pp": [
+        -10.56,
+        3.97
+      ]
+    },
+    "test2": {
+      "delta_pp": 16.91,
+      "ci95_pp": [
+        9.17,
+        24.62
+      ]
+    },
+    "test3": {
+      "delta_pp": 11.73,
+      "ci95_pp": [
+        1.07,
+        21.34
+      ]
+    },
+    "test4": {
+      "delta_pp": 13.98,
+      "ci95_pp": [
+        2.34,
+        24.34
+      ]
+    }
+  },
+  "registered_pooled": {
+    "delta_pp": 9.28,
+    "ci95_pp": [
+      4.72,
+      13.73
+    ],
+    "excludes_zero": true,
+    "frac_resamples_le_0": 0.0001
+  },
+  "k": 4,
+  "fixed_mean_pp": 8.44,
+  "q": 15.79,
+  "q_p": 0.0013,
+  "i2_pct": 81.0,
+  "tau_pp": 9.27,
+  "mean_pp": 9.61,
+  "ci95_pp": [
+    -0.54,
+    19.76
+  ],
+  "prediction_interval_pp": [
+    -36.08,
+    55.29
+  ]
+}

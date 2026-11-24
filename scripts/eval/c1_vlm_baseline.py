@@ -205,8 +205,8 @@ def run_pipeline_arm(disease_dir, gt, out, caries_method="gate", out_name="arm_p
     for i, stem in enumerate(sorted(gt), 1):
         ip = disease_dir / "input" / f"{stem}.png"
         img = cv2.imread(str(ip), cv2.IMREAD_COLOR)
-        if img is None:
-            continue
+        if img is None:     # was a silent skip; the image would score as all misses
+            raise SystemExit(f"cannot read {ip}")
         t = time.time()
         rep = run_pipeline(img, models, device, paths, image_label=stem, verbose=False,
                            caries_method=caries_method)

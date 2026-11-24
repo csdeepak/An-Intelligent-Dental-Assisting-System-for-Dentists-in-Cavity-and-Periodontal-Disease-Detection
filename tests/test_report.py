@@ -1,8 +1,9 @@
-"""Stages 5-6: what every report states, and what the overlay's colours mean (schema 1.5).
+"""Stages 5-6: what every report states, and what the overlay's colours mean (schema 1.6).
 
 No model is loaded: `build_report` and `draw_overlay` run on hand-built stage outputs.
 """
 
+import json
 import sys
 from pathlib import Path
 
@@ -14,12 +15,19 @@ ri = pytest.importorskip("scripts.run_inference")
 cv2 = pytest.importorskip("cv2")
 
 
-def test_every_report_states_both_untested_severity_grades():
-    rep = ri.build_report("x", np.zeros((8, 8, 3), np.uint8), [], [], [], [], [],
-                          {"caries": {"method": "lesion-detector"}})
-    assert rep["schema_version"] == "opg-report/1.5"
-    assert "contrast" in rep["limitations"]["bone_severity_not_evaluated"]
-    assert "133 crops" in rep["limitations"]["caries_severity_not_evaluated"]
+def test_every_report_states_what_is_known_of_both_severity_grades():
+    def caries_text(sha):
+        rep = ri.build_report("x", np.zeros((8, 8, 3), np.uint8), [], [], [], [], [],
+                              {"caries": {"method": "lesion-detector", "sha256_severity": sha}})
+        assert rep["schema_version"] == "opg-report/1.7"
+        assert "contrast" in rep["limitations"]["bone_severity_not_evaluated"]
+        return rep["limitations"]["caries_severity_not_evaluated"]
+
+    # The text follows the severity weights loaded (schema 1.7): the default's held-out test, the
+    # previous head's validation-only basis, and nothing claimed for an unknown file.
+    assert "395 held-out" in caries_text(ri.DEFAULT_SHA256[ri.DEF_CARIES_SEVERITY.resolve()])
+    assert "133 crops" in caries_text("aa0a8a7ebf47a8acab0d24a6ecd948542c220196d1c71cbebbf56952beacbc86")
+    assert caries_text(None) == ri.CARIES_SEVERITY_UNREGISTERED
 
 
 def _tooth(x, assessable=True, fdi_flags=(), caries="no_caries", flagged=False):
@@ -65,3 +73,45 @@ def test_a_default_checkpoint_with_the_wrong_hash_is_refused_before_loading(tmp_
     monkeypatch.setattr(ri, "DEFAULT_SHA256", {paths["detector"].resolve(): "0" * 64})
     with pytest.raises(SystemExit, match="sha256 is not the pinned"):
         ri.load_models(**paths)
+
+
+def test_every_default_checkpoint_has_a_pin():
+    defaults = (ri.DEF_DETECTOR, ri.DEF_FDI_HEAD, ri.DEF_CARIES_GATE, ri.DEF_CARIES_SEVERITY,
+                ri.DEF_CARIES_LESION_MODEL, ri.DEF_BONE_LOSS, ri.DEF_BONE_SEVERITY)
+    assert {p.resolve() for p in defaults} == set(ri.DEFAULT_SHA256)
+
+
+# ---- input checks, NaN and the in-memory overlay (15 Oct 2026, schema 1.6) ----
+def test_input_checks_warn_only_outside_the_training_radiographs():
+    assert ri.check_input(np.zeros((840, 1615, 3), np.uint8)) == []          # Tufts shape
+    assert ri.check_input(np.zeros((1316, 2850, 3), np.uint8)) == []         # DENTEX shape
+    assert "portrait" in ri.check_input(np.zeros((1615, 840, 3), np.uint8))[0]
+    assert "portrait or square" in ri.check_input(np.zeros((640, 640, 3), np.uint8))[0]
+    assert "aspect ratio" in ri.check_input(np.zeros((840, 2600, 3), np.uint8))[0]
+    assert any("low resolution" in w for w in ri.check_input(np.zeros((300, 600, 3), np.uint8)))
+    assert any("16" in w for w in ri.check_input(np.zeros((840, 1615, 3), np.uint8), "uint16"))
+
+
+def test_a_nan_numbering_confidence_is_not_assessable():
+    rep = ri.build_report("x", np.zeros((200, 400, 3), np.uint8), [[0, 0, 10, 10]], [0.9],
+                          [{"fdi": 11, "quadrant": 1, "position": 1, "confidence": float("nan"),
+                            "flags": []}],
+                          [{"finding": "no_caries"}], [{"finding": "normal", "severity": None}],
+                          {"caries": {"method": "lesion-detector"}}, input_warnings=["w"])
+    assert rep["teeth"][0]["assessable"] is False
+    assert "fdi_confidence_below_threshold" in rep["teeth"][0]["not_assessable_reasons"]
+    assert rep["image"]["warnings"] == ["w"]
+    with pytest.raises(ValueError):                  # the CLI and the app refuse to write NaN
+        json.dumps(rep, allow_nan=False)
+
+
+def test_an_empty_detection_gives_an_empty_well_formed_report():
+    rep = ri.build_report("x", np.zeros((8, 8, 3), np.uint8), [], [], [], [], [],
+                          {"caries": {"method": "lesion-detector"}})
+    assert rep["teeth"] == [] and set(rep["summary"].values()) == {0}
+    assert rep["image"]["warnings"] == []
+
+
+def test_the_overlay_is_returned_and_written_only_when_asked(tmp_path):
+    viz = ri.draw_overlay(np.zeros((200, 260, 3), np.uint8), {"teeth": [_tooth(10)]})
+    assert viz.shape == (200, 260, 3) and not list(tmp_path.iterdir())

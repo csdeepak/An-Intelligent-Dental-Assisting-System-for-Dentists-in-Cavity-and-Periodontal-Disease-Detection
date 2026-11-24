@@ -214,8 +214,10 @@ def main():
 
     from PIL import Image
     from ultralytics import YOLO
+    sys.path.insert(0, str(REPO))
+    from scripts.run_inference import load_yolo_pinned
     print(f"loading {DETECTOR.relative_to(REPO)}")
-    model = YOLO(str(DETECTOR))
+    model = load_yolo_pinned(DETECTOR)
 
     gt_by_image = {}
     n_empty = 0

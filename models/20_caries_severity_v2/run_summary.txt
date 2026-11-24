@@ -1,0 +1,67 @@
+================================================================================
+20_caries_severity_v2 -- Stage 3b (caries vs deep caries) retrained on DENTEX splits_v2
+================================================================================
+Status:   Three registered training runs, each made once, then one test pass: ELIGIBLE under
+          the registered rule (seed 42 beats all three image-blind priors on test, every
+          interval clear of zero). ADOPTED 24 Nov 2026 by the decision owner: seed42_best.pth
+          is DEF_CARIES_SEVERITY (RESULTS_LOG 2026-11-24b), committed under a .gitignore
+          exception; models/07 is retained and pinned (--caries-severity). The sections down to
+          RESULTS -- TEST were written before adoption and say "not a default"; that was true then.
+Date:     24 November 2026
+Pre-reg:  outputs/caries_severity_v2/PRE_REGISTRATION.md, commit cf3090a (with the trainer and
+          the H1-H5 check output). Seeds frozen in f8bc016 before the test pass.
+Log:      docs/results/RESULTS_LOG.md 2026-11-24.
+Hardware: Apple M4 Pro, MPS (not bit-reproducible). Python 3.12.12, torch 2.2.0,
+          torchvision 0.17.0, numpy 1.26.4, OpenCV 5.0.0.
+Script:   scripts/dentex/train_caries_severity_v2.py (check / train / score / report).
+
+THE LABEL is the DENTEX annotation class (Caries / Deep Caries) of a tooth already annotated
+as carious, one annotation round. It is not a clinical depth measurement.
+
+--------------------------------------------------------------------------------
+DATA (data/dentex/crops_v2/phase2, gitignored; split data/dentex/splits_v2.json)
+--------------------------------------------------------------------------------
+          crops caries / deep    radiographs
+train     1,564 / 400            456
+val       314 / 94               96
+test      311 / 84               98      the one test pass
+extern50  101 / 32               44      DENTEX's separate 50-image release; models/07 was
+                                         tuned and reported on exactly these 133 crops
+Tight annotation boxes, 224x224, the pipeline's caries crop contract. No radiograph in two
+splits; no MD5 copy or pair close under both perceptual hashes (H4); 17 single-hash
+candidates inspected by eye, none a copy.
+
+--------------------------------------------------------------------------------
+RECIPE (Stage 4a/4b's, scripts/tufts/train_bone_loss_v2.py, two classes)
+--------------------------------------------------------------------------------
+ImageNet ResNet18, fc 512 -> 2; Adam lr 1e-4, wd 1e-4, batch 32; class-weighted cross-entropy
+(0.6279, 2.455); flip, rotation 10 deg, brightness x[0.8,1.2], contrast x[0.9,1.1];
+ReduceLROnPlateau on val macro-F1 (0.5, 5); early stop 10; <= 50 epochs; best val macro-F1;
+argmax. Saved as {model_state_dict, class_to_idx {caries: 0, deep_caries: 1}}, the shape of
+models/07, so load_classifier and the pipeline's class check accept it unchanged.
+
+--------------------------------------------------------------------------------
+FILES (seed 42 tracked since adoption; seeds 43 and 44 local, macOS clone only)
+--------------------------------------------------------------------------------
+seed42_best.pth  44,785,398 B  val macro-F1 0.7727, epoch 10 of 20   [TRACKED IN GIT, DEFAULT]
+    sha256 b0e006e2b3f58bf79e99b028b3eeebd336cda9edfd399020a64ef1a1e05a1e0c
+seed43_best.pth  44,785,398 B  val macro-F1 0.7628, epoch 7 of 17    [local only]
+    sha256 aab94ddf2fbb4c5ec1c2f4db3e5345db4e28fa1cbd927e07e1e263a5e8c3bc7d
+seed44_best.pth  44,785,398 B  val macro-F1 0.7825, epoch 16 of 26   [local only]
+    sha256 3467aebcf4be21b61b916966850a100e84e9e3812157c100951935cd094471e2
+Full sha256 in seed*_history.json (tracked). Train logs: outputs/caries_severity_v2/.
+
+--------------------------------------------------------------------------------
+RESULTS -- TEST (outputs/caries_severity_v2/test_summary.json; written after the test pass)
+--------------------------------------------------------------------------------
+395 test crops, 98 radiographs; macro-F1 with radiograph-cluster bootstrap 95% interval.
+seed 42 (candidate)  0.7724 [0.7110, 0.8275]  deep P 66/116  deep R 66/84  caries R 261/311
+seed 43              0.7446 [0.6860, 0.7981]  deep P 66/127  deep R 66/84  caries R 250/311
+seed 44              0.8172 [0.7541, 0.8707]  deep P 67/102  deep R 67/84  caries R 276/311
+tooth rate prior     0.4829 [0.4286, 0.5348]
+majority / tooth majority  0.4405 [0.4248, 0.4552]  (identical on these crops: both predict caries throughout)
+seed 42 minus tooth rate prior  +0.2895 [+0.2092, +0.3668]; minus majority +0.3319 [+0.2612, +0.3955]
+
+extern50 (secondary): seed 42 0.7480 [0.6540, 0.8418]; models/07 0.7379 [0.6399, 0.8180]
+under the pipeline's argmax, not the 0.77 its notebook printed for the same 133 crops (cause
+not investigated); seed 42 minus models/07 +0.0101 [-0.0839, +0.1090], not separable.

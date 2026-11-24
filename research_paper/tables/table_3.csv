@@ -1,0 +1,9 @@
+# Table 3. The evidence behind each stage. Held out: scored on data no model trained on but from a training corpus; unseen: a corpus no model trained on; external: a cohort from other sites. Sens.: sensitivity; spec.: specificity.
+Stage,"Model, params",Trained on,Held-out evidence,Unseen or external evidence,What it supports
+1 Detect,"YOLOv11l, 25.31 M","Tufts, DENTEX, Kaggle",Tufts test recall 89.3%; box mAP@0.5 0.587 vs 0.723 for a Tufts-only control,UFBA-425 recall 66.6%,"a front end, adopted against its guard"
+2 Number,"ResNet18 + position, 11.19 M","DENTEX, Tufts crops",Tufts test 63.5% end to end; DENTEX 92.8% (in-domain),UFBA-425 44.5% (77.2% widened),identity with stated error
+3a Lesion detector,"YOLOv11l, 25.31 M","CariesXrays, DENTEX",DENTEX F1 0.498 vs 0.320,"Ningxia +9.28 pooled, 3 of 4 sites; informed adoption",the sign of the lead
+3a Crop classifier,"ResNet18, 11.18 M",DENTEX crops,"863 test crops, AP 0.550",Ningxia +0.89 (level); CariesXrays -22.42,external to the classifier; Ningxia informed the detector choice
+3b Severity,"ResNet18, 11.18 M","DENTEX, image-level split","three runs on 395 test crops: macro-F1 0.772 (default), 0.745, 0.817 vs 0.483 for a position prior; deep-caries precision 0.57",none,a grade on annotated carious teeth; untested on the pipeline's flags
+4a Abnormality flag,"ResNet18, 11.18 M","Tufts, radiograph split","three runs: sens. 27.5%, 16.5%, 11.0% at spec. 95.9–98.6%; PPV 0.25–0.29",none,one sentence; not periodontal
+4b Its severity,"ResNet18, 11.18 M",Tufts,"retrain macro-F1 0.294, 0.328, 0.382 (three seeds) vs prior 0.334",none,withheld

@@ -503,6 +503,26 @@ an explicit `not_assessable` abstention output, reported as a coverage–accurac
 already-planned fix, scheduled for Week 6, not Week 2. Report the current threshold as
 "uncalibrated 0.5-equivalent argmax" wherever these models are described until R3 lands.
 
+### 6.8 The image-blind constant in closed form (added 28 Oct 2026)
+
+Written for the ten-page mentor draft (`paper/paper.md` §III, `RESULTS_LOG` 2026-10-28b); not yet
+in `main.tex`. With $N$ scored images, $P$ carious teeth and $n_c$ the images in which code $c$ is
+carious, a constant $S$ scores FDI-set F1 $= 2\sum_{c\in S} n_c / (|S|N + P)$ — the scorer's own
+micro-F1, not an approximation — and adding a code raises it if and only if its prevalence
+$p_c = n_c/N$ exceeds $F_1(S)/2$. The F1-optimal constant is therefore the codes sorted by
+prevalence, cut where that test first fails. **Checked against the data**
+(`scripts/figures/make_draft_figures.py`, which asserts each of these): the rule reproduces the
+greedy constant {16, 17, 26, 27, 36, 37, 46, 47} from the 78 excluded caries-bearing images exactly
+(fit-set prevalences 0.372 for 26 down to 0.205 for 27; the ninth code, 15, at 0.128 against a
+threshold of 0.196); the closed form gives 0.3924 on the fit set and 0.3197 on the 164 scored
+images, equal to the saved scores; the constant's recall (0.5996) is the share of carious teeth at
+its codes. The draft pairs it with three further theoretical statements, each matched to a saved
+measurement: the identity chain $P(D)P(N|D)P(F|D,N)$ (Table 1 of the draft, from
+`stage1_switch_results.json` A/B/P); lesion agreement of the constant = the cohort's prior mass on
+the eight molars (0.494–0.709 across the Ningxia sites); and the positional-shortcut signature of
+§8.24 (base-rate tracking on healthy teeth, within-type AUC). Facts:
+`paper/ieee/figures/R_draft_figures_facts.json`.
+
 ---
 
 ## 7. Results
@@ -673,7 +693,30 @@ motivation for future work (periapical radiographs, or a learned landmark detect
 Single-glance current-best numbers live in `docs/results/model_metrics.md`. Keep the two
 files consistent: any change to a metric here must be mirrored there.
 
+### 7.7 Review round 1 — four analyses from saved data (2 Nov 2026)
+
+*`RESULTS_LOG` 2026-11-02d. Post hoc; no training, no tuning, no Ningxia image read.*
+
+| Question | Answer |
+|---|---|
+| Does the Ningxia random-effects interval hold up with a small-k method? | HKSJ +9.61 [−5.02, +24.24] (DL [−0.54, +19.76]); τ 9.27 pp, Q-profile [3.22, 33.09]; I² 81% [34, 98]. Still not shown for an unseen site. |
+| Is the eight-molar constant an accident of its 78 fit images? | Its exact membership is (26.7% of 10,000 refits; 7 codes most often). Its score is not: refits score median 0.320, 95% within [0.279, 0.330] on the 164 images. F1 is flat from 6 to 9 codes (0.298–0.325). |
+| Do the pipelines' F1 leads come from naming more teeth? | No. Against an image-blind answer naming as many codes: lesion detector +22.35 [+17.42, +27.18], crop classifier +5.50 [+2.84, +8.22]. |
+| Do the VLMs read the image? | Not detectably. At matched volume: 32B +0.39 [−4.90, +5.63], 7B +1.39 [−2.06, +4.85]. They trail the eight molars only by naming fewer teeth. |
+| Did a re-encoded copy of a training image survive the MD5 exclusion? | No. pHash and dHash against all 1,389 other DENTEX images; the 86 MD5 copies at distance 0 as a positive control; the 20 closest scored images differ by eye from their neighbours. |
+| Are the lesion detector's flags more often carious per tooth type on Ningxia too? | Not answered. The saved Ningxia outputs lack per-tooth codes, and the raw images were not on this machine. |
+
 ---
+
+### 7.8 Review of `research_paper/` — two post-hoc analyses (23 Nov 2026)
+
+*`RESULTS_LOG` 2026-11-23. 164 DENTEX images, development data; no training, no tuning.*
+
+| Question | Answer |
+|---|---|
+| Does the pipeline lead a constant that cannot name absent teeth? | Constant restricted to detected molars: F1 0.358. Crop classifier − it +0.41 [−2.24, +3.14], not separable; lesion detector − it +13.94 [+9.63, +18.15]. |
+| Are DENTEX caries annotations lesions or teeth? | Teeth: polygon box / tooth box median 0.907, IoU median 0.814, 99.6% above 0.5. DENTEX agreement is tooth-level. |
+| Does the shipped pipeline reproduce across machines? | Not exactly: 12 of 164 images flag different caries codes on Windows than the saved macOS run (F1 0.490 vs 0.498). |
 
 ## 8. Known Limitations — write these in the paper
 
@@ -973,7 +1016,8 @@ and the head achieves 69.4% of it.
 
 **Updated 4 September 2026 — the Tufts end-to-end number, which the pipeline never had.**
 `validate_fdi_assignment_tufts.py` runs the same detector → head → Hungarian assignment against
-the *complete* Tufts per-tooth numbering (3,760 permanent teeth on 149 frozen-test images,
+the *complete* Tufts per-tooth numbering (3,760 permanent teeth on the 143 of 149 frozen-test
+images that carry any tooth annotation — 118, 339, 417, 501, 528 and 974 have none,
 mirror-corrected via `tufts_title_to_fdi`), so it is a real recall and a real end-to-end
 accuracy, not the GT-only-teeth partial that DENTEX gives. With the deployed detector:
 **recall 82.4 %, FDI exact of detected 78.6 %, end-to-end 64.8 %** (`RESULTS_LOG` 2026-09-04d).
@@ -1345,6 +1389,11 @@ the operational consequence of taking this seriously.
 
 **Added 27 Aug 2026.** Every headline metric with saved per-item outputs now carries a
 **cluster-bootstrap 95% CI** (10,000 resamples, seed 42, `scripts/eval/bootstrap_ci.py`).
+*Exceptions, audited 27 Oct 2026 across every artefact `verify_paper_numbers.py` loads:* the
+caries-gate calibration intervals (§8.15) use 2,000 resamples, and both abstention-gain intervals
+(§8.21, and the post-switch `outputs/stage1_switch/J_coverage_arm3c/`) use 1,000 resamples with
+seed 0 — `c4_coverage_accuracy.py`'s fixed default, re-run 27 Oct and reproduced. `main.tex`
+states both.
 
 **Resampling is over IMAGES, not teeth, and this is the choice to defend in the methods.** The
 936 Stage-2 teeth come from 164 radiographs. Teeth within one image share a patient, a scanner,
@@ -1405,7 +1454,8 @@ flag; this section replaces that assertion with a number.
 | Max calibration error | 0.596 |
 | Brier score | 0.137 |
 
-CI by cluster bootstrap over source images, 10,000 resamples (§8.14's argument).
+CI by cluster bootstrap over source images, **2,000** resamples, seed 42 (§8.14's argument) — per
+the artefact's own `ci_method` field; this line said 10,000 until 27 Oct 2026.
 Figure: `figures/paper/caries_gate_calibration_test.png`.
 
 **The finding is that the model is systematically OVERCONFIDENT, not merely imprecise.** Every
@@ -1821,6 +1871,16 @@ submission and one of them is a licence breach that is live today.
 | **Ningxia** | locked external test (4 hospitals) | ✅ **VERIFIED 4 Sep 2026 — no formal licence, informal non-commercial request only.** The source repo (`github.com/qinxin99/qinxini`) carries no LICENSE file and no CC/OSI licence text; the only stated term is "we kindly request that you do not use it for any commercial purposes." Weaker than DENTEX's formal licence, but this project's use (non-commercial research, no redistribution) satisfies it. The source paper (Li et al. 2024, `li2024multicenter`, now added to `source.bib` and cited in `main.tex` — it was not cited before this pass despite the repo requesting citation on use) requests citation on use. | Public release, `Journal of Imaging Informatics in Medicine` 37(2):831-841 | ✅ compliant, weaker terms noted |
 | **SDH clinic (3,219 images)** | not used in any result | Institutional; no data-use agreement recorded | **Images yes, mapping file NO** | ⛔ **IRB not started; de-identification void** |
 
+> **Added 28 Oct 2026 — DENTEX pixels are now in a paper figure.** The DENTEX row above was compliant
+> partly because nothing redistributed the data. The rebuilt mentor draft (`paper/ieee/`,
+> `RESULTS_LOG` 2026-10-28) shows three held-out DENTEX radiographs with model output drawn on them
+> (`scripts/figures/make_opg_figures.py`), each caption attributing DENTEX and its licence.
+> Non-commercial research use and attribution are met. **Share-alike is open:** the licence asks
+> that derivative works be shared under similar terms, and a figure in a paper whose copyright is
+> transferred to a publisher may not satisfy that. Before submission, either the venue's form must
+> allow the figure to carry CC BY-NC-SA 4.0, or the figure must be replaced. Tufts, Ningxia and
+> CariesXrays pixels remain out of every figure.
+
 #### 8.19.2 Tufts — the terms, and the breach
 
 The release agreement states, verbatim:
@@ -2187,11 +2247,17 @@ checkpoint changed, same centroid-containment matcher imported from the Ningxia 
 
 **This is the largest lesion count of any cohort in the paper — more than DENTEX and Ningxia
 combined — and the largest margin.** Paired cluster bootstrap over images, 10,000 resamples,
-seed 42. A prefix draw (first 600 by file id) gave +0.240 [+0.211, +0.269]; the randomised draw
+seed 42. **Noted 27 Oct 2026:** none of this table's three intervals was ever saved; the DENTEX
+and Ningxia rows were run at 5,000 resamples, the CariesXrays count was not recorded. They are
+pre-switch figures the manuscript no longer cites (it now reports the 11 Oct front end,
+`outputs/stage1_switch/`). A saved 10,000 / seed-42 regeneration from the per-image records —
+point estimates exact, only the Ningxia lower bound moves (−0.049 → −0.048) — is on branch
+`record/2026-10-27-stale-base-revisit` (`8e150fe`, `outputs/constant_vs_pipeline_ci/`). A prefix draw (first 600 by file id) gave +0.240 [+0.211, +0.269]; the randomised draw
 reproduces it, so the sample carries no ordering bias.
 
 **The mechanism is measured, not inferred.** Mapping each lesion to the detected tooth containing
-it: **72.0% of lesions are on molars** (premolar 20.5%, canine 3.7%, incisor 3.7%), and **60.2%
+it — on a **300-image sample (859 lesions)**, not the 1,500-image draw above, and with **no saved
+artefact** [UNVERIFIED]; `RESULTS_LOG` 2026-09-01 is its only record: **72.0% of lesions are on molars** (premolar 20.5%, canine 3.7%, incisor 3.7%), and **60.2%
 fall on exactly the eight teeth the constant emits**. The constant's 0.561 sits near its
 structural ceiling of ~0.60 on this cohort. It is not out-diagnosing the pipeline; it is
 exploiting an extremely molar-concentrated disease distribution — which is precisely the claim
@@ -2199,7 +2265,7 @@ exploiting an extremely molar-concentrated disease distribution — which is pre
 
 **And the brute-force defence fails here.** On DENTEX the constant flagged only 14% more teeth at
 the same match rate, so volume did not explain its win. On this cohort it flags **64% more teeth
-(6.45 vs 3.94 per image) *and* has the higher match rate (0.207 vs 0.190)** — it wins on both
+(6.45 vs 3.94 per image) *and* has the higher match rate (0.206 vs 0.190)** — it wins on both
 axes. That defence should not be reused without checking it per cohort.
 
 **A ceiling worth stating:** **22.1% of lesions fall inside no detected tooth at all**, which
@@ -2979,6 +3045,150 @@ Shift" is in the title and the keywords, and the first sentence names periodonta
 
 ---
 
+### 8.42 What the manuscript claimed beyond its artefacts, and the Ningxia lead as a sample of hospitals
+
+*15 Oct 2026. `RESULTS_LOG` 2026-10-15. A second council, with published practice looked up for
+each issue; nothing was trained or scored.*
+
+**The Ningxia lead does not generalise to a hospital not yet seen.** The registered figure,
++9.28 [+4.72, +13.73], treats the four hospitals as fixed. Pooled as a sample of hospitals — the
+practice in multi-centre external validation (Snell, Riley et al., J Clin Epidemiol 2016) — the
+same four differences give +9.61 [−0.54, +19.76], I² 81%, and a prediction interval for a further
+hospital of [−36.08, +55.29]. Positive and separated at three of the four. The paper now says the
+lead holds at three of these four hospitals and is not shown for one not yet seen. Post hoc;
+`outputs/stage1_switch/F_ningxia_random_effects.json`.
+
+**What the text claimed that no artefact supports — now corrected in `main.tex`.**
+
+| Claim | What is true |
+|---|---|
+| "Neither lead survived outside it" | The localisation lead did not; the F1 lead cannot be scored externally (no tooth codes) |
+| Numbering has "calibrated probabilities"; "numbering shows all four" | Numbering calibration was never measured; it shows three |
+| The 0.30 threshold was "pre-registered … chosen before these data were seen" and "located on the gate's curve" | Fixed in code on 24 Aug as a documented heuristic; it is the numbering head's |
+| Its sign is robust | Not across hospitals (above) |
+| Stage 3b runs on flagged teeth (silent on testing) | Validated on 133 crops, never tested |
+| 200-fold area difference | About 34-fold |
+| All intervals 10,000 resamples | Calibration intervals: 2,000, over 34 images |
+| First arm to beat the constant on unseen data | First whose pooled lead excluded zero |
+| Table V on 164 images | 148 |
+| Every evaluation artefact records weight hashes | The defaults are checked before loading; every report records them |
+| (14 Oct) each scored image as far from training as training images from each other | True of the distribution only |
+
+**Published practice the paper now cites.** Cross-centre failure of a dental panoramic model
+(Krois et al. 2021); the dental-AI reporting checklist (Schwendicke et al. 2021); a two-step
+enumeration-then-caries detector with external lesion-level sensitivity (Bizjak & Robič 2024); the
+source of UFBA-425 (Budagam et al. 2024). Practice found but not acted on, for the authors: report
+abstention per cohort, since calibration and declining degrade under shift (Ovadia et al. 2019);
+vary more than the seed when estimating training variance (Bouthillier et al. 2021); patient-level
+splits (leakage literature); false positives per image and patient-level specificity for a
+caries detector (as Bizjak & Robič report).
+
+### 8.43 The reference standard is panoramic — part of the molar prior may be a labelling prior
+
+*2 Nov 2026. `RESULTS_LOG` 2026-11-02c. Raised by the oral-radiology seat of review round 1; a
+wording change only, nothing re-read or re-scored.*
+
+DENTEX's caries labels were drawn on panoramic radiographs alone. Panoramic images detect proximal
+caries less accurately than bitewings (Akarslan et al., *Dentomaxillofac. Radiol.* 2008), so the
+expert lesions are a subset of disease. The image-blind floor is defined against the labels a study
+uses, and the paper's argument concerns scores against those labels, so the floor still stands.
+But part of the molar prior may describe what panoramic labels capture rather than where caries
+is. The ten-page draft states this in Limitations. A re-read of a sample against bitewings would
+measure it and is not planned. The molar prior's epidemiological footing is now cited (first molars
+as the most caries-susceptible teeth: Batchelor & Sheiham, *BMC Oral Health* 2004). The prior, and
+with it the floor, depends on the population's age and exposure.
+
+### 8.44 What the round-1 analyses cannot settle
+
+*2 Nov 2026. `RESULTS_LOG` 2026-11-02d.*
+
+- **The Ningxia lead remains site-conditional.** The HKSJ interval is wider than DerSimonian–Laird
+  and includes zero. The between-site SD could be anywhere from 3 to 33 points with four sites.
+- **Per-tooth-type precision is shown on development data only.** The external comparison needs a
+  re-run on the raw Ningxia images, and the saved outputs cannot answer it.
+- **The duplicate checks find copies, not patients.** MD5 and perceptual hashing catch the same
+  radiograph re-encoded, resized or cropped. They cannot catch a second radiograph of the same
+  patient taken on another day. DENTEX releases no patient identifiers.
+- **The constant's membership is unstable.** Only about a quarter of refits return exactly the
+  eight molars. The paper should cite the floor's score (stable), not its exact set (not stable).
+
+---
+
+### 8.45 The development-data F1 lead of the crop classifier, and what DENTEX lesions are
+
+*23 Nov 2026. `RESULTS_LOG` 2026-11-23.*
+
+- **The crop classifier's +4.27 F1 lead on DENTEX does not survive a constant restricted to detected
+  teeth** (+0.41 [−2.24, +3.14]). Any sentence saying the gate pipeline beats the constant on DENTEX
+  F1 must name the unrestricted constant or be withdrawn. The lesion detector's lead survives.
+- **DENTEX caries annotations outline whole teeth.** "Lesion agreement" on DENTEX is tooth-level, and
+  "479 lesions" should read "479 annotated carious-tooth outlines".
+- **Cross-machine reproducibility is imperfect.** 12 of 164 images differ between the Windows and
+  macOS runs of the default pipeline, the second such difference after 0.294 vs 0.300.
+
+---
+
+### 8.46 Stage 3b retrained and tested once: eligible, but the shipped head is still untested
+
+*24 Nov 2026. `RESULTS_LOG` 2026-11-24; protocol `outputs/caries_severity_v2/PRE_REGISTRATION.md`
+(`cf3090a`); seeds frozen in `f8bc016` before the test pass.*
+
+**Method.**
+
+- **Why a retrain.** The shipped caries-severity head (`models/07`) was trained on crops of all
+  705 radiographs of DENTEX's training release, and tuned and reported on the same 133 crops of
+  the separate 50-image release. It has no held-out figure and cannot be given one.
+- **Model.** The same ResNet18, retrained from ImageNet weights with Stage 4a/4b's recipe and a
+  class-weighted loss.
+- **Data.** Tight annotation-box crops (the pipeline's caries crop contract) of the `Caries` and
+  `Deep Caries` annotations under `data/dentex/splits_v2.json`: train 1,964 crops on 456
+  radiographs, val 408 on 96.
+- **Seeds.** Three, each trained once; seed 42 was fixed in advance.
+- **Test.** One pass on 395 test crops from 98 radiographs, against three image-blind priors.
+
+**Result.**
+
+- **Seed 42: macro-F1 0.772 [0.711, 0.828]** (validation 0.773). The other two seeds gave 0.745
+  and 0.817.
+- **Against the priors.** The strongest image-blind prior (deep caries where a tooth code's
+  training deep rate exceeds the overall rate) reached 0.483. Seed 42 minus it: +0.290
+  [+0.209, +0.367]. **Eligible.**
+- **The deep-caries call.** Precision 66/116 (56.9%), recall 66/84 (78.6%).
+- **On extern50** (the crops `models/07` was tuned on): seed 42 scores 0.748, `models/07` 0.738.
+  The difference, +0.010 [−0.084, +0.109], is not separable.
+- **The shipped head reproduces lower.** It scores 0.738, not its notebook's 0.77, under the
+  pipeline's argmax on the regenerated crops. Cause not investigated.
+
+**What the paper may say.** Protocol §8, filled in:
+
+> "Retrained on DENTEX's image-level split, the caries-severity head (caries vs deep caries, as
+> annotated) reached macro-F1 0.772 [0.711, 0.828] on 395 held-out crops from 98 radiographs,
+> against 0.483 for the strongest image-blind prior; two further runs gave 0.745 and 0.817. The
+> crops are annotation boxes of truly carious teeth; in the pipeline the head grades detector
+> boxes of flagged teeth, some of which carry no caries."
+
+This sentence describes `models/20`. It may be used for the shipped pipeline **only if** the
+decision owner adopts seed 42 as `DEF_CARIES_SEVERITY`. Until then, Table 3's "133 validation
+crops, no test; no claim" stays true of the shipped head, and the paper may at most add that a
+retrained head of the same architecture was tested.
+
+**Adopted the same day** (`RESULTS_LOG` 2026-11-24b). The sentence above now describes the shipped
+head. `research_paper/` was updated: Section IV, the Table 3 row, the Figure-4 record (both
+severity scores, each named) and the caveats. Its PDFs are not yet rebuilt. Parity: no caries flag
+changed; 10 of 40 flagged teeth in 8 reports changed grade.
+
+**What it is not.**
+
+- **Not evidence the shipped head is wrong.** The two are not separable on extern50.
+- **Not a pipeline test.** The detector boxes and the flagged teeth without caries are not in it.
+- **Not a clinical depth grade.** The label is one annotation round.
+- **Not a strong result.**
+  - The priors are weak for this label (0.44–0.48): tooth position carries little information
+    about depth.
+  - About four in ten deep-caries calls on truly carious teeth are wrong (50 of 116 for seed 42).
+
+---
+
 ## 9. What's not yet written — checklist
 
 For whoever drafts the actual paper. Tick items off here as they land.
@@ -3011,6 +3221,11 @@ For whoever drafts the actual paper. Tick items off here as they land.
       detector's own development figure beside the gate's, its DENTEX tie on lesion agreement,
       no "domain shift" in the title or keywords, no periodontal opening. The six disclosure
       fixes of the same council are **done in the 15-page text** (`RESULTS_LOG` 2026-10-14e).
+- [x] **Correct what the text claimed beyond its artefacts** (§8.42, 15 Oct 2026): 24 edits in
+      the 15-page `main.tex`, the Ningxia random-effects sentence, three citations
+      (`RESULTS_LOG` 2026-10-15). The cut carries them.
+- [ ] **Optional, the authors' call** (§8.42): abstention per cohort under shift; Tufts in the
+      patient-level limitation; false positives per image for the lesion detector.
 - [x] **Decide which front end the manuscript reports, and make every table say so** (§8.30,
       11 Oct 2026). **Decided 11 Oct: the current one. `main.tex` was rebuilt the same day**
       (`RESULTS_LOG` 2026-10-11k): every table and the headline re-stated, the override of the
@@ -3159,6 +3374,63 @@ For whoever drafts the actual paper. Tick items off here as they land.
       subtype, showing the gate over-calls healthy teeth (19.2%) at the same rate as impacted
       ones (19.0%), so it is not confusing pathology-for-pathology; plus a visual panel of the
       highest-confidence false positives and most-missed false negatives.
+- [~] **Real-radiograph figures and current training curves — in the mentor draft, not yet in
+      `main.tex`. Done 28 Oct 2026** (`RESULTS_LOG` 2026-10-28,
+      `scripts/figures/make_opg_figures.py`): an OPG reading guide, every stage on one held-out
+      DENTEX radiograph, rule-chosen outputs against the expert beside the constant (7/7, 2/3, 0/4
+      lesions found), and the training logs of all four trained stages under the current defaults.
+      Open: whether they go into `main.tex` and the six-page cut, and the DENTEX share-alike
+      question (§8.19). **Extended 28 Oct 2026 (b)** to a ten-page draft with a theory section
+      (§6.8), an architecture figure, a paired-difference forest plot with the random-effects
+      prediction interval, and a numbering/selective-prediction/reliability figure
+      (`scripts/figures/make_draft_figures.py`, `RESULTS_LOG` 2026-10-28b).
+- [x] **`main.tex`'s reference list prints `paper/source.bib`'s curation notes.** Found 28 Oct
+      2026: IEEEtran prints the `note` field, so `paper/main.bbl` carried text such as "checked
+      Crossref by title and by author 4 Sep 2026, no match" (Bizjak), "Distinct from the unrelated
+      Mure\c{s}anu 2024 …" (Eftimie) and "Metadata verified against the Crossref record" (Meng).
+      **Done 2 Nov 2026** (`RESULTS_LOG` 2026-11-02): 12 curation notes moved to `annote`;
+      `main.tex` rebuilt, its reference list no longer prints them.
+- [x] **Bibliography audit against Crossref, OpenAlex, Semantic Scholar and arXiv — done 2 Nov
+      2026** (`RESULTS_LOG` 2026-11-02, `outputs/citation_audit/2026-11-02_ars/`), with the
+      academic-research-skills resolver clients. Fixed in `source.bib` (so in `main.tex` too): the
+      Zancan link (pointed to an unrelated PMC article) and issue; the Bilal link (wrong IEEE
+      document); Bizjak issue and pages; Mutlu volume and pages; DENTEX title; the YOLO11 software
+      citation; two "and Others". 14 verified citations added for the ten-page draft.
+- [~] **Ten-page draft: integrity gate passed, review round 1 = Major revision — text items
+      and four of five analyses applied** (`RESULTS_LOG` 2026-11-02b, 2026-11-02c, 2026-11-02d,
+      `paper/ieee/review/`). Stage 2.5 failed first on two
+      MEDIUM issues (post-hoc Table 7 framed as predictions; a Table 3 tooth count), fixed and
+      re-verified. The five-seat panel (one model, persona-separated) asks for: rewording of the RQ2
+      conclusion (validated Devil's Advocate CRITICAL), HKSJ beside DerSimonian–Laird, a DENTEX
+      near-duplicate check, the panoramic reference-standard limitation, severity validation or a
+      caveat, stronger shortcut controls (learned position-only floor, content ablation, site probe),
+      and a code/data availability statement. 21-item roadmap in `2026-11-02_panel_round1.md`. Several
+      items (RQ2 wording, HKSJ, the reference-standard limitation, availability) apply to `main.tex`
+      too.
+      Revision of 2 Nov (`2026-11-02_response_round1.md`): 10 items done, 5 partial, 6 planned or
+      open. Still to do: HKSJ, the perceptual-hash check, constant stability, the image-blind operating
+      curve, the Ningxia per-type comparison, item 10's experiments, the availability statement, and
+      the CPU model. `main.tex`'s RQ2 sentence was checked and already carries the caveats; the
+      reference-standard limitation (§8.43) is not yet in `main.tex`.
+      Analyses of 2 Nov (§7.7, §8.44): HKSJ, constant stability, operating curve and matched volume,
+      and the DENTEX near-duplicate check are done and in the draft. The Ningxia per-type comparison
+      waits for the raw images. Open: item 10's experiments, item 11's availability statement, the
+      CPU model, then the Stage 3′ re-review. Not yet in `main.tex`: HKSJ, matched volume,
+      near-duplicate check.
+- [ ] **`main.tex` describes Ningxia as "four hospitals" and cites Li et al. for it.** Li et al.
+      2024 describe three hospitals (two in Ningxia, one in Shenzhen); the four test splits, test2
+      from the training centre and three cross-centre, come from the release's ReadMe. The
+      ten-page draft now says "four sites" and states the discrepancy; `main.tex` does not yet.
+- [ ] **`main.tex` cites Cao et al. 2024 for "95.06 → 61.83 mAP on a public benchmark".** The
+      95.06 own-data figure was verified before (comment in `source.bib`); the 61.83 could not be
+      checked on 2 Nov — the article is paywalled and no index carries its abstract. Verify from the
+      full text or drop it; the ten-page draft dropped it and cites Mutlu et al.'s verified 0.857 →
+      0.806 instead.
+- [ ] **`main.tex`-only bibliography follow-ups from the 2 Nov audit:** year disagrees with
+      Crossref for `schwendicke2021cost` (2021 vs 2020), `khubrani2025detection` (2025 vs 2024) and
+      `zhou2025deep` (2025 vs 2026) — check print vs online year; odd Crossref first-author fields
+      for `sastika2025ai` and `vickram2025extraction`; `zhu2026dentfound` carries a published
+      correction (10.1038/s41551-026-01759-8).
 - [ ] Failure-case figure panel: the 10 false negatives and 7 false positives from the
       bone-loss confusion matrix, with Grad-CAM. **Blocked** on the bone-loss crop rebuild
       (RESULTS_LOG 2026-08-27u). A caries failure panel is buildable from `crops_v3_phase1`.
@@ -3190,6 +3462,11 @@ For whoever drafts the actual paper. Tick items off here as they land.
         wrong number behind a real-looking interval. The original un-rotated Tufts radiographs
         needed to redo this properly were searched for directly (every drive letter, OneDrive)
         and confirmed absent from this machine, not merely assumed absent.
+        > **Superseded (noted 27 Oct 2026).** Not blocked on availability: the original crops
+        > were in the project Drive (`RESULTS_LOG` 2026-09-07). And no longer needed for the
+        > paper: since 13 Oct Stage 4a is retrained on a radiograph-level split and reported as
+        > three held-out runs with radiograph-cluster intervals (`RESULTS_LOG` 2026-10-13b, -c);
+        > the crop-level 0.923 is quoted only as the figure that retraining replaced.
 - [x] Figures for Stages 3/4: training curves and confusion matrices. **Done 27 Aug 2026** —
       **regenerated** from committed artifacts rather than recovered from the archive, so both
       figure and numbers are reproducible from the repo (§8.18):
@@ -3243,6 +3520,10 @@ For whoever drafts the actual paper. Tick items off here as they land.
       recall 0.74 → 0.35.
 - [ ] Threshold sweep for the bone-loss decision boundary, reported as a PR curve rather
       than a single operating point.
+
+- [ ] **(23 Nov 2026)** Carry the `research_paper/` corrections into `paper/main.tex` if it stays the
+      maintained manuscript: restricted constant (§8.45), DENTEX tooth-level annotations, Ningxia's role
+      in the Stage-1 choice, Lipton et al. 2014 at the selection rule. See `research_paper/reviewer_report.md`.
 
 ---
 

@@ -1,0 +1,907 @@
+[
+ {
+  "key": "hamamci2023dentex",
+  "title": "DENTEX: Dental Enumeration and Tooth Pathosis Detection Benchmark for Panoramic X-ray",
+  "year": 2023,
+  "doi": "10.48550/arXiv.2305.19112",
+  "arxiv": "2305.19112",
+  "first_author": "hamamci",
+  "venue": "arXiv preprint",
+  "resolvers": {
+   "crossref": {
+    "outcome": "unmatched",
+    "query": "doi"
+   },
+   "crossref_title": {
+    "outcome": "unmatched",
+    "query": "title"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "unreachable",
+    "query": "doi+title",
+    "error": "S2 API HTTP 429 after 3 retries"
+   },
+   "arxiv": {
+    "outcome": "matched",
+    "query": "arxiv_id"
+   }
+  },
+  "lookup_verified": "true",
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "panetta2022tufts",
+  "title": "Tufts Dental Database: A Multimodal Panoramic X-Ray Dataset for Benchmarking Diagnostic Systems",
+  "year": 2022,
+  "doi": "10.1109/jbhi.2021.3117575",
+  "arxiv": null,
+  "first_author": "panetta",
+  "venue": "IEEE Journal of Biomedical and Health Informatics",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "unreachable",
+    "query": "doi+title",
+    "error": "S2 API HTTP 429 after 3 retries"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "Tufts Dental Database: A Multimodal Panoramic X-Ray Dataset for Benchmarking Diagnostic Systems",
+   "year": 2022,
+   "first_author": "panetta",
+   "venue": "IEEE Journal of Biomedical and Health Informatics",
+   "doi": "10.1109/jbhi.2021.3117575",
+   "volume": "26",
+   "page": "1650-1659",
+   "type": "journal-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "chen2024cariesxrays",
+  "title": "CariesXrays: Enhancing Caries Detection in Hospital-Scale Panoramic Dental X-rays via Feature Pyramid Contrastive Learning",
+  "year": 2024,
+  "doi": "10.1609/aaai.v38i20.30196",
+  "arxiv": null,
+  "first_author": "chen",
+  "venue": "Proceedings of the AAAI Conference on Artificial Intelligence",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "unreachable",
+    "query": "doi+title",
+    "error": "S2 API HTTP 429 after 3 retries"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "CariesXrays: Enhancing Caries Detection in Hospital-Scale Panoramic Dental X-rays via Feature Pyramid Contrastive Learning",
+   "year": 2024,
+   "first_author": "chen",
+   "venue": "Proceedings of the AAAI Conference on Artificial Intelligence",
+   "doi": "10.1609/aaai.v38i20.30196",
+   "volume": "38",
+   "page": "21940-21948",
+   "type": "journal-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "li2024multicenter",
+  "title": "A Multi-center Dental Panoramic Radiography Image Dataset for Impacted Teeth, Periodontitis, and Dental Caries: Benchmarking Methods and Deep Learning Models",
+  "year": 2024,
+  "doi": "10.1007/s10278-024-00972-8",
+  "arxiv": null,
+  "first_author": "li",
+  "venue": "Journal of Imaging Informatics in Medicine",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "unreachable",
+    "query": "doi+title",
+    "error": "S2 API HTTP 429 after 3 retries"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "A Multi-center Dental Panoramic Radiography Image Dataset for Impacted Teeth, Periodontitis, and Dental Caries: Benchmarking Segmentation and Classification Tasks",
+   "year": 2024,
+   "first_author": "li",
+   "venue": "Journal of Imaging Informatics in Medicine",
+   "doi": "10.1007/s10278-024-00972-8",
+   "volume": "37",
+   "page": "831-841",
+   "type": "journal-article"
+  },
+  "title_sim": 0.856,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "he2016resnet",
+  "title": "Deep Residual Learning for Image Recognition",
+  "year": 2016,
+  "doi": "10.1109/cvpr.2016.90",
+  "arxiv": null,
+  "first_author": "he",
+  "venue": "2016 IEEE Conference on Computer Vision and Pattern Recognition (CVPR)",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "unreachable",
+    "query": "doi+title",
+    "error": "S2 API HTTP 429 after 3 retries"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "Deep Residual Learning for Image Recognition",
+   "year": 2016,
+   "first_author": "he",
+   "venue": "2016 IEEE Conference on Computer Vision and Pattern Recognition (CVPR)",
+   "doi": "10.1109/cvpr.2016.90",
+   "volume": null,
+   "page": "770-778",
+   "type": "proceedings-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "kuhn1955hungarian",
+  "title": "The Hungarian method for the assignment problem",
+  "year": 1955,
+  "doi": "10.1002/nav.3800020109",
+  "arxiv": null,
+  "first_author": "kuhn",
+  "venue": "Naval Research Logistics Quarterly",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "unreachable",
+    "query": "doi+title",
+    "error": "S2 API HTTP 429 after 3 retries"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "The Hungarian method for the assignment problem",
+   "year": 1955,
+   "first_author": "kuhn",
+   "venue": "Naval Research Logistics Quarterly",
+   "doi": "10.1002/nav.3800020109",
+   "volume": "2",
+   "page": "83-97",
+   "type": "journal-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "bai2025qwen25vl",
+  "title": "Qwen2.5-VL Technical Report",
+  "year": 2025,
+  "doi": "10.48550/arXiv.2502.13923",
+  "arxiv": "2502.13923",
+  "first_author": "bai",
+  "venue": "arXiv preprint",
+  "resolvers": {
+   "crossref": {
+    "outcome": "unmatched",
+    "query": "doi"
+   },
+   "crossref_title": {
+    "outcome": "unmatched",
+    "query": "title"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "matched",
+    "query": "doi+title"
+   },
+   "arxiv": {
+    "outcome": "matched",
+    "query": "arxiv_id"
+   }
+  },
+  "lookup_verified": "true",
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "geirhos2020shortcut",
+  "title": "Shortcut learning in deep neural networks",
+  "year": 2020,
+  "doi": "10.1038/s42256-020-00257-z",
+  "arxiv": null,
+  "first_author": "geirhos",
+  "venue": "Nature Machine Intelligence",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "unreachable",
+    "query": "doi+title",
+    "error": "S2 API HTTP 429 after 3 retries"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "Shortcut learning in deep neural networks",
+   "year": 2020,
+   "first_author": "geirhos",
+   "venue": "Nature Machine Intelligence",
+   "doi": "10.1038/s42256-020-00257-z",
+   "volume": "2",
+   "page": "665-673",
+   "type": "journal-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "guo2017calibration",
+  "title": "On Calibration of Modern Neural Networks",
+  "year": 2017,
+  "doi": "10.48550/arXiv.1706.04599",
+  "arxiv": "1706.04599",
+  "first_author": "guo",
+  "venue": "Proceedings of the 34th International Conference on Machine Learning",
+  "resolvers": {
+   "crossref": {
+    "outcome": "unmatched",
+    "query": "doi"
+   },
+   "crossref_title": {
+    "outcome": "unmatched",
+    "query": "title"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "unreachable",
+    "query": "doi+title",
+    "error": "S2 API HTTP 429 after 3 retries"
+   },
+   "arxiv": {
+    "outcome": "matched",
+    "query": "arxiv_id"
+   }
+  },
+  "lookup_verified": "true",
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "zadrozny2002isotonic",
+  "title": "Transforming classifier scores into accurate multiclass probability estimates",
+  "year": 2002,
+  "doi": "10.1145/775047.775151",
+  "arxiv": null,
+  "first_author": "zadrozny",
+  "venue": "Proceedings of the 8th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "matched",
+    "query": "doi+title"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "Transforming classifier scores into accurate multiclass probability estimates",
+   "year": 2002,
+   "first_author": "zadrozny",
+   "venue": "Proceedings of the eighth ACM SIGKDD international conference on Knowledge discovery and data mining",
+   "doi": "10.1145/775047.775151",
+   "volume": null,
+   "page": "694-699",
+   "type": "proceedings-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "cerda2024determining",
+  "title": "Determining the efficacy of a machine learning model for measuring periodontal bone loss",
+  "year": 2024,
+  "doi": "10.1186/s12903-023-03819-w",
+  "arxiv": null,
+  "first_author": "mardini",
+  "venue": "BMC Oral Health",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "unreachable",
+    "query": "doi+title",
+    "error": "S2 API HTTP 429 after 3 retries"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "\u201cDetermining the efficacy of a machine learning model for measuring periodontal bone loss\u201d",
+   "year": 2024,
+   "first_author": "cerda mardini",
+   "venue": "BMC Oral Health",
+   "doi": "10.1186/s12903-023-03819-w",
+   "volume": "24",
+   "page": null,
+   "type": "journal-article"
+  },
+  "title_sim": 0.989,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "bilal2024pdcnet",
+  "title": "PDCNET: Deep Convolutional Neural Network for Classification of Periodontal Disease Using Dental Radiographs",
+  "year": 2024,
+  "doi": "10.1109/access.2024.3472012",
+  "arxiv": null,
+  "first_author": "bilal",
+  "venue": "IEEE Access",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "matched",
+    "query": "doi+title"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "PDCNET: Deep Convolutional Neural Network for Classification of Periodontal Disease Using Dental Radiographs",
+   "year": 2024,
+   "first_author": "bilal",
+   "venue": "IEEE Access",
+   "doi": "10.1109/access.2024.3472012",
+   "volume": "12",
+   "page": "150147-150168",
+   "type": "journal-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "zancan2025ai",
+  "title": "AI-powered precision in dental radiographic analysis using tailored CNNs for tooth numbering and cavity detection",
+  "year": 2025,
+  "doi": "10.1371/journal.pdig.0001074",
+  "arxiv": null,
+  "first_author": "zancan",
+  "venue": "PLOS Digital Health",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "unreachable",
+    "query": "doi+title",
+    "error": "S2 API HTTP 429 after 3 retries"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "AI-powered precision in dental radiographic analysis using tailored CNNs for tooth numbering and cavity detection",
+   "year": 2025,
+   "first_author": "zancan",
+   "venue": "PLOS Digital Health",
+   "doi": "10.1371/journal.pdig.0001074",
+   "volume": "4",
+   "page": "e0001074",
+   "type": "journal-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "cao2024dpml",
+  "title": "DPML: Prior-guided multitask learning for dental object recognition on limited panoramic radiograph dataset",
+  "year": 2024,
+  "doi": "10.1016/j.eswa.2024.124446",
+  "arxiv": null,
+  "first_author": "cao",
+  "venue": "Expert Systems with Applications",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "matched",
+    "query": "doi+title"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "DPML: Prior-guided multitask learning for dental object recognition on limited panoramic radiograph dataset",
+   "year": 2024,
+   "first_author": "cao",
+   "venue": "Expert Systems with Applications",
+   "doi": "10.1016/j.eswa.2024.124446",
+   "volume": "254",
+   "page": "124446",
+   "type": "journal-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "bizjak2024advancing",
+  "title": "Advancing Dental Caries Detection in Panoramic X-rays: A Two-Step Deep Learning Approach",
+  "year": 2024,
+  "doi": null,
+  "arxiv": null,
+  "first_author": "bizjak",
+  "venue": "Informatica Medica Slovenica",
+  "resolvers": {
+   "crossref_title": {
+    "outcome": "unmatched",
+    "query": "title"
+   },
+   "openalex_title": {
+    "outcome": "unmatched",
+    "query": "title"
+   },
+   "semantic_scholar": {
+    "outcome": "unmatched",
+    "query": "title"
+   }
+  },
+  "lookup_verified": "unresolvable"
+ },
+ {
+  "key": "budagam2024oralbbnet",
+  "title": "OralBBNet: Spatially Guided Dental Segmentation of Panoramic X-Rays with Bounding Box Priors",
+  "year": 2024,
+  "doi": null,
+  "arxiv": "2406.03747",
+  "first_author": "budagam",
+  "venue": "arXiv:2406.03747",
+  "resolvers": {
+   "crossref_title": {
+    "outcome": "unmatched",
+    "query": "title"
+   },
+   "openalex_title": {
+    "outcome": "matched",
+    "query": "title"
+   },
+   "semantic_scholar": {
+    "outcome": "unreachable",
+    "query": "title",
+    "error": "S2 API HTTP 429 after 3 retries"
+   },
+   "arxiv": {
+    "outcome": "matched",
+    "query": "arxiv_id"
+   }
+  },
+  "lookup_verified": "true"
+ },
+ {
+  "key": "hao2025mmoral",
+  "title": "Towards Better Dental AI: A Multimodal Benchmark and Instruction Dataset for Panoramic X-ray Analysis",
+  "year": 2025,
+  "doi": "10.48550/arXiv.2509.09254",
+  "arxiv": "2509.09254",
+  "first_author": "hao",
+  "venue": "Advances in Neural Information Processing Systems (NeurIPS 2025), Datasets and Benchmarks Track",
+  "resolvers": {
+   "crossref": {
+    "outcome": "unmatched",
+    "query": "doi"
+   },
+   "crossref_title": {
+    "outcome": "matched",
+    "query": "title"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "unreachable",
+    "query": "doi+title",
+    "error": "S2 API HTTP 429 after 3 retries"
+   },
+   "arxiv": {
+    "outcome": "matched",
+    "query": "arxiv_id"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "Towards Better Dental AI: A Multimodal Benchmark and Instruction Dataset for Panoramic X-ray Analysis",
+   "year": 2025,
+   "first_author": "hao",
+   "venue": "Advances in Neural Information Processing Systems 38",
+   "doi": "10.52202/085713-1306",
+   "volume": null,
+   "page": "43765-43813",
+   "type": "proceedings-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "jocher2024yolo11",
+  "title": "Ultralytics YOLO11",
+  "year": 2024,
+  "doi": null,
+  "arxiv": null,
+  "first_author": "jocher",
+  "venue": "Software, version 8.3",
+  "resolvers": {
+   "crossref_title": {
+    "outcome": "unmatched",
+    "query": "title"
+   },
+   "openalex_title": {
+    "outcome": "unmatched",
+    "query": "title"
+   },
+   "semantic_scholar": {
+    "outcome": "unreachable",
+    "query": "title",
+    "error": "S2 API HTTP 429 after 3 retries"
+   }
+  },
+  "lookup_verified": "unresolvable"
+ },
+ {
+  "key": "krois2021generalizability",
+  "title": "Generalizability of deep learning models for dental image analysis",
+  "year": 2021,
+  "doi": "10.1038/s41598-021-85454-5",
+  "arxiv": null,
+  "first_author": "krois",
+  "venue": "Scientific Reports",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "matched",
+    "query": "doi+title"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "Generalizability of deep learning models for dental image analysis",
+   "year": 2021,
+   "first_author": "krois",
+   "venue": "Scientific Reports",
+   "doi": "10.1038/s41598-021-85454-5",
+   "volume": "11",
+   "page": null,
+   "type": "journal-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "lim2024dual",
+  "title": "Dual convolutional neural network framework for segmenting dental caries in panoramic radiographs",
+  "year": 2026,
+  "doi": "10.1016/j.prosdent.2025.09.040",
+  "arxiv": null,
+  "first_author": "lim",
+  "venue": "Journal of Prosthetic Dentistry",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "unreachable",
+    "query": "doi+title",
+    "error": "S2 API HTTP 429 after 3 retries"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "Dual convolutional neural network framework for segmenting dental caries in panoramic radiographs",
+   "year": 2026,
+   "first_author": "lim",
+   "venue": "The Journal of Prosthetic Dentistry",
+   "doi": "10.1016/j.prosdent.2025.09.040",
+   "volume": "135",
+   "page": "403.e1-403.e8",
+   "type": "journal-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "meng2026dentvlm",
+  "title": "A multimodal vision-language model for comprehensive dental diagnosis and enhanced clinical practice",
+  "year": 2026,
+  "doi": "10.1038/s41467-026-75718-x",
+  "arxiv": null,
+  "first_author": "meng",
+  "venue": "Nature Communications",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "unreachable",
+    "query": "doi+title",
+    "error": "S2 API HTTP 429 after 3 retries"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "A multimodal vision-language model for comprehensive dental diagnosis and enhanced clinical practice",
+   "year": 2026,
+   "first_author": "meng",
+   "venue": "Nature Communications",
+   "doi": "10.1038/s41467-026-75718-x",
+   "volume": "17",
+   "page": null,
+   "type": "journal-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "mutlu2026comparison",
+  "title": "Deep Learning--Based Automated Diagnostic Charting on Panoramic Radiography: Comparison of YOLOv11 and YOLOv12",
+  "year": 2026,
+  "doi": "10.1007/s10266-026-01333-3",
+  "arxiv": null,
+  "first_author": "mutlu",
+  "venue": "Odontology",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "unreachable",
+    "query": "doi+title",
+    "error": "S2 API HTTP 429 after 3 retries"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "Deep Learning\u2013Based Automated Diagnostic Charting on Panoramic Radiography: Comparison of YOLOv11 and YOLOv12",
+   "year": 2026,
+   "first_author": "mutlu",
+   "venue": "Odontology",
+   "doi": "10.1007/s10266-026-01333-3",
+   "volume": "114",
+   "page": "2658-2668",
+   "type": "journal-article"
+  },
+  "title_sim": 0.991,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ },
+ {
+  "key": "zhang2025reliable",
+  "title": "A Reliable Multi-Stage System for Tooth Instance Segmentation and Numbering in Panoramic Radiographs",
+  "year": 2025,
+  "doi": "10.1109/JBHI.2025.3643805",
+  "arxiv": null,
+  "first_author": "zhang",
+  "venue": "IEEE Journal of Biomedical and Health Informatics",
+  "resolvers": {
+   "crossref": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "openalex": {
+    "outcome": "matched",
+    "query": "doi"
+   },
+   "semantic_scholar": {
+    "outcome": "matched",
+    "query": "doi+title"
+   }
+  },
+  "lookup_verified": "true",
+  "crossref_meta": {
+   "title": "A Reliable Multi-Stage System for Tooth Instance Segmentation and Numbering in Panoramic Radiographs",
+   "year": 2025,
+   "first_author": "zhang",
+   "venue": "IEEE Journal of Biomedical and Health Informatics",
+   "doi": "10.1109/jbhi.2025.3643805",
+   "volume": null,
+   "page": "1-13",
+   "type": "journal-article"
+  },
+  "title_sim": 1.0,
+  "year_match": true,
+  "author_match": true,
+  "retraction": {
+   "status": "checked",
+   "notices": []
+  }
+ }
+]

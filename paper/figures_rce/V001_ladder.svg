@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="222" viewBox="0 0 640 222" font-family="Helvetica, Arial, sans-serif" font-size="12" role="img" aria-labelledby="t d" data-visual-id="V001" data-representation="bar_h" data-domain-lo="0" data-domain-hi="0.35" data-plot-left="215" data-plot-right="616" data-min-font="12">
+<title id="t">FDI-set F1, 164 DENTEX images</title>
+<desc id="d">Horizontal bars of FDI-set F1: constant 0.3197, pipeline 0.2936, Qwen2.5-VL-32B 0.2465, Qwen2.5-VL-7B 0.1493.</desc>
+<metadata>{&quot;domain&quot;: [0.0, 0.35], &quot;representation&quot;: &quot;bar_h&quot;, &quot;source_file&quot;: &quot;.rcs/plan/figure_data/v001_ladder.csv&quot;, &quot;visual_id&quot;: &quot;V001&quot;}</metadata>
+<rect width="640" height="222" fill="#ffffff"/>
+<text x="215" y="22" font-size="13" font-weight="bold">FDI-set F1, 164 DENTEX images</text>
+<line x1="215.00" y1="40" x2="215.00" y2="152" stroke="#dddddd"/>
+<text class="tick" data-axis="x" data-pos="215.00" x="215.00" y="168" text-anchor="middle">0.0</text>
+<line x1="329.57" y1="40" x2="329.57" y2="152" stroke="#dddddd"/>
+<text class="tick" data-axis="x" data-pos="329.57" x="329.57" y="168" text-anchor="middle">0.1</text>
+<line x1="444.14" y1="40" x2="444.14" y2="152" stroke="#dddddd"/>
+<text class="tick" data-axis="x" data-pos="444.14" x="444.14" y="168" text-anchor="middle">0.2</text>
+<line x1="558.71" y1="40" x2="558.71" y2="152" stroke="#dddddd"/>
+<text class="tick" data-axis="x" data-pos="558.71" x="558.71" y="168" text-anchor="middle">0.3</text>
+<line x1="215" y1="152" x2="616" y2="152" stroke="#333333"/>
+<text x="415.50" y="188" text-anchor="middle">FDI-set F1 (micro)</text>
+<text class="category" x="205" y="58.00" text-anchor="end">Constant (image never read)</text>
+<g class="mark" data-x="Constant (image never read)" data-y="0.3197" data-series="" data-cx="581.28" data-cy="54.00"><rect x="215.00" y="45.00" width="366.28" height="18" fill="#0072B2" data-px-start="215.00" data-px-end="581.28"/></g>
+<text class="category" x="205" y="86.00" text-anchor="end">Pipeline (gate variant)</text>
+<g class="mark" data-x="Pipeline (gate variant)" data-y="0.2936" data-series="" data-cx="551.38" data-cy="82.00"><rect x="215.00" y="73.00" width="336.38" height="18" fill="#0072B2" data-px-start="215.00" data-px-end="551.38"/></g>
+<text class="category" x="205" y="114.00" text-anchor="end">Qwen2.5-VL-32B 0-shot</text>
+<g class="mark" data-x="Qwen2.5-VL-32B 0-shot" data-y="0.2465" data-series="" data-cx="497.42" data-cy="110.00"><rect x="215.00" y="101.00" width="282.42" height="18" fill="#0072B2" data-px-start="215.00" data-px-end="497.42"/></g>
+<text class="category" x="205" y="142.00" text-anchor="end">Qwen2.5-VL-7B 0-shot</text>
+<g class="mark" data-x="Qwen2.5-VL-7B 0-shot" data-y="0.1493" data-series="" data-cx="386.06" data-cy="138.00"><rect x="215.00" y="129.00" width="171.06" height="18" fill="#0072B2" data-px-start="215.00" data-px-end="386.06"/></g>
+</svg>

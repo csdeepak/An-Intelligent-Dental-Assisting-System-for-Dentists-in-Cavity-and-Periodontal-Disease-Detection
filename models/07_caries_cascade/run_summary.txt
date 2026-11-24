@@ -1,6 +1,9 @@
 CARIES CASCADE — ResNet18 x2 (DENTEX)
 Version tag: caries-cascade-resnet18-v1.0
 Frozen and recorded: 21 August 2026
+Superseded: 24 November 2026 -- phase2_final_bundle.pth is no longer DEF_CARIES_SEVERITY; the
+            default is models/20_caries_severity_v2/seed42_best.pth (RESULTS_LOG 2026-11-24b).
+            Retained, still pinned, reachable with --caries-severity.
 
 Until this date the caries branch was the only trained stage in the project with no local
 weight, no version tag and no hash — the checkpoints existed solely in a Kaggle notebook's

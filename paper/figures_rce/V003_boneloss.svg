@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="250" viewBox="0 0 640 250" font-family="Helvetica, Arial, sans-serif" font-size="12" role="img" aria-labelledby="t d" data-visual-id="V003" data-representation="dot_ci" data-domain-lo="0" data-domain-hi="10" data-plot-left="68" data-plot-right="616" data-min-font="12">
+<title id="t">External bone-loss sensitivity</title>
+<desc id="d">Dot plot of sensitivity per site with intervals: test1 2.4, test2 1.38, test3 5.6, test4 4.58, pooled 2.43 percent.</desc>
+<metadata>{&quot;domain&quot;: [0, 10], &quot;representation&quot;: &quot;dot_ci&quot;, &quot;source_file&quot;: &quot;.rcs/plan/figure_data/v003_boneloss.csv&quot;, &quot;visual_id&quot;: &quot;V003&quot;}</metadata>
+<rect width="640" height="250" fill="#ffffff"/>
+<text x="68" y="22" font-size="13" font-weight="bold">External bone-loss sensitivity</text>
+<line x1="68.00" y1="40" x2="68.00" y2="180" stroke="#dddddd"/>
+<text class="tick" data-axis="x" data-pos="68.00" x="68.00" y="196" text-anchor="middle">0</text>
+<line x1="177.60" y1="40" x2="177.60" y2="180" stroke="#dddddd"/>
+<text class="tick" data-axis="x" data-pos="177.60" x="177.60" y="196" text-anchor="middle">2</text>
+<line x1="287.20" y1="40" x2="287.20" y2="180" stroke="#dddddd"/>
+<text class="tick" data-axis="x" data-pos="287.20" x="287.20" y="196" text-anchor="middle">4</text>
+<line x1="396.80" y1="40" x2="396.80" y2="180" stroke="#dddddd"/>
+<text class="tick" data-axis="x" data-pos="396.80" x="396.80" y="196" text-anchor="middle">6</text>
+<line x1="506.40" y1="40" x2="506.40" y2="180" stroke="#dddddd"/>
+<text class="tick" data-axis="x" data-pos="506.40" x="506.40" y="196" text-anchor="middle">8</text>
+<line x1="616.00" y1="40" x2="616.00" y2="180" stroke="#dddddd"/>
+<text class="tick" data-axis="x" data-pos="616.00" x="616.00" y="196" text-anchor="middle">10</text>
+<line x1="68" y1="180" x2="616" y2="180" stroke="#333333"/>
+<text x="342.00" y="216" text-anchor="middle">affected-tooth sensitivity (%)</text>
+<text class="category" x="58" y="58.00" text-anchor="end">test1</text>
+<g class="mark" data-x="test1" data-y="2.4" data-series="" data-cx="199.52" data-cy="54.00" data-err-low="1.81" data-err-high="3.03"><line x1="167.19" y1="54.00" x2="234.04" y2="54.00" stroke="#0072B2" stroke-width="2"/><circle cx="199.52" cy="54.00" r="5.00" fill="#0072B2"/><text x="207.52" y="47.00" font-size="11">2.4</text></g>
+<text class="category" x="58" y="86.00" text-anchor="end">test2</text>
+<g class="mark" data-x="test2" data-y="1.38" data-series="" data-cx="143.62" data-cy="82.00" data-err-low="0.86" data-err-high="1.97"><line x1="115.13" y1="82.00" x2="175.96" y2="82.00" stroke="#0072B2" stroke-width="2"/><circle cx="143.62" cy="82.00" r="5.00" fill="#0072B2"/><text x="151.62" y="75.00" font-size="11">1.38</text></g>
+<text class="category" x="58" y="114.00" text-anchor="end">test3</text>
+<g class="mark" data-x="test3" data-y="5.6" data-series="" data-cx="374.88" data-cy="110.00" data-err-low="3.04" data-err-high="8.67"><line x1="234.59" y1="110.00" x2="543.12" y2="110.00" stroke="#0072B2" stroke-width="2"/><circle cx="374.88" cy="110.00" r="5.00" fill="#0072B2"/><text x="382.88" y="103.00" font-size="11">5.6</text></g>
+<text class="category" x="58" y="142.00" text-anchor="end">test4</text>
+<g class="mark" data-x="test4" data-y="4.58" data-series="" data-cx="318.98" data-cy="138.00" data-err-low="2.73" data-err-high="6.6"><line x1="217.60" y1="138.00" x2="429.68" y2="138.00" stroke="#0072B2" stroke-width="2"/><circle cx="318.98" cy="138.00" r="5.00" fill="#0072B2"/><text x="326.98" y="131.00" font-size="11">4.58</text></g>
+<text class="category" x="58" y="170.00" text-anchor="end">pooled</text>
+<g class="mark" data-x="pooled" data-y="2.43" data-series="" data-cx="201.16" data-cy="166.00" data-err-low="1.99" data-err-high="2.89"><line x1="177.05" y1="166.00" x2="226.37" y2="166.00" stroke="#0072B2" stroke-width="2"/><circle cx="201.16" cy="166.00" r="5.00" fill="#0072B2"/><text x="209.16" y="159.00" font-size="11">2.43</text></g>
+</svg>

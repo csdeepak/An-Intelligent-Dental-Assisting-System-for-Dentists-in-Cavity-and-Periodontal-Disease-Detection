@@ -1,0 +1,191 @@
+0/164 5s
+20/164 54s
+40/164 102s
+60/164 150s
+80/164 197s
+100/164 246s
+120/164 296s
+140/164 346s
+160/164 395s
+control: images whose lesion-detector codes differ from the saved (macOS) run: 12
+{
+ "n_images": 164,
+ "n_boot": 10000,
+ "seed": 42,
+ "control": {
+  "images_differing_from_saved_run": 12,
+  "diffs": {
+   "test_147": {
+    "saved_only": [],
+    "rerun_only": [
+     "38"
+    ]
+   },
+   "test_151": {
+    "saved_only": [
+     "17"
+    ],
+    "rerun_only": []
+   },
+   "test_168": {
+    "saved_only": [],
+    "rerun_only": [
+     "14"
+    ]
+   },
+   "test_172": {
+    "saved_only": [
+     "48"
+    ],
+    "rerun_only": []
+   },
+   "test_182": {
+    "saved_only": [
+     "24"
+    ],
+    "rerun_only": [
+     "26"
+    ]
+   },
+   "test_30": {
+    "saved_only": [
+     "26"
+    ],
+    "rerun_only": [
+     "27"
+    ]
+   },
+   "test_33": {
+    "saved_only": [],
+    "rerun_only": [
+     "37"
+    ]
+   },
+   "test_5": {
+    "saved_only": [],
+    "rerun_only": [
+     "38"
+    ]
+   },
+   "test_76": {
+    "saved_only": [
+     "36"
+    ],
+    "rerun_only": []
+   },
+   "test_91": {
+    "saved_only": [
+     "25"
+    ],
+    "rerun_only": [
+     "15"
+    ]
+   },
+   "test_92": {
+    "saved_only": [
+     "28"
+    ],
+    "rerun_only": [
+     "27"
+    ]
+   },
+   "test_95": {
+    "saved_only": [],
+    "rerun_only": [
+     "15"
+    ]
+   }
+  }
+ },
+ "arms": {
+  "constant_all_images": {
+   "tp": 286,
+   "named": 1312,
+   "gt": 477,
+   "precision": 0.218,
+   "recall": 0.5996,
+   "f1": 0.3197
+  },
+  "constant_detected_molars": {
+   "tp": 277,
+   "named": 1069,
+   "gt": 477,
+   "precision": 0.2591,
+   "recall": 0.5807,
+   "f1": 0.3583
+  },
+  "pipeline_lesion_detector": {
+   "tp": 274,
+   "named": 624,
+   "gt": 477,
+   "precision": 0.4391,
+   "recall": 0.5744,
+   "f1": 0.4977
+  },
+  "pipeline_lesion_detector_rerun": {
+   "tp": 270,
+   "named": 626,
+   "gt": 477,
+   "precision": 0.4313,
+   "recall": 0.566,
+   "f1": 0.4896
+  },
+  "pipeline_crop_classifier": {
+   "tp": 365,
+   "named": 1537,
+   "gt": 477,
+   "precision": 0.2375,
+   "recall": 0.7652,
+   "f1": 0.3625
+  }
+ },
+ "paired_minus_detected_constant_pp": {
+  "pipeline_lesion_detector": {
+   "point": 13.94,
+   "ci95": [
+    9.63,
+    18.15
+   ]
+  },
+  "pipeline_lesion_detector_rerun": {
+   "point": 13.12,
+   "ci95": [
+    8.84,
+    17.36
+   ]
+  },
+  "pipeline_crop_classifier": {
+   "point": 0.41,
+   "ci95": [
+    -2.24,
+    3.14
+   ]
+  },
+  "constant_all_images": {
+   "point": -3.86,
+   "ci95": [
+    -4.9,
+    -2.83
+   ]
+  }
+ },
+ "caries_polygon_vs_tooth_box": {
+  "n_polygons_matched": 479,
+  "area_ratio_polygon_bbox_over_tooth_box_p10_25_50_75_90": [
+   0.728,
+   0.814,
+   0.907,
+   1.016,
+   1.145
+  ],
+  "iou_with_tooth_box_p10_25_50_75_90": [
+   0.709,
+   0.759,
+   0.814,
+   0.859,
+   0.893
+  ],
+  "share_with_area_ratio_above_0.5": 0.996
+ },
+ "runtime_s": 406.7
+}

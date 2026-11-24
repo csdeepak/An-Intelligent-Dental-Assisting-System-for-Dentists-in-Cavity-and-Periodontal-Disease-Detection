@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="500" viewBox="0 0 640 500" font-family="Helvetica, Arial, sans-serif" font-size="12" role="img" aria-labelledby="t d" data-visual-id="V004" data-representation="bar_h" data-domain-lo="0" data-domain-hi="0.6" data-plot-left="61" data-plot-right="616" data-min-font="12">
+<title id="t">Lesion agreement per Ningxia hospital</title>
+<desc id="d">Grouped horizontal bars per Ningxia site for pipeline and constant lesion agreement.</desc>
+<metadata>{&quot;domain&quot;: [0.0, 0.6], &quot;representation&quot;: &quot;bar_h&quot;, &quot;source_file&quot;: &quot;.rcs/plan/figure_data/v004_ningxia_sites.csv&quot;, &quot;visual_id&quot;: &quot;V004&quot;}</metadata>
+<rect width="640" height="500" fill="#ffffff"/>
+<text x="61" y="22" font-size="13" font-weight="bold">Lesion agreement per Ningxia hospital</text>
+<line x1="61.00" y1="40" x2="61.00" y2="376" stroke="#dddddd"/>
+<text class="tick" data-axis="x" data-pos="61.00" x="61.00" y="392" text-anchor="middle">0.0</text>
+<line x1="246.00" y1="40" x2="246.00" y2="376" stroke="#dddddd"/>
+<text class="tick" data-axis="x" data-pos="246.00" x="246.00" y="392" text-anchor="middle">0.2</text>
+<line x1="431.00" y1="40" x2="431.00" y2="376" stroke="#dddddd"/>
+<text class="tick" data-axis="x" data-pos="431.00" x="431.00" y="392" text-anchor="middle">0.4</text>
+<line x1="616.00" y1="40" x2="616.00" y2="376" stroke="#dddddd"/>
+<text class="tick" data-axis="x" data-pos="616.00" x="616.00" y="392" text-anchor="middle">0.6</text>
+<line x1="61" y1="376" x2="616" y2="376" stroke="#333333"/>
+<text x="338.50" y="412" text-anchor="middle">lesion agreement (centroid containment)</text>
+<text class="category" x="51" y="58.00" text-anchor="end">test1</text>
+<g class="mark" data-x="test1" data-y="0.288" data-series="Pipeline (gate variant)" data-cx="327.40" data-cy="54.00"><rect x="61.00" y="45.00" width="266.40" height="18" fill="#0072B2" data-px-start="61.00" data-px-end="327.40"/><circle cx="327.40" cy="54.00" r="4.00" fill="#000000"/></g>
+<g class="mark" data-x="test1" data-y="0.446" data-series="Constant" data-cx="473.55" data-cy="82.00"><rect x="61.00" y="73.00" width="412.55" height="18" fill="#E69F00" data-px-start="61.00" data-px-end="473.55"/><rect x="469.55" y="78.00" width="8.00" height="8.00" fill="#000000"/></g>
+<g class="mark" data-x="test1" data-y="0.462" data-series="Lesion detector" data-cx="488.35" data-cy="110.00"><rect x="61.00" y="101.00" width="427.35" height="18" fill="#009E73" data-px-start="61.00" data-px-end="488.35"/><polygon points="488.35,106.00 484.35,114.00 492.35,114.00" fill="#000000"/></g>
+<text class="category" x="51" y="142.00" text-anchor="end">test2</text>
+<g class="mark" data-x="test2" data-y="0.513" data-series="Pipeline (gate variant)" data-cx="535.53" data-cy="138.00"><rect x="61.00" y="129.00" width="474.53" height="18" fill="#0072B2" data-px-start="61.00" data-px-end="535.53"/><circle cx="535.53" cy="138.00" r="4.00" fill="#000000"/></g>
+<g class="mark" data-x="test2" data-y="0.407" data-series="Constant" data-cx="437.48" data-cy="166.00"><rect x="61.00" y="157.00" width="376.48" height="18" fill="#E69F00" data-px-start="61.00" data-px-end="437.48"/><rect x="433.48" y="162.00" width="8.00" height="8.00" fill="#000000"/></g>
+<g class="mark" data-x="test2" data-y="0.576" data-series="Lesion detector" data-cx="593.80" data-cy="194.00"><rect x="61.00" y="185.00" width="532.80" height="18" fill="#009E73" data-px-start="61.00" data-px-end="593.80"/><polygon points="593.80,190.00 589.80,198.00 597.80,198.00" fill="#000000"/></g>
+<text class="category" x="51" y="226.00" text-anchor="end">test3</text>
+<g class="mark" data-x="test3" data-y="0.401" data-series="Pipeline (gate variant)" data-cx="431.93" data-cy="222.00"><rect x="61.00" y="213.00" width="370.93" height="18" fill="#0072B2" data-px-start="61.00" data-px-end="431.93"/><circle cx="431.93" cy="222.00" r="4.00" fill="#000000"/></g>
+<g class="mark" data-x="test3" data-y="0.377" data-series="Constant" data-cx="409.73" data-cy="250.00"><rect x="61.00" y="241.00" width="348.73" height="18" fill="#E69F00" data-px-start="61.00" data-px-end="409.73"/><rect x="405.73" y="246.00" width="8.00" height="8.00" fill="#000000"/></g>
+<g class="mark" data-x="test3" data-y="0.494" data-series="Lesion detector" data-cx="517.95" data-cy="278.00"><rect x="61.00" y="269.00" width="456.95" height="18" fill="#009E73" data-px-start="61.00" data-px-end="517.95"/><polygon points="517.95,274.00 513.95,282.00 521.95,282.00" fill="#000000"/></g>
+<text class="category" x="51" y="310.00" text-anchor="end">test4</text>
+<g class="mark" data-x="test4" data-y="0.419" data-series="Pipeline (gate variant)" data-cx="448.57" data-cy="306.00"><rect x="61.00" y="297.00" width="387.57" height="18" fill="#0072B2" data-px-start="61.00" data-px-end="448.57"/><circle cx="448.57" cy="306.00" r="4.00" fill="#000000"/></g>
+<g class="mark" data-x="test4" data-y="0.323" data-series="Constant" data-cx="359.77" data-cy="334.00"><rect x="61.00" y="325.00" width="298.77" height="18" fill="#E69F00" data-px-start="61.00" data-px-end="359.77"/><rect x="355.77" y="330.00" width="8.00" height="8.00" fill="#000000"/></g>
+<g class="mark" data-x="test4" data-y="0.43" data-series="Lesion detector" data-cx="458.75" data-cy="362.00"><rect x="61.00" y="353.00" width="397.75" height="18" fill="#009E73" data-px-start="61.00" data-px-end="458.75"/><polygon points="458.75,358.00 454.75,366.00 462.75,366.00" fill="#000000"/></g>
+<circle cx="67.00" cy="424.00" r="5.00" fill="#0072B2"/>
+<text class="legend" x="77" y="428">Pipeline (gate variant)</text>
+<rect x="62.00" y="437.00" width="10.00" height="10.00" fill="#E69F00"/>
+<text class="legend" x="77" y="446">Constant</text>
+<polygon points="67.00,455.00 62.00,465.00 72.00,465.00" fill="#009E73"/>
+<text class="legend" x="77" y="464">Lesion detector</text>
+</svg>

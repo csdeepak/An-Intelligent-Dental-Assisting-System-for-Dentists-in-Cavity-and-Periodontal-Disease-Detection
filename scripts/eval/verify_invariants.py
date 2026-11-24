@@ -122,6 +122,10 @@ def inv_weight_hashes():
          "models/16_lever_b_pooled/run_summary.txt"),
         ("models/07_caries_cascade/phase2_final_bundle.pth",
          "models/07_caries_cascade/run_summary.txt"),
+        # Stage 3b as of 24 Nov 2026: retrained on DENTEX's image-level split, tested once and
+        # adopted as the default (RESULTS_LOG 2026-11-24, -24b). models/07 above stays pinned.
+        ("models/20_caries_severity_v2/seed42_best.pth",
+         "models/20_caries_severity_v2/run_summary.txt"),
     ]
     out = []
     for w, s in pairs:
@@ -158,6 +162,7 @@ def inv_class_orders():
     want = {
         "models/07_caries_cascade/final_model.pth": {"caries": 0, "no_caries": 1},
         "models/07_caries_cascade/phase2_final_bundle.pth": {"caries": 0, "deep_caries": 1},
+        "models/20_caries_severity_v2/seed42_best.pth": {"caries": 0, "deep_caries": 1},
         "models/09_caries_gate_v3/caries_gate_v3.pth": {"caries": 0, "no_caries": 1},
     }
     n = 0
@@ -165,7 +170,7 @@ def inv_class_orders():
         p = REPO_ROOT / rel
         if not p.exists():
             continue
-        ck = torch.load(p, map_location="cpu", weights_only=False)
+        ck = torch.load(p, map_location="cpu", weights_only=True)
         got = ck.get("class_to_idx") if isinstance(ck, dict) else None
         if got is None:
             continue
@@ -343,21 +348,31 @@ def inv_stage4_report_wording():
     CariesXrays its validation split, not an external cohort; both severity texts exist, the
     Stage-4 one says "contrast", and the app renders both; the Stage-4 severity grade is off by
     default (RESULTS_LOG 2026-10-13d).
+
+    Since 24 Nov 2026 (schema 1.7) the caries-severity text follows the severity weights, as the
+    Stage-4 caveat does: the default has an entry stating its held-out test, the head it replaced
+    keeps its "133 crops" basis, and an unregistered file gets the unvalidated text.
     """
     import inspect
 
     import numpy as np
     sys.path.insert(0, str(REPO_ROOT))
     from scripts.run_inference import (BONE_LOSS_PROFILES, BONE_SEVERITY_NOT_EVALUATED,
-                                       CARIES_METHOD_CAVEATS, CARIES_SEVERITY_NOT_EVALUATED,
-                                       DEF_BONE_LOSS, SCHEMA_VERSION, UNREGISTERED_BONE_LOSS,
+                                       CARIES_METHOD_CAVEATS, CARIES_SEVERITY_TEXTS,
+                                       CARIES_SEVERITY_UNREGISTERED, DEF_BONE_LOSS,
+                                       DEF_CARIES_SEVERITY, DEFAULT_SHA256, SCHEMA_VERSION,
+                                       UNREGISTERED_BONE_LOSS,
                                        build_report, file_sha256, run_pipeline)
     assert float(SCHEMA_VERSION.split("/")[1]) >= 1.5, f"schema went backwards: {SCHEMA_VERSION}"
     cav = " ".join(CARIES_METHOD_CAVEATS["lesion-detector"].lower().split())
     assert "validation split" in cav and "2 of 3 external" not in cav, \
         "the lesion-detector caveat calls CariesXrays external again (RESULTS_LOG 2026-10-13d)"
     assert "contrast" in BONE_SEVERITY_NOT_EVALUATED.lower(), "the Stage-4 severity text lost 'contrast'"
-    assert "133 crops" in CARIES_SEVERITY_NOT_EVALUATED, "the caries severity text lost its basis"
+    sev_default = CARIES_SEVERITY_TEXTS.get(DEFAULT_SHA256[DEF_CARIES_SEVERITY.resolve()])
+    assert sev_default and "395 held-out" in sev_default, "the default caries severity head has no tested text"
+    assert "133 crops" in CARIES_SEVERITY_TEXTS["aa0a8a7ebf47a8acab0d24a6ecd948542c220196d1c71cbebbf56952beacbc86"], \
+        "the previous caries severity head's text lost its basis"
+    assert "unvalidated" in CARIES_SEVERITY_UNREGISTERED
     assert inspect.signature(run_pipeline).parameters["bone_severity_grade"].default is False, \
         "the Stage-4 severity grade is reported by default again"
     for prof in (*BONE_LOSS_PROFILES.values(), UNREGISTERED_BONE_LOSS):
@@ -381,6 +396,8 @@ def inv_stage4_report_wording():
     assert rep["limitations"]["bone_loss_label_and_validation"] == prof["label_and_validation"], \
         "the report does not carry the default checkpoint's caveat"
     assert rep["limitations"]["bone_severity_not_evaluated"] == BONE_SEVERITY_NOT_EVALUATED
+    assert rep["limitations"]["caries_severity_not_evaluated"] == CARIES_SEVERITY_UNREGISTERED, \
+        "a report with no severity hash carries a tested text"
     return (f"{SCHEMA_VERSION}; {prof['tag']}; caveats follow the weights and are rendered by "
             f"app.py; severity grade off by default")
 

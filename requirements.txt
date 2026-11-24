@@ -24,7 +24,7 @@ matplotlib>=3.7.0
 seaborn>=0.12.0
 
 # YOLO — tooth detection (Stage 1) and the Stage-2 evaluation harness
-ultralytics>=8.0.0
+ultralytics>=8.3,<9
 
 # Deployment demo (app.py)
 # >=1.62.0, not >=1.30.0. app.py calls st.image/st.dataframe with width="stretch"; Streamlit has
