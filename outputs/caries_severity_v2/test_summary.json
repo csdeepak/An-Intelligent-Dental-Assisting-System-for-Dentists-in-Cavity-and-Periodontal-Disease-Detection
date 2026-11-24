@@ -1,0 +1,355 @@
+{
+  "pre_registration": "outputs/caries_severity_v2/PRE_REGISTRATION.md",
+  "method": "radiograph-cluster bootstrap, 10000 resamples, seed 42, percentile; paired differences on the same resamples",
+  "label": "DENTEX annotation class of a tight annotation-box crop: caries 0, deep_caries 1",
+  "test": {
+    "crops": 395,
+    "radiographs": 98,
+    "counts": [
+      311,
+      84
+    ],
+    "arms": {
+      "pred_42": {
+        "macro_f1": 0.7724,
+        "accuracy": 0.8278,
+        "deep_recall": 0.7857,
+        "deep_precision": 0.569,
+        "caries_recall": 0.8392,
+        "confusion_rows_true_cols_pred": [
+          [
+            261,
+            50
+          ],
+          [
+            18,
+            66
+          ]
+        ],
+        "macro_f1_ci95": [
+          0.711,
+          0.8275
+        ]
+      },
+      "pred_43": {
+        "macro_f1": 0.7446,
+        "accuracy": 0.8,
+        "deep_recall": 0.7857,
+        "deep_precision": 0.5197,
+        "caries_recall": 0.8039,
+        "confusion_rows_true_cols_pred": [
+          [
+            250,
+            61
+          ],
+          [
+            18,
+            66
+          ]
+        ],
+        "macro_f1_ci95": [
+          0.686,
+          0.7981
+        ]
+      },
+      "pred_44": {
+        "macro_f1": 0.8172,
+        "accuracy": 0.8684,
+        "deep_recall": 0.7976,
+        "deep_precision": 0.6569,
+        "caries_recall": 0.8875,
+        "confusion_rows_true_cols_pred": [
+          [
+            276,
+            35
+          ],
+          [
+            17,
+            67
+          ]
+        ],
+        "macro_f1_ci95": [
+          0.7541,
+          0.8707
+        ]
+      },
+      "pred_majority": {
+        "macro_f1": 0.4405,
+        "accuracy": 0.7873,
+        "deep_recall": 0.0,
+        "deep_precision": null,
+        "caries_recall": 1.0,
+        "confusion_rows_true_cols_pred": [
+          [
+            311,
+            0
+          ],
+          [
+            84,
+            0
+          ]
+        ],
+        "macro_f1_ci95": [
+          0.4248,
+          0.4552
+        ]
+      },
+      "pred_tooth_majority": {
+        "macro_f1": 0.4405,
+        "accuracy": 0.7873,
+        "deep_recall": 0.0,
+        "deep_precision": null,
+        "caries_recall": 1.0,
+        "confusion_rows_true_cols_pred": [
+          [
+            311,
+            0
+          ],
+          [
+            84,
+            0
+          ]
+        ],
+        "macro_f1_ci95": [
+          0.4248,
+          0.4552
+        ]
+      },
+      "pred_tooth_rate": {
+        "macro_f1": 0.4829,
+        "accuracy": 0.5215,
+        "deep_recall": 0.5833,
+        "deep_precision": 0.2414,
+        "caries_recall": 0.5048,
+        "confusion_rows_true_cols_pred": [
+          [
+            157,
+            154
+          ],
+          [
+            35,
+            49
+          ]
+        ],
+        "macro_f1_ci95": [
+          0.4286,
+          0.5348
+        ]
+      }
+    },
+    "seed42_minus_majority": {
+      "value": 0.3319,
+      "ci95": [
+        0.2612,
+        0.3955
+      ],
+      "excludes_zero": true
+    },
+    "seed42_minus_tooth_majority": {
+      "value": 0.3319,
+      "ci95": [
+        0.2612,
+        0.3955
+      ],
+      "excludes_zero": true
+    },
+    "seed42_minus_tooth_rate": {
+      "value": 0.2895,
+      "ci95": [
+        0.2092,
+        0.3668
+      ],
+      "excludes_zero": true
+    }
+  },
+  "extern50": {
+    "crops": 133,
+    "radiographs": 44,
+    "counts": [
+      101,
+      32
+    ],
+    "arms": {
+      "pred_42": {
+        "macro_f1": 0.748,
+        "accuracy": 0.8045,
+        "deep_recall": 0.6875,
+        "deep_precision": 0.5789,
+        "caries_recall": 0.8416,
+        "confusion_rows_true_cols_pred": [
+          [
+            85,
+            16
+          ],
+          [
+            10,
+            22
+          ]
+        ],
+        "macro_f1_ci95": [
+          0.654,
+          0.8418
+        ]
+      },
+      "pred_43": {
+        "macro_f1": 0.7791,
+        "accuracy": 0.8271,
+        "deep_recall": 0.75,
+        "deep_precision": 0.6154,
+        "caries_recall": 0.8515,
+        "confusion_rows_true_cols_pred": [
+          [
+            86,
+            15
+          ],
+          [
+            8,
+            24
+          ]
+        ],
+        "macro_f1_ci95": [
+          0.6931,
+          0.8547
+        ]
+      },
+      "pred_44": {
+        "macro_f1": 0.7608,
+        "accuracy": 0.8271,
+        "deep_recall": 0.625,
+        "deep_precision": 0.6452,
+        "caries_recall": 0.8911,
+        "confusion_rows_true_cols_pred": [
+          [
+            90,
+            11
+          ],
+          [
+            12,
+            20
+          ]
+        ],
+        "macro_f1_ci95": [
+          0.6574,
+          0.8526
+        ]
+      },
+      "pred_majority": {
+        "macro_f1": 0.4316,
+        "accuracy": 0.7594,
+        "deep_recall": 0.0,
+        "deep_precision": null,
+        "caries_recall": 1.0,
+        "confusion_rows_true_cols_pred": [
+          [
+            101,
+            0
+          ],
+          [
+            32,
+            0
+          ]
+        ],
+        "macro_f1_ci95": [
+          0.3983,
+          0.459
+        ]
+      },
+      "pred_tooth_majority": {
+        "macro_f1": 0.4316,
+        "accuracy": 0.7594,
+        "deep_recall": 0.0,
+        "deep_precision": null,
+        "caries_recall": 1.0,
+        "confusion_rows_true_cols_pred": [
+          [
+            101,
+            0
+          ],
+          [
+            32,
+            0
+          ]
+        ],
+        "macro_f1_ci95": [
+          0.3983,
+          0.459
+        ]
+      },
+      "pred_tooth_rate": {
+        "macro_f1": 0.4571,
+        "accuracy": 0.5038,
+        "deep_recall": 0.4375,
+        "deep_precision": 0.2258,
+        "caries_recall": 0.5248,
+        "confusion_rows_true_cols_pred": [
+          [
+            53,
+            48
+          ],
+          [
+            18,
+            14
+          ]
+        ],
+        "macro_f1_ci95": [
+          0.3833,
+          0.5263
+        ]
+      },
+      "pred_old": {
+        "macro_f1": 0.7379,
+        "accuracy": 0.7895,
+        "deep_recall": 0.7188,
+        "deep_precision": 0.5476,
+        "caries_recall": 0.8119,
+        "confusion_rows_true_cols_pred": [
+          [
+            82,
+            19
+          ],
+          [
+            9,
+            23
+          ]
+        ],
+        "macro_f1_ci95": [
+          0.6399,
+          0.818
+        ]
+      }
+    },
+    "seed42_minus_majority": {
+      "value": 0.3163,
+      "ci95": [
+        0.212,
+        0.4196
+      ],
+      "excludes_zero": true
+    },
+    "seed42_minus_tooth_majority": {
+      "value": 0.3163,
+      "ci95": [
+        0.212,
+        0.4196
+      ],
+      "excludes_zero": true
+    },
+    "seed42_minus_tooth_rate": {
+      "value": 0.2909,
+      "ci95": [
+        0.1818,
+        0.4106
+      ],
+      "excludes_zero": true
+    },
+    "seed42_minus_old": {
+      "value": 0.0101,
+      "ci95": [
+        -0.0839,
+        0.109
+      ],
+      "excludes_zero": false
+    }
+  },
+  "eligible": true
+}
