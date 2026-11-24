@@ -182,7 +182,7 @@
     const tn = cue("s03_built", "six-stage");
     $$("#pipe .pnode").forEach((n, i) => rv(n, t, tn + i * 0.16, { dy: 26 }));
     rv($("#pin"), t, tn - 0.2, { dx: -30, dy: 0 });
-    const t0 = cue("s03_built", "takes"), t1 = cue("s03_built", "overlay");
+    const t0 = cue("s03_built", "takes"), t1 = cue("s03_built", "picture");
     const pk = $("#packet"), pp = E.inOut(P(t, t0, t1 - t0));
     pk.style.left = lerp(150, 1640, pp) + "px";
     pk.style.opacity = Math.min(P(t, t0, 0.2), 1 - P(t, t1 + 0.2, 0.3));
@@ -193,7 +193,7 @@
       n.style.borderColor = on ? "#2DD4BF" : (px > NODE_X[i] ? "#2C3A52" : "");
       n.style.boxShadow = on ? "0 0 30px rgba(45,212,191,0.35)" : ""; });
     rv($("#pout"), t, t1, { dx: 30, dy: 0 });
-    const ta = cue("s03_built", "about"), tp = cue("s03_built", "ninety-five"), ts = cue("s03_built", "Streamlit");
+    const ta = cue("s03_built", "about"), tp = cue("s03_built", "ninety-five"), ts = cue("s03_built", "web");
     rv($("#stat1"), t, ta - 0.2); $("#cSpeed").textContent = fmt(1.70 * E.out(P(t, ta, 1.0)), 2);
     rv($("#stat2"), t, tp - 0.2); $("#cParams").textContent = fmt(95.3 * E.out(P(t, tp, 1.0)), 1);
     rv($("#stat3"), t, ts - 0.2);
@@ -352,7 +352,7 @@
       { t: cue("s07_detect", "maps") - 0.1, d: 1.1, to: rv0 },
       { t: cue("s08_number", "Each"), d: 1.1, to: boxView(D.crops.crop_fdi.box) },
       { t: cue("s08_number", "one-to-one") - 0.2, d: 1.1, to: rv0 },
-      { t: cue("s11_abnormal", "ResNet-18") - 0.2, d: 1.1, to: boxView(D.crops.crop_s4.box) },
+      { t: cue("s11_abnormal", "model") - 0.2, d: 1.1, to: boxView(D.crops.crop_s4.box) },
       { t: cue("s11_abnormal", "here") - 0.4, d: 1.0, to: rv0 },
     ];
   }
@@ -628,7 +628,7 @@
     const ax = E.out(P(t, t0 + 1.2, 0.8));
     $("#axis").style.opacity = ax; $$(".mtick").forEach(e => e.style.opacity = ax);
     const sep7 = xOf(9, 7) - AX.x, oct14 = xOf(10, 14) - AX.x;
-    const fillA = lerp(0, sep7, E.inOut(P(t, cue("s14_timeline", "August") - 0.3, cue("s14_timeline", "cohorts") - cue("s14_timeline", "August"))));
+    const fillA = lerp(0, sep7, E.inOut(P(t, cue("s14_timeline", "August") - 0.3, cue("s14_timeline", "datasets") - cue("s14_timeline", "August"))));
     const fillB = lerp(sep7, oct14, E.inOut(P(t, cue("s15_review", "tenth") - 0.6, 1.2)));
     $("#axisFill").style.width = (t < cue("s15_review", "tenth") - 0.6 ? fillA : fillB) + "px";
     MILES.forEach(M => rv(M.el, t, cue(...M.cue) - 0.15, { dy: M.side === "up" ? 16 : -16 }));
@@ -644,9 +644,9 @@
     const fd = $("#finding"), tf = cue("s15_review", "found") - 0.3;
     rv(fd, t, tf, { dy: 24 }); fd.style.opacity = Math.min(+fd.style.opacity, 1 - P(t, cue("s15_review", "loss") + 1.4, 0.4));
     rv($("#f1"), t, tf + 0.2, { dx: -20, dy: 0 });
-    rv($("#f2"), t, cue("s15_review", "split") - 0.2, { dx: -20, dy: 0 });
+    rv($("#f2"), t, cue("s15_review", "training") - 0.2, { dx: -20, dy: 0 });
     rv($("#f3"), t, cue("s15_review", "label") - 0.2, { dx: -20, dy: 0 });
-    const strike = P(t, cue("s15_review", "split"), 0.4);
+    const strike = P(t, cue("s15_review", "training"), 0.4);
     $("#f1 .fnum").style.textDecoration = strike > 0.5 ? "line-through" : "none";
     const tr = cue("s15_review", "loss") + 1.5;
     rv($("#resp"), t, tr, { dy: 20 });
@@ -655,7 +655,7 @@
 
   /* ============================================================ S16 FRONT END */
   const ROWS = [
-    { n: "DENTEX · tooth recall", tag: ["in", "in-domain"], a: 70.8, b: 99.6, cue: ["s16_front", "recall"], f: v => v.toFixed(1) + "%", dd: "+28.8 pp" },
+    { n: "DENTEX · tooth recall", tag: ["in", "in-domain"], a: 70.8, b: 99.6, cue: ["s16_front", "found"], f: v => v.toFixed(1) + "%", dd: "+28.8 pp" },
     { n: "DENTEX · numbering, end to end", tag: ["in", "in-domain"], a: 58.4, b: 92.8, cue: ["s16_front", "numbering"], f: v => v.toFixed(1) + "%", dd: "+34.4 pp" },
     { n: "UFBA-425 · numbering, end to end", tag: ["un", "unseen by both models"], a: 20.6, b: 44.5, cue: ["s16_front", "UFBA-425"], f: v => v.toFixed(1) + "%", dd: "+23.9 pp" },
     { n: "Tufts · box mAP@0.5, like-for-like", tag: ["cost", "the cost"], a: 72.3, b: 58.7, cue: ["s16_front", "cost"], f: v => (v / 100).toFixed(3), dd: "−0.136", neg: true },
@@ -763,7 +763,7 @@
     growBar(B4[0], t, cue("s18_stage4", "severity"), 340);
     B4[0].el.querySelector(".stamp").style.opacity = E.back(P(t, cue("s18_stage4", "contrast") - 0.1, 0.4));
     growBar(B4[1], t, cue("s18_stage4", "Retrained", 1) - 0.1, 340);
-    growBar(B4[2], t, cue("s18_stage4", "prior") - 0.3, 340);
+    growBar(B4[2], t, cue("s18_stage4", "rule") - 0.3, 340);
     rv($("#verdict"), t, cue("s18_stage4", "withheld") - 0.4, { dy: 12 });
   }
 

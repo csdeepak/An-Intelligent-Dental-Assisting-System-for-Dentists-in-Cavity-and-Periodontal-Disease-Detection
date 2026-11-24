@@ -151,3 +151,34 @@ the replaced head.
 - Scene 19 was refreshed as a whole to a 24 Nov snapshot (`main` at `7b43343`, measured that day):
   `verify_paper_numbers.py` 215 claims, `pytest` 214 passed, `verify_invariants.py` 12 hold with 11
   weight files pinned, schema 1.7. The 7 Sep side (127, 174, 1.1) is unchanged.
+
+## 24 Nov, later — narration rewritten in plain language
+
+**What changed.** All 21 scenes of `narration.json` were rewritten in plain words, at the user's
+request, for a panel that should not need the jargon. Examples:
+- "pipeline" became "system";
+- "parameters" became "learned values";
+- "sensitivity at specificity" became "finds … while staying right on … of normal teeth";
+- "macro-F1" became "scored …, where one is perfect";
+- "image-blind constant" became "blind rule";
+- "interval clear of zero" became "too large to be chance".
+
+**What did not change:** every figure and claim. Scene 10 adds the 0.48 comparison, and scene 12
+no longer says the schema version.
+
+**`app.js`:** seven cue words changed to the new wording.
+- s03: overlay → picture; Streamlit → web
+- s11: ResNet-18 → model
+- s14: cohorts → datasets
+- s15: split → training
+- s16: recall → found
+- s18: prior → rule
+
+**Checks run:**
+- Every cue word is present the required number of times.
+- No pair of cues changed order within a scene.
+- Spoken numbers are identical to the previous narration, apart from the changes named above.
+- Each reworded claim was re-read against its source in the evidence table. One error was caught
+  and fixed: scene 15's 0.92 was a validation figure, not a test figure.
+
+On-screen labels keep their technical terms (they are the evidence).
