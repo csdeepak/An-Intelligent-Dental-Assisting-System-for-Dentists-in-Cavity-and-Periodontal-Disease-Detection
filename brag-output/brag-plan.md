@@ -182,3 +182,32 @@ no longer says the schema version.
   and fixed: scene 15's 0.92 was a validation figure, not a test figure.
 
 On-screen labels keep their technical terms (they are the evidence).
+
+## 24 Nov — rebuilt
+
+**The build.** `brag.mp4` was rebuilt on the macOS clone from the plain-language narration, with
+the scene 10, 12 and 19 updates.
+- **Tools installed for it, with the user's approval:** `ffmpeg` 8 (Homebrew) and `edge-tts`
+  7.3.1 (pip, `/opt/anaconda3`). The voice is unchanged: en-IN-NeerjaNeural, +15 %.
+- **Steps:**
+  1. `make_voice.py`
+  2. `prep_data.py`
+  3. `render.mjs video` in four parallel parts (0–96, 96–192, 192–288, 288–end), with
+     `CHROME` set to the macOS Chrome
+  4. `ffmpeg` concat (lossless)
+  5. `mix_audio.py`
+  6. `make_captions.py`
+  7. `finalize.py`
+
+**Result:** 6 min 22 s (381.5 s); 11,446 frames at 1920×1080, 30 fps; H.264, AAC, and a caption
+track with 101 cues; 66.6 MB.
+
+**Checked:**
+- No missing cue against the real word timings.
+- Caption tokens align one-to-one with word timings in all 21 scenes.
+- The render logs show no page errors or missing cues.
+- Frames pulled from the final file show:
+  - scene 10: tooth 21 pulsing, and the "Tested once" box appearing as it is spoken;
+  - scene 19: 215 / 214 / 1.7 / 11 pins;
+  - scene 3: the demo chip appearing on "web".
+- The storyboard durations above are from 14 Oct. Current ones are in `timeline.json`.

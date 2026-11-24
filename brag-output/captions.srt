@@ -1,426 +1,462 @@
 1
-00:00:00,550 --> 00:00:01,989
+00:00:00,550 --> 00:00:01,978
 This is our capstone:
 
 2
-00:00:02,039 --> 00:00:07,576
-an intelligent dental assisting system that
-reads a panoramic X-ray, tooth by tooth.
+00:00:02,028 --> 00:00:07,552
+an intelligent dental assistant that reads
+a panoramic X-ray, one tooth at a time.
 
 3
-00:00:08,976 --> 00:00:14,278
-A panoramic radiograph, or OPG,
-shows every tooth in one image.
+00:00:08,952 --> 00:00:14,080
+A panoramic X-ray, or OPG, shows
+every tooth in one picture.
 
 4
-00:00:14,328 --> 00:00:16,941
+00:00:14,130 --> 00:00:16,743
 A dentist reads it tooth by tooth.
 
 5
-00:00:16,991 --> 00:00:18,376
+00:00:16,793 --> 00:00:18,232
 We automate that reading:
 
 6
-00:00:18,426 --> 00:00:23,514
-find each tooth, number it in FDI
-notation, and report its findings.
+00:00:18,282 --> 00:00:23,254
+find each tooth, number it with the standard
+dental numbering, FDI, and report what
 
 7
-00:00:24,914 --> 00:00:29,081
-Our six-stage pipeline takes one radiograph
-and returns a per-tooth report and an
+00:00:23,304 --> 00:00:24,522
+we see.
 
 8
-00:00:29,131 --> 00:00:34,190
-annotated overlay, in about one point seven
-seconds on CPU alone, with ninety-five
+00:00:25,922 --> 00:00:30,492
+Our six-stage system takes one X-ray and
+returns a report for every tooth, plus
 
 9
-00:00:34,240 --> 00:00:38,060
-million parameters, inside
-a Streamlit and Docker demo.
+00:00:30,542 --> 00:00:35,035
+a marked-up picture, in about one point
+seven seconds on an ordinary processor with
 
 10
-00:00:39,460 --> 00:00:41,182
-It is built on public data:
+00:00:35,085 --> 00:00:36,833
+no graphics card.
 
 11
-00:00:41,232 --> 00:00:46,106
-the Tufts database of a thousand radiographs,
-the DENTEX challenge set, and the
+00:00:36,883 --> 00:00:41,300
+Its models hold ninety-five million
+learned values, and it runs as a simple web
 
 12
-00:00:46,156 --> 00:00:48,306
-CariesXrays benchmark.
+00:00:41,350 --> 00:00:42,428
+demo.
 
 13
-00:00:48,356 --> 00:00:53,230
-Four Ningxia hospitals are held out as
-external test data, never trained on, and
+00:00:43,828 --> 00:00:45,528
+It is built on public data:
 
 14
-00:00:53,280 --> 00:00:57,742
-UFBA-425 is unseen by our
-detector and numbering head.
+00:00:45,578 --> 00:00:50,680
+the Tufts set of a thousand X-rays, the
+DENTEX challenge set, and the CariesXrays
 
 15
-00:00:59,142 --> 00:01:01,531
-One question shaped the project.
+00:00:50,730 --> 00:00:51,815
+set.
 
 16
-00:01:01,581 --> 00:01:06,009
-Caries concentrates in the molars, so a
-rule that ignores the image, and always
+00:00:51,865 --> 00:00:56,793
+X-rays from four Ningxia hospitals are kept
+aside for testing only, never for training,
 
 17
-00:01:06,059 --> 00:01:11,205
-names the same eight molars, already scores
-well on the usual tooth-level metric.
+00:00:56,843 --> 00:01:02,326
+and the UFBA-425 set was never seen by
+our tooth finder or numbering model.
 
 18
-00:01:11,255 --> 00:01:15,504
-Every result here is measured
-against that image-blind constant.
+00:01:03,726 --> 00:01:06,115
+One question shaped the project.
 
 19
-00:01:16,904 --> 00:01:21,869
-Now, the architecture, following one
-real radiograph through every stage.
+00:01:06,165 --> 00:01:09,865
+Caries is most common in
+the back teeth, the molars.
 
 20
-00:01:21,919 --> 00:01:26,641
-It is one of the one hundred and sixty-four
-DENTEX evaluation images, about three
+00:01:09,915 --> 00:01:14,506
+So a simple rule that ignores the image,
+and always names the same eight molars,
 
 21
-00:01:26,691 --> 00:01:29,306
-thousand by fifteen hundred pixels.
+00:01:14,556 --> 00:01:18,115
+already scores well on the
+usual tooth-by-tooth score.
 
 22
-00:01:30,706 --> 00:01:31,656
-Stage one:
+00:01:18,165 --> 00:01:21,696
+Every result here is compared
+with that blind rule.
 
 23
-00:01:31,652 --> 00:01:33,171
-tooth detection.
+00:01:23,096 --> 00:01:27,616
+Now, how it works, following one
+real X-ray through every stage.
 
 24
-00:01:33,221 --> 00:01:37,802
-A YOLO eleven large detector, trained on
-three corpora, reads the image rotated
+00:01:27,666 --> 00:01:32,398
+It is one of the one hundred and sixty-four
+DENTEX images we score on, about three
 
 25
-00:01:37,852 --> 00:01:40,291
-ninety degrees and maps its boxes back:
+00:01:32,448 --> 00:01:35,066
+thousand by fifteen hundred pixels.
 
 26
-00:01:40,341 --> 00:01:44,836
-thirty-two teeth, every one above
-zero point seven nine confidence.
+00:01:36,466 --> 00:01:38,681
+Stage one finds the teeth.
 
 27
-00:01:46,236 --> 00:01:47,186
-Stage two:
+00:01:38,731 --> 00:01:43,007
+A detector trained on three datasets
+looks at the image rotated ninety degrees,
 
 28
-00:01:47,149 --> 00:01:48,451
-numbering.
+00:01:43,057 --> 00:01:44,725
+then maps its boxes back:
 
 29
-00:01:48,501 --> 00:01:52,766
-Each tooth is cropped with a margin, and
-passed with its position to a ResNet-18
+00:01:44,775 --> 00:01:49,828
+thirty-two teeth, every one found with
+confidence above zero point seven nine.
 
 30
-00:01:52,816 --> 00:01:55,451
-head that predicts its FDI code.
+00:01:51,228 --> 00:01:53,476
+Stage two numbers the teeth.
 
 31
-00:01:55,501 --> 00:01:57,919
-A one-to-one assignment forbids duplicates:
+00:01:53,526 --> 00:01:57,835
+Each tooth is cropped with a margin, and a
+second model uses the crop and its position
 
 32
-00:01:57,969 --> 00:02:01,110
-thirty-two teeth, thirty-two distinct codes.
+00:01:57,885 --> 00:02:01,161
+to predict the tooth's number, its FDI code.
 
 33
-00:02:02,510 --> 00:02:03,503
-Stage three:
+00:02:01,211 --> 00:02:04,617
+A one-to-one matching step stops
+two teeth getting the same number:
 
 34
-00:02:03,553 --> 00:02:04,790
-caries.
+00:02:04,667 --> 00:02:07,782
+thirty-two teeth, thirty-two distinct codes.
 
 35
-00:02:04,840 --> 00:02:09,312
-A second YOLO detector finds the lesions
-themselves, across the whole image:
+00:02:09,182 --> 00:02:11,593
+Stage three looks for caries.
 
 36
-00:02:09,362 --> 00:02:11,421
-nine lesion boxes.
+00:02:11,643 --> 00:02:15,658
+Another detector finds the decay
+itself, across the whole image:
 
 37
-00:02:11,471 --> 00:02:16,112
-Each is assigned to the tooth it
-overlaps most, so nine teeth are flagged.
+00:02:15,708 --> 00:02:17,365
+nine boxes.
 
 38
-00:02:17,512 --> 00:02:22,162
-A severity head grades each flagged
-tooth as caries or deep caries.
+00:02:17,415 --> 00:02:22,544
+Each box is assigned to the tooth it
+overlaps most, so nine teeth are flagged.
 
 39
-00:02:22,212 --> 00:02:25,412
-Teeth twenty-one and
-forty-six are graded deep.
+00:02:23,944 --> 00:02:28,703
+A severity model grades each flagged
+tooth as caries or deep caries.
 
 40
-00:02:25,462 --> 00:02:29,098
-This head is validated, but
-it has never been tested.
+00:02:28,753 --> 00:02:31,931
+Here, only tooth twenty-one is graded deep.
 
 41
-00:02:30,498 --> 00:02:33,398
-Stage four is an abnormality flag.
+00:02:31,981 --> 00:02:36,529
+We retrained this model and tested
+it once on X-rays it had never seen.
 
 42
-00:02:33,448 --> 00:02:38,496
-A ResNet-18 reads a taller crop around each
-tooth and flags closeness to an expert-marked
+00:02:36,579 --> 00:02:41,181
+It scored zero point seven seven, where
+one is perfect, against zero point four
 
 43
-00:02:38,546 --> 00:02:39,496
-abnormality:
+00:02:41,231 --> 00:02:43,083
+eight for a blind rule.
 
 44
-00:02:39,502 --> 00:02:43,126
+00:02:43,133 --> 00:02:48,322
+That was on teeth the dentists had marked,
+not yet on the teeth our system flags.
+
+45
+00:02:49,722 --> 00:02:52,622
+Stage four is an abnormality flag.
+
+46
+00:02:52,672 --> 00:02:56,752
+A model looks at a taller crop around each
+tooth and flags it when it is close to
+
+47
+00:02:56,802 --> 00:02:58,981
+something an expert marked as abnormal:
+
+48
+00:02:59,031 --> 00:03:02,611
 here, teeth eleven,
 thirty-seven and forty-eight.
 
-45
-00:02:43,176 --> 00:02:47,916
-It is not a periodontal diagnosis,
-and its severity grade is withheld.
-
-46
-00:02:49,316 --> 00:02:54,255
-Stages five and six fuse it all into one
-record per tooth, in report schema one
-
-47
-00:02:54,305 --> 00:02:58,249
-point five, stamped with the
-hash of every model that ran.
-
-48
-00:02:58,299 --> 00:03:02,054
-The overlay shows findings in
-orange, and the rest in blue.
-
 49
-00:03:03,454 --> 00:03:08,078
-Against the dentists' annotations, seven
-of the nine caries flags land on annotated
+00:03:02,661 --> 00:03:07,796
+It is not a periodontal, or gum disease,
+diagnosis, and its severity grade is switched
 
 50
-00:03:08,128 --> 00:03:11,626
-carious teeth, and four
-annotated teeth are missed.
+00:03:07,846 --> 00:03:08,868
+off.
 
 51
-00:03:11,676 --> 00:03:14,550
-That is one image, for illustration.
+00:03:10,268 --> 00:03:14,859
+Stages five and six combine everything
+into one record per tooth, stamped with a
 
 52
-00:03:14,600 --> 00:03:17,056
-The measured numbers come next.
+00:03:14,909 --> 00:03:18,635
+fingerprint, a hash, of
+every model that ran.
 
 53
-00:03:18,456 --> 00:03:19,406
-Part three:
+00:03:18,685 --> 00:03:22,958
+The overlay shows findings in
+orange, and everything else in blue.
 
 54
-00:03:19,369 --> 00:03:21,639
-results across the timeline.
+00:03:24,358 --> 00:03:28,438
+Checked against the dentists' annotations,
+seven of the nine flags land on teeth
 
 55
-00:03:21,689 --> 00:03:27,769
-In August, the pipeline ran end to end, and
-was validated on four external hospitals.
+00:03:28,488 --> 00:03:31,769
+with caries, and four teeth
+with caries are missed.
 
 56
-00:03:27,819 --> 00:03:29,943
-Then came the uncomfortable finding:
+00:03:31,819 --> 00:03:35,030
+That is one image, shown as an example.
 
 57
-00:03:29,993 --> 00:03:33,084
-the image-blind constant tied or beat us.
+00:03:35,080 --> 00:03:37,528
+The measured numbers come next.
 
 58
-00:03:33,134 --> 00:03:37,595
-On the fourth of September, a lesion
-detector became the first method to beat it,
+00:03:38,928 --> 00:03:39,878
+Part three:
 
 59
-00:03:37,645 --> 00:03:39,762
-on two of three cohorts.
+00:03:39,776 --> 00:03:41,589
+results over time.
 
 60
-00:03:41,162 --> 00:03:44,866
-On the tenth of October, a
-review audited every number.
+00:03:41,639 --> 00:03:47,502
+In August, the system ran end to end, and
+was validated on four outside hospitals.
 
 61
-00:03:44,916 --> 00:03:48,845
-It found that the bone-loss score of zero
-point nine two came from a split that
+00:03:47,552 --> 00:03:49,643
+Then came an uncomfortable finding:
 
 62
-00:03:48,895 --> 00:03:54,116
-shared radiographs with training, and that
-its label was not periodontal bone loss.
+00:03:49,693 --> 00:03:52,850
+the blind rule tied with us, or beat us.
 
 63
-00:03:58,162 --> 00:04:00,399
-First, the front end.
+00:03:52,900 --> 00:03:57,154
+On the fourth of September, a new caries
+detector became the first method to beat
 
 64
-00:04:00,449 --> 00:04:04,138
-A multi-corpus tooth detector
-replaced the old one.
+00:03:57,204 --> 00:03:59,850
+it, on two of three datasets.
 
 65
-00:04:04,188 --> 00:04:09,519
-On DENTEX, tooth recall rose from seventy-one
-to over ninety-nine percent, and numbering
+00:04:01,250 --> 00:04:04,813
+On the tenth of October, a
+review checked every number.
 
 66
-00:04:09,569 --> 00:04:13,345
-from fifty-eight to ninety-three,
-in-domain for the new detector.
+00:04:04,863 --> 00:04:09,107
+It found that the bone-loss score of zero
+point nine two was too high, because the
 
 67
-00:04:13,395 --> 00:04:18,671
-On the unseen UFBA-425 set, numbering rose
-from twenty-one to forty-four and a half
+00:04:09,157 --> 00:04:13,259
+X-rays it was checked on were also in
+its training data, and that its label was
 
 68
-00:04:18,721 --> 00:04:19,964
-percent.
+00:04:13,309 --> 00:04:15,908
+not really periodontal bone loss.
 
 69
-00:04:20,014 --> 00:04:20,964
-The cost:
+00:04:18,250 --> 00:04:20,487
+First, the front end.
 
 70
-00:04:20,797 --> 00:04:25,900
-Tufts box accuracy fell from zero point
-seven two to zero point five nine.
+00:04:20,537 --> 00:04:25,617
+A new tooth detector, trained on
+several datasets, replaced the old one.
 
 71
-00:04:27,300 --> 00:04:32,478
-For caries, the pipeline's F1 rose from
-zero point three eight to zero point five,
+00:04:25,667 --> 00:04:30,704
+On DENTEX, the share of teeth found rose
+from seventy-one to over ninety-nine percent,
 
 72
-00:04:32,528 --> 00:04:35,120
-against zero point three
-two for the constant:
+00:04:30,754 --> 00:04:34,280
+and correct numbering from fifty-eight
+to ninety-three, though the new detector
 
 73
-00:04:35,170 --> 00:04:39,396
-a lead of nearly eighteen points,
-with its interval clear of zero.
+00:04:34,330 --> 00:04:36,704
+had trained on DENTEX.
 
 74
-00:04:39,446 --> 00:04:44,113
-Across the four Ningxia hospitals, lesion
-agreement reached sixty-eight percent,
+00:04:36,754 --> 00:04:41,791
+On the unseen UFBA-425 set, correct
+numbering rose from twenty-one to forty-four
 
 75
-00:04:44,163 --> 00:04:46,662
-nine points above the constant.
+00:04:41,841 --> 00:04:43,563
+and a half percent.
 
 76
-00:04:48,062 --> 00:04:52,625
-Stage four moved the other way,
-because its old figure was inflated.
+00:04:43,613 --> 00:04:44,563
+The cost:
 
 77
-00:04:52,675 --> 00:04:57,679
-On unseen radiographs, the original model
-found seven point six percent of its label,
+00:04:44,385 --> 00:04:49,660
+box accuracy on Tufts fell from zero
+point seven two to zero point five nine.
 
 78
-00:04:57,729 --> 00:04:59,408
-not eighty-three.
+00:04:51,060 --> 00:04:55,923
+For caries, our system's score rose from
+zero point three eight to zero point five,
 
 79
-00:04:59,458 --> 00:05:03,864
-Retrained with a radiograph-level split,
-it reaches twenty-seven and a half percent
+00:04:55,973 --> 00:04:58,619
+against zero point three
+two for the blind rule:
 
 80
-00:05:03,914 --> 00:05:08,549
-sensitivity at ninety-six percent specificity,
-and eleven to twenty-seven percent
+00:04:58,669 --> 00:05:02,558
+a lead of nearly eighteen
+points, too large to be chance.
 
 81
-00:05:08,599 --> 00:05:10,505
-across three seeds.
+00:05:02,608 --> 00:05:07,449
+Across the four Ningxia hospitals, agreement
+with the dentists' marks reached sixty-eight
 
 82
-00:05:10,555 --> 00:05:13,799
-The severity head had
-learned image contrast.
+00:05:07,499 --> 00:05:10,686
+percent, nine points above the blind rule.
 
 83
-00:05:13,849 --> 00:05:19,496
-Retrained on the true bands, it lost to a
-position prior, so its grade stays withheld.
+00:05:12,086 --> 00:05:16,584
+Stage four went the other way,
+because its old score was inflated.
 
 84
-00:05:20,896 --> 00:05:24,176
-Behind every number is a saved artefact.
+00:05:16,634 --> 00:05:21,051
+On X-rays it had never seen, the original
+model found seven point six percent of
 
 85
-00:05:24,226 --> 00:05:27,883
+00:05:21,101 --> 00:05:24,008
+the teeth it should flag, not eighty-three.
+
+86
+00:05:24,058 --> 00:05:28,443
+Retrained properly, it finds twenty-seven
+and a half percent, while staying right
+
+87
+00:05:28,493 --> 00:05:32,856
+on ninety-six percent of normal teeth,
+and eleven to twenty-seven percent across
+
+88
+00:05:32,906 --> 00:05:34,725
+three training runs.
+
+89
+00:05:34,775 --> 00:05:38,116
+Its severity model had
+learned image contrast.
+
+90
+00:05:38,166 --> 00:05:42,475
+Retrained on the right labels, it did no
+better than a simple position rule, so
+
+91
+00:05:42,525 --> 00:05:44,648
+its grade stays withheld.
+
+92
+00:05:46,048 --> 00:05:49,035
+Behind every number is a saved file.
+
+93
+00:05:49,085 --> 00:05:52,676
 Automatically checked claims in the paper
 went from one hundred twenty-seven to
 
-86
-00:05:27,933 --> 00:05:32,720
-two hundred seven, tests from one seventy-four
-to two hundred four, and every default
+94
+00:05:52,726 --> 00:05:57,187
+two hundred fifteen, tests from one
+seventy-four to two hundred fourteen, and every
 
-87
-00:05:32,770 --> 00:05:35,458
-model is hash-checked before it loads.
+95
+00:05:57,237 --> 00:06:01,282
+default model is checked against
+its fingerprint before it loads.
 
-88
-00:05:36,858 --> 00:05:41,123
+96
+00:06:02,682 --> 00:06:06,730
 So the review lowered the numbers that were
-inflated, raised the ones a better front
+too high, raised the ones a better tooth
 
-89
-00:05:41,173 --> 00:05:45,228
-end earned, and named every stage
-for what it really measures.
+97
+00:06:06,780 --> 00:06:11,076
+detector earned, and named every
+stage for what it really measures.
 
-90
-00:05:46,628 --> 00:05:47,578
+98
+00:06:12,476 --> 00:06:13,426
 Next:
 
-91
-00:05:47,313 --> 00:05:52,187
+99
+00:06:13,172 --> 00:06:17,393
 a six-page conference paper, built from
-these verified numbers, and a venue decision
+these checked numbers, and choosing the
 
-92
-00:05:52,237 --> 00:05:53,735
-with our mentor.
+100
+00:06:17,443 --> 00:06:19,300
+venue with our mentor.
 
-93
-00:05:53,785 --> 00:05:55,118
+101
+00:06:19,350 --> 00:06:20,678
 Thank you.
