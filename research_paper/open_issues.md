@@ -26,6 +26,16 @@ here can be settled from the repository.
     (tuned and reported on the same 133 crops). Reviewer B recommends withholding it by default, as
     was done for the Stage-4 grade on 14 Oct. Not changed here: it is a functional change to the
     shipped pipeline.
+    **Update 24 Nov 2026:** a retrained head of the same architecture now has a pre-registered
+    held-out test (`RESULTS_LOG` 2026-11-24, `models/20_caries_severity_v2/`):
+    - **Result:** macro-F1 0.772 [0.711, 0.828] on 395 DENTEX `splits_v2` test crops; eligible.
+    - **Not the default.** The shipped head is still the default and still untested, so
+      Table 3's row stays true.
+    - **Three options:**
+      1. adopt the retrained head and rewrite the row;
+      2. keep the shipped head and cite the retrain as evidence for the architecture;
+      3. withhold the grade.
+    Paper wording if adopted: `docs/results/PAPER_MATERIAL.md` §8.46.
 11. **[RECORD] `models/16_lever_b_pooled/run_summary.txt`** gives the best epoch as 54; its own
     `results.csv` gives 29, which the paper uses. Fix the summary (found by the VERIFIER).
 12. **[REPRODUCIBILITY] Windows vs macOS.** A 23 Nov rerun of the shipped pipeline on the 164 DENTEX

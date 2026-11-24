@@ -3,7 +3,12 @@
 Current best numbers only. One table per model, nothing else. For how a number was
 obtained see `PAPER_MATERIAL.md`; for when and why it changed see `RESULTS_LOG.md`.
 
-**Last updated:** 2026-10-13 (night) — **Stage 4a default changed** to the model retrained
+**Last updated:** 2026-11-24 — **Stage 3b retrained on DENTEX's image-level split has its first
+held-out figure: test macro-F1 0.772 [0.711, 0.828] on 395 crops for the seed fixed in advance
+(0.745–0.817 across three seeds), eligible; not the default** — `models/07` still ships, untested
+(`RESULTS_LOG` 2026-11-24; Phase 2 severity below).
+
+**Before that:** 2026-10-13 (night) — **Stage 4a default changed** to the model retrained
 with a radiograph-level split (`models/18_bone_loss_radiograph_split/seed42_best.pth`), by
 the decision owner (`RESULTS_LOG` 2026-10-13c). Its DENTEX firing rate is 6.1%; the previous
 checkpoint's 0.75% and its Ningxia 2.17% are the previous checkpoint's.
@@ -691,7 +696,30 @@ R 0.80 on *its own* test split — a 2.2× prevalence difference, not a gain; sp
 (`DEF_CARIES_SEVERITY`) — the "structurally only, no torch available" caveat that used to sit
 here no longer applies; this machine's environment was fixed 24 Aug 2026. Still trained on
 `phase1_legacy`-era crops and not re-run this session — **only the gate was rebuilt**, not the
-severity head. Validation-only; no held-out test split for Phase 2 exists yet.
+severity head. Validation-only, and it cannot be tested: it was trained on crops of all 705 DENTEX training
+radiographs, the `splits_v2` test split included. **This is still the pipeline default.** Under the
+pipeline's argmax, on the regenerated crops, it scores macro-F1 0.738 [0.640, 0.818] on these same
+133 crops, deep recall 23/32, not the notebook's 0.77 (`RESULTS_LOG` 2026-11-24; cause not
+investigated).
+
+**Phase 2 retrained on `splits_v2` — held-out test, 395 crops (311 caries / 84 deep) on 98
+radiographs. `models/20_caries_severity_v2/`, three registered seeds; NOT the default.** Protocol
+`outputs/caries_severity_v2/PRE_REGISTRATION.md` (`cf3090a`); one test pass, 24 Nov 2026.
+Radiograph-cluster 95% intervals.
+
+| Arm | Macro-F1 | Deep P | Deep R | Caries R |
+|-----|----------|--------|--------|----------|
+| **Seed 42 (registered candidate)** | **0.772 [0.711, 0.828]** | 66/116 (0.57) | 66/84 (0.79) | 261/311 (0.84) |
+| Seed 43 | 0.745 [0.686, 0.798] | 66/127 (0.52) | 66/84 (0.79) | 250/311 (0.80) |
+| Seed 44 | 0.817 [0.754, 0.871] | 67/102 (0.66) | 67/84 (0.80) | 276/311 (0.89) |
+| Image-blind tooth-rate prior | 0.483 [0.429, 0.535] | 49/203 (0.24) | 49/84 (0.58) | 157/311 (0.50) |
+| Majority (= tooth-majority prior) | 0.440 [0.425, 0.455] | — | 0/84 | 311/311 |
+
+Seed 42 minus the tooth-rate prior +0.290 [+0.209, +0.367]: **eligible** under the registered
+rule, which allows it to be *proposed* as the default and decides nothing. On extern50 (the 133
+crops `models/07` was tuned on) seed 42 scores 0.748 [0.654, 0.842], and seed 42 minus `models/07` is
++0.010 [−0.084, +0.109], not separable. Annotation boxes of truly carious teeth, not detector
+boxes of flagged teeth.
 
 ---
 

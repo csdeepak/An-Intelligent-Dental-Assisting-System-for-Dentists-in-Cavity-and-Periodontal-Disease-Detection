@@ -386,6 +386,15 @@ positives against 0.334 for an image-blind tooth-position prior. The grade stays
 default changed, and the manuscript says so. Every Stage-4 training and evaluation script needs the
 raw Tufts radiographs and masks, which only the macOS clone holds (§8).
 
+**Stage 3b (24 Nov):** the caries-severity head was retrained on DENTEX's image-level split
+(`splits_v2`) under a committed protocol (`cf3090a`) and tested once — **eligible**:
+- **Result:** seed 42 macro-F1 0.772 [0.711, 0.828] on 395 held-out crops, against 0.483 for
+  the strongest image-blind prior. Deep-caries precision 66/116, recall 66/84.
+- **It is not the default.** The shipped `models/07` head still runs and is still untested,
+  because it trained on every radiograph in that test split. The two cannot be told apart
+  on extern50.
+- **Adoption is open (§4).** `models/20_caries_severity_v2/`, `RESULTS_LOG` 2026-11-24.
+
 Full results ledger: **§2**. What's still open and who owns it: **§3–§4**. Publication target:
 **§5**. Where each fact in the codebase lives: **§7**. Machine/environment setup for a fresh
 clone: **§8**.
@@ -1056,6 +1065,7 @@ depends on this.
 | **The Stage-4a default was changed on 13 Oct without the repo owner or the mentor.** The retrained model met a pre-registered eligibility rule and the previous checkpoint is retained; reverting is one line. It puts a 44.8 MB file into git once committed, and changes what the demo shows: about eight times as many Stage-4 flags on DENTEX, each with a severity grade from a model that has never been tested (`RESULTS_LOG` 2026-10-13c). | They own the repo and the supervision |
 | **Decided 14 Oct: the Stage-4 severity grade is withheld by default** (schema 1.5; `--bone-severity-grade` restores it, flagged as not evaluated). Stage 4b was trained on a crop-contrast stand-in (`RESULTS_LOG` 2026-10-13d, 2026-10-14). The Stage-3b caries grade stays, with a line in every report that it has no test. | The mentor should hear it: it changes what the demo shows |
 | **The Stage-1 switch was made without the repo owner or the mentor.** It overrides two pre-registered verdicts, re-scored the locked Ningxia cohort, and put a 51 MB file into git history for good (`arm3c_best.pt`, pushed 11 Oct in `7dd3ff4`). Reverting the default is still one line; the file stays in history either way. Whether either of them has been told since is not recorded in this repo. | They own the repo and the supervision |
+| **Adopt the retrained Stage-3b head (`models/20_caries_severity_v2/seed42_best.pth`) as `DEF_CARIES_SEVERITY`?** It met its pre-registered rule (test macro-F1 0.772 [0.711, 0.828] vs 0.483 for the best image-blind prior; `RESULTS_LOG` 2026-11-24), but it is not separable from the shipped `models/07` on extern50 (+0.010 [−0.084, +0.109]). What adoption buys is a severity grade with a held-out test. What it costs: a hash pin, a 44.8 MB `.gitignore` exception, new report text and a schema bump, a parity check, and the paper's Table 3 row. Alternatives: keep `models/07` with its "no test" line, or withhold the grade by default as Stage 4b's is. | Changes what every report and the demo show; the decision owner's call, and the mentor should hear it |
 | **The Kaggle "dual-labeled" licence is unstated, and the default detector was trained on it.** Acceptable for an ablation; a publication question for a shipped default. | Needs a person to ask the dataset's authors, or a decision to retrain without it |
 | **`models/11` (53 MB) is committed to git, over the ~50 MB rule-4 line, and git history keeps it forever.** Deferred by the 3 Sep handoff decision (needed for a working fresh-clone demo). To undo: `git rm --cached`, restore `.gitignore`, re-host on Drive. | Revisit before any public release |
 | **What else to use `DENTEX/disease/`'s 91 healthy ("saglam") teeth for**, beyond the current Stage-2 eval set and lesion-localisation source | Scoping call, not urgent |
