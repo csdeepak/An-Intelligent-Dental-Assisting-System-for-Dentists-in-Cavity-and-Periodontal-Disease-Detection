@@ -1,0 +1,5 @@
+{"retrieved": "2026-11-24", "via": "PubMed (pubmed.ncbi.nlm.nih.gov) and Crossref API",
+ "schwendicke2015radiographic": {"doi": "10.1016/j.jdent.2015.02.009", "pmid": "25724114",
+   "used_finding": "117 studies; detection of any kind (i.e. also initial) lesions had low sensitivities (0.24 to 0.42) but moderate to high specificities (0.70 to 0.97); for dentine lesions sensitivities 0.36 (proximal) to 0.56 (occlusal). The abstract labels the first range 'pooled DOR', an evident slip: it is the sensitivity range."},
+ "hennig2023frequency": {"doi": "10.3390/diagnostics13030394", "pmid": "36766499",
+   "used_finding": "9,680 extraoral dental radiographs of patients up to 18 years, one university department, 2002-2020: 78% were orthopantomograms; effective dose 7 uSv for an OPG."}}

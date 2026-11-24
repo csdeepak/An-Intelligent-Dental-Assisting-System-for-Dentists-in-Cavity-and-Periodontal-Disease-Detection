@@ -77,3 +77,14 @@ here can be settled from the repository.
   confirmed by the authors.
 - The VERIFIER and the three reviewers are separate Claude subagents of the same model family, not
   independent humans.
+
+## Abstract and Introduction v3 (24 Nov 2026)
+
+- Two citations were added for the narrative opening: `hennig2023frequency` and
+  `schwendicke2015radiographic`. Both were checked on PubMed and Crossref
+  (`literature/abstracts_intro_v3_2026-11-24.json`), but they are not yet in the RCE source registry
+  or the evidence map, so GL `verify_citations` and the integrity gate have not been re-run with
+  them. `verify_numbers` flags 9,680 (from Hennig) as untraced for the same reason.
+- "Most widely taken **extraoral** dental X-ray" is the strongest wording the sources support.
+  Intraoral films are taken more often overall, and Hennig's 78% comes from one university
+  department and patients up to 18 years.
