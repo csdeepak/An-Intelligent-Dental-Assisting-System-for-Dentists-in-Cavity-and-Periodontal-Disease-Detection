@@ -36,6 +36,12 @@ here can be settled from the repository.
       2. keep the shipped head and cite the retrain as evidence for the architecture;
       3. withhold the grade.
     Paper wording if adopted: `docs/results/PAPER_MATERIAL.md` §8.46.
+    **Decided 24 Nov 2026: adopted** (`RESULTS_LOG` 2026-11-24b).
+    - **Updated:** `paper.md` and its generated `paper.tex`, `paper_clean.md`, `tables/table_3.*`
+      and `turnitin/` md and tex.
+    - **Still owed:** rebuild `final_research_paper.pdf` and `turnitin/paper_no_citations.pdf`
+      with pdfLaTeX (`tools/build_paper.py`, `tools/build_no_citations.py`; no pdfLaTeX on the
+      Mac), and regenerate the evidence registry (L010 still says "untested severity grade").
 11. **[RECORD] `models/16_lever_b_pooled/run_summary.txt`** gives the best epoch as 54; its own
     `results.csv` gives 29, which the paper uses. Fix the summary (found by the VERIFIER).
 12. **[REPRODUCIBILITY] Windows vs macOS.** A 23 Nov rerun of the shipped pipeline on the 164 DENTEX

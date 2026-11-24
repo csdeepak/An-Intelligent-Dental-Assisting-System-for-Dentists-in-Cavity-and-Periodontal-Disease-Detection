@@ -9,7 +9,7 @@ approval or regulatory certification exists for it, and none is implied anywhere
 | Model output | What it is | What it is not | Where stated |
 |---|---|---|---|
 | Caries flag on tooth N | the lesion detector placed a box mostly inside tooth N's detected box | a confirmed carious lesion; a clinical caries diagnosis (no clinical exam, no bitewing, no histology) | VII Clinical implications |
-| Caries severity (Stage 3b) | a ResNet18 grade "caries / deep caries" validated on 133 crops | a tested severity estimate (no test set exists) | IV; Table 3 |
+| Caries severity (Stage 3b) | a ResNet18 grade "caries / deep caries" (DENTEX's annotation classes), tested once on 395 held-out annotation-box crops of teeth annotated carious: macro-F1 0.772, deep-caries precision 0.57 (since 24 Nov 2026; the head it replaced was validated on 133 crops only) | a depth measurement; a grade tested on the teeth the pipeline flags (it was not) | IV; Table 3 |
 | Stage-4 abnormality flag | crop overlaps a Tufts expert *abnormality* mask (apical lesions, sclerosis, cysts) | periodontal bone loss; periodontitis | Abstract; IV; VI-F; VII; IX |
 | Report confidence | a model score | a calibrated probability (only the retired crop classifier was calibrated, on development data) | VI-E; VII |
 
