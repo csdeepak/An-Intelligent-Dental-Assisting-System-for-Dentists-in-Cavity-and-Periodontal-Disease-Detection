@@ -71,7 +71,7 @@ re-traced 24 Nov 2026 on macOS after the Stage-3b default change, previously sch
 | 16 | Front end | 29.1 | Five before → after dumbbells, including the cost row and the not-separable row |
 | 17 | Caries | 20.8 | F1 bars against the constant line; Ningxia grouped bars; honest-limits footnote |
 | 18 | Stage 4 | 32.8 | 83.1 → 7.6 → 27.5 % (with seed marks); 0.721 (contrast) vs 0.294 vs prior 0.334 → not eligible |
-| 19 | Engineering | 15.1 | Claims 127 → 207, tests 174 → 204, schema 1.1 → 1.5; pins, hash check before loading, invariants |
+| 19 | Engineering | 15.1* | Claims 127 → 215, tests 174 → 214, schema 1.1 → 1.7, 11 pins (24 Nov snapshot); pins, hash check before loading, invariants |
 | 20 | Takeaway | 9.8 | Lowered, raised, named |
 | 21 | Close | 9.9 | Next steps; thank you; credits |
 
@@ -79,7 +79,8 @@ re-traced 24 Nov 2026 on macOS after the Stage-3b default change, previously sch
 
 | Figure in the video | Source |
 |---|---|
-| 1.70 s per image on CPU; 207 claims, 204 tests, 12 invariants (14 Oct, late night) | `transfer.md` §1 at `f1007ca`; hash check before loading: `af5cc44` |
+| 1.70 s per image on CPU | `transfer.md` §1 at `f1007ca` |
+| 215 claims, 214 tests, 12 invariants, 11 pinned weights, schema 1.7 (24 Nov) | run on `main` at `7b43343` on 24 Nov 2026: `scripts/verify_paper_numbers.py`, `pytest -q`, `scripts/eval/verify_invariants.py`; hash check before loading: `af5cc44` |
 | 127 claims, 174 tests (before) | `transfer.md` §1 at `fc811ca` (7 Sep snapshot) |
 | 95.3 M parameters | `model_metrics.md`, *Current front end*, Size |
 | Constant F1 0.320; F1 0.376 → 0.498; +17.80 pp [+13.48, +22.02] | `model_metrics.md`, *Caries, FDI-set F1* |
@@ -147,6 +148,6 @@ the replaced head.
   4. `mix_audio.py`;
   5. `make_captions.py`;
   6. the mux.
-- Scene 19 is a dated snapshot ("7 Sep → 14 Oct": claims 207, tests 204, schema 1.5, 10 pins) and
-  was left whole: on `main` today `pytest` is 214, the schema 1.7 and the pins 11. Refresh all of
-  it together, or leave it as the 14 Oct snapshot it says it is.
+- Scene 19 was refreshed as a whole to a 24 Nov snapshot (`main` at `7b43343`, measured that day):
+  `verify_paper_numbers.py` 215 claims, `pytest` 214 passed, `verify_invariants.py` 12 hold with 11
+  weight files pinned, schema 1.7. The 7 Sep side (127, 174, 1.1) is unchanged.
